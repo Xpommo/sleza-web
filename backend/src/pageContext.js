@@ -33,6 +33,7 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       locale: 'ru-RU',
       extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
+      ignoreHTTPSErrors: true, // needed for sites with expired/self-signed certs
     });
     const page = await browserCtx.newPage();
 

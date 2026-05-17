@@ -31,7 +31,8 @@ export default function Home() {
     setResult(null);
     setProgress(mode === 'single' ? 'Открываю страницу…' : 'Ищу sitemap…');
     try {
-      const endpoint = mode === 'single' ? '/api/scan/single' : '/api/scan/full';
+      const base = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const endpoint = mode === 'single' ? `${base}/api/scan/single` : `${base}/api/scan/full`;
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
