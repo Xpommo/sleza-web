@@ -77,7 +77,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true }) {
  * Scan an entire site (sitemap or crawl) and return compliance results.
  * Full-site logic mirrors runFullSiteScan() from the Tampermonkey script.
  */
-export async function scanFullSite({ url, groqKey, slezaKey, useAI = true, onProgress }) {
+export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, onProgress }) {
   const engine = createEngine({ groqKey, slezaKey });
   const origin = (() => { try { return new URL(url).origin; } catch { return url; } })();
 
@@ -145,8 +145,9 @@ export async function scanFullSite({ url, groqKey, slezaKey, useAI = true, onPro
     totalFound += checked.length;
     pages.push({ url: pageUrl, title: pageData.title, items: checked });
 
-    if (i < finalUrls.length - 1) {
-      await new Promise(r => setTimeout(r, 1100)); // Sleza rate limit: 1 req/sec
+    // Rate limit only when Sleza key is present (otherwise checkWithSleza returns immediately)
+    if (slezaKey && i < finalUrls.length - 1) {
+      await new Promise(r => setTimeout(r, 1100));
     }
   }
 
@@ -190,6 +191,6 @@ export async function scanFullSite({ url, groqKey, slezaKey, useAI = true, onPro
     aiData,
     egrul,
     slezaError: firstSlezaError,
-    stats: { total: urls.length, scanned: pages.length, found: totalFound },
+    stats: { discovered: urls.length, total: finalUrls.length, scanned: pages.length, found: totalFound },
   };
 }

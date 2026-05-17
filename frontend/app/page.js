@@ -25,26 +25,62 @@ export default function Home() {
     localStorage.setItem('slezaKey', k.slezaKey);
   };
 
+  const PHASE_LABELS = {
+    sitemap: 'Ищу карту сайта…',
+    crawl:   'Обхожу страницы…',
+    render:  'Открываю главную страницу…',
+    sleza:   'Проверяю по реестрам…',
+    ai:      'AI-анализ законов…',
+  };
+
   const scan = async (url, mode) => {
     setLoading(true);
     setError(null);
     setResult(null);
-    setProgress(mode === 'single' ? 'Открываю страницу…' : 'Ищу sitemap…');
+    setProgress('Открываю страницу…');
+    const base = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-groq-key':  keys.groqKey,
+      'x-sleza-key': keys.slezaKey,
+    };
+    const body = JSON.stringify({ url, useAI: !!keys.groqKey });
+
     try {
-      const base = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
-      const endpoint = mode === 'single' ? `${base}/api/scan/single` : `${base}/api/scan/full`;
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-groq-key':  keys.groqKey,
-          'x-sleza-key': keys.slezaKey,
-        },
-        body: JSON.stringify({ url, useAI: !!keys.groqKey }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
-      setResult(data);
+      if (mode === 'single') {
+        // Single page — plain fetch, fast enough
+        const res = await fetch(`${base}/api/scan/single`, { method: 'POST', headers, body });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
+        setResult(data);
+      } else {
+        // Full site — SSE stream for real-time progress
+        const res = await fetch(`${base}/api/scan/full/stream`, { method: 'POST', headers, body });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Ошибка сервера');
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop() ?? '';
+          for (const part of parts) {
+            if (!part.startsWith('data: ')) continue;
+            const data = JSON.parse(part.slice(6));
+            if (data.error) throw new Error(data.error);
+            if (data.done) { setResult(data.result); break; }
+            // Update progress label
+            const label = PHASE_LABELS[data.phase] || data.phase;
+            const pageInfo = data.total ? ` (${data.current}/${data.total})` : '';
+            setProgress(label + pageInfo);
+          }
+        }
+      }
     } catch (e) {
       setError(e.message);
     } finally {

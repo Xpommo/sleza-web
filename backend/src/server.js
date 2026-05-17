@@ -94,6 +94,48 @@ app.post('/api/scan/full', { schema: { body: scanBodySchema } }, async (request,
   }
 });
 
+// SSE endpoint for full site scan — streams progress events then final result.
+// The browser opens this as a fetch with ReadableStream; no timeout issues.
+app.post('/api/scan/full/stream', { schema: { body: scanBodySchema } }, async (request, reply) => {
+  const ip = request.ip;
+  if (!checkRateLimit(ip)) {
+    return reply.status(429).send({ error: 'Слишком много одновременных сканов с вашего IP. Подождите.' });
+  }
+
+  const { url, useAI = true } = request.body;
+  const { groqKey, slezaKey } = extractKeys(request);
+  const origin = request.headers.origin || ALLOWED_ORIGINS[0];
+
+  // Take raw control of the socket so we can stream SSE events
+  reply.hijack();
+  const res = reply.raw;
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Credentials': 'true',
+  });
+
+  const send = (data) => {
+    try { res.write(`data: ${JSON.stringify(data)}\n\n`); } catch (_) {}
+  };
+
+  try {
+    const result = await scanFullSite({
+      url, groqKey, slezaKey, useAI,
+      onProgress: (p) => send(p),
+    });
+    send({ done: true, result });
+  } catch (err) {
+    app.log.error(err);
+    send({ error: String(err.message) });
+  } finally {
+    releaseRateLimit(ip);
+    res.end();
+  }
+});
+
 app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString() }));
 
 try {

@@ -82,7 +82,8 @@ export default function Results({ data }) {
         </div>
         {data.stats && (
           <div className="text-xs text-gray-500 text-right">
-            Просканировано: {data.stats.scanned} / {data.stats.total} стр.<br/>
+            Просканировано: {data.stats.scanned} из {data.stats.total}
+            {data.stats.discovered > data.stats.total && ` (найдено ${data.stats.discovered})`} стр.<br/>
             Упоминаний: {data.stats.found}
           </div>
         )}
