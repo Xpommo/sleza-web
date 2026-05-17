@@ -91,12 +91,18 @@ export async function scanFullSite({ url, groqKey, slezaKey, useAI = true, onPro
   }
 
   const urls = urlList.urls;
-  const scored = urls
+  let scoredList = urls
     .map(u => ({ url: u, score: engine.scoreUrl(u) }))
     .filter(x => x.score >= 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 50)
-    .map(x => x.url);
+    .sort((a, b) => b.score - a.score);
+
+  // Fallback: scoreUrl rejected >95% of URLs — non-standard site structure.
+  // Use all URLs with LOW priority so at least something gets scanned.
+  if (scoredList.length === 0 && urls.length > 0) {
+    scoredList = urls.map(u => ({ url: u, score: 3 }));
+  }
+
+  const scored = scoredList.slice(0, 50).map(x => x.url);
 
   // Ensure current page is first
   const finalUrls = [url, ...scored.filter(u => u !== url)].slice(0, 50);

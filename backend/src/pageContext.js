@@ -81,7 +81,7 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
 
       return {
         url: location.href,
-        title: document.title || '',
+        title: (document.title || '').replace(/<[^>]+>/g, '').trim(),
         header: headerEl ? headerEl.innerText.slice(0, 500) : '',
         footer: footerEl ? footerEl.innerText.slice(0, 800) : '',
         bodyText: document.body.innerText.slice(0, 8000),
