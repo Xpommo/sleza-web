@@ -18,6 +18,7 @@ import { buildPageContext } from './pageContext.js';
  */
 export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true }) {
   const engine = createEngine({ groqKey, slezaKey });
+  const origin = (() => { try { return new URL(url).origin; } catch { return url; } })();
 
   // 1. Get page content via Playwright (rendered DOM, same as Tampermonkey in browser)
   const pageContext = await buildPageContext(url);
@@ -45,9 +46,11 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true }) {
   if (useAI && groqKey) {
     aiData = await engine.runAIAnalysis(pageContext, egrul, fullText);
   } else {
-    // Local checks only — no Groq call, no cost
-    const result152  = engine.check152FZ(pageContext.bodyText + ' ' + pageContext.header + ' ' + pageContext.footer);
-    const result149  = engine.check149FZ(fullText);
+    // Discover privacy policy page for accurate 152-FZ check
+    // (homepage rarely has the full policy text)
+    const policyPages = await engine.discoverPolicyByCommonPaths(origin);
+    const policyText = policyPages[0]?.text || fullText;
+    const result152  = engine.check152FZ(policyText + ' ' + pageContext.header);
     const resultERIR = engine.checkERIR(fullText);
     const resultOffer = engine.checkOffer(fullText, pageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(fullText);
@@ -97,15 +100,17 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     .sort((a, b) => b.score - a.score);
 
   // Fallback: scoreUrl rejected >95% of URLs — non-standard site structure.
-  // Use all URLs with LOW priority so at least something gets scanned.
   if (scoredList.length === 0 && urls.length > 0) {
     scoredList = urls.map(u => ({ url: u, score: 3 }));
   }
 
-  const scored = scoredList.slice(0, 50).map(x => x.url);
+  // Adaptive limit: without Sleza key there's no rate limit, so we can scan more pages.
+  // With key: capped at 50 (1.1s/page × 50 = ~55s just waiting).
+  const MAX_SCAN = slezaKey ? 50 : 150;
+  const scored = scoredList.slice(0, MAX_SCAN).map(x => x.url);
 
   // Ensure current page is first
-  const finalUrls = [url, ...scored.filter(u => u !== url)].slice(0, 50);
+  const finalUrls = [url, ...scored.filter(u => u !== url)].slice(0, MAX_SCAN);
 
   const pages = [];
   let allPagesRawText = '';
@@ -166,7 +171,13 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   if (useAI && groqKey) {
     aiData = await engine.runAIAnalysis(mainPageContext, egrul, allPagesText);
   } else {
-    const result152  = engine.check152FZ(mainPageContext.bodyText + ' ' + mainPageContext.header);
+    // Discover privacy policy page — critical for accurate 152-FZ check.
+    // runAIAnalysis does this internally; we replicate it for local-only mode.
+    onProgress?.({ phase: 'policy', url: origin });
+    const policyPages = await engine.discoverPolicyByCommonPaths(origin);
+    const policyText = policyPages[0]?.text || (mainPageContext.bodyText + ' ' + mainPageContext.header);
+
+    const result152  = engine.check152FZ(policyText);
     const result149  = engine.check149FZ(allPagesText);
     const resultERIR = engine.checkERIR(allPagesText);
     const resultOffer = engine.checkOffer(allPagesText, mainPageContext.offerLinks);

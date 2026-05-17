@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ScanForm from '../components/ScanForm';
 import Results from '../components/Results';
 
@@ -8,9 +8,9 @@ export default function Home() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [progress, setProgress] = useState('');
+  const [progress, setProgress] = useState({ label: '', current: 0, total: 0 });
+  const cancelRef = useRef(null); // stores the reader.cancel() function
 
-  // Keys stored in localStorage — never sent to or stored on server except per-request header
   const [keys, setKeys] = useState({ groqKey: '', slezaKey: '' });
   useEffect(() => {
     setKeys({
@@ -29,15 +29,28 @@ export default function Home() {
     sitemap: 'Ищу карту сайта…',
     crawl:   'Обхожу страницы…',
     render:  'Открываю главную страницу…',
-    sleza:   'Проверяю по реестрам…',
+    sleza:   'Проверяю по реестрам иноагентов…',
+    policy:  'Ищу политику конфиденциальности…',
     ai:      'AI-анализ законов…',
+  };
+
+  const stopScan = () => {
+    if (cancelRef.current) {
+      cancelRef.current();
+      cancelRef.current = null;
+    }
+    setLoading(false);
+    setProgress({ label: '', current: 0, total: 0 });
+    setError('Сканирование остановлено.');
   };
 
   const scan = async (url, mode) => {
     setLoading(true);
     setError(null);
     setResult(null);
-    setProgress('Открываю страницу…');
+    setProgress({ label: 'Открываю страницу…', current: 0, total: 0 });
+    cancelRef.current = null;
+
     const base = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
     const headers = {
       'Content-Type': 'application/json',
@@ -48,22 +61,25 @@ export default function Home() {
 
     try {
       if (mode === 'single') {
-        // Single page — plain fetch, fast enough
         const res = await fetch(`${base}/api/scan/single`, { method: 'POST', headers, body });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
         setResult(data);
       } else {
-        // Full site — SSE stream for real-time progress
         const res = await fetch(`${base}/api/scan/full/stream`, { method: 'POST', headers, body });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           throw new Error(data.error || 'Ошибка сервера');
         }
+
         const reader = res.body.getReader();
+        cancelRef.current = () => reader.cancel(); // allow stop button to cancel stream
+
         const decoder = new TextDecoder();
         let buffer = '';
-        while (true) {
+        let finished = false;
+
+        while (!finished) {
           const { done, value } = await reader.read();
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
@@ -73,21 +89,31 @@ export default function Home() {
             if (!part.startsWith('data: ')) continue;
             const data = JSON.parse(part.slice(6));
             if (data.error) throw new Error(data.error);
-            if (data.done) { setResult(data.result); break; }
-            // Update progress label
-            const label = PHASE_LABELS[data.phase] || data.phase;
-            const pageInfo = data.total ? ` (${data.current}/${data.total})` : '';
-            setProgress(label + pageInfo);
+            if (data.done) {
+              setResult(data.result);
+              finished = true;
+              break;
+            }
+            setProgress({
+              label: PHASE_LABELS[data.phase] || data.phase,
+              current: data.current || 0,
+              total: data.total || 0,
+            });
           }
         }
       }
     } catch (e) {
-      setError(e.message);
+      if (e.name !== 'AbortError' && e.message !== 'Сканирование остановлено.') {
+        setError(e.message);
+      }
     } finally {
+      cancelRef.current = null;
       setLoading(false);
-      setProgress('');
+      setProgress({ label: '', current: 0, total: 0 });
     }
   };
+
+  const pct = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-10">
@@ -134,10 +160,34 @@ export default function Home() {
       {/* Scan form */}
       <ScanForm onScan={scan} loading={loading} />
 
-      {/* Progress */}
+      {/* Progress block */}
       {loading && (
-        <div className="mt-6 text-center text-blue-400 text-sm animate-pulse">
-          ● {progress || 'Сканирование…'}
+        <div className="mt-6 bg-gray-900 rounded-xl p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-blue-400 text-sm animate-pulse">
+              ● {progress.label || 'Сканирование…'}
+            </span>
+            {progress.total > 0 && (
+              <span className="text-xs text-gray-500">
+                {progress.current} / {progress.total}
+              </span>
+            )}
+          </div>
+          {/* Progress bar — shows only when page count is known */}
+          {progress.total > 0 && (
+            <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          )}
+          <button
+            onClick={stopScan}
+            className="text-xs text-gray-500 hover:text-red-400 transition-colors"
+          >
+            ✕ Остановить
+          </button>
         </div>
       )}
 
