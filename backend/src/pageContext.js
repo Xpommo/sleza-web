@@ -28,16 +28,18 @@ const KW = {
 export async function buildPageContext(url, { timeout = 20000 } = {}) {
   const browser = await chromium.launch({ headless: true });
   try {
-    const page = await browser.newPage();
+    // Set userAgent and locale via context (page.setUserAgent removed in Playwright 1.x)
+    const browserCtx = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      locale: 'ru-RU',
+      extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
+    });
+    const page = await browserCtx.newPage();
 
-    // Mask as a normal browser to avoid bot-detection blocking
-    await page.setExtraHTTPHeaders({ 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' });
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+    await page.goto(url, { waitUntil: 'load', timeout });
 
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
-
-    // Give JS a moment to render dynamic content (React/Vue hydration)
-    await page.waitForTimeout(1500);
+    // Wait for JS hydration (React/Vue), and for any post-load redirects to settle
+    await page.waitForTimeout(2000);
 
     // Run the same extraction logic as getCurrentPageContent() — inside the real browser
     const context = await page.evaluate((kw) => {
