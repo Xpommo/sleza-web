@@ -2,8 +2,17 @@
 
 import { useState } from 'react';
 
+const SITE_TYPES = [
+  { value: 'auto',      label: 'Авто' },
+  { value: 'ecommerce', label: 'Магазин' },
+  { value: 'media',     label: 'СМИ / Блог' },
+  { value: 'services',  label: 'Услуги / B2B' },
+  { value: 'saas',      label: 'SaaS' },
+];
+
 export default function ScanForm({ onScan, loading }) {
   const [url, setUrl] = useState('');
+  const [siteType, setSiteType] = useState('auto');
 
   const normalise = (val) => {
     val = val.trim();
@@ -14,7 +23,7 @@ export default function ScanForm({ onScan, loading }) {
   const submit = (mode) => {
     const u = normalise(url);
     if (!u) return;
-    onScan(u, mode);
+    onScan(u, mode, siteType);
   };
 
   return (
@@ -28,6 +37,28 @@ export default function ScanForm({ onScan, loading }) {
         onKeyDown={e => e.key === 'Enter' && submit('single')}
         disabled={loading}
       />
+
+      <div className="space-y-1.5">
+        <div className="text-xs text-gray-500">Тип сайта</div>
+        <div className="flex flex-wrap gap-1.5">
+          {SITE_TYPES.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setSiteType(value)}
+              disabled={loading}
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                siteType === value
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:text-gray-200 border border-gray-700'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="flex gap-3">
         <button
           onClick={() => submit('single')}

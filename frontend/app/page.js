@@ -44,7 +44,7 @@ export default function Home() {
     setError('Сканирование остановлено.');
   };
 
-  const scan = async (url, mode) => {
+  const scan = async (url, mode, siteType = 'auto') => {
     setLoading(true);
     setError(null);
     setResult(null);
@@ -57,7 +57,7 @@ export default function Home() {
       'x-groq-key':  keys.groqKey,
       'x-sleza-key': keys.slezaKey,
     };
-    const body = JSON.stringify({ url, useAI: !!keys.groqKey });
+    const body = JSON.stringify({ url, useAI: !!keys.groqKey, siteType });
 
     try {
       if (mode === 'single') {

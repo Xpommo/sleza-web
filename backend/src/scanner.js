@@ -10,13 +10,23 @@
 import { createEngine } from './engine.js';
 import { buildPageContext } from './pageContext.js';
 
+function applyMediaOverride(aiData, siteType) {
+  if (siteType !== 'media' || !aiData?.checks) return;
+  const offer = aiData.checks.find(c => c.id === 'offer');
+  if (offer && offer.status !== 'ok') {
+    offer.status = 'ok';
+    offer.issue  = 'Информационный/медиа-сайт — публичная оферта не требуется (ЗоЗПП ст.26.1 применяется только к интернет-торговле)';
+    offer.action = '—';
+  }
+}
+
 /**
  * Scan a single page and return compliance results.
  *
- * @param {{ url: string, groqKey: string, slezaKey: string, useAI?: boolean }} opts
+ * @param {{ url: string, groqKey: string, slezaKey: string, useAI?: boolean, siteType?: string }} opts
  * @returns {Promise<object>} JSON results matching the shape renderResults() expects
  */
-export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true }) {
+export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, siteType = 'auto' }) {
   const engine = createEngine({ groqKey, slezaKey });
   const origin = (() => { try { return new URL(url).origin; } catch { return url; } })();
 
@@ -45,6 +55,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true }) {
   let aiData;
   if (useAI && groqKey) {
     aiData = await engine.runAIAnalysis(pageContext, egrul, fullText);
+    applyMediaOverride(aiData, siteType);
   } else {
     // Discover privacy policy page for accurate 152-FZ check
     // (homepage rarely has the full policy text)
@@ -61,7 +72,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true }) {
       policyHasCookies: false,
     });
     aiData = {
-      checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul }),
+      checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType }),
       site_name: pageContext.title,
     };
   }
@@ -81,7 +92,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true }) {
  * Scan an entire site (sitemap or crawl) and return compliance results.
  * Full-site logic mirrors runFullSiteScan() from the Tampermonkey script.
  */
-export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, onProgress }) {
+export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, onProgress, siteType = 'auto' }) {
   const engine = createEngine({ groqKey, slezaKey });
   const origin = (() => { try { return new URL(url).origin; } catch { return url; } })();
 
@@ -171,6 +182,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   let aiData;
   if (useAI && groqKey) {
     aiData = await engine.runAIAnalysis(mainPageContext, egrul, allPagesText);
+    applyMediaOverride(aiData, siteType);
   } else {
     // Discover privacy policy page — critical for accurate 152-FZ check.
     // runAIAnalysis does this internally; we replicate it for local-only mode.
@@ -189,7 +201,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       policyHasCookies: false,
     });
     aiData = {
-      checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul }),
+      checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType }),
       site_name: mainPageContext.title,
     };
   }

@@ -51,8 +51,9 @@ const scanBodySchema = {
   type: 'object',
   required: ['url'],
   properties: {
-    url:   { type: 'string', minLength: 4, maxLength: 2048 },
-    useAI: { type: 'boolean' },
+    url:      { type: 'string', minLength: 4, maxLength: 2048 },
+    useAI:    { type: 'boolean' },
+    siteType: { type: 'string', enum: ['auto', 'ecommerce', 'media', 'services', 'saas'] },
   },
 };
 
@@ -62,9 +63,9 @@ app.post('/api/scan/single', { schema: { body: scanBodySchema } }, async (reques
     return reply.status(429).send({ error: 'Слишком много одновременных сканов с вашего IP. Подождите.' });
   }
   try {
-    const { url, useAI = true } = request.body;
+    const { url, useAI = true, siteType = 'auto' } = request.body;
     const { groqKey, slezaKey } = extractKeys(request);
-    const result = await scanSinglePage({ url, groqKey, slezaKey, useAI });
+    const result = await scanSinglePage({ url, groqKey, slezaKey, useAI, siteType });
     return reply.send(result);
   } catch (err) {
     app.log.error(err);
@@ -80,10 +81,10 @@ app.post('/api/scan/full', { schema: { body: scanBodySchema } }, async (request,
     return reply.status(429).send({ error: 'Слишком много одновременных сканов с вашего IP. Подождите.' });
   }
   try {
-    const { url, useAI = true } = request.body;
+    const { url, useAI = true, siteType = 'auto' } = request.body;
     const { groqKey, slezaKey } = extractKeys(request);
     const result = await scanFullSite({
-      url, groqKey, slezaKey, useAI,
+      url, groqKey, slezaKey, useAI, siteType,
       onProgress: p => app.log.info(p, 'scan progress'),
     });
     return reply.send(result);
@@ -103,7 +104,7 @@ app.post('/api/scan/full/stream', { schema: { body: scanBodySchema } }, async (r
     return reply.status(429).send({ error: 'Слишком много одновременных сканов с вашего IP. Подождите.' });
   }
 
-  const { url, useAI = true } = request.body;
+  const { url, useAI = true, siteType = 'auto' } = request.body;
   const { groqKey, slezaKey } = extractKeys(request);
   const origin = request.headers.origin || ALLOWED_ORIGINS[0];
 
@@ -124,7 +125,7 @@ app.post('/api/scan/full/stream', { schema: { body: scanBodySchema } }, async (r
 
   try {
     const result = await scanFullSite({
-      url, groqKey, slezaKey, useAI,
+      url, groqKey, slezaKey, useAI, siteType,
       onProgress: (p) => send(p),
     });
     send({ done: true, result });
