@@ -7,6 +7,12 @@
  * - page.evaluate() runs JS *inside* the browser — so we use the same logic as
  *   getCurrentPageContent() in the Tampermonkey script, just moved server-side.
  * - Result: same quality as running the extension manually in Chrome.
+ *
+ * Browser lifecycle:
+ * - A single Chromium instance is launched lazily on first request and reused.
+ * - Each scan gets its own BrowserContext (isolated cookies/storage) which is
+ *   closed after use — this keeps scans isolated without the cost of relaunching.
+ * - Call closeBrowser() on process shutdown (wired in server.js).
  */
 import { chromium } from 'playwright';
 
@@ -17,8 +23,24 @@ const KW = {
   about:  ['о компани','о нас','контакт','about','contact','реквизит'],
 };
 
+let _browser = null;
+
+async function getBrowser() {
+  if (!_browser || !_browser.isConnected()) {
+    _browser = await chromium.launch({ headless: true });
+  }
+  return _browser;
+}
+
+export async function closeBrowser() {
+  if (_browser) {
+    await _browser.close();
+    _browser = null;
+  }
+}
+
 /**
- * Launches a headless browser, navigates to the URL, and extracts the same
+ * Navigates to the URL in a fresh browser context and extracts the same
  * fields that getCurrentPageContent() reads from the live DOM in Tampermonkey.
  *
  * @param {string} url
@@ -26,15 +48,14 @@ const KW = {
  * @returns {Promise<object>} pageContent object expected by runAIAnalysis()
  */
 export async function buildPageContext(url, { timeout = 20000 } = {}) {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await getBrowser();
+  const browserCtx = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    locale: 'ru-RU',
+    extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
+    ignoreHTTPSErrors: true,
+  });
   try {
-    // Set userAgent and locale via context (page.setUserAgent removed in Playwright 1.x)
-    const browserCtx = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-      locale: 'ru-RU',
-      extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
-      ignoreHTTPSErrors: true, // needed for sites with expired/self-signed certs
-    });
     const page = await browserCtx.newPage();
 
     await page.goto(url, { waitUntil: 'load', timeout });
@@ -65,7 +86,6 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
 
       const m = (l, kws) => matchesKw(l.text + ' ' + l.path, kws);
 
-      // Detect tracking/ad scripts — same list as Tampermonkey script
       const adScriptSelectors = [
         'script[src*="googletagmanager"]','script[src*="google-analytics"]','script[src*="gtag"]',
         'script[src*="mc.yandex"]','script[src*="metrika"]','script[src*="top.mail.ru"]',
@@ -97,6 +117,6 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
 
     return context;
   } finally {
-    await browser.close();
+    await browserCtx.close();
   }
 }

@@ -11,6 +11,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { scanSinglePage, scanFullSite } from './scanner.js';
+import { closeBrowser } from './pageContext.js';
 
 const PORT = Number(process.env.PORT) || 3001;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
@@ -137,6 +138,14 @@ app.post('/api/scan/full/stream', { schema: { body: scanBodySchema } }, async (r
 });
 
 app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString() }));
+
+const shutdown = async () => {
+  await closeBrowser();
+  await app.close();
+  process.exit(0);
+};
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 try {
   await app.listen({ port: PORT, host: '0.0.0.0' });

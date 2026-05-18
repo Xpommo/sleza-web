@@ -18,7 +18,15 @@ const SCRIPT_PATH = path.resolve(__dirname, '../../../sleza_tets_js/script');
 
 let _source = null;
 function readSource() {
-  if (!_source) _source = fs.readFileSync(SCRIPT_PATH, 'utf8');
+  if (!_source) {
+    if (!fs.existsSync(SCRIPT_PATH)) {
+      throw new Error(
+        `Скрипт Sleza не найден: ${SCRIPT_PATH}\n` +
+        `Убедитесь что репозиторий sleza_tets_js склонирован в ${path.resolve(__dirname, '../../../sleza_tets_js/')}`
+      );
+    }
+    _source = fs.readFileSync(SCRIPT_PATH, 'utf8');
+  }
   return _source;
 }
 

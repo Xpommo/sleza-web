@@ -51,6 +51,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true }) {
     const policyPages = await engine.discoverPolicyByCommonPaths(origin);
     const policyText = policyPages[0]?.text || fullText;
     const result152  = engine.check152FZ(policyText + ' ' + pageContext.header);
+    const result149  = engine.check149FZ(fullText);
     const resultERIR = engine.checkERIR(fullText);
     const resultOffer = engine.checkOffer(fullText, pageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(fullText);
