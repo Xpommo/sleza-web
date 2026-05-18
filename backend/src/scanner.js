@@ -10,6 +10,19 @@
 import { createEngine } from './engine.js';
 import { buildPageContext } from './pageContext.js';
 
+async function fetchPolicyText(engine, pageContext, origin, fallback) {
+  // 1. Use link found by Playwright on the rendered page (handles non-standard paths)
+  const linkHref = pageContext.policyLinks?.[0]?.href;
+  if (linkHref) {
+    const p = await engine.fetchUrl(linkHref);
+    if (p.ok && p.text.length > 200) return p.text;
+  }
+  // 2. Probe common URL patterns as fallback
+  const policyPages = await engine.discoverPolicyByCommonPaths(origin);
+  if (policyPages[0]?.text) return policyPages[0].text;
+  return fallback;
+}
+
 function applyMediaOverride(aiData, siteType) {
   if (siteType !== 'media' || !aiData?.checks) return;
   const offer = aiData.checks.find(c => c.id === 'offer');
@@ -59,8 +72,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   } else {
     // Discover privacy policy page for accurate 152-FZ check
     // (homepage rarely has the full policy text)
-    const policyPages = await engine.discoverPolicyByCommonPaths(origin);
-    const policyText = policyPages[0]?.text || fullText;
+    const policyText = await fetchPolicyText(engine, pageContext, origin, fullText);
     const result152  = engine.check152FZ(policyText + ' ' + pageContext.header);
     const result149  = engine.check149FZ(fullText);
     const resultERIR = engine.checkERIR(fullText);
@@ -187,8 +199,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     // Discover privacy policy page — critical for accurate 152-FZ check.
     // runAIAnalysis does this internally; we replicate it for local-only mode.
     onProgress?.({ phase: 'policy', url: origin });
-    const policyPages = await engine.discoverPolicyByCommonPaths(origin);
-    const policyText = policyPages[0]?.text || (mainPageContext.bodyText + ' ' + mainPageContext.header);
+    const policyText = await fetchPolicyText(engine, mainPageContext, origin, mainPageContext.bodyText + ' ' + mainPageContext.header);
 
     const result152  = engine.check152FZ(policyText);
     const result149  = engine.check149FZ(allPagesText);
