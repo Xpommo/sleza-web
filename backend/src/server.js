@@ -37,11 +37,7 @@ const app = Fastify({ logger: true });
 
 // Allow requests from the Next.js frontend
 await app.register(cors, {
-  origin: (origin, cb) => {
-    // Allow no-origin (curl, server-to-server) and listed origins
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-    cb(new Error(`Origin ${origin} not allowed`));
-  },
+  origin: true, // mirrors request Origin — fine for demo; restrict before production
   methods: ['POST', 'GET', 'OPTIONS'],
 });
 
