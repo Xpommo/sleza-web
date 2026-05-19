@@ -74,13 +74,19 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
         return kws.some(k => t.includes(k));
       };
 
+      // Allow links from same root domain incl. subdomains (e.g. forum.ixbt.com for ixbt.com)
+      const rootDomain = location.hostname.split('.').slice(-2).join('.');
+      const sameDomain = href => {
+        try { const h = new URL(href).hostname; return h === rootDomain || h.endsWith('.' + rootDomain); }
+        catch { return false; }
+      };
       const links = Array.from(document.querySelectorAll('a[href]'))
         .map(a => ({
           text: (a.innerText || a.textContent || '').trim().slice(0, 80),
           href: a.href,
           path: (() => { try { return new URL(a.href).pathname.toLowerCase(); } catch { return ''; } })(),
         }))
-        .filter(l => l.text && l.href.startsWith(location.origin));
+        .filter(l => l.text && sameDomain(l.href));
 
       const seen = new Set();
       const uniqueLinks = links.filter(l => seen.has(l.href) ? false : (seen.add(l.href), true));
