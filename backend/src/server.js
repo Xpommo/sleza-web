@@ -30,13 +30,18 @@ if (!existsSync(RESULTS_DIR)) mkdirSync(RESULTS_DIR, { recursive: true });
 if (!existsSync(PDFS_DIR))    mkdirSync(PDFS_DIR,    { recursive: true });
 
 const PORT = Number(process.env.PORT) || 3001;
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+  .split(',').map(o => o.trim()).filter(Boolean);
 
 const app = Fastify({ logger: true });
 
 // Allow requests from the Next.js frontend
 await app.register(cors, {
-  origin: ALLOWED_ORIGINS,
+  origin: (origin, cb) => {
+    // Allow no-origin (curl, server-to-server) and listed origins
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error(`Origin ${origin} not allowed`));
+  },
   methods: ['POST', 'GET', 'OPTIONS'],
 });
 
@@ -152,6 +157,23 @@ app.post('/api/scan/full/stream', { schema: { body: scanBodySchema } }, async (r
     releaseRateLimit(ip);
     res.end();
   }
+});
+
+// ── Debug: show what links Playwright finds on a page ────────────────────────
+app.get('/api/debug/links', async (request, reply) => {
+  const { url } = request.query;
+  if (!url) return reply.status(400).send({ error: 'url required' });
+  const { buildPageContext } = await import('./pageContext.js');
+  const ctx = await buildPageContext(url);
+  return reply.send({
+    policyLinks: ctx.policyLinks,
+    offerLinks:  ctx.offerLinks,
+    aboutLinks:  ctx.aboutLinks,
+    returnLinks: ctx.returnLinks,
+    totalLinks:  ctx.links?.length,
+    hasCookieBanner: ctx.hasCookieBanner,
+    hasAdScripts:    ctx.hasAdScripts,
+  });
 });
 
 // ── Results storage ──────────────────────────────────────────────────────────
