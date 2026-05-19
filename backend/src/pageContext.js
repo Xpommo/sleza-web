@@ -175,6 +175,40 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
     }, KW);
 
     return context;
+  } catch (err) {
+    // Playwright failed (timeout, network block, SSL) — fall back to plain fetch.
+    // We get less data (no JS rendering, no link extraction) but at least basic text.
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        signal: AbortSignal.timeout(10000),
+        redirect: 'follow',
+      });
+      const ct = res.headers.get('content-type') || '';
+      const charset = (ct.match(/charset=([^\s;]+)/i)?.[1] || 'utf-8').toLowerCase();
+      let html;
+      if (/windows-1251|cp1251|koi8/.test(charset)) {
+        html = new TextDecoder(charset).decode(await res.arrayBuffer());
+      } else {
+        html = await res.text();
+      }
+      const text = html
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/\s{2,}/g, ' ').trim();
+      const titleM = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+      return {
+        url, title: titleM?.[1]?.trim() || '', header: '', footer: '',
+        bodyText: text.slice(0, 10000), jsonLdText: '', eridAttrs: '',
+        links: [], policyLinks: [], offerLinks: [], returnLinks: [], aboutLinks: [],
+        hasAdScripts: false, hasCookieBanner: false,
+        _fallback: true,
+      };
+    } catch {
+      throw err; // rethrow original Playwright error
+    }
   } finally {
     await browserCtx.close();
   }
