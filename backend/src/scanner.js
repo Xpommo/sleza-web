@@ -249,9 +249,9 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     const result152  = engine.check152FZ(policyText);
     const result149  = engine.check149FZ(allPagesText + extraText);
     const resultERIR = engine.checkERIR(allPagesText + '\n' + (mainPageContext.eridAttrs || ''));
-    // checkOffer on main page only — article text causes false isCommercial on media sites
+    // checkOffer on main page only — legal terms in user-agreement trigger false SaaS detection
     const mainPageText = `${mainPageContext.title}\n${mainPageContext.header}\n${mainPageContext.bodyText}\n${mainPageContext.footer}`;
-    const resultOffer = engine.checkOffer(mainPageText + extraText, mainPageContext.offerLinks);
+    const resultOffer = engine.checkOffer(mainPageText, mainPageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(allPagesText);
     const resultCookie = engine.checkCookieCompliance({
       hasTracking: mainPageContext.hasAdScripts,
