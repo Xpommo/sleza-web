@@ -79,8 +79,15 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     // (homepage rarely has the full policy text)
     const policyText = await fetchPolicyText(engine, pageContext, origin, fullText);
     const result152  = engine.check152FZ(policyText + ' ' + pageContext.header);
-    const result149  = engine.check149FZ(fullText);
-    const resultERIR = engine.checkERIR(fullText);
+    // Fetch about/contacts page — rekvizity (INN, address, phone) are rarely on the homepage
+    const aboutHref = pageContext.aboutLinks?.[0]?.href;
+    let aboutText = '';
+    if (aboutHref) {
+      const a = await engine.fetchUrl(aboutHref);
+      if (a.ok) aboutText = a.text.slice(0, 3000);
+    }
+    const result149  = engine.check149FZ(fullText + '\n' + aboutText);
+    const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''));
     const resultOffer = engine.checkOffer(fullText, pageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(fullText);
     const resultCookie = engine.checkCookieCompliance({
@@ -208,7 +215,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
 
     const result152  = engine.check152FZ(policyText);
     const result149  = engine.check149FZ(allPagesText);
-    const resultERIR = engine.checkERIR(allPagesText);
+    const resultERIR = engine.checkERIR(allPagesText + '\n' + (mainPageContext.eridAttrs || ''));
     const resultOffer = engine.checkOffer(allPagesText, mainPageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(allPagesText);
     const resultCookie = engine.checkCookieCompliance({

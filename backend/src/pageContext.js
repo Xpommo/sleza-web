@@ -63,6 +63,10 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
     // Wait for JS hydration (React/Vue), and for any post-load redirects to settle
     await page.waitForTimeout(2000);
 
+    // Scroll slightly to trigger lazy-loaded cookie banners (some appear only on scroll)
+    await page.evaluate(() => window.scrollTo(0, 400));
+    await page.waitForTimeout(600);
+
     // Run the same extraction logic as getCurrentPageContent() — inside the real browser
     const context = await page.evaluate((kw) => {
       const matchesKw = (text, kws) => {
@@ -122,6 +126,14 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
         return out.join(' ');
       })();
 
+      // ERID tokens in HTML attributes (native ads often use data-erid instead of visible text)
+      const eridAttrs = Array.from(
+        document.querySelectorAll('[data-erid],[data-erid-token]')
+      ).map(el => {
+        const v = el.getAttribute('data-erid') || el.getAttribute('data-erid-token') || '';
+        return v ? `erid=${v}` : '';
+      }).filter(Boolean).join(' ');
+
       // Image alt texts in footer — ИНН/ОГРН sometimes rendered as images
       const footerImgAlt = footerEl
         ? Array.from(footerEl.querySelectorAll('img[alt]')).map(img => img.alt).join(' ')
@@ -132,8 +144,14 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
         title: (document.title || '').replace(/<[^>]+>/g, '').trim(),
         header: headerEl ? headerEl.innerText.slice(0, 500) : '',
         footer: footerEl ? (footerEl.innerText + ' ' + footerImgAlt).slice(0, 1200) : '',
-        bodyText: document.body.innerText.slice(0, 8000),
+        bodyText: (() => {
+          const t = document.body.innerText;
+          if (t.length <= 10000) return t;
+          // Keep head (content) + tail (rekvizity often at page bottom)
+          return t.slice(0, 8000) + '\n' + t.slice(-2000);
+        })(),
         jsonLdText,
+        eridAttrs,
         links: uniqueLinks.slice(0, 40),
         policyLinks: uniqueLinks.filter(l => m(l, kw.policy)).slice(0, 2),
         offerLinks:  uniqueLinks.filter(l => m(l, kw.offer)).slice(0, 2),
