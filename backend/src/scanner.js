@@ -40,7 +40,8 @@ async function fetchExtraText(engine, pageContext) {
   let extra = '';
   for (const href of hrefs) {
     const r = await engine.fetchUrl(href);
-    if (r.ok) extra += '\n' + r.text.slice(0, 4000);
+    // Use large slice — compliance pages are HTML and section 10+ easily exceeds 4k chars
+    if (r.ok) extra += '\n' + r.text.slice(0, 50000);
   }
   return extra;
 }
