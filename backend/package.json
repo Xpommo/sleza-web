@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "build": "npx playwright install chromium --with-deps"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.0",
