@@ -101,6 +101,22 @@ function applyMediaOverride(aiData, siteType) {
   }
 }
 
+function applyServicesOverride(aiData, siteType) {
+  if (siteType !== 'services' || !aiData?.checks) return;
+  const offer = aiData.checks.find(c => c.id === 'offer');
+  if (offer && offer.status !== 'ok' && offer.issue) {
+    // "Return of goods" rules (ЗоЗПП ст.26.1) apply only to physical goods —
+    // remove it from the issue for service/institutional sites
+    offer.issue = offer.issue
+      .replace(/условия?\s+возврата\s+товара[;,]?\s*/gi, '')
+      .replace(/\(торговая\s+площадка\)/gi, '(платные услуги / договор оказания услуг)')
+      .trim().replace(/^[;,\s]+/, '');
+    if (offer.action) {
+      offer.action = 'Опубликовать договор оказания услуг с реквизитами исполнителя (ИНН/ОГРН, полное название, адрес, email) и порядком расторжения';
+    }
+  }
+}
+
 /**
  * Auto-detect site type from page context when user left selector at 'auto'.
  * Returns 'media', 'ecommerce', 'services', 'saas', or 'auto' (= full checks).
@@ -108,10 +124,17 @@ function applyMediaOverride(aiData, siteType) {
 function detectSiteType(pageContext) {
   const text = `${pageContext.title || ''} ${pageContext.header || ''}`.toLowerCase();
   const allLinks = (pageContext.links || []).map(l => (l.href || '').toLowerCase());
+  const hostname = (() => { try { return new URL(pageContext.url || '').hostname.toLowerCase(); } catch { return ''; } })();
 
   // Media/news signals — title/header contains journalistic keywords
   if (/новост|обзор|статьи|журнал|\bсми\b|медиа|редакци|публикац|пресс-релиз/.test(text))
     return 'media';
+
+  // Services/corporate signals — domain or header contains institutional keywords.
+  // These sites may sell services but return-of-goods rules don't apply.
+  const servicesDomainRe = /institut|clinic|hospital|academy|school|university|edu\.|\.edu|медцентр|клиник|больниц/;
+  const servicesTextRe   = /институт|клиника|больниц|академия|университет|факультет|кафедр|АНО\b|НКО\b|ДПО\b|ЧОУ\b|ФГБУ|ФГБОУ|кабинет\s+врач|медицинск|стоматолог|поликлиник/;
+  if (servicesDomainRe.test(hostname) || servicesTextRe.test(text)) return 'services';
 
   // E-commerce signals — cart/checkout links or shop keywords in title
   if (/магазин|интернет.магазин|купить|каталог товар/.test(text)) return 'ecommerce';
@@ -162,6 +185,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   if (useAI && groqKey) {
     aiData = await engine.runAIAnalysis(pageContext, egrul, fullText);
     applyMediaOverride(aiData, siteType);
+    applyServicesOverride(aiData, siteType);
   } else {
     // Discover privacy policy page for accurate 152-FZ check
     // (homepage rarely has the full policy text)
@@ -291,6 +315,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   if (useAI && groqKey) {
     aiData = await engine.runAIAnalysis(mainPageContext, egrul, allPagesText);
     applyMediaOverride(aiData, siteType);
+    applyServicesOverride(aiData, siteType);
   } else {
     // Discover privacy policy page — critical for accurate 152-FZ check.
     // runAIAnalysis does this internally; we replicate it for local-only mode.
