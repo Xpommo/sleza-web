@@ -15,23 +15,37 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
   const linkHref = pageContext.policyLinks?.[0]?.href;
   if (linkHref) {
     const p = await engine.fetchUrl(linkHref);
-    if (p.ok && p.text.length > 200) return p.text;
+    if (p.ok && p.text.length > 200) return htmlToText(p.text);
   }
   // 2. Try offer/agreement link — Russian sites often put policy + rekvizity in one document
   //    e.g. /user-agreement matches offerLinks but contains the full privacy policy
   const offerHref = pageContext.offerLinks?.[0]?.href;
   if (offerHref && offerHref !== linkHref) {
     const p = await engine.fetchUrl(offerHref);
-    if (p.ok && p.text.length > 500) return p.text;
+    if (p.ok && p.text.length > 500) return htmlToText(p.text);
   }
   // 3. Probe common URL patterns as fallback
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
-  if (policyPages[0]?.text) return policyPages[0].text;
+  if (policyPages[0]?.text) return htmlToText(policyPages[0].text);
   return fallback;
 }
 
 // Fetch extra compliance pages (offer, about) for 149-FZ rekvizity check.
 // These pages often don't make it into the top-scored crawl pages on large sites.
+// Strip HTML tags and decode entities so check149FZ patterns (written for innerText) work correctly
+function htmlToText(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&laquo;/g, '«').replace(/&raquo;/g, '»')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g,    (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/\s{2,}/g, ' ').trim();
+}
+
 async function fetchExtraText(engine, pageContext) {
   const hrefs = [
     pageContext.offerLinks?.[0]?.href,
@@ -40,8 +54,7 @@ async function fetchExtraText(engine, pageContext) {
   let extra = '';
   for (const href of hrefs) {
     const r = await engine.fetchUrl(href);
-    // Use large slice — compliance pages are HTML and section 10+ easily exceeds 4k chars
-    if (r.ok) extra += '\n' + r.text.slice(0, 50000);
+    if (r.ok) extra += '\n' + htmlToText(r.text);
   }
   return extra;
 }
