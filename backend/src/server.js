@@ -24,7 +24,12 @@ const PDFS_DIR    = join(__dirname, '../pdfs');
 const LEADS_FILE  = join(__dirname, '../leads.jsonl');
 const TTL_MS      = 24 * 60 * 60 * 1000;
 const UUID_RE     = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+// Extract just the URL in case the env var was accidentally set as "FRONTEND_URL = https://..."
+const FRONTEND_URL = (() => {
+  const raw = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const m = raw.match(/https?:\/\/[^\s]+/);
+  return m ? m[0].replace(/\/$/, '') : 'http://localhost:3000';
+})();
 
 if (!existsSync(RESULTS_DIR)) mkdirSync(RESULTS_DIR, { recursive: true });
 if (!existsSync(PDFS_DIR))    mkdirSync(PDFS_DIR,    { recursive: true });
