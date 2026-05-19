@@ -13,9 +13,12 @@ import { fileURLToPath } from 'node:url';
 import { makeFetchTransport } from './transport.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// SLEZA_SCRIPT_PATH env var overrides default (used in Railway/Docker deployments)
-const SCRIPT_PATH = process.env.SLEZA_SCRIPT_PATH
-  || path.resolve(__dirname, '../../../sleza_tets_js/script');
+// Try submodule path (sleza-web/sleza_tets_js) first, then sibling repo (local dev)
+const SCRIPT_PATH = process.env.SLEZA_SCRIPT_PATH || (() => {
+  const submodule = path.resolve(__dirname, '../../sleza_tets_js/script');
+  const sibling   = path.resolve(__dirname, '../../../sleza_tets_js/script');
+  return fs.existsSync(submodule) ? submodule : sibling;
+})();
 
 let _source = null;
 function readSource() {

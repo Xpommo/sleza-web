@@ -1,0 +1,3 @@
+[submodule "sleza_tets_js"]
+	path = sleza_tets_js
+	url = https://github.com/Xpommo/Sleza_tets_js.git
