@@ -158,11 +158,14 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
         })(),
         jsonLdText,
         eridAttrs,
+        // Exclude content/article paths from compliance link categories
+        // to avoid news headlines with «персональн» being classified as policy pages
+        const isContentPath = p => /\/\d{4}\/\d{2}[\/\-]|\/(news|article|review|blog|post|video|forum)\//i.test(p);
         links: uniqueLinks.slice(0, 40),
-        policyLinks: uniqueLinks.filter(l => m(l, kw.policy)).slice(0, 2),
-        offerLinks:  uniqueLinks.filter(l => m(l, kw.offer)).slice(0, 2),
-        returnLinks: uniqueLinks.filter(l => m(l, kw.ret)).slice(0, 2),
-        aboutLinks:  uniqueLinks.filter(l => m(l, kw.about)).slice(0, 2),
+        policyLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.policy)).slice(0, 2),
+        offerLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.offer)).slice(0, 2),
+        returnLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.ret)).slice(0, 2),
+        aboutLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.about)).slice(0, 2),
         hasAdScripts:    document.querySelectorAll(adScriptSelectors).length > 0,
         hasCookieBanner: document.querySelectorAll(cookieBannerSelectors).length > 0 || hasCookieBannerByText,
       };

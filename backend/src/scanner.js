@@ -10,6 +10,20 @@
 import { createEngine } from './engine.js';
 import { buildPageContext } from './pageContext.js';
 
+// Extract hrefs from raw HTML that look like personal-data policy pages (1-level follow).
+// Handles sites like ixbt.com where rules:persdatapolicy is only linked from rules:cookie.
+function extractPolicyHrefs(html, baseUrl) {
+  const re = /href=["']([^"'#]+)["']/g;
+  const kw = /конфиденц|персональн|persdatapol|privacy|personal.?data/i;
+  const out = new Set();
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    if (!kw.test(m[1])) continue;
+    try { out.add(new URL(m[1], baseUrl).href); } catch {}
+  }
+  return [...out];
+}
+
 async function fetchPolicyText(engine, pageContext, origin, fallback) {
   // Try all policyLinks then all offerLinks — sites may label policy as «Правила»
   // which lands in offerLinks; also some combine policy+agreement in one document.
@@ -17,10 +31,24 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     ...(pageContext.policyLinks || []).map(l => l.href),
     ...(pageContext.offerLinks  || []).map(l => l.href),
   ].filter((h, i, a) => h && a.indexOf(h) === i);
+
+  let combined = '';
+  const visited = new Set(candidates);
+
   for (const href of candidates) {
     const p = await engine.fetchUrl(href);
-    if (p.ok && p.text.length > 200) return htmlToText(p.text);
+    if (!p.ok || p.text.length < 200) continue;
+    combined += '\n' + htmlToText(p.text);
+    // Follow 1 level: find personal-data policy links inside this page
+    for (const sub of extractPolicyHrefs(p.text, href)) {
+      if (visited.has(sub)) continue;
+      visited.add(sub);
+      const sp = await engine.fetchUrl(sub);
+      if (sp.ok && sp.text.length > 200) combined += '\n' + htmlToText(sp.text);
+    }
   }
+  if (combined.length > 200) return combined;
+
   // Fallback: probe common URL patterns
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
   if (policyPages[0]?.text) return htmlToText(policyPages[0].text);
