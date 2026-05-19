@@ -12,36 +12,36 @@ const LAWS = [
   { icon: '🏢', code: '149-ФЗ', name: 'Информация о владельце', desc: 'ИНН, ОГРН, юридический адрес, email, телефон на сайте', fine: 'до 100 000 ₽' },
   { icon: '📢', code: 'ЕРИР', name: 'Маркировка рекламы', desc: 'ERID-токен, пометка «реклама», данные рекламодателя', fine: 'до 500 000 ₽' },
   { icon: '⚖️', code: 'ЗоЗПП', name: 'Публичная оферта', desc: 'Условия продажи, возврата товаров и услуг', fine: 'до 500 000 ₽' },
-  { icon: '🚨', code: 'Реестры', name: 'Иноагенты и экстремисты', desc: 'Упоминания без обязательной маркировки', fine: 'до 5 000 000 ₽' },
+  { icon: '💧', code: 'Реестры', name: 'Иноагенты и экстремисты', desc: 'Упоминания без обязательной маркировки по реестрам sleza.media', fine: 'до 5 000 000 ₽' },
   { icon: '💊', code: 'ФЗ №3', name: 'Упоминание наркотиков', desc: 'Пропаганда или незаконный оборот запрещённых веществ', fine: 'до 1 500 000 ₽' },
 ];
 
 const FAQ = [
-  { q: 'Это бесплатно?', a: 'Да, базовая проверка бесплатна. Для AI-анализа потребуется GROQ API ключ (бесплатный тариф есть на groq.com).' },
-  { q: 'Насколько точны результаты?', a: 'Мы используем детерминированные проверки по актуальным требованиям законодательства + AI-арбитр для спорных случаев. Точность ~85–90%. Инструмент не заменяет юридическую экспертизу.' },
-  { q: 'Как часто нужно проверять сайт?', a: 'Рекомендуем раз в квартал и при каждом обновлении политики конфиденциальности или добавлении новых форм сбора данных.' },
-  { q: 'Что делать если нашли нарушения?', a: 'Каждая карточка содержит конкретное действие по устранению нарушения. Вы можете скачать PDF-отчёт и передать разработчику или юристу.' },
-  { q: 'Проверяет ли сервис весь сайт?', a: 'Да, режим «Весь сайт» сканирует до 150 страниц через sitemap или краулинг. Проверка занимает 2–5 минут.' },
+  { q: 'Это бесплатно?', a: 'Да, базовая проверка бесплатна. Для AI-анализа потребуется GROQ API ключ (бесплатный тариф на groq.com). Для проверки по реестрам иноагентов — ключ sleza.media.' },
+  { q: 'Насколько точны результаты?', a: 'Мы используем детерминированные алгоритмы по актуальным требованиям законодательства + AI-арбитр для спорных случаев. Точность ~85–90%. Инструмент не заменяет юридическую консультацию.' },
+  { q: 'Как часто нужно проверять сайт?', a: 'Рекомендуем раз в квартал и при каждом обновлении политики конфиденциальности или добавлении форм сбора данных.' },
+  { q: 'Что делать если нашли нарушения?', a: 'Каждая карточка содержит конкретное действие по устранению. Вы можете скачать PDF-отчёт и передать разработчику или юристу.' },
+  { q: 'Проверяет ли сервис весь сайт?', a: 'Да, режим «Весь сайт» сканирует до 150 страниц через sitemap или краулинг. Занимает 2–5 минут.' },
 ];
 
-function LandingSection({ onStartScan }) {
+function LandingSection() {
   const [openFaq, setOpenFaq] = useState(null);
   return (
     <>
       {/* Law cards */}
-      <div className="mt-12 mb-10">
-        <h2 className="text-center text-sm font-semibold text-gray-400 uppercase tracking-widest mb-6">Что мы проверяем</h2>
+      <div className="mt-14 mb-12">
+        <p className="text-center text-xs font-semibold text-gray-400 uppercase tracking-widest mb-8">Что проверяем</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {LAWS.map(l => (
-            <div key={l.code} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex gap-3">
-              <span className="text-2xl leading-none mt-0.5">{l.icon}</span>
+            <div key={l.code} className="border border-gray-200 rounded-xl p-4 flex gap-3 hover:border-gray-300 transition-colors">
+              <span className="text-xl leading-none mt-0.5 flex-shrink-0">{l.icon}</span>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-mono text-blue-400 font-semibold">{l.code}</span>
-                  <span className="text-sm font-semibold text-gray-100">{l.name}</span>
+                  <span className="text-xs font-semibold text-blue-600">{l.code}</span>
+                  <span className="text-sm font-semibold text-gray-800">{l.name}</span>
                 </div>
-                <p className="text-xs text-gray-400 mb-1">{l.desc}</p>
-                <p className="text-xs text-red-400/70">Штраф: {l.fine}</p>
+                <p className="text-xs text-gray-500 mb-1.5">{l.desc}</p>
+                <p className="text-xs text-red-500">Штраф: {l.fine}</p>
               </div>
             </div>
           ))}
@@ -49,20 +49,20 @@ function LandingSection({ onStartScan }) {
       </div>
 
       {/* Who is it for */}
-      <div className="mb-10 bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4">Для кого</h2>
-        <div className="grid grid-cols-2 gap-3 text-sm">
+      <div className="mb-12 border border-gray-200 rounded-xl p-6">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-5">Для кого</p>
+        <div className="grid grid-cols-2 gap-4">
           {[
-            ['👤', 'Владельцы сайтов', 'Проверьте свой сайт до проверки Роскомнадзора'],
+            ['👤', 'Владельцы сайтов', 'Проверьте сайт до проверки Роскомнадзора'],
             ['⚖️', 'Юристы', 'Быстрый аудит клиентских сайтов с PDF-отчётом'],
             ['📱', 'Маркетологи', 'Убедитесь что рекламные материалы промаркированы'],
             ['🏗️', 'Веб-студии', 'Сдавайте проекты с гарантией соответствия закону'],
           ].map(([icon, title, desc]) => (
-            <div key={title} className="flex gap-2">
-              <span className="text-lg leading-none">{icon}</span>
+            <div key={title} className="flex gap-3">
+              <span className="text-lg leading-none flex-shrink-0">{icon}</span>
               <div>
-                <div className="font-medium text-gray-200 text-sm">{title}</div>
-                <div className="text-xs text-gray-500">{desc}</div>
+                <div className="text-sm font-semibold text-gray-800">{title}</div>
+                <div className="text-xs text-gray-500 mt-0.5">{desc}</div>
               </div>
             </div>
           ))}
@@ -70,30 +70,41 @@ function LandingSection({ onStartScan }) {
       </div>
 
       {/* FAQ */}
-      <div className="mb-10">
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4">Частые вопросы</h2>
-        <div className="space-y-2">
+      <div className="mb-12">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-5">Частые вопросы</p>
+        <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden">
           {FAQ.map((item, i) => (
-            <div key={i} className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+            <div key={i}>
               <button
-                className="w-full text-left px-4 py-3 text-sm text-gray-200 font-medium flex justify-between items-center hover:bg-gray-800/50 transition-colors"
+                className="w-full text-left px-5 py-4 text-sm font-medium text-gray-800 flex justify-between items-center hover:bg-gray-50 transition-colors"
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
               >
                 {item.q}
-                <span className="text-gray-500 ml-2">{openFaq === i ? '−' : '+'}</span>
+                <span className="text-gray-400 ml-3 flex-shrink-0 text-lg leading-none">{openFaq === i ? '−' : '+'}</span>
               </button>
               {openFaq === i && (
-                <div className="px-4 pb-3 text-sm text-gray-400 border-t border-gray-800 pt-2">{item.a}</div>
+                <div className="px-5 pb-4 text-sm text-gray-500">{item.a}</div>
               )}
             </div>
           ))}
         </div>
       </div>
 
+      {/* Powered by */}
+      <div className="mb-10 text-center">
+        <p className="text-xs text-gray-400">
+          Реестры иноагентов и экстремистов предоставлены{' '}
+          <a href="https://sleza.media" target="_blank" rel="noopener" className="text-blue-500 hover:underline">sleza.media</a>
+        </p>
+      </div>
+
       {/* Footer */}
-      <div className="border-t border-gray-800 pt-6 text-center text-xs text-gray-600">
-        <p className="mb-1">СЛЕЗА // ПРОВЕРКА — инструмент для предварительного аудита. Не является юридической консультацией.</p>
-        <p>По вопросам: <a href="mailto:kirillmash99@gmail.com" className="text-gray-500 hover:text-gray-300">kirillmash99@gmail.com</a></p>
+      <div className="border-t border-gray-100 pt-6 flex items-center justify-between text-xs text-gray-400">
+        <span>💧 СЛЕЗА // ПРОВЕРКА</span>
+        <div className="flex gap-4">
+          <a href="mailto:kirillmash99@gmail.com" className="hover:text-gray-600 transition-colors">kirillmash99@gmail.com</a>
+          <span>Не является юридической консультацией</span>
+        </div>
       </div>
     </>
   );
@@ -126,9 +137,7 @@ export default function Home() {
     setLoading(true);
     fetch(`${BASE}/api/results/${reportId}`)
       .then(r => {
-        if (!r.ok) throw new Error(
-          r.status === 410 ? 'Срок хранения отчёта истёк (24 часа)' : 'Отчёт не найден'
-        );
+        if (!r.ok) throw new Error(r.status === 410 ? 'Срок хранения отчёта истёк (24 часа)' : 'Отчёт не найден');
         return r.json();
       })
       .then(data => { setResult(data.result); setUuid(reportId); })
@@ -137,10 +146,7 @@ export default function Home() {
   }, []);
 
   const newScan = () => {
-    setResult(null);
-    setUuid(null);
-    setError(null);
-    setShowForm(true);
+    setResult(null); setUuid(null); setError(null); setShowForm(true);
     window.history.replaceState(null, '', '/');
     setTimeout(() => formRef.current?.querySelector('input')?.focus(), 50);
   };
@@ -148,8 +154,7 @@ export default function Home() {
   const saveResult = async (data) => {
     try {
       const r = await fetch(`${BASE}/api/results`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ result: data }),
       });
       const { uuid: id } = await r.json();
@@ -160,40 +165,29 @@ export default function Home() {
 
   const saveKeys = (k) => {
     setKeys(k);
-    localStorage.setItem('groqKey',  k.groqKey);
+    localStorage.setItem('groqKey', k.groqKey);
     localStorage.setItem('slezaKey', k.slezaKey);
   };
 
   const PHASE_LABELS = {
-    sitemap: 'Ищу карту сайта…',
-    crawl:   'Обхожу страницы…',
-    render:  'Открываю главную страницу…',
-    sleza:   'Проверяю по реестрам иноагентов…',
-    policy:  'Ищу политику конфиденциальности…',
-    ai:      'AI-анализ законов…',
+    sitemap: 'Ищу карту сайта…', crawl: 'Обхожу страницы…',
+    render: 'Открываю главную страницу…', sleza: 'Проверяю по реестрам иноагентов…',
+    policy: 'Ищу политику конфиденциальности…', ai: 'AI-анализ законов…',
   };
 
   const stopScan = () => {
     if (cancelRef.current) { cancelRef.current(); cancelRef.current = null; }
-    setLoading(false);
-    setProgress({ label: '', current: 0, total: 0 });
+    setLoading(false); setProgress({ label: '', current: 0, total: 0 });
     setError('Сканирование остановлено.');
   };
 
   const scan = async (url, mode, siteType = 'auto') => {
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    setUuid(null);
+    setLoading(true); setError(null); setResult(null); setUuid(null);
     setProgress({ label: 'Открываю страницу…', current: 0, total: 0 });
     cancelRef.current = null;
     window.history.replaceState(null, '', '/');
 
-    const headers = {
-      'Content-Type': 'application/json',
-      'x-groq-key':  keys.groqKey,
-      'x-sleza-key': keys.slezaKey,
-    };
+    const headers = { 'Content-Type': 'application/json', 'x-groq-key': keys.groqKey, 'x-sleza-key': keys.slezaKey };
     const body = JSON.stringify({ url, useAI: !!keys.groqKey, siteType });
 
     try {
@@ -201,52 +195,32 @@ export default function Home() {
         const res = await fetch(`${BASE}/api/scan/single`, { method: 'POST', headers, body });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
-        setResult(data);
-        saveResult(data);
+        setResult(data); saveResult(data);
       } else {
         const res = await fetch(`${BASE}/api/scan/full/stream`, { method: 'POST', headers, body });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || 'Ошибка сервера');
-        }
-
+        if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || 'Ошибка сервера'); }
         const reader = res.body.getReader();
         cancelRef.current = () => reader.cancel();
-
         const decoder = new TextDecoder();
-        let buffer = '';
-        let finished = false;
-
+        let buffer = '', finished = false;
         while (!finished) {
           const { done, value } = await reader.read();
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
-          const parts = buffer.split('\n\n');
-          buffer = parts.pop() ?? '';
+          const parts = buffer.split('\n\n'); buffer = parts.pop() ?? '';
           for (const part of parts) {
             if (!part.startsWith('data: ')) continue;
             const data = JSON.parse(part.slice(6));
             if (data.error) throw new Error(data.error);
-            if (data.done) {
-              setResult(data.result);
-              saveResult(data.result);
-              finished = true;
-              break;
-            }
-            setProgress({
-              label:   PHASE_LABELS[data.phase] || data.phase,
-              current: data.current || 0,
-              total:   data.total   || 0,
-            });
+            if (data.done) { setResult(data.result); saveResult(data.result); finished = true; break; }
+            setProgress({ label: PHASE_LABELS[data.phase] || data.phase, current: data.current || 0, total: data.total || 0 });
           }
         }
       }
     } catch (e) {
       if (e.name !== 'AbortError' && e.message !== 'Сканирование остановлено.') setError(e.message);
     } finally {
-      cancelRef.current = null;
-      setLoading(false);
-      setProgress({ label: '', current: 0, total: 0 });
+      cancelRef.current = null; setLoading(false); setProgress({ label: '', current: 0, total: 0 });
     }
   };
 
@@ -254,95 +228,80 @@ export default function Home() {
   const showLanding = showForm && !result && !loading;
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10">
+    <main className="max-w-2xl mx-auto px-4 py-12">
       <ShareModal open={!!shareModal} onClose={() => setShareModal(null)} uuid={uuid} mode={shareModal} />
 
       {/* Header */}
-      <div className={`text-center ${showLanding ? 'mb-8' : 'mb-6'}`}>
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <span className="text-2xl">💧</span>
-          <h1 className="text-2xl font-bold tracking-widest text-blue-400 uppercase">
-            СЛЕЗА // ПРОВЕРКА
-          </h1>
+      <header className="mb-10">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-3xl">💧</span>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 leading-tight">СЛЕЗА // ПРОВЕРКА</h1>
+            <p className="text-xs text-gray-400">сервис автоматического аудита сайтов</p>
+          </div>
         </div>
-        {showLanding ? (
-          <>
-            <p className="text-gray-300 text-base mb-1">Бесплатный аудит сайта на соответствие законам РФ</p>
-            <p className="text-gray-500 text-sm">152-ФЗ · 149-ФЗ · ЕРИР · Иноагенты · Оферта · Наркотики</p>
-          </>
-        ) : (
-          <p className="text-gray-500 text-sm">Аудит сайта на соответствие 152-ФЗ, 149-ФЗ, ЕРИР, реестрам иноагентов</p>
+        {showLanding && (
+          <p className="text-gray-600 text-base leading-relaxed">
+            Бесплатная проверка вашего сайта на соответствие 152-ФЗ, 149-ФЗ, ЕРИР
+            и реестрам иноагентов. Результат — за 30 секунд.
+          </p>
         )}
-      </div>
+      </header>
 
       {/* API Keys */}
-      <details className="mb-6 bg-gray-900 rounded-lg p-4">
-        <summary className="cursor-pointer text-sm text-gray-400 hover:text-gray-200">⚙ API ключи {!keys.groqKey && <span className="text-yellow-500/70 ml-1">(AI-анализ отключён)</span>}</summary>
-        <div className="mt-3 space-y-2">
+      <details className="mb-5 border border-gray-200 rounded-xl">
+        <summary className="cursor-pointer px-4 py-3 text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 select-none">
+          <span>⚙</span>
+          <span>API ключи</span>
+          {!keys.groqKey && <span className="ml-auto text-xs text-amber-500">AI-анализ отключён</span>}
+        </summary>
+        <div className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-3">
           <div>
-            <label className="text-xs text-gray-500 block mb-1">GROQ KEY — для AI-анализа <a href="https://console.groq.com" target="_blank" rel="noopener" className="text-blue-500 hover:text-blue-400">(получить бесплатно)</a></label>
-            <input
-              type="password"
-              className="w-full bg-gray-800 text-gray-100 rounded px-3 py-1.5 text-sm font-mono border border-gray-700 focus:border-blue-500 outline-none"
-              value={keys.groqKey}
-              onChange={e => saveKeys({ ...keys, groqKey: e.target.value })}
-              placeholder="gsk_..."
-            />
+            <label className="text-xs text-gray-400 block mb-1">
+              GROQ KEY — для AI-анализа{' '}
+              <a href="https://console.groq.com" target="_blank" rel="noopener" className="text-blue-500 hover:underline">получить бесплатно</a>
+            </label>
+            <input type="password" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-800 focus:border-blue-400 focus:outline-none" value={keys.groqKey} onChange={e => saveKeys({ ...keys, groqKey: e.target.value })} placeholder="gsk_..." />
           </div>
           <div>
-            <label className="text-xs text-gray-500 block mb-1">SLEZA KEY — для реестров иноагентов</label>
-            <input
-              type="password"
-              className="w-full bg-gray-800 text-gray-100 rounded px-3 py-2 text-sm font-mono border border-gray-700 focus:border-blue-500 outline-none"
-              value={keys.slezaKey}
-              onChange={e => saveKeys({ ...keys, slezaKey: e.target.value })}
-              placeholder="sleza_..."
-            />
+            <label className="text-xs text-gray-400 block mb-1">SLEZA KEY — для реестров иноагентов</label>
+            <input type="password" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-800 focus:border-blue-400 focus:outline-none" value={keys.slezaKey} onChange={e => saveKeys({ ...keys, slezaKey: e.target.value })} placeholder="sleza_..." />
           </div>
-          <p className="text-xs text-gray-600 mt-1">Ключи хранятся только в вашем браузере.</p>
+          <p className="text-xs text-gray-400">Ключи хранятся только в вашем браузере.</p>
         </div>
       </details>
 
       {/* Scan form */}
-      {showForm && (
-        <div ref={formRef}>
-          <ScanForm onScan={scan} loading={loading} />
-        </div>
-      )}
+      {showForm && <div ref={formRef}><ScanForm onScan={scan} loading={loading} /></div>}
 
       {/* Progress */}
       {loading && !result && (
-        <div className="mt-6 bg-gray-900 rounded-xl p-5 space-y-3">
+        <div className="mt-5 border border-gray-200 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-blue-400 text-sm animate-pulse">● {progress.label || 'Сканирование…'}</span>
-            {progress.total > 0 && (
-              <span className="text-xs text-gray-500">{progress.current} / {progress.total}</span>
-            )}
+            <span className="text-sm text-blue-600 flex items-center gap-2">
+              <span className="inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+              {progress.label || 'Сканирование…'}
+            </span>
+            {progress.total > 0 && <span className="text-xs text-gray-400">{progress.current} / {progress.total}</span>}
           </div>
           {progress.total > 0 && (
-            <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+            <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
               <div className="h-full bg-blue-500 rounded-full transition-all duration-300" style={{ width: `${pct}%` }} />
             </div>
           )}
-          <button onClick={stopScan} className="text-xs text-gray-500 hover:text-red-400 transition-colors">
-            ✕ Остановить
-          </button>
+          <button onClick={stopScan} className="text-xs text-gray-400 hover:text-red-500 transition-colors">✕ Остановить</button>
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div className="mt-6 bg-red-900/40 border border-red-700 rounded-lg p-4 text-red-300 text-sm">
-          ⚠ {error}
-        </div>
+        <div className="mt-5 border border-red-200 bg-red-50 rounded-xl p-4 text-sm text-red-700">⚠ {error}</div>
       )}
 
       {/* Results */}
-      {result && (
-        <Results data={result} uuid={uuid} onShare={(mode) => setShareModal(mode)} onNewScan={newScan} />
-      )}
+      {result && <Results data={result} uuid={uuid} onShare={mode => setShareModal(mode)} onNewScan={newScan} />}
 
-      {/* Landing content — shown only on initial state */}
+      {/* Landing */}
       {showLanding && <LandingSection />}
     </main>
   );

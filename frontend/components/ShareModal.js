@@ -44,27 +44,27 @@ export default function ShareModal({ open, onClose, uuid, mode }) {
   const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}?report=${uuid}`;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 w-full max-w-md shadow-xl">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-gray-100">
+          <h2 className="text-sm font-semibold text-gray-800">
             {mode === 'share' ? '🔗 Поделиться отчётом' : '📄 Скачать PDF'}
           </h2>
-          <button onClick={close} className="text-gray-500 hover:text-gray-300 text-lg leading-none">✕</button>
+          <button onClick={close} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
         </div>
 
         {done ? (
           <div className="text-center py-2">
             {mode === 'share' ? (
               <>
-                <div className="text-green-400 text-sm mb-3">✓ Ссылка скопирована в буфер обмена</div>
-                <div className="text-xs text-gray-400 font-mono bg-gray-800 rounded p-2 break-all">{shareUrl}</div>
-                <p className="text-xs text-gray-600 mt-2">Действительна 24 часа</p>
+                <div className="text-green-600 text-sm mb-3">✓ Ссылка скопирована в буфер обмена</div>
+                <div className="text-xs text-gray-500 font-mono bg-gray-50 border border-gray-200 rounded-lg p-3 break-all">{shareUrl}</div>
+                <p className="text-xs text-gray-400 mt-2">Действительна 24 часа</p>
               </>
             ) : (
-              <div className="text-green-400 text-sm">✓ PDF загружается…</div>
+              <div className="text-green-600 text-sm">✓ PDF загружается…</div>
             )}
-            <button onClick={close} className="mt-4 text-xs text-gray-500 hover:text-gray-300">Закрыть</button>
+            <button onClick={close} className="mt-4 text-xs text-gray-400 hover:text-gray-600">Закрыть</button>
           </div>
         ) : (
           <>
@@ -73,10 +73,10 @@ export default function ShareModal({ open, onClose, uuid, mode }) {
             </p>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-500 block mb-1">Email *</label>
+                <label className="text-xs text-gray-400 block mb-1">Email *</label>
                 <input
                   type="email"
-                  className="w-full bg-gray-800 text-gray-100 rounded px-3 py-2 text-sm border border-gray-700 focus:border-blue-500 outline-none"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:border-blue-400 outline-none"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@company.ru"
@@ -84,21 +84,21 @@ export default function ShareModal({ open, onClose, uuid, mode }) {
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-500 block mb-1">Компания *</label>
+                <label className="text-xs text-gray-400 block mb-1">Компания *</label>
                 <input
                   type="text"
-                  className="w-full bg-gray-800 text-gray-100 rounded px-3 py-2 text-sm border border-gray-700 focus:border-blue-500 outline-none"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:border-blue-400 outline-none"
                   value={company}
                   onChange={e => setCompany(e.target.value)}
                   placeholder="ООО Пример"
                   onKeyDown={e => e.key === 'Enter' && submit()}
                 />
               </div>
-              {error && <p className="text-xs text-red-400">{error}</p>}
+              {error && <p className="text-xs text-red-500">{error}</p>}
               <button
                 onClick={submit}
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded py-2 transition-colors"
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg py-2.5 transition-colors"
               >
                 {loading ? 'Отправка…' : mode === 'share' ? 'Получить ссылку' : 'Скачать PDF'}
               </button>
