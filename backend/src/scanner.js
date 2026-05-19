@@ -102,6 +102,29 @@ function applyMediaOverride(aiData, siteType) {
 }
 
 /**
+ * Auto-detect site type from page context when user left selector at 'auto'.
+ * Returns 'media', 'ecommerce', 'services', 'saas', or 'auto' (= full checks).
+ */
+function detectSiteType(pageContext) {
+  const text = `${pageContext.title || ''} ${pageContext.header || ''}`.toLowerCase();
+  const allLinks = (pageContext.links || []).map(l => (l.href || '').toLowerCase());
+
+  // Media/news signals — title/header contains journalistic keywords
+  if (/новост|обзор|статьи|журнал|\bсми\b|медиа|редакци|публикац|пресс-релиз/.test(text))
+    return 'media';
+
+  // E-commerce signals — cart/checkout links or shop keywords in title
+  if (/магазин|интернет.магазин|купить|каталог товар/.test(text)) return 'ecommerce';
+  if (allLinks.some(l => /\/(cart|basket|checkout|product|catalog)\b/.test(l))) return 'ecommerce';
+
+  // SaaS signals — pricing/plans page or subscription keywords
+  if (/тариф|подписк|pricing|per.month/.test(text)) return 'saas';
+  if (allLinks.some(l => /\/(pricing|plans|tariff)\b/.test(l))) return 'saas';
+
+  return 'auto';
+}
+
+/**
  * Scan a single page and return compliance results.
  *
  * @param {{ url: string, groqKey: string, slezaKey: string, useAI?: boolean, siteType?: string }} opts
@@ -113,6 +136,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
 
   // 1. Get page content via Playwright (rendered DOM, same as Tampermonkey in browser)
   const pageContext = await buildPageContext(url);
+  if (siteType === 'auto') siteType = detectSiteType(pageContext);
   const fullText = `${pageContext.title}\n${pageContext.header}\n${pageContext.bodyText}\n${pageContext.footer}`;
   const fullTextWithMeta = fullText + '\n' + (pageContext.jsonLdText || '');
 
@@ -215,6 +239,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   // 2. Get main page via Playwright (for AI context and links)
   onProgress?.({ phase: 'render', url });
   const mainPageContext = await buildPageContext(url);
+  if (siteType === 'auto') siteType = detectSiteType(mainPageContext);
 
   // 3. Scan each page via Sleza API (plain fetch is fine for text extraction here)
   for (let i = 0; i < finalUrls.length; i++) {
