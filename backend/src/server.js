@@ -244,7 +244,7 @@ app.get('/api/results/:uuid/pdf', async (request, reply) => {
     .send(readFileSync(pdfFile));
 });
 
-app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString() }));
+app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString(), v: 'bundled-script-v1' }));
 
 const shutdown = async () => {
   await closeBrowser();
