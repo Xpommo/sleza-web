@@ -123,15 +123,15 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
       })();
 
       // Image alt texts in footer — ИНН/ОГРН sometimes rendered as images
-      const footerImgAlt = Array.from(
-        (footerEl || document.body).querySelectorAll('img[alt]')
-      ).map(img => img.alt).join(' ');
+      const footerImgAlt = footerEl
+        ? Array.from(footerEl.querySelectorAll('img[alt]')).map(img => img.alt).join(' ')
+        : '';
 
       return {
         url: location.href,
         title: (document.title || '').replace(/<[^>]+>/g, '').trim(),
         header: headerEl ? headerEl.innerText.slice(0, 500) : '',
-        footer: footerEl ? (footerEl.innerText + ' ' + footerImgAlt).slice(0, 1200) : footerImgAlt.slice(0, 400),
+        footer: footerEl ? (footerEl.innerText + ' ' + footerImgAlt).slice(0, 1200) : '',
         bodyText: document.body.innerText.slice(0, 8000),
         jsonLdText,
         links: uniqueLinks.slice(0, 40),
