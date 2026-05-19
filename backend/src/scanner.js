@@ -108,7 +108,7 @@ function applyMediaOverride(aiData, siteType) {
  * @returns {Promise<object>} JSON results matching the shape renderResults() expects
  */
 export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, siteType = 'auto' }) {
-  const engine = createEngine({ groqKey, slezaKey });
+  const engine = await createEngine({ groqKey, slezaKey });
   const origin = (() => { try { return new URL(url).origin; } catch { return url; } })();
 
   // 1. Get page content via Playwright (rendered DOM, same as Tampermonkey in browser)
@@ -176,7 +176,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
  * Full-site logic mirrors runFullSiteScan() from the Tampermonkey script.
  */
 export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, onProgress, siteType = 'auto' }) {
-  const engine = createEngine({ groqKey, slezaKey });
+  const engine = await createEngine({ groqKey, slezaKey });
   const origin = (() => { try { return new URL(url).origin; } catch { return url; } })();
 
   onProgress?.({ phase: 'sitemap', url: origin });

@@ -13,24 +13,25 @@ import { fileURLToPath } from 'node:url';
 import { makeFetchTransport } from './transport.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Try submodule path (sleza-web/sleza_tets_js) first, then sibling repo (local dev)
 const SCRIPT_PATH = process.env.SLEZA_SCRIPT_PATH || (() => {
   const submodule = path.resolve(__dirname, '../../sleza_tets_js/script');
   const sibling   = path.resolve(__dirname, '../../../sleza_tets_js/script');
   return fs.existsSync(submodule) ? submodule : sibling;
 })();
+const SCRIPT_GITHUB_URL = 'https://raw.githubusercontent.com/Xpommo/Sleza_tets_js/main/script';
 
 let _source = null;
-function readSource() {
-  if (!_source) {
-    if (!fs.existsSync(SCRIPT_PATH)) {
-      throw new Error(
-        `Скрипт Sleza не найден: ${SCRIPT_PATH}\n` +
-        `Убедитесь что репозиторий sleza_tets_js склонирован в ${path.resolve(__dirname, '../../../sleza_tets_js/')}`
-      );
-    }
+async function readSource() {
+  if (_source) return _source;
+  if (fs.existsSync(SCRIPT_PATH)) {
     _source = fs.readFileSync(SCRIPT_PATH, 'utf8');
+    return _source;
   }
+  // Fallback: fetch from GitHub (used in Railway/Docker where local path is unavailable)
+  console.log('[engine] Script not found locally, fetching from GitHub…');
+  const res = await fetch(SCRIPT_GITHUB_URL);
+  if (!res.ok) throw new Error(`Failed to fetch script from GitHub: ${res.status}`);
+  _source = await res.text();
   return _source;
 }
 
@@ -67,7 +68,7 @@ function makeMinimalDocument() {
  * @param {{ groqKey: string, slezaKey: string }} keys
  * @returns {object} — all exported scan functions from module.exports
  */
-export function createEngine({ groqKey = '', slezaKey = '' } = {}) {
+export async function createEngine({ groqKey = '', slezaKey = '' } = {}) {
   const document = makeMinimalDocument();
   const location = document.location;
 
@@ -102,7 +103,7 @@ export function createEngine({ groqKey = '', slezaKey = '' } = {}) {
   sandbox.self = sandbox;
 
   const ctx = vm.createContext(sandbox);
-  vm.runInContext(readSource(), ctx, { filename: SCRIPT_PATH });
+  vm.runInContext(await readSource(), ctx, { filename: SCRIPT_PATH });
 
   const engine = moduleObj.exports;
 
