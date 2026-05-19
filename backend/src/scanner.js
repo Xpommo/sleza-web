@@ -11,20 +11,17 @@ import { createEngine } from './engine.js';
 import { buildPageContext } from './pageContext.js';
 
 async function fetchPolicyText(engine, pageContext, origin, fallback) {
-  // 1. Use Playwright-discovered policy link (handles non-standard paths)
-  const linkHref = pageContext.policyLinks?.[0]?.href;
-  if (linkHref) {
-    const p = await engine.fetchUrl(linkHref);
+  // Try all policyLinks then all offerLinks — sites may label policy as «Правила»
+  // which lands in offerLinks; also some combine policy+agreement in one document.
+  const candidates = [
+    ...(pageContext.policyLinks || []).map(l => l.href),
+    ...(pageContext.offerLinks  || []).map(l => l.href),
+  ].filter((h, i, a) => h && a.indexOf(h) === i);
+  for (const href of candidates) {
+    const p = await engine.fetchUrl(href);
     if (p.ok && p.text.length > 200) return htmlToText(p.text);
   }
-  // 2. Try offer/agreement link — Russian sites often put policy + rekvizity in one document
-  //    e.g. /user-agreement matches offerLinks but contains the full privacy policy
-  const offerHref = pageContext.offerLinks?.[0]?.href;
-  if (offerHref && offerHref !== linkHref) {
-    const p = await engine.fetchUrl(offerHref);
-    if (p.ok && p.text.length > 500) return htmlToText(p.text);
-  }
-  // 3. Probe common URL patterns as fallback
+  // Fallback: probe common URL patterns
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
   if (policyPages[0]?.text) return htmlToText(policyPages[0].text);
   return fallback;
@@ -46,11 +43,14 @@ function htmlToText(html) {
     .replace(/\s{2,}/g, ' ').trim();
 }
 
+// Fetch ALL offer + about + policy pages for 149-FZ rekvizity.
+// aboutLinks[0] may not be the реквизиты page — try all available links.
 async function fetchExtraText(engine, pageContext) {
   const hrefs = [
-    pageContext.offerLinks?.[0]?.href,
-    pageContext.aboutLinks?.[0]?.href,
-  ].filter(Boolean);
+    ...(pageContext.offerLinks  || []).map(l => l.href),
+    ...(pageContext.aboutLinks  || []).map(l => l.href),
+    ...(pageContext.policyLinks || []).map(l => l.href),
+  ].filter((h, i, a) => h && a.indexOf(h) === i);
   let extra = '';
   for (const href of hrefs) {
     const r = await engine.fetchUrl(href);
