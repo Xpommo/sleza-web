@@ -9,9 +9,14 @@ Monorepo with two packages managed from the root:
 - `backend/` — Fastify HTTP server, Node.js ESM, no transpilation
 - `frontend/` — Next.js 14 App Router, Tailwind CSS
 
-**Critical external dependency:** `backend/src/engine.js` resolves `../../../sleza_tets_js/script` (two directories up from this repo). Both repos must be siblings on disk — e.g. `~/sleza-web/` and `~/sleza_tets_js/`. The backend will not start if the script file is missing.
+**Script resolution** (engine.js проверяет в порядке приоритета):
+1. `SLEZA_SCRIPT_PATH` env var (Railway/Docker)
+2. `backend/sleza_script` — бандлованная копия в репо (для Railway, всегда актуальна)
+3. `../../../sleza_tets_js/script` — сиблинг-репо (локальная разработка)
 
-**Required branch in sleza_tets_js:** `claude/improve-compliance-checker-HjMh0`. The `main` branch does not export `setHttpTransport`, `setKeyStore`, or `saveKeys` — the backend will crash with "not a function" if the wrong branch is checked out.
+**Локальная разработка:** `sleza_tets_js` должен быть склонирован рядом в `~/sleza_tets_js/` на ветке `main` (все фиксы смержены в main).
+
+**Важно при обновлении скрипта:** после изменений в `sleza_tets_js/script` нужно обновить бандлованную копию: `cp ~/sleza_tets_js/script ~/sleza-web/backend/sleza_script && git add backend/sleza_script && git commit`
 
 ## Common commands
 
@@ -107,32 +112,45 @@ Result shape is identical to what the Tampermonkey script's `runFullSiteScan` / 
 
 Последнее что сделано: `fix: Round 1 stability — 3 bugs fixed + singleton browser`
 
-**Что работает:**
-- Single-scan и full-site scan работают без API-ключей (`useAI=false`)
-- SSE-стриминг прогресса + кнопка «Стоп»
-- Карточки результатов: иноагенты, 152-ФЗ, 149-ФЗ, ЕРИР, оферта, ЕГРЮЛ
-- Адаптивный лимит страниц (50 с Sleza-ключом, 150 без)
-- Singleton Chromium — один браузер на весь сервер
+## Текущий статус (2026-05-19)
 
-**Следующая задача — Раунд 1.5: Выбор типа сайта**
+### Что реализовано и работает локально ✅
 
-Проблема: ложные срабатывания на медиа-сайтах (тест theblueprint.ru):
-- Проверка оферты/возврата флагирует СМИ — но ЗоЗПП ст.26.1 применяется только к интернет-магазинам
-- Упоминания наркотиков в новостях — журналистский контекст, не нарушение
+**Раунд 1 — базовый скан:**
+- Single-scan и full-scan, SSE-стриминг, кнопка «Стоп»
+- Singleton Chromium, адаптивный лимит страниц
 
-Решение: пользователь выбирает тип сайта ДО сканирования (4 варианта):
+**Раунд 1.5 — точность:**
+- Выбор типа сайта (Авто / Магазин / СМИ / Услуги / SaaS)
+- `htmlToText()` для compliance-страниц (fetchPolicyText, fetchExtraText)
+- `fetchExtraText` читает все offerLinks + aboutLinks + policyLinks (не только [0])
+- `fetchPolicyText` пробует offerLinks как fallback + 1 уровень вглубь (extractPolicyHrefs)
+- Фильтрация контентных путей из policyLinks (исключает /news/, /YYYY/MM/ и т.д.)
+- `check149FZ`: негативный lookbehind для ООО/АО, города кроме Москвы/СПб, адреса «Name шоссе»
+- `checkERIR`: негация «не является рекламой», ERID в data-атрибутах
+- Поддомены в link detection (forum.ixbt.com для ixbt.com)
+- Cookie banner: lazy-load scroll, bodyText head+tail
 
-| Тип | siteType | Что отключается |
-|-----|----------|----------------|
-| Интернет-магазин | `ecommerce` | ничего |
-| СМИ / Медиа / Блог | `media` | оферта, возврат; мягче наркотики |
-| Корпоративный / Услуги | `services` | возврат товара |
-| Сервис / SaaS | `saas` | оферта, возврат физтоваров |
+**Раунд 2 — лидогенерация:**
+- `POST /api/results` → UUID → `?report=<uuid>` (24ч TTL)
+- `POST /api/leads` → `backend/leads.jsonl`
+- `GET /api/results/:uuid/pdf` — Playwright PDF
+- ShareModal: email + компания gate
+- CTA-блок с суммой штрафов, кнопка «← Проверить другой сайт»
+- Авто-сохранение после скана, загрузка отчёта по URL
 
-Изменения: `ScanForm.js` (кнопки), `server.js` (поле `siteType` в схеме), `scanner.js` (фильтрация проверок).
+### Деплой
 
-**После Раунда 1.5 — Раунд 2: Лидогенерация**
-- `POST /api/results` → UUID → `?report=<id>` в URL
-- Email-gate (обязателен для "Поделиться" и "Скачать PDF")
-- PDF через Playwright
-- CTA-блок с суммой штрафов
+- **Frontend:** https://sleza-web.vercel.app (Vercel, auto-deploy от master)
+- **Backend:** https://sleza-web-production.up.railway.app (Railway)
+
+**ПРОБЛЕМА Railway (не решена):** Railway не применяет новые коммиты автоматически.
+Нужно: зайти в Railway → Deployments → Redeploy вручную после каждого push.
+Проверить что задеплоился правильный код: `curl https://sleza-web-production.up.railway.app/health` должен вернуть `"v":"bundled-script-v1"`.
+
+Скрипт `sleza_script` теперь бандлован в `backend/sleza_script` — Railway не нуждается в внешних репо.
+
+### Следующие задачи
+- Разобраться с Railway auto-deploy (проверить Settings → Source → ветка)
+- После починки Railway — протестировать полный флоу на продакшене
+- (опционально) Мониторинг: еженедельные проверки сайтов с уведомлениями
