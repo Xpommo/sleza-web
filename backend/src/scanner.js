@@ -122,26 +122,36 @@ function applyServicesOverride(aiData, siteType) {
  * Returns 'media', 'ecommerce', 'services', 'saas', or 'auto' (= full checks).
  */
 function detectSiteType(pageContext) {
-  const text = `${pageContext.title || ''} ${pageContext.header || ''}`.toLowerCase();
+  const titleHeader = `${pageContext.title || ''} ${pageContext.header || ''}`.toLowerCase();
+  // Also check first 2000 chars of body for signals missed in title/header
+  const body2k = (pageContext.bodyText || '').slice(0, 2000).toLowerCase();
+  const text = titleHeader + ' ' + body2k;
   const allLinks = (pageContext.links || []).map(l => (l.href || '').toLowerCase());
   const hostname = (() => { try { return new URL(pageContext.url || '').hostname.toLowerCase(); } catch { return ''; } })();
 
   // Media/news signals — title/header contains journalistic keywords
-  if (/новост|обзор|статьи|журнал|\bсми\b|медиа|редакци|публикац|пресс-релиз/.test(text))
+  if (/новост|обзор|статьи|журнал|\bсми\b|медиа|редакци|публикац|пресс-релиз/.test(titleHeader))
     return 'media';
 
-  // Services/corporate signals — domain or header contains institutional keywords.
+  // Services/corporate/edu signals — domain or text contains institutional keywords.
   // These sites may sell services but return-of-goods rules don't apply.
   const servicesDomainRe = /institut|clinic|hospital|academy|school|university|edu\.|\.edu|медцентр|клиник|больниц/;
-  const servicesTextRe   = /институт|клиника|больниц|академия|университет|факультет|кафедр|АНО\b|НКО\b|ДПО\b|ЧОУ\b|ФГБУ|ФГБОУ|кабинет\s+врач|медицинск|стоматолог|поликлиник/;
-  if (servicesDomainRe.test(hostname) || servicesTextRe.test(text)) return 'services';
+  const servicesTextRe   = /институт|клиника|больниц|академия|университет|факультет|кафедр|АНО\b|НКО\b|ДПО\b|ЧОУ\b|ФГБУ|ФГБОУ|кабинет\s+врач|медицинск|стоматолог|поликлиник|образовательн|учебн[ыйое]+\s+центр|курсы\s+повышени|профессиональн[ао]+\s+переподготовк/;
+  if (servicesDomainRe.test(hostname) || servicesTextRe.test(titleHeader)) return 'services';
 
   // E-commerce signals — cart/checkout links or shop keywords in title
-  if (/магазин|интернет.магазин|купить|каталог товар/.test(text)) return 'ecommerce';
+  if (/магазин|интернет.магазин|купить|каталог товар/.test(titleHeader)) return 'ecommerce';
   if (allLinks.some(l => /\/(cart|basket|checkout|product|catalog)\b/.test(l))) return 'ecommerce';
 
-  // SaaS signals — pricing/plans page or subscription keywords
-  if (/тариф|подписк|pricing|per.month/.test(text)) return 'saas';
+  // SaaS signals — require at least 2 signals to avoid "новостная подписка" false positive
+  const saasTextHits = [
+    /\bтариф[ыа]?\b/.test(text),
+    /\bподписк[аи]\b/.test(text) && !/новостная|email.подписк|рассылк/.test(text),
+    /pricing|per.month/.test(text),
+    /корпоративн[а-яё]+\s+(?:план|тариф|лицензи|решени)/.test(text),
+    /\bплатформ[ауы]\b/.test(titleHeader),
+  ].filter(Boolean).length;
+  if (saasTextHits >= 2) return 'saas';
   if (allLinks.some(l => /\/(pricing|plans|tariff)\b/.test(l))) return 'saas';
 
   return 'auto';
@@ -197,10 +207,11 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''));
     const resultOffer = engine.checkOffer(fullText, pageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(fullText);
+    const policyHasCookies = /cookie|куки|файл[ыа]\s+cookie/i.test(policyText);
     const resultCookie = engine.checkCookieCompliance({
       hasTracking: pageContext.hasAdScripts,
       hasCookieBanner: pageContext.hasCookieBanner,
-      policyHasCookies: false,
+      policyHasCookies,
     });
     aiData = {
       checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType }),
@@ -210,6 +221,8 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
 
   return {
     mode: 'single',
+    scannedAt: new Date().toISOString(),
+    fallback: pageContext._fallback || false,
     url,
     hostname: (() => { try { return new URL(url).hostname; } catch { return url; } })(),
     pages: [{ url, title: pageContext.title, items: checked, isCurrent: true }],
@@ -331,10 +344,11 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     const mainPageText = `${mainPageContext.title}\n${mainPageContext.header}\n${mainPageContext.bodyText}\n${mainPageContext.footer}`;
     const resultOffer = engine.checkOffer(mainPageText, mainPageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(allPagesText);
+    const policyHasCookies = /cookie|куки|файл[ыа]\s+cookie/i.test(policyText);
     const resultCookie = engine.checkCookieCompliance({
       hasTracking: mainPageContext.hasAdScripts,
       hasCookieBanner: mainPageContext.hasCookieBanner,
-      policyHasCookies: false,
+      policyHasCookies,
     });
     aiData = {
       checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType }),
@@ -344,6 +358,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
 
   return {
     mode: 'full',
+    scannedAt: new Date().toISOString(),
     url,
     hostname: (() => { try { return new URL(url).hostname; } catch { return url; } })(),
     source: urlList.source,

@@ -1,5 +1,13 @@
 'use client';
 
+const LAW_LINKS = {
+  'law152': 'https://www.consultant.ru/document/cons_doc_LAW_61801/',
+  'law149': 'https://www.consultant.ru/document/cons_doc_LAW_48524/',
+  'erir':   'https://www.consultant.ru/document/cons_doc_LAW_126477/',
+  'offer':  'https://www.consultant.ru/document/cons_doc_LAW_305/',
+  'drugs':  'https://www.consultant.ru/document/cons_doc_LAW_10172/',
+};
+
 const STATUS_COLOR = {
   ok:        'border-green-600 bg-green-950',
   risk:      'border-yellow-600 bg-yellow-950',
@@ -27,7 +35,13 @@ function CheckCard({ check }) {
       <div className="flex items-start justify-between gap-2 mb-2">
         <div>
           <div className="text-sm font-semibold text-gray-100">{check.law}</div>
-          <div className="text-xs text-gray-400">{check.law_code} · штраф {check.fine}</div>
+          <div className="text-xs text-gray-400">
+            {LAW_LINKS[check.id]
+              ? <a href={LAW_LINKS[check.id]} target="_blank" rel="noopener" className="hover:text-blue-400 transition-colors">{check.law_code}</a>
+              : check.law_code
+            }
+            {' · штраф '}{check.fine}
+          </div>
         </div>
         <span className={`text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${
           check.status === 'ok'        ? 'bg-green-700 text-green-100' :
@@ -40,7 +54,7 @@ function CheckCard({ check }) {
       </div>
       {check.issue && <p className="text-xs text-gray-300 mb-1">{check.issue}</p>}
       {check.action && check.action !== '—' && (
-        <p className="text-xs text-gray-500 italic">{check.action}</p>
+        <p className="text-xs text-gray-500 italic">→ {check.action}</p>
       )}
     </div>
   );
@@ -82,14 +96,23 @@ export default function Results({ data, uuid, onShare, onNewScan }) {
   const totalFine  = issues.reduce((sum, c) => sum + parseFine(c.fine), 0);
   const fineStr    = totalFine > 0 ? totalFine.toLocaleString('ru-RU') : null;
 
+  const scannedAt = data.scannedAt ? new Date(data.scannedAt).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : null;
+
   return (
     <div className="mt-8 space-y-4" data-results>
+      {/* Fallback warning */}
+      {data.fallback && (
+        <div className="bg-yellow-900/40 border border-yellow-700 rounded-lg px-4 py-3 text-yellow-300 text-sm">
+          ⚠ Страница загружена без JS-рендеринга (сайт заблокировал автоматический браузер). Часть данных может отсутствовать — проверьте вручную или используйте Tampermonkey-расширение.
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <div className="text-lg font-bold text-gray-100">{data.aiData?.site_name || hostname}</div>
           <div className="text-xs text-gray-500">
             {hostname} · {data.mode === 'full' ? 'Весь сайт' : 'Одна страница'}
+            {scannedAt && <span> · Проверено {scannedAt}</span>}
           </div>
         </div>
         {data.stats && (
