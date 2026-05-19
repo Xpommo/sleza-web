@@ -11,16 +11,38 @@ import { createEngine } from './engine.js';
 import { buildPageContext } from './pageContext.js';
 
 async function fetchPolicyText(engine, pageContext, origin, fallback) {
-  // 1. Use link found by Playwright on the rendered page (handles non-standard paths)
+  // 1. Use Playwright-discovered policy link (handles non-standard paths)
   const linkHref = pageContext.policyLinks?.[0]?.href;
   if (linkHref) {
     const p = await engine.fetchUrl(linkHref);
     if (p.ok && p.text.length > 200) return p.text;
   }
-  // 2. Probe common URL patterns as fallback
+  // 2. Try offer/agreement link — Russian sites often put policy + rekvizity in one document
+  //    e.g. /user-agreement matches offerLinks but contains the full privacy policy
+  const offerHref = pageContext.offerLinks?.[0]?.href;
+  if (offerHref && offerHref !== linkHref) {
+    const p = await engine.fetchUrl(offerHref);
+    if (p.ok && p.text.length > 500) return p.text;
+  }
+  // 3. Probe common URL patterns as fallback
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
   if (policyPages[0]?.text) return policyPages[0].text;
   return fallback;
+}
+
+// Fetch extra compliance pages (offer, about) for 149-FZ rekvizity check.
+// These pages often don't make it into the top-scored crawl pages on large sites.
+async function fetchExtraText(engine, pageContext) {
+  const hrefs = [
+    pageContext.offerLinks?.[0]?.href,
+    pageContext.aboutLinks?.[0]?.href,
+  ].filter(Boolean);
+  let extra = '';
+  for (const href of hrefs) {
+    const r = await engine.fetchUrl(href);
+    if (r.ok) extra += '\n' + r.text.slice(0, 4000);
+  }
+  return extra;
 }
 
 function applyMediaOverride(aiData, siteType) {
@@ -79,14 +101,9 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     // (homepage rarely has the full policy text)
     const policyText = await fetchPolicyText(engine, pageContext, origin, fullText);
     const result152  = engine.check152FZ(policyText + ' ' + pageContext.header);
-    // Fetch about/contacts page — rekvizity (INN, address, phone) are rarely on the homepage
-    const aboutHref = pageContext.aboutLinks?.[0]?.href;
-    let aboutText = '';
-    if (aboutHref) {
-      const a = await engine.fetchUrl(aboutHref);
-      if (a.ok) aboutText = a.text.slice(0, 3000);
-    }
-    const result149  = engine.check149FZ(fullText + '\n' + aboutText);
+    // Fetch offer + about pages — rekvizity (INN, address, phone) often live in user-agreement
+    const extraText  = await fetchExtraText(engine, pageContext);
+    const result149  = engine.check149FZ(fullText + extraText);
     const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''));
     const resultOffer = engine.checkOffer(fullText, pageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(fullText);
@@ -212,9 +229,11 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     // runAIAnalysis does this internally; we replicate it for local-only mode.
     onProgress?.({ phase: 'policy', url: origin });
     const policyText = await fetchPolicyText(engine, mainPageContext, origin, mainPageContext.bodyText + ' ' + mainPageContext.header);
+    // Fetch offer + about pages explicitly — on large sites they're crowded out by articles
+    const extraText  = await fetchExtraText(engine, mainPageContext);
 
     const result152  = engine.check152FZ(policyText);
-    const result149  = engine.check149FZ(allPagesText);
+    const result149  = engine.check149FZ(allPagesText + extraText);
     const resultERIR = engine.checkERIR(allPagesText + '\n' + (mainPageContext.eridAttrs || ''));
     const resultOffer = engine.checkOffer(allPagesText, mainPageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(allPagesText);
