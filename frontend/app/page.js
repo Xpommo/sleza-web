@@ -14,7 +14,9 @@ export default function Home() {
   const [progress,   setProgress]   = useState({ label: '', current: 0, total: 0 });
   const [uuid,       setUuid]       = useState(null);
   const [shareModal, setShareModal] = useState(null); // 'share' | 'pdf' | null
+  const [showForm,   setShowForm]   = useState(true);
   const cancelRef = useRef(null);
+  const formRef = useRef(null);
 
   const [keys, setKeys] = useState({ groqKey: '', slezaKey: '' });
   useEffect(() => {
@@ -29,6 +31,7 @@ export default function Home() {
     const params = new URLSearchParams(window.location.search);
     const reportId = params.get('report');
     if (!reportId) return;
+    setShowForm(false);
     setLoading(true);
     fetch(`${BASE}/api/results/${reportId}`)
       .then(r => {
@@ -38,9 +41,18 @@ export default function Home() {
         return r.json();
       })
       .then(data => { setResult(data.result); setUuid(reportId); })
-      .catch(e => setError(e.message))
+      .catch(e => { setError(e.message); setShowForm(true); })
       .finally(() => setLoading(false));
   }, []);
+
+  const newScan = () => {
+    setResult(null);
+    setUuid(null);
+    setError(null);
+    setShowForm(true);
+    window.history.replaceState(null, '', '/');
+    setTimeout(() => formRef.current?.querySelector('input')?.focus(), 50);
+  };
 
   const saveResult = async (data) => {
     try {
@@ -198,9 +210,11 @@ export default function Home() {
         </div>
       </details>
 
-      {/* Scan form — hide when viewing a shared report */}
-      {!new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('report') && (
-        <ScanForm onScan={scan} loading={loading} />
+      {/* Scan form */}
+      {showForm && (
+        <div ref={formRef}>
+          <ScanForm onScan={scan} loading={loading} />
+        </div>
       )}
 
       {/* Progress block */}
@@ -241,6 +255,7 @@ export default function Home() {
           data={result}
           uuid={uuid}
           onShare={(mode) => setShareModal(mode)}
+          onNewScan={newScan}
         />
       )}
     </main>
