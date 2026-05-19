@@ -3,13 +3,18 @@
 import { useState, useEffect, useRef } from 'react';
 import ScanForm from '../components/ScanForm';
 import Results from '../components/Results';
+import ShareModal from '../components/ShareModal';
+
+const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export default function Home() {
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [progress, setProgress] = useState({ label: '', current: 0, total: 0 });
-  const cancelRef = useRef(null); // stores the reader.cancel() function
+  const [result,     setResult]     = useState(null);
+  const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState(null);
+  const [progress,   setProgress]   = useState({ label: '', current: 0, total: 0 });
+  const [uuid,       setUuid]       = useState(null);
+  const [shareModal, setShareModal] = useState(null); // 'share' | 'pdf' | null
+  const cancelRef = useRef(null);
 
   const [keys, setKeys] = useState({ groqKey: '', slezaKey: '' });
   useEffect(() => {
@@ -18,6 +23,37 @@ export default function Home() {
       slezaKey: localStorage.getItem('slezaKey') || '',
     });
   }, []);
+
+  // On mount: load report from ?report=<uuid> if present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reportId = params.get('report');
+    if (!reportId) return;
+    setLoading(true);
+    fetch(`${BASE}/api/results/${reportId}`)
+      .then(r => {
+        if (!r.ok) throw new Error(
+          r.status === 410 ? 'Срок хранения отчёта истёк (24 часа)' : 'Отчёт не найден'
+        );
+        return r.json();
+      })
+      .then(data => { setResult(data.result); setUuid(reportId); })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const saveResult = async (data) => {
+    try {
+      const r = await fetch(`${BASE}/api/results`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ result: data }),
+      });
+      const { uuid: id } = await r.json();
+      setUuid(id);
+      window.history.replaceState(null, '', `?report=${id}`);
+    } catch (_) {}
+  };
 
   const saveKeys = (k) => {
     setKeys(k);
@@ -35,10 +71,7 @@ export default function Home() {
   };
 
   const stopScan = () => {
-    if (cancelRef.current) {
-      cancelRef.current();
-      cancelRef.current = null;
-    }
+    if (cancelRef.current) { cancelRef.current(); cancelRef.current = null; }
     setLoading(false);
     setProgress({ label: '', current: 0, total: 0 });
     setError('Сканирование остановлено.');
@@ -48,10 +81,11 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setUuid(null);
     setProgress({ label: 'Открываю страницу…', current: 0, total: 0 });
     cancelRef.current = null;
+    window.history.replaceState(null, '', '/');
 
-    const base = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
     const headers = {
       'Content-Type': 'application/json',
       'x-groq-key':  keys.groqKey,
@@ -61,19 +95,20 @@ export default function Home() {
 
     try {
       if (mode === 'single') {
-        const res = await fetch(`${base}/api/scan/single`, { method: 'POST', headers, body });
+        const res = await fetch(`${BASE}/api/scan/single`, { method: 'POST', headers, body });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
         setResult(data);
+        saveResult(data);
       } else {
-        const res = await fetch(`${base}/api/scan/full/stream`, { method: 'POST', headers, body });
+        const res = await fetch(`${BASE}/api/scan/full/stream`, { method: 'POST', headers, body });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           throw new Error(data.error || 'Ошибка сервера');
         }
 
         const reader = res.body.getReader();
-        cancelRef.current = () => reader.cancel(); // allow stop button to cancel stream
+        cancelRef.current = () => reader.cancel();
 
         const decoder = new TextDecoder();
         let buffer = '';
@@ -91,21 +126,20 @@ export default function Home() {
             if (data.error) throw new Error(data.error);
             if (data.done) {
               setResult(data.result);
+              saveResult(data.result);
               finished = true;
               break;
             }
             setProgress({
-              label: PHASE_LABELS[data.phase] || data.phase,
+              label:   PHASE_LABELS[data.phase] || data.phase,
               current: data.current || 0,
-              total: data.total || 0,
+              total:   data.total   || 0,
             });
           }
         }
       }
     } catch (e) {
-      if (e.name !== 'AbortError' && e.message !== 'Сканирование остановлено.') {
-        setError(e.message);
-      }
+      if (e.name !== 'AbortError' && e.message !== 'Сканирование остановлено.') setError(e.message);
     } finally {
       cancelRef.current = null;
       setLoading(false);
@@ -117,6 +151,13 @@ export default function Home() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-10">
+      <ShareModal
+        open={!!shareModal}
+        onClose={() => setShareModal(null)}
+        uuid={uuid}
+        mode={shareModal}
+      />
+
       {/* Header */}
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-bold tracking-widest text-blue-400 uppercase mb-1">
@@ -145,7 +186,7 @@ export default function Home() {
             <label className="text-xs text-gray-500 block mb-1">SLEZA KEY (для реестров иноагентов)</label>
             <input
               type="password"
-              className="w-full bg-gray-800 text-gray-100 rounded px-3 py-1.5 text-sm font-mono border border-gray-700 focus:border-blue-500 outline-none"
+              className="w-full bg-gray-800 text-gray-100 rounded px-3 py-2 text-sm font-mono border border-gray-700 focus:border-blue-500 outline-none"
               value={keys.slezaKey}
               onChange={e => saveKeys({ ...keys, slezaKey: e.target.value })}
               placeholder="sleza_..."
@@ -157,23 +198,22 @@ export default function Home() {
         </div>
       </details>
 
-      {/* Scan form */}
-      <ScanForm onScan={scan} loading={loading} />
+      {/* Scan form — hide when viewing a shared report */}
+      {!new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('report') && (
+        <ScanForm onScan={scan} loading={loading} />
+      )}
 
       {/* Progress block */}
-      {loading && (
+      {loading && !result && (
         <div className="mt-6 bg-gray-900 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-blue-400 text-sm animate-pulse">
               ● {progress.label || 'Сканирование…'}
             </span>
             {progress.total > 0 && (
-              <span className="text-xs text-gray-500">
-                {progress.current} / {progress.total}
-              </span>
+              <span className="text-xs text-gray-500">{progress.current} / {progress.total}</span>
             )}
           </div>
-          {/* Progress bar — shows only when page count is known */}
           {progress.total > 0 && (
             <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
               <div
@@ -182,10 +222,7 @@ export default function Home() {
               />
             </div>
           )}
-          <button
-            onClick={stopScan}
-            className="text-xs text-gray-500 hover:text-red-400 transition-colors"
-          >
+          <button onClick={stopScan} className="text-xs text-gray-500 hover:text-red-400 transition-colors">
             ✕ Остановить
           </button>
         </div>
@@ -199,7 +236,13 @@ export default function Home() {
       )}
 
       {/* Results */}
-      {result && <Results data={result} />}
+      {result && (
+        <Results
+          data={result}
+          uuid={uuid}
+          onShare={(mode) => setShareModal(mode)}
+        />
+      )}
     </main>
   );
 }

@@ -10,8 +10,24 @@
  */
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import { randomUUID } from 'crypto';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { chromium } from 'playwright';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const RESULTS_DIR = join(__dirname, '../results');
+const PDFS_DIR    = join(__dirname, '../pdfs');
+const LEADS_FILE  = join(__dirname, '../leads.jsonl');
+const TTL_MS      = 24 * 60 * 60 * 1000;
+const UUID_RE     = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+if (!existsSync(RESULTS_DIR)) mkdirSync(RESULTS_DIR, { recursive: true });
+if (!existsSync(PDFS_DIR))    mkdirSync(PDFS_DIR,    { recursive: true });
 
 const PORT = Number(process.env.PORT) || 3001;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
@@ -136,6 +152,78 @@ app.post('/api/scan/full/stream', { schema: { body: scanBodySchema } }, async (r
     releaseRateLimit(ip);
     res.end();
   }
+});
+
+// ── Results storage ──────────────────────────────────────────────────────────
+
+app.post('/api/results', async (request, reply) => {
+  const { result } = request.body || {};
+  if (!result || typeof result !== 'object') return reply.status(400).send({ error: 'result required' });
+  const uuid = randomUUID();
+  writeFileSync(join(RESULTS_DIR, `${uuid}.json`), JSON.stringify({ uuid, createdAt: new Date().toISOString(), result }));
+  return reply.send({ uuid });
+});
+
+app.get('/api/results/:uuid', async (request, reply) => {
+  const { uuid } = request.params;
+  if (!UUID_RE.test(uuid)) return reply.status(400).send({ error: 'Invalid UUID' });
+  const file = join(RESULTS_DIR, `${uuid}.json`);
+  if (!existsSync(file)) return reply.status(404).send({ error: 'Отчёт не найден' });
+  const record = JSON.parse(readFileSync(file, 'utf8'));
+  if (Date.now() - new Date(record.createdAt).getTime() > TTL_MS)
+    return reply.status(410).send({ error: 'Срок хранения отчёта истёк (24 часа)' });
+  return reply.send(record);
+});
+
+// ── Leads ────────────────────────────────────────────────────────────────────
+
+app.post('/api/leads', {
+  schema: {
+    body: {
+      type: 'object',
+      required: ['email', 'company', 'uuid'],
+      properties: {
+        email:   { type: 'string', maxLength: 254 },
+        company: { type: 'string', maxLength: 200 },
+        uuid:    { type: 'string', pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' },
+      },
+    },
+  },
+}, async (request, reply) => {
+  const { email, company, uuid } = request.body;
+  appendFileSync(LEADS_FILE, JSON.stringify({ email, company, uuid, ts: new Date().toISOString() }) + '\n');
+  return reply.send({ ok: true });
+});
+
+// ── PDF generation ───────────────────────────────────────────────────────────
+
+app.get('/api/results/:uuid/pdf', async (request, reply) => {
+  const { uuid } = request.params;
+  if (!UUID_RE.test(uuid)) return reply.status(400).send({ error: 'Invalid UUID' });
+  const file = join(RESULTS_DIR, `${uuid}.json`);
+  if (!existsSync(file)) return reply.status(404).send({ error: 'Отчёт не найден' });
+  const record = JSON.parse(readFileSync(file, 'utf8'));
+  if (Date.now() - new Date(record.createdAt).getTime() > TTL_MS)
+    return reply.status(410).send({ error: 'Срок хранения отчёта истёк' });
+
+  const pdfFile = join(PDFS_DIR, `${uuid}.pdf`);
+  if (!existsSync(pdfFile)) {
+    const browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    try {
+      await page.goto(`${FRONTEND_URL}?report=${uuid}`, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.waitForSelector('[data-results]', { timeout: 15000 }).catch(() => {});
+      await page.waitForTimeout(1000);
+      await page.pdf({ path: pdfFile, format: 'A4', printBackground: true });
+    } finally {
+      await browser.close();
+    }
+  }
+
+  return reply
+    .header('Content-Type', 'application/pdf')
+    .header('Content-Disposition', `attachment; filename="sleza-${uuid.slice(0, 8)}.pdf"`)
+    .send(readFileSync(pdfFile));
 });
 
 app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString() }));

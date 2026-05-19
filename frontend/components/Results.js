@@ -8,11 +8,17 @@ const STATUS_COLOR = {
 };
 
 const STATUS_LABEL = {
-  ok: '✓ Соответствует',
-  risk: '⚠ Риск',
+  ok:        '✓ Соответствует',
+  risk:      '⚠ Риск',
   violation: '✗ Нарушение',
-  unknown: '? Не определено',
+  unknown:   '? Не определено',
 };
+
+function parseFine(str) {
+  if (!str) return 0;
+  const m = str.replace(/[\s ]/g, '').match(/(\d+)руб/);
+  return m ? parseInt(m[1], 10) : 0;
+}
 
 function CheckCard({ check }) {
   const cls = STATUS_COLOR[check.status] || STATUS_COLOR.unknown;
@@ -24,8 +30,8 @@ function CheckCard({ check }) {
           <div className="text-xs text-gray-400">{check.law_code} · штраф {check.fine}</div>
         </div>
         <span className={`text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${
-          check.status === 'ok' ? 'bg-green-700 text-green-100' :
-          check.status === 'risk' ? 'bg-yellow-700 text-yellow-100' :
+          check.status === 'ok'        ? 'bg-green-700 text-green-100' :
+          check.status === 'risk'      ? 'bg-yellow-700 text-yellow-100' :
           check.status === 'violation' ? 'bg-red-700 text-red-100' :
           'bg-gray-700 text-gray-300'
         }`}>
@@ -68,17 +74,23 @@ function SlezaSection({ pages }) {
   );
 }
 
-export default function Results({ data }) {
+export default function Results({ data, uuid, onShare }) {
   const hostname = data.hostname || data.url;
-  const checks = data.aiData?.checks || [];
+  const checks   = data.aiData?.checks || [];
+
+  const issues     = checks.filter(c => c.status === 'violation' || c.status === 'risk');
+  const totalFine  = issues.reduce((sum, c) => sum + parseFine(c.fine), 0);
+  const fineStr    = totalFine > 0 ? totalFine.toLocaleString('ru-RU') : null;
 
   return (
-    <div className="mt-8 space-y-4">
+    <div className="mt-8 space-y-4" data-results>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <div className="text-lg font-bold text-gray-100">{data.aiData?.site_name || hostname}</div>
-          <div className="text-xs text-gray-500">{hostname} · {data.mode === 'full' ? 'Весь сайт' : 'Одна страница'}</div>
+          <div className="text-xs text-gray-500">
+            {hostname} · {data.mode === 'full' ? 'Весь сайт' : 'Одна страница'}
+          </div>
         </div>
         {data.stats && (
           <div className="text-xs text-gray-500 text-right">
@@ -108,9 +120,12 @@ export default function Results({ data }) {
             {data.egrul.result.parsed.isActive ? '✓' : '✗'} ЕГРЮЛ: {data.egrul.result.parsed.name}
           </div>
           <div className="text-xs text-gray-400 space-y-0.5">
-            {data.egrul.ids.inn && <div>ИНН: {data.egrul.ids.inn}</div>}
+            {data.egrul.ids.inn  && <div>ИНН: {data.egrul.ids.inn}</div>}
             {data.egrul.ids.ogrn && <div>ОГРН: {data.egrul.ids.ogrn}</div>}
-            <div>Статус: {data.egrul.result.parsed.isActive ? 'ДЕЙСТВУЮЩАЯ' : `ПРЕКРАЩЕНА — ${data.egrul.result.parsed.reason || ''}`}</div>
+            <div>Статус: {data.egrul.result.parsed.isActive
+              ? 'ДЕЙСТВУЮЩАЯ'
+              : `ПРЕКРАЩЕНА — ${data.egrul.result.parsed.reason || ''}`}
+            </div>
           </div>
         </div>
       )}
@@ -121,6 +136,42 @@ export default function Results({ data }) {
           ⚠ Sleza API: {data.slezaError}
         </div>
       )}
+
+      {/* CTA — fines summary + share/download */}
+      <div className={`rounded-xl border p-5 ${
+        issues.length > 0 ? 'border-red-700 bg-red-950/40' : 'border-gray-700 bg-gray-900'
+      }`}>
+        {issues.length > 0 ? (
+          <>
+            <div className="text-xs text-red-400 uppercase tracking-widest mb-1">Потенциальные штрафы</div>
+            {fineStr && (
+              <div className="text-3xl font-bold text-red-300 mb-1">до {fineStr} ₽</div>
+            )}
+            <div className="text-xs text-gray-500 mb-4">
+              {issues.length} {issues.length === 1 ? 'нарушение требует' : 'нарушений требуют'} устранения
+            </div>
+          </>
+        ) : (
+          <div className="text-sm text-green-400 mb-4">✓ Нарушений не обнаружено</div>
+        )}
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => onShare?.('share')}
+            disabled={!uuid}
+            className="flex-1 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-wait text-white rounded py-2 px-3 transition-colors"
+          >
+            {uuid ? '🔗 Поделиться' : '⏳ Подготовка…'}
+          </button>
+          <button
+            onClick={() => onShare?.('pdf')}
+            disabled={!uuid}
+            className="flex-1 text-xs bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-wait text-white rounded py-2 px-3 transition-colors"
+          >
+            {uuid ? '📄 Скачать PDF' : '⏳ Подготовка…'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
