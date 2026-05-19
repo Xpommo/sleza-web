@@ -145,6 +145,10 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
         ? Array.from(footerEl.querySelectorAll('img[alt]')).map(img => img.alt).join(' ')
         : '';
 
+      // Exclude content/article paths from compliance link categories
+      // to avoid news headlines with «персональн» being classified as policy pages
+      const isContentPath = p => /\/\d{4}\/\d{2}[/\-]|\/(news|article|review|blog|post|video|forum)\//i.test(p);
+
       return {
         url: location.href,
         title: (document.title || '').replace(/<[^>]+>/g, '').trim(),
@@ -153,14 +157,10 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
         bodyText: (() => {
           const t = document.body.innerText;
           if (t.length <= 10000) return t;
-          // Keep head (content) + tail (rekvizity often at page bottom)
           return t.slice(0, 8000) + '\n' + t.slice(-2000);
         })(),
         jsonLdText,
         eridAttrs,
-        // Exclude content/article paths from compliance link categories
-        // to avoid news headlines with «персональн» being classified as policy pages
-        const isContentPath = p => /\/\d{4}\/\d{2}[\/\-]|\/(news|article|review|blog|post|video|forum)\//i.test(p);
         links: uniqueLinks.slice(0, 40),
         policyLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.policy)).slice(0, 2),
         offerLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.offer)).slice(0, 2),
