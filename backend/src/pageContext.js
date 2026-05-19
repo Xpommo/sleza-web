@@ -58,7 +58,10 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
   try {
     const page = await browserCtx.newPage();
 
-    await page.goto(url, { waitUntil: 'load', timeout });
+    // domcontentloaded is much more reliable than 'load' — avoids timeouts on
+    // sites with heavy third-party resources (ads, analytics, large images).
+    // JS hydration wait below compensates for React/Vue late rendering.
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
 
     // Wait for JS hydration (React/Vue), and for any post-load redirects to settle
     await page.waitForTimeout(2000);
