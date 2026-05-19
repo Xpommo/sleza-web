@@ -13,8 +13,9 @@ import { fileURLToPath } from 'node:url';
 import { makeFetchTransport } from './transport.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Script lives two levels up: sleza-web/backend/src/ → sleza_tets_js/script
-const SCRIPT_PATH = path.resolve(__dirname, '../../../sleza_tets_js/script');
+// SLEZA_SCRIPT_PATH env var overrides default (used in Railway/Docker deployments)
+const SCRIPT_PATH = process.env.SLEZA_SCRIPT_PATH
+  || path.resolve(__dirname, '../../../sleza_tets_js/script');
 
 let _source = null;
 function readSource() {
