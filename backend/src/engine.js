@@ -13,12 +13,12 @@ import { fileURLToPath } from 'node:url';
 import { makeFetchTransport } from './transport.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Priority: env var → bundled copy in repo → sibling repo (local dev)
 const SCRIPT_PATH = process.env.SLEZA_SCRIPT_PATH || (() => {
-  const submodule = path.resolve(__dirname, '../../sleza_tets_js/script');
-  const sibling   = path.resolve(__dirname, '../../../sleza_tets_js/script');
-  return fs.existsSync(submodule) ? submodule : sibling;
+  const bundled  = path.resolve(__dirname, '../sleza_script');
+  const sibling  = path.resolve(__dirname, '../../../sleza_tets_js/script');
+  return fs.existsSync(bundled) ? bundled : sibling;
 })();
-const SCRIPT_GITHUB_URL = 'https://raw.githubusercontent.com/Xpommo/Sleza_tets_js/main/script';
 
 let _source = null;
 async function readSource() {
@@ -27,12 +27,7 @@ async function readSource() {
     _source = fs.readFileSync(SCRIPT_PATH, 'utf8');
     return _source;
   }
-  // Fallback: fetch from GitHub (used in Railway/Docker where local path is unavailable)
-  console.log('[engine] Script not found locally, fetching from GitHub…');
-  const res = await fetch(SCRIPT_GITHUB_URL);
-  if (!res.ok) throw new Error(`Failed to fetch script from GitHub: ${res.status}`);
-  _source = await res.text();
-  return _source;
+  throw new Error(`Скрипт Sleza не найден: ${SCRIPT_PATH}`);
 }
 
 // Minimal DOM shim — just enough so the IIFE doesn't crash on startup.

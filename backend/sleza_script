@@ -1,0 +1,3521 @@
+// ==UserScript==
+// @name         Слеза // Compliance Scanner v7 (Full Site)
+// @namespace    https://sleza.media
+// @version      7.5.0
+// @description  Аудит сайта — контент в приоритете + ЕГРЮЛ + 152-ФЗ чек-лист
+// @author       Слеза
+// @match        *://*/*
+// @grant        GM_xmlhttpRequest
+// @grant        GM_addStyle
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @connect      api.groq.com
+// @connect      sleza.media
+// @connect      egrul.org
+// @connect      *
+// @run-at       document-end
+// ==/UserScript==
+
+(function () {
+  'use strict';
+
+  // ── API ключи ─────────────────────────────────
+  // Хранятся в Tampermonkey storage (GM_setValue), а не в коде.
+  // Первый запуск — кнопка «СЛЕЗА // ПРОВЕРИТЬ» откроет форму ввода.
+  // В дальнейшем — кнопка «⚙ Ключи» в шапке модалки.
+  // Key storage: GM_getValue/GM_setValue in Tampermonkey; replaceable via setKeyStore() for web.
+  let _gmGet = (typeof GM_getValue === 'function') ? GM_getValue : ((_k, d) => d);
+  let _gmSet = (typeof GM_setValue === 'function') ? GM_setValue : (() => {});
+  function setKeyStore({ get, set }) { _gmGet = get; _gmSet = set; }
+
+  let GROQ_KEY  = _gmGet('GROQ_KEY',  '');
+  let SLEZA_KEY = _gmGet('SLEZA_KEY', '');
+  function saveKeys(groq, sleza) {
+    GROQ_KEY  = (groq  || '').trim();
+    SLEZA_KEY = (sleza || '').trim();
+    try { _gmSet('GROQ_KEY',  GROQ_KEY);  } catch(_) {}
+    try { _gmSet('SLEZA_KEY', SLEZA_KEY); } catch(_) {}
+  }
+
+  // HTTP transport: GM_xmlhttpRequest in Tampermonkey; replaceable via setHttpTransport() for web.
+  let _httpRequest = (typeof GM_xmlhttpRequest === 'function')
+    ? GM_xmlhttpRequest
+    : () => { throw new Error('[Слеза] setHttpTransport() не вызван — нет HTTP-транспорта'); };
+  function setHttpTransport(fn) { _httpRequest = fn; }
+  function hasKeys() { return !!(GROQ_KEY && SLEZA_KEY); }
+  // ──────────────────────────────────────────────
+
+  // ── Поведение AI ──────────────────────────────
+  // false — Groq НЕ вызывается, отчёт строится только из локальных чек-листов.
+  //          Экономит токены / снимает зависимость от rate-limit.
+  // true  — Groq вызывается для полировки текста карточек (issue/action),
+  //          локальные вердикты по-прежнему перекрывают AI-статус.
+  // Также автоматически отключается если GROQ_KEY пустой/placeholder.
+  const USE_AI = true;
+  // ──────────────────────────────────────────────
+
+  // ── Настройки краулера ────────────────────────
+  const MAX_PAGES        = 200;  // максимум страниц для скана
+  const MAX_DEPTH        = 2;    // глубина обхода если нет sitemap
+  const SLEZA_DELAY_MS   = 1100; // 1 запрос в секунду (лимит API)
+  const FETCH_TIMEOUT    = 8000; // таймаут загрузки страницы
+  // ──────────────────────────────────────────────
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Точные формулировки маркировки по категориям.
+  // Старый MARK_PATTERNS (substring includes) давал ложные срабатывания
+  // на "иностранных дел", "включая", "признан лучшим" → нарушения скрывались.
+  const MARK_RE = {
+    inoagent: [
+      /иностранн[а-яё]*\s+агент/i,
+      /иноагент/i,
+      /выполня[а-яё]+\s+функци[а-яё]+\s+иностранн[а-яё]+\s+агент/i,
+      /включ[её]н[аы]?\s+в\s+(реестр|список|перечень)\s+(иностранн|иноагент)/i,
+      /признан[аыо]?\s+(физ[а-яё.\s]*лиц[а-яё]*\s+)?иностранн[а-яё]*\s+агент/i,
+      /сми\s*,?\s*выполня[а-яё]+\s+функци[а-яё]+\s+иностранн/i,
+    ],
+    extremist: [
+      /(организаци[яи]|деятельност[ьи])\s+(которой\s+)?запрещен[аы]?\s+(в\s+)?(рф|росси)/i,
+      /запрещ[её]нн?[ао]?\s+в\s+(рф|росси)/i,
+      /признан[аыо]?\s+(экстремистск|террористич)/i,
+      /включ[её]н[аы]?\s+в\s+(перечень|список|реестр)\s+(террористич|экстремистск)/i,
+      /(экстремистск|террористич)[а-яё]+\s+(организаци|деятельност|объединени)/i,
+    ],
+  };
+  // terrorist — подмножество extremist с точки зрения маркировки, используем те же паттерны
+  MARK_RE.terrorist = MARK_RE.extremist;
+
+  // Сноска со звёздочкой в конце материала: "* — лица, признанные иностранными агентами"
+  const STAR_FOOTNOTE_RE = /[\*✱⁕＊][\s\-—–:]{0,4}[^\n\r]{0,200}(иноагент|иностранн[а-яё]*\s+агент|экстремистск|террористич|запрещ[её]н[ао]?\s+в\s+(рф|росси))/i;
+
+  function categorizeMarking(m) {
+    const x = m.toLowerCase();
+    if (x.includes('иностранн') || x.includes('иноагент')) return 'inoagent';
+    if (x.includes('террорист')) return 'terrorist';
+    if (x.includes('экстремист') || x.includes('запрещ')) return 'extremist';
+    if (x.includes('нежелательн')) return 'undesirable';
+    return 'other';
+  }
+
+  function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  function parseSlezaItem(item) {
+    // 💧 — surrogate pair; без non-capturing группы JS-regex без `u`-флага
+    // трактует `💧?` как `💧?` (требует high-surrogate), поэтому
+    // строки БЕЗ эмодзи перестали матчиться. `(?:💧)?` фиксит это.
+    const match = item.match(/^(.+?)\s*\((.+)\)\s*(?:💧)?\s*$/);
+    if (!match) return { name: item.trim(), marking: '', category: 'other' };
+    const name = match[1].trim();
+    const marking = match[2].trim().replace(/💧$/, '').trim();
+    return { name, marking, category: categorizeMarking(marking) };
+  }
+
+  // Проверка маркировки конкретного упоминания.
+  // 1) Локальное окно ±200/+400 вокруг КАЖДОГО вхождения имени (не только первого).
+  //    Если в окне найдена формулировка из MARK_RE[category] — промаркировано.
+  // 2) Звёздочка после имени + сноска в любом месте текста с ключевыми словами.
+  // 3) Имя + маркировка в "хвосте" (последние 3000 симв.) — для дисклеймера в конце.
+  function checkMarkingNearby(text, name, category) {
+    if (!text || !name) return { found: false };
+    const lower = text.toLowerCase();
+    const nameLow = name.toLowerCase();
+    const idx = lower.indexOf(nameLow);
+    if (idx === -1) return { found: false };
+
+    const patterns = MARK_RE[category] || [...MARK_RE.inoagent, ...MARK_RE.extremist];
+
+    // Собираем все позиции имени (учитываем повторные упоминания)
+    const positions = [];
+    let p = 0;
+    while ((p = lower.indexOf(nameLow, p)) !== -1 && positions.length < 20) {
+      positions.push(p);
+      p += nameLow.length;
+    }
+
+    let firstContext = '';
+
+    // (1) Локальное окно ±200/+400 для каждого вхождения
+    for (const pos of positions) {
+      const start = Math.max(0, pos - 200);
+      const end = Math.min(text.length, pos + name.length + 400);
+      const window = text.slice(start, end);
+      if (!firstContext) firstContext = window;
+      if (patterns.some(re => re.test(window))) {
+        return { found: true, hasMarking: true, via: 'context', context: window };
+      }
+    }
+
+    // (2) Звёздочка после имени + сноска ИМЕННО В ХВОСТЕ документа.
+    // Раньше сноска искалась во всём тексте → ложные срабатывания: чужая звёздочка
+    // у одного имени + чужая сноска у другого → оба ошибочно "промаркированы".
+    // Теперь требуем: (а) имя + звёздочка существует, (б) сноска ИЛИ в последних
+    // 2000 симв. документа, ИЛИ упоминает фамилию из этого имени.
+    const starAfter = new RegExp(escapeRegex(name) + '\\s{0,3}[\\*✱⁕＊]+', 'i');
+    if (starAfter.test(text)) {
+      // Берём последнее слово из имени как «фамилию» (для большинства ФИО это работает)
+      const nameParts = name.trim().split(/\s+/);
+      const surname = nameParts[nameParts.length - 1];
+      const tailForFootnote = text.slice(Math.max(0, text.length - 2000));
+      const footnoteInTail = STAR_FOOTNOTE_RE.test(tailForFootnote);
+      // Сноска упоминает фамилию (в любом падеже — strip ending up to 2 chars)
+      const surnameStem = surname.length > 4 ? surname.slice(0, -2) : surname;
+      const surnameInFootnote = surnameStem.length >= 3 &&
+        new RegExp(escapeRegex(surnameStem) + '[а-яё]{0,3}[^а-яё]', 'i').test(tailForFootnote);
+      if (footnoteInTail || surnameInFootnote) {
+        return { found: true, hasMarking: true, via: 'asterisk', context: firstContext };
+      }
+    }
+
+    // (3) Хвост: имя + маркировка в последних 3000 симв., в окне ±250 друг от друга
+    const tailStart = Math.max(0, text.length - 3000);
+    const tail = text.slice(tailStart);
+    const tailLow = tail.toLowerCase();
+    let tp = 0;
+    while ((tp = tailLow.indexOf(nameLow, tp)) !== -1) {
+      const ws = Math.max(0, tp - 150);
+      const we = Math.min(tail.length, tp + name.length + 250);
+      const w = tail.slice(ws, we);
+      if (patterns.some(re => re.test(w))) {
+        return { found: true, hasMarking: true, via: 'tail', context: w };
+      }
+      tp += nameLow.length;
+    }
+
+    return { found: true, hasMarking: false, via: null, context: firstContext };
+  }
+
+  // ── Запросы ───────────────────────────────────
+  let scanCancelled = false;
+  function setScanCancelled(v) { scanCancelled = !!v; }
+
+  function checkWithSleza(text) {
+    return new Promise(resolve => {
+      if (scanCancelled) return resolve({ found: 0, items: [], errors: 'cancelled' });
+      if (!SLEZA_KEY) {
+        try { console.warn('[Слеза] SLEZA_KEY не заполнен — проверка иноагентов/экстремистов недоступна'); } catch(_) {}
+        return resolve({ found: 0, items: [], errors: 'no_key' });
+      }
+      _httpRequest({
+        method: 'POST',
+        url: 'https://sleza.media/api/parse',
+        timeout: 10000,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SLEZA_KEY },
+        data: JSON.stringify({ text }),
+        onload(r) {
+          try {
+            const parsed = JSON.parse(r.responseText);
+            // Лог в консоль — чтобы было видно в DevTools что вернул API
+            try { console.log('[Слеза] API response', r.status, parsed); } catch(_) {}
+            if (r.status !== 200) {
+              return resolve({ found: 0, items: [], errors: 'http_' + r.status, raw: parsed });
+            }
+            resolve(parsed);
+          } catch(e) {
+            try { console.warn('[Слеза] API parse fail', r.status, r.responseText?.slice(0, 200)); } catch(_) {}
+            resolve({ found: 0, items: [], errors: 'parse_http_' + r.status });
+          }
+        },
+        onerror() { resolve({ found: 0, items: [], errors: 'net' }); },
+        ontimeout() { resolve({ found: 0, items: [], errors: 'timeout' }); }
+      });
+    });
+  }
+
+  // ── Извлечение ИНН / ОГРН / ОГРНИП ────────────
+  function extractIdentifiers(text) {
+    const result = { inn: null, ogrn: null, type: null };
+    // ОГРН (13) или ОГРНИП (15) — приоритет, потому что точнее
+    // ОГРН (13) или ОГРНИП (15). Порядок альтернатив важен: 15 должен идти первым,
+    // иначе на входе "320774600123456" движок жадно матчит первые 13 цифр и теряет ИП.
+    const ogrnMatch = text.match(/ОГРН(?:ИП)?[\s:№.]*([0-9]{15}|[0-9]{13})/i);
+    if (ogrnMatch) {
+      result.ogrn = ogrnMatch[1];
+      result.type = ogrnMatch[1].length === 15 ? 'ip' : 'ul';
+    }
+    // ИНН (10 для ЮЛ, 12 для ИП). Та же причина — 12 должно идти первым.
+    const innMatch = text.match(/ИНН[\s:№.]*([0-9]{12}|[0-9]{10})/i);
+    if (innMatch) {
+      result.inn = innMatch[1];
+      if (!result.type) result.type = innMatch[1].length === 12 ? 'ip' : 'ul';
+    }
+    return result;
+  }
+
+  // ── Запрос в egrul.org ────────────────────────
+  function checkEgrul(identifier) {
+    return new Promise(resolve => {
+      if (!identifier || scanCancelled) return resolve(null);
+      _httpRequest({
+        method: 'GET',
+        url: `https://egrul.org/${identifier}.json`,
+        timeout: 8000,
+        onload(r) {
+          try {
+            if (r.status !== 200) return resolve({ found: false, error: `http_${r.status}` });
+            const data = JSON.parse(r.responseText);
+            resolve({ found: true, raw: data, parsed: parseEgrulData(data) });
+          } catch(e) { resolve({ found: false, error: 'parse' }); }
+        },
+        onerror() { resolve({ found: false, error: 'net' }); },
+        ontimeout() { resolve({ found: false, error: 'timeout' }); }
+      });
+    });
+  }
+
+  // ── Парсер ответа ФНС (защитный, пробует разные форматы) ──
+  function parseEgrulData(data) {
+    const r = { name:'', shortName:'', inn:'', ogrn:'', kpp:'', address:'', regDate:'', isActive:true, type:'unknown', reason:'' };
+    if (!data) return r;
+
+    // ЮЛ
+    const ul = data.СвЮЛ || (data.НаимЮЛПолн ? data : null);
+    if (ul) {
+      r.type = 'ul';
+      r.name = ul.НаимЮЛПолн || ul.СвНаимЮЛ?.НаимЮЛПолн || '';
+      r.shortName = ul.НаимЮЛСокр || ul.СвНаимЮЛ?.НаимЮЛСокр || '';
+      r.inn = ul.ИНН || '';
+      r.ogrn = ul.ОГРН || '';
+      r.kpp = ul.КПП || '';
+      r.regDate = ul.ДатаОГРН || ul.ДатаРег || '';
+      const адресЮЛ = ul.СвАдресЮЛ;
+      const адресРФ = ul.АдресРФ;
+      if (адресЮЛ) r.address = адресЮЛ.АдресПолн || адресЮЛ.АдресРФ?.АдресПолн || '';
+      else if (адресРФ) r.address = адресРФ.АдресПолн || '';
+      if (ul.СвПрекрЮЛ || ul.СвСтатус?.КодСтатусЮЛ === '5' || ul.СвЛикв) {
+        r.isActive = false;
+        r.reason = ul.СвПрекрЮЛ?.НаимСпсПрекрЮЛ || 'Деятельность прекращена';
+      }
+      return r;
+    }
+    // ИП
+    const ip = data.СвИП || (data.ОГРНИП ? data : null);
+    if (ip) {
+      r.type = 'ip';
+      const f = ip.СвФЛ || ip;
+      r.name = `ИП ${f.Фамилия || f.ФамилияИП || ''} ${f.Имя || f.ИмяИП || ''} ${f.Отчество || f.ОтчествоИП || ''}`.trim();
+      r.inn = ip.ИННФЛ || ip.ИНН || '';
+      r.ogrn = ip.ОГРНИП || ip.ОГРН || '';
+      r.regDate = ip.ДатаОГРНИП || ip.ДатаРег || '';
+      if (ip.СвПрекрИП || ip.СвСтатус?.КодСтатусИП === '5') {
+        r.isActive = false;
+        r.reason = 'Деятельность прекращена';
+      }
+      return r;
+    }
+    return r;
+  }
+
+  // ── Локальный предфильтр: ищем потенциальные упоминания ─
+  // Возвращает true если на странице есть паттерны похожие на имена/организации
+  function hasNameLikePatterns(text) {
+    if (!text || text.length < 100) return false;
+
+    const patterns = [
+      // ФИО с отчеством: Иван Иванов Иванович
+      /[А-ЯЁ][а-яё]{2,}\s+[А-ЯЁ][а-яё]{2,}\s+[А-ЯЁ][а-яё]{2,}/,
+      // Имя Фамилия: Иван Иванов
+      /[А-ЯЁ][а-яё]{2,}\s+[А-ЯЁ][а-яё]{2,}/,
+      // Инициалы перед фамилией: И.И. Иванов или И. И. Иванов
+      /[А-ЯЁ]\.\s*[А-ЯЁ]\.\s*[А-ЯЁ][а-яё]{2,}/,
+      // Фамилия с инициалами: Иванов И.И.
+      /[А-ЯЁ][а-яё]{2,}\s+[А-ЯЁ]\.\s*[А-ЯЁ]\./,
+      // Название в кавычках: «...» или "..."
+      /[«"][А-ЯЁA-Z][^»"]{2,50}[»"]/,
+      // СМИ + название: «издание "X"», «журнал X», «газета X»
+      /(издани[еяю]|газет[ауы]|журнал[аеу]|телеканал|радио|агентств[оау]|медиа|редакци[яюей])/i,
+      // Организации: организация X, движение X, объединение X
+      /(организаци[яюей]|объединени[ея]|движени[ея]|фонд|сообществ[оау])\s+[«"]/i,
+      // Глаголы цитирования: сообщил X, заявил X, написал X, по данным X
+      /(сообщил[аи]?|написал[аи]?|заявил[аи]?|по\s+данным|по\s+мнению|рассказал[аи]?|подчеркнул[аи]?)\s+[А-ЯЁ]/i,
+      // Известные форматы маркировки (если уже промаркировано — тоже кандидат)
+      /\(иностранн[ыо]м?\s+агент/i,
+      /(признан[аыо]?\s+иностранн[ыо]м?\s+агент|запрещ[её]н[ао]?\s+в\s+(?:РФ|России))/i
+    ];
+
+    return patterns.some(p => p.test(text));
+  }
+
+  // ── Чек-лист 152-ФЗ ст.18.1 — 7 обязательных пунктов политики ──
+  function check152FZ(policyText) {
+    if (!policyText || policyText.length < 100) {
+      return { found: 0, total: 7, items: [], status: 'no_policy' };
+    }
+    const t = policyText.toLowerCase();
+
+    // Section-aware первый проход: заголовки разделов гарантируют пункт.
+    // Якорь — НАЧАЛО СТРОКИ (^|\n), затем опциональный префикс "1." / "Раздел 5."
+    // Без правильного якоря (?:^|\n) альтернатива \d+\.\s* матчила любую "5." внутри
+    // абзаца, превращая section-aware в "найди где угодно после цифры".
+    const HEAD = '(?:^|\\n)\\s*(?:\\d+(?:\\.\\d+)*[\\.\\s]+|раздел\\s+\\d+[\\.\\s]+|#{1,6}\\s+)?';
+    const sectionHeadingHits = {
+      categories:     new RegExp(HEAD + '[^.\\n]{0,30}категори[ийяю][^.\\n]{0,40}(перс|субъект|данн|обрабатыва)', 'i'),
+      purposes:       new RegExp(HEAD + '[^.\\n]{0,30}цел[ьеияю][^.\\n]{0,40}(обработк|сбор|использ)', 'i'),
+      legal_basis:    new RegExp(HEAD + '[^.\\n]{0,30}(правов[ыоае]+\\s+основан|основани[яею]\\s+обработ|основан[ияе]\\s+для\\s+обработ)', 'i'),
+      storage_term:   new RegExp(HEAD + '[^.\\n]{0,30}(срок[аи]?\\s+(хранен|обработк|обрабатыва)|как\\s+долго.{0,20}хран)', 'i'),
+      subject_rights: new RegExp(HEAD + '[^.\\n]{0,30}прав[аоеыхими]+\\s+субъект', 'i'),
+      contact:        new RegExp(HEAD + '[^.\\n]{0,30}(контакт|реквизит|связ[аь]|обратн[аоы][яе])', 'i'),
+      third_parties:  new RegExp(HEAD + '[^.\\n]{0,30}(передач[аеиу]\\s+(данн|перс)|треть[ьиим]+\\s+лиц)', 'i'),
+    };
+
+    const checks = [
+      {
+        id: 'categories',
+        label: 'Категории субъектов и персональных данных',
+        patterns: [
+          /категори[яийюях]+\s+(перс|субъект|обрабатываем|данн)/,
+          /перечень.{0,30}(перс|данн|сведени)/,
+          /собира[еютюм]+.{0,30}(данн|сведени|информац)/,
+          /обрабатыва[еютюмющ]+.{0,40}(данн|сведени|информац)/,
+          /(ф\.?и\.?о\.?|фамили[яию]|имя|отчеств)\s*,?\s*(телефон|email|e-?mail|почт|адрес)/,
+          /(телефон|email|e-?mail).{0,20}(адрес|почт|номер)/,
+        ],
+        keywords: ['категории персональных', 'перечень персональных', 'обрабатываемые персональные', 'категории обрабатываемых', 'состав персональных данных', 'виды персональных данных']
+      },
+      {
+        id: 'purposes',
+        label: 'Цели обработки персональных данных',
+        patterns: [
+          /цел[ьейяиюях]+\s+обработк/,
+          /цел[ьейяиюях]+\s+(сбор|использован|хранен)/,
+          /обработк[аиеу]\s+осуществля[еюя]тся\s+в\s+цел/,
+          /(оператор|компани|сайт).{0,60}(в\s+целях|для\s+цел|с\s+целью|преследует\s+цел)/,
+          /цел[ьею]\s*[—\-:]\s*(обработ|сбор|информирован)/,
+        ],
+        keywords: ['цели обработки', 'в целях', 'для целей', 'с целью', 'целями обработки', 'целью обработки', 'для следующих целей']
+      },
+      {
+        id: 'legal_basis',
+        label: 'Правовое основание обработки',
+        patterns: [
+          /правов[ыоаеми]+\s+основани[ея]?/,
+          /основани[еяюий]+\s+(обработк|для\s+обработ)/,
+          /(на\s+основании|в\s+соответствии|согласно).{0,80}152/,
+          /(152.{0,5}ФЗ|федеральн.{0,20}закон.{0,20}152|закон.{0,15}о\s+персональных)/i,
+          /(согласи[еяю]|договор|конституц).{0,40}(является|служит|выступает|являются).{0,20}основа/,
+          /правовы[ехми]+\s+основани[яей]/,
+        ],
+        keywords: ['правовое основание', 'правовых основаниях', '152-фз', 'фз-152', 'согласие субъекта', 'согласие на обработку', 'статья 6']
+      },
+      {
+        id: 'storage_term',
+        label: 'Срок обработки и хранения',
+        patterns: [
+          /срок[аиовм]*\s+(хранен|обработк|обрабатыва|действи)/,
+          // «Как долго мы храним …» — разговорная формулировка типа Яндекса/Google,
+          // которая по смыслу описывает срок, но обходит «срок\s+хран».
+          /как\s+долго.{0,30}хран/i,
+          /(хран[яеитсю]+|обрабатыва[еютсюя]+)\s+(в\s+течени|до|на\s+протяжении|пока)/,
+          /(удал[яеютсюя]+|уничтожа[еютсюя]+)\s+(после|по\s+истечен|через|по\s+достижени)/,
+          /срок.{0,40}(года?|лет|месяц|дн[яей]+|недел)/,
+          /(до\s+достижения|по\s+достижении|достижени[ея]\s+цел).{0,40}цел?/,
+          /хран[яеитсю]+.{0,30}не\s+более/,
+          // Условия прекращения обработки = срок по смыслу 152-ФЗ ст.5 ч.7
+          /(прекращени[ея]|прекраща[еюя]+).{0,40}обработк/,
+          /(истечени[ея]|окончани[ея])\s+срок/,
+          /(услови[яей]|основани[яей])\s+(прекращен|окончан)/,
+        ],
+        keywords: [
+          'срок хранения', 'срок обработки', 'сроки хранения', 'сроков хранения',
+          'хранятся в течение', 'до достижения целей', 'по достижении целей',
+          'в течение срока', 'период хранения', 'период обработки',
+          // Условия прекращения = неявный срок
+          'прекращение обработки', 'прекращения обработки',
+          'достижение целей обработки', 'достижения целей обработки',
+          'истечение срока', 'срок действия согласия', 'срока действия согласия',
+        ]
+      },
+      {
+        id: 'subject_rights',
+        label: 'Права субъекта персональных данных',
+        patterns: [
+          /прав[аоеыхими]+\s+субъект/,
+          /субъект.{0,30}(имеет|вправе|может)\s+(прав|потребова|запрос)/,
+          /прав[ао]\s+(на\s+)?(доступ|удален|изменен|отзыв|уточнен|блокирован)/,
+          /(право|возможность)\s+(отозвать|обратиться|потребовать|запросить)/,
+          /отзыв\s+согласи/,
+          /вправе\s+(отозвать|потребовать|запросить|обратиться)/,
+        ],
+        keywords: ['права субъекта', 'правах субъекта', 'право на доступ', 'право на удаление', 'отзыв согласия', 'отозвать согласие', 'право обратиться', 'вправе отозвать', 'право на уточнение']
+      },
+      {
+        id: 'contact',
+        label: 'Контакты ответственного за обработку',
+        patterns: [
+          /ответствен[ныйогомеи]+\s+за\s+(обработк|защит|организац)/,
+          /(адрес|email|e-?mail|телефон|тел\.?).{0,100}(обраб|защит|оператор|персональн)/,
+          /(оператор|компани).{0,150}(@|почт[аеуыой]\s+электронн|электронн[аоы][яе]\s+почт)/,
+          /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i,
+          /(контакт|связ[аь])[а-я]{0,10}\s+(оператор|с\s+нами|для\s+связи)/,
+          /(\+7|8)[\s\(]*\d{3}[\s\)\-]*\d{3}[\s\-]*\d{2}[\s\-]*\d{2}/,
+        ],
+        keywords: ['ответственный за обработку', 'обратиться к нам', 'связаться с нами', 'контакты оператора', 'контактная информация', 'для связи', 'наши контакты', 'email:', 'e-mail:', 'электронная почта']
+      },
+      {
+        id: 'third_parties',
+        label: 'Передача данных третьим лицам',
+        patterns: [
+          /треть[ьиими]+\s+лиц/,
+          /треть.{0,3}лиц/,
+          /(передач[аеиую]|переда[еютюся]+).{0,100}(треть|сторонн|партн|контрагент)/,
+          /трансгранич/,
+          /(не\s+перед[аеютюся]+|без\s+согласи).{0,50}треть/,
+          /(раскрыти[еюй]|предоставлени[еюй]).{0,40}(треть|сторонн)/,
+        ],
+        keywords: ['третьим лицам', 'третьих лиц', 'третьими лицами', 'передача данных', 'трансграничная передача', 'третьи лица', 'передаче данных']
+      }
+    ];
+
+    const result = { items: [], found: 0, total: 7, status: 'unknown' };
+    for (const c of checks) {
+      const hasSection = sectionHeadingHits[c.id] && sectionHeadingHits[c.id].test(policyText);
+      const hasPattern = c.patterns.some(p => p.test(t));
+      const hasKeyword = c.keywords.some(k => t.includes(k.toLowerCase()));
+      const present = hasSection || hasPattern || hasKeyword;
+      result.items.push({ id: c.id, label: c.label, present, confirmedBy: present ? 'local' : null });
+      if (present) result.found++;
+    }
+
+    if (result.found >= 6) result.status = 'ok';
+    else if (result.found >= 3) result.status = 'risk';
+    else result.status = 'violation';
+
+    return result;
+  }
+
+  // ── Чек-лист 149-ФЗ ст.10 — информация о владельце сайта ──
+  // На сайте организации должны быть указаны:
+  // 1. ИНН или ОГРН (для идентификации владельца)
+  // 2. Полное наименование (ООО/АО/ИП) или ФИО ИП
+  // 3. Адрес юр. лица или ИП
+  // 4. Email для связи
+  // 5. Контактный телефон
+  function check149FZ(fullText) {
+    if (!fullText || fullText.length < 50) {
+      return { found: 0, total: 5, items: [], status: 'unknown' };
+    }
+
+    // Лидирующая "граница слова" для кириллицы: либо начало строки, либо разделитель.
+    // \b в JS работает только с латиницей/цифрами, поэтому \bИНН не цепляется к "ИНН 123".
+    const checks = [
+      {
+        id: 'inn_ogrn',
+        label: 'ИНН или ОГРН организации',
+        patterns: [
+          /(?:^|[\s>,.;:])ИНН[\s:№.]*[0-9]{10,12}(?:\D|$)/i,
+          /(?:^|[\s>,.;:])ОГРН(?:ИП)?[\s:№.]*[0-9]{13,15}(?:\D|$)/i,
+        ],
+      },
+      {
+        id: 'name',
+        label: 'Полное наименование (ООО/АО/ИП)',
+        patterns: [
+          /(?<![а-яёА-ЯЁa-z])(ООО|ОАО|ЗАО|ПАО|АО|НКО|АНО|НП)\s+["«][^"»]{2,80}["»]/,
+          /(?<![а-яёА-ЯЁa-z])(ООО|ОАО|ЗАО|ПАО|АО)\s+[А-ЯЁ][а-яёА-ЯЁ\w\-]{1,40}(?=[\s,.]|$)/,
+          /общество\s+с\s+ограниченной\s+ответственностью/i,
+          /(публичное|непубличное|открытое|закрытое)\s+акционерное\s+общество/i,
+          /индивидуальный\s+предприниматель\s+[А-ЯЁ]/i,
+          /(?<![а-яёА-ЯЁa-z])ИП\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ]/,
+        ],
+      },
+      {
+        id: 'email',
+        label: 'Email для связи',
+        patterns: [
+          /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i,
+        ],
+      },
+      {
+        id: 'phone',
+        label: 'Контактный телефон',
+        patterns: [
+          /(?:\+7|(?:^|\D)8)[\s\(\-\.]*\d{3}[\s\)\-\.]*\d{3}[\s\-\.]*\d{2}[\s\-\.]*\d{2}(?:\D|$)/,
+        ],
+      },
+      {
+        id: 'address',
+        label: 'Юридический или фактический адрес',
+        patterns: [
+          // Почтовый индекс + город / регион
+          /(?:^|\D)\d{6}[,\s]+(г\.|город|респ\.|область|край|москва|санкт-петербург)/i,
+          // Москва/Питер + улица/проспект
+          /(г\.\s*Москва|г\.\s*Санкт-Петербург|москва|санкт-петербург)[,\s]+(ул\.|улица|пр\.|проспект|пер\.|переулок|наб\.|набережная|пл\.|площадь|шоссе|бульвар|проезд|тупик)/i,
+          // Любой город через "г." + тип улицы
+          /г\.\s*[А-ЯЁ][а-яёА-ЯЁ\-]{2,}[,\s]+(ул\.|улица|пр\.|проспект|пер\.|переулок|наб\.|набережная|пл\.|площадь|шоссе|бульвар)/i,
+          // Крупные российские города без "г." + тип улицы
+          /(екатеринбург|новосибирск|казань|нижний\s+новгород|челябинск|самара|уфа|ростов-на-дону|ростов\s+на\s+дону|краснодар|воронеж|пермь|волгоград|красноярск|саратов|тюмень|тольятти|ижевск|барнаул|иркутск|хабаровск|владивосток|ярославль|махачкала|томск|оренбург|кемерово|рязань|липецк|тула|ставрополь|белгород|сочи|калининград)[,\s]+(ул\.|улица|пр\.|проспект|пер\.|переулок|наб\.|набережная|шоссе|бульвар)/i,
+          // улица + дом (с "д." или просто числом)
+          /(ул\.|улица|пр\.|проспект|пер\.|переулок|наб\.|набережная)\s+[А-ЯЁ][а-яё]+[,\s\.]+(?:д\.|дом\s*)?\d+[а-яёА-ЯЁ]?(?=[\s,;.)]|$)/i,
+          // "Прилагательное шоссе/проспект/бульвар, N" — имя перед типом (Каширское шоссе, 22)
+          /[А-ЯЁ][а-яё]+(ское|ский|ская|овый|овая|ной|нный|нная)\s+(шоссе|проспект|набережная|бульвар|переулок|кольцо|аллея)[,\s]+\d/i,
+          // "Адрес:" с последующим текстом
+          /адрес[\s:]+[А-ЯЁа-яё\s,]+\s+(шоссе|проспект|набережная|ул\.|улица|бульвар)[,\s]+\d/i,
+          // явная подпись "юридический адрес: ..."
+          /юридический\s+адрес[\s:]+[А-ЯЁ\d]/i,
+          /почтовый\s+адрес[\s:]+[А-ЯЁ\d]/i,
+          /адрес\s+(организации|компании|юр[. ]+лица)/i,
+        ],
+      },
+    ];
+
+    const result = { items: [], found: 0, total: checks.length, status: 'unknown' };
+    for (const c of checks) {
+      const present = c.patterns.some(p => p.test(fullText));
+      result.items.push({ id: c.id, label: c.label, present });
+      if (present) result.found++;
+    }
+
+    if (result.found >= 4) result.status = 'ok';
+    else if (result.found >= 2) result.status = 'risk';
+    else result.status = 'violation';
+
+    // ИНН/ОГРН — самый критичный реквизит: без него ok → risk
+    const hasInnOgrn = result.items.find(i => i.id === 'inn_ogrn')?.present;
+    if (!hasInnOgrn && result.status === 'ok') result.status = 'risk';
+
+    return result;
+  }
+
+  // ── Чек-лист ЕРИР: маркировка интернет-рекламы (ФЗ №347) ──
+  // Логика:
+  // 1) Признаки рекламного контента ВООБЩЕ — есть/нет
+  // 2) Если есть — проверяем erid-токен, метку "реклама", информацию о рекламодателе
+  // Без AI: даёт предварительную оценку. С AI: вердикт уточняется.
+  function checkERIR(fullText) {
+    if (!fullText || fullText.length < 100) {
+      return { found: 0, total: 3, items: [], status: 'unknown', hasAdContent: false };
+    }
+    const t = fullText.toLowerCase();
+
+    // 1) Признаки рекламного контента
+    const adMarkers = [
+      /на\s+правах\s+реклам/,
+      /рекламн[ыоа][йея]\s+(материал|публикац|пост|пуш)/,
+      /партн[её]рск[ийояую][й]?\s+материал/,
+      /спонсорск[ийояую][й]?\s+(материал|публикац|пост|контент)/,
+      /промо\s*[\-—:]\s*материал/,
+      /рекламодател/,
+      /sponsored\s+(content|post|by)/i,
+      /\bpromo(ted)?\b/i,
+    ];
+    // Returns true only if pattern matches at a position NOT preceded by negation.
+    // Handles "данный материал не является рекламным материалом" disclaimers.
+    const hasPositiveAdMatch = (pattern, text) => {
+      const re = new RegExp(pattern.source, (pattern.flags || '') + (pattern.flags.includes('g') ? '' : 'g'));
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        const before = text.slice(Math.max(0, m.index - 60), m.index);
+        if (!/не\s+(является|носит|считается|признаётся|признается)|без\s+рекл/.test(before)) return true;
+      }
+      return false;
+    };
+    const hasAdContent = adMarkers.some(p => hasPositiveAdMatch(p, t));
+
+    const checks = [
+      {
+        id: 'erid_token',
+        label: 'Токен ERID присутствует',
+        patterns: [
+          /\berid[\s:=]+[\w\-]{6,}/i,
+          /erid[\s\-:]*[0-9a-z]{6,}/i,
+        ],
+      },
+      {
+        id: 'ad_marker',
+        label: 'Метка «реклама» / «на правах рекламы»',
+        // /i на всех паттернах: эти проверки гоняются на оригинальном тексте
+        // (не на lowercase), а «На правах рекламы» в начале предложения — норма.
+        patterns: [
+          /(?:^|[\s>])реклама(?:[\s,.:;]|$)/i,
+          /на\s+правах\s+реклам/i,
+          /рекламн[ыоа][йея]\s+(материал|публикац|пост)/i,
+        ],
+      },
+      {
+        id: 'advertiser_info',
+        label: 'Информация о рекламодателе (ИНН/название)',
+        patterns: [
+          /рекламодател[ьяе][\s:]+[^.\n]{5,150}/i,
+          /(?:^|[\s>])(ООО|ОАО|ЗАО|ПАО|АО|ИП)\s+[«"А-ЯЁ]/,
+          /(?:^|[\s>,.;:])ИНН[\s:№.]*[0-9]{10,12}/i,
+        ],
+      },
+    ];
+
+    const result = { items: [], found: 0, total: checks.length, status: 'unknown', hasAdContent };
+    for (const c of checks) {
+      const present = c.patterns.some(p => p.test(fullText));
+      result.items.push({ id: c.id, label: c.label, present });
+      if (present) result.found++;
+    }
+
+    // Логика статуса:
+    // - Нет рекламного контента → ok (реклама не используется, маркировка не требуется)
+    // - Есть реклама и все 3 признака → ok
+    // - Есть реклама и 2 из 3 → risk
+    // - Есть реклама и <2 → violation
+    if (!hasAdContent) {
+      result.status = 'ok';
+    } else if (result.found === 3) {
+      result.status = 'ok';
+    } else if (result.found >= 2) {
+      result.status = 'risk';
+    } else {
+      result.status = 'violation';
+    }
+
+    return result;
+  }
+
+  // ── Чек-лист публичной оферты и условий возврата (ГК РФ ст.435, ЗоЗПП ст.26.1) ──
+  // Актуально для e-commerce и любого сайта с продажей товаров/услуг.
+  // Логика:
+  // 1) Определяем — это коммерческий сайт (есть признаки торговли)?
+  // 2) Если да — проверяем наличие оферты, условий возврата, информации о продавце
+  // ── Чек cookie-compliance (152-ФЗ + ст.13.11 КоАП в части автоматизированной обработки) ──
+  // Логика юриста: если сайт собирает cookies/использует трекинг — нужен баннер согласия.
+  // Если трекинга нет — баннер не обязателен.
+  function checkCookieCompliance({ hasTracking, hasCookieBanner, policyHasCookies }) {
+    // Дополнительный сигнал: если в политике явно описаны cookies — это компенсирует отсутствие баннера
+    if (!hasTracking) {
+      return {
+        hasTracking: false, hasCookieBanner, policyHasCookies,
+        status: 'ok',
+        title: 'Трекинг не обнаружен',
+        message: 'Аналитические скрипты не найдены — баннер согласия на cookie не обязателен.',
+      };
+    }
+    if (hasCookieBanner) {
+      return {
+        hasTracking: true, hasCookieBanner: true, policyHasCookies,
+        status: 'ok',
+        title: 'Баннер согласия на cookie присутствует',
+        message: 'Трекинг обнаружен, согласие на использование cookie запрашивается у пользователя.',
+      };
+    }
+    if (policyHasCookies) {
+      return {
+        hasTracking: true, hasCookieBanner: false, policyHasCookies: true,
+        status: 'risk',
+        title: 'Баннер согласия на cookie отсутствует, но cookies описаны в политике',
+        message: 'Трекинг работает, политика упоминает cookies — но активного баннера согласия нет. Это серая зона: рекомендуется добавить баннер.',
+      };
+    }
+    return {
+      hasTracking: true, hasCookieBanner: false, policyHasCookies: false,
+      status: 'violation',
+      title: 'Баннер согласия на cookie отсутствует',
+      message: 'Сайт использует трекинг (Яндекс.Метрика / GA / Pixel / и т.п.), но не получает явного согласия пользователя на обработку cookie. Нарушение 152-ФЗ ст.9 и ст.6 в части автоматизированной обработки.',
+    };
+  }
+
+  function checkOffer(fullText, offerLinks) {
+    if (!fullText || fullText.length < 100) {
+      return { found: 0, total: 4, items: [], status: 'unknown', isCommercial: false, kind: null };
+    }
+    const t = fullText.toLowerCase();
+
+    // 1) Признаки коммерческого сайта — два независимых пула:
+    //    e-commerce (товары, доставка, корзина) и SaaS/услуги (лицензия, тариф, подписка).
+    //    Считаем коммерческим если в ЛЮБОМ пуле ≥2 совпадения.
+    // Cyrillic-aware границы слов: `\b` в JS работает только с латиницей/цифрами.
+    // Для русских терминов используем lookaround на не-буквенно-цифровой символ.
+    const BOUND = '(?:^|[^а-яёa-z0-9_])';
+    const ENDB  = '(?=[^а-яёa-z0-9_]|$)';
+    const ecommerceMarkers = [
+      new RegExp(BOUND + '(купить|заказать|оформить\\s+заказ|добавить\\s+в\\s+корзину)' + ENDB, 'i'),
+      new RegExp(BOUND + 'корзин[аеуыой]' + ENDB, 'i'),
+      new RegExp(BOUND + '(стоимость|цена|руб(?:\\.|лей)?|₽)' + ENDB + '.{0,50}(\\d{2,})', 'i'),
+      new RegExp(BOUND + '(доставка|самовывоз|курьер|пункт\\s+выдач|постамат)' + ENDB, 'i'),
+      /(\d+[\s\-]*₽|\d+[\s\-]*руб)/i,
+      new RegExp(BOUND + '(оплат[аеу]|оплачивать)' + ENDB, 'i'),
+      /интернет[\-\s]?магазин/i,
+      /онлайн[\-\s]?(магазин|шоп|маркет)/i,
+      new RegExp(BOUND + '(покупател[ьяюие]+|продавц[аеуо]+)' + ENDB, 'i'),
+      /(каталог\s+товар|ассортимент\s+товар)/i,
+    ];
+    const saasMarkers = [
+      /лицензиар[аеуо]?/i,
+      /лицензиат[аеуо]?/i,
+      /лицензионн[ыоаеми]+\s+(договор|соглашен|вознагражден|плат)/i,
+      /программн[оаеыми]+\s+обеспечен/i,
+      /(подписк|тариф|абонементн)[а-яё]+\s+(плат|стоимост|период|оплат)/i,
+      new RegExp(BOUND + '(тариф|подписка|абонемент)[а-яё]*' + ENDB, 'i'),
+      /личн[ыоом]+\s+кабинет/i,
+      /(SaaS|сервис|услуг[аеи]+).{0,30}(оплат|стоимост|тариф|подписк)/i,
+    ];
+    // B2B-сервисы / рекламные агентства / любые договоры подряда — третий тип
+    const servicesMarkers = [
+      new RegExp(BOUND + 'исполнител[ьяюуео]+' + ENDB, 'i'),
+      new RegExp(BOUND + 'заказчик[аеуо]*' + ENDB, 'i'),
+      /(оказан|оказыва|выполнен|выполня)[а-яё]+\s+(услуг|работ)/i,
+      /акт\s+(сдач[ие]|приёмки|приемки|выполненн)/i,
+      /технич[а-яё]+\s+задани/i,
+      /рекламн[ыоаеми]+\s+(услуг|агентств|кампани|продукц)/i,
+      /(маркетингов|консалтингов|агентск)[а-яё]+\s+услуг/i,
+      /(договор|контракт)\s+(подряд|оказан|возмездн)/i,
+    ];
+    const ecommerceHits = ecommerceMarkers.filter(p => p.test(t)).length;
+    const saasHits      = saasMarkers.filter(p => p.test(t)).length;
+    const servicesHits  = servicesMarkers.filter(p => p.test(t)).length;
+    const isCommercial  = ecommerceHits >= 2 || saasHits >= 2 || servicesHits >= 2;
+    // Определяем доминирующий тип (для UI и labels)
+    let kind = null;
+    const max = Math.max(ecommerceHits, saasHits, servicesHits);
+    if (max >= 2) {
+      if (saasHits === max)       kind = 'saas';
+      else if (ecommerceHits === max) kind = 'ecommerce';
+      else if (servicesHits === max)  kind = 'services';
+    }
+
+    const hasOfferLink = Array.isArray(offerLinks) && offerLinks.length > 0;
+
+    const checks = [
+      {
+        id: 'offer_exists',
+        label: 'Публичная оферта / договор присутствует',
+        patterns: [
+          /публичн[аыо][яе]\s+оферт/,
+          /\bоферт[аеуы]\b/,
+          /договор\s+(оферт|купли|присоединен|публичн)/,
+          /лицензионн[ыоаеми]+\s+договор/i,
+          /правила\s+(продаж|использован|сайта)/,
+          /пользовательск[оие]+\s+соглашен/,
+        ],
+        // Также засчитываем если найдена ссылка на страницу оферты
+        bonus: hasOfferLink,
+      },
+      {
+        id: 'return_policy',
+        label: kind === 'saas' ? 'Условия расторжения / возврата' :
+               kind === 'services' ? 'Условия отказа / расторжения договора' :
+               'Условия возврата товара',
+        patterns: [
+          // E-commerce: возврат товара
+          /возврат[\s,]+товар/i,
+          /возврат\s+(денежн|средств|оплат)/i,
+          /(7|семь|14|четырнадцать|15|пятнадцать|30|тридцать)\s+(дн[яей]+|календарн|рабоч)/,
+          /отказ[\s,]+от\s+(товар|услуг|подпис|серви|договор|выполнен|оказан)/i,
+          /обмен\s+(товар|купленн|приобрет)/i,
+          /политика\s+возврат/i,
+          // Прямые ссылки на ЗоЗПП — сильный сигнал
+          /ст(?:ать[яеи]+|\.)\s*26\.1\s*закон/i,
+          /о\s+защите\s+прав\s+потребител[ейя]+/i,
+          // Общие явные заголовки (используются в большинстве оферт)
+          /(?:^|\n|\d+\.\s*)(возврат|обмен)\s+(товар|и\s+обмен|и\s+денеж)/i,
+          /(условия|порядок|правила)\s+(его\s+|их\s+)?(возврат|расторжен|приостановк|отказ)/i,
+          // SaaS: условия расторжения договора, возврат средств, отказ от подписки
+          /расторжен[аиеяи][а-яё]*[\s\S]{0,150}(возврат|компенсаци|неизрасходованн)/i,
+          /(не\s+)?возвращ[аеи]+тся[\s\S]{0,80}(средств|оплат|деньг|сумм)/i,
+          /досрочн[а-яё]+\s+расторжен/i,
+          /приостановк[аи]+\s+(прав|подпис|услуг|серви)/i,
+          // B2B services: одностороннее расторжение, отказ от исполнения договора
+          /односторонн[а-яё]+\s+(отказ|расторжен|порядок)/i,
+          /отказ[аиуо]+тся\s+от\s+(договор|услуг|выполнен|оказан|исполнен)/i,
+          /отказ[ауое]?\s+от\s+(исполнен|выполнен)\s+(договор|обязательств)/i,
+          /немотивирован[а-яё]+\s+(отказ|расторжен)/i,
+          /порядок\s+(его\s+|их\s+)?(расторжен|прекращен|отказ)/i,
+          /(срок|порядок)\s+действия\s+(договор|соглашен)/i,
+          /прекращен[аиеяи][а-яё]*\s+(договор|соглашен|обязательств)/i,
+        ],
+      },
+      {
+        id: 'seller_info',
+        label: kind === 'saas' ? 'Информация о лицензиаре (ИНН/название)' :
+               kind === 'services' ? 'Информация об исполнителе (ИНН/название)' :
+               'Информация о продавце (ИНН/название)',
+        patterns: [
+          /(?:^|[\s>,.;:])ИНН[\s:№.]*[0-9]{10,12}/i,
+          /(?:^|[\s>,.;:])ОГРН(?:ИП)?[\s:№.]*[0-9]{13,15}/i,
+          /(?:^|[\s>])(ООО|ОАО|ЗАО|ПАО|АО|ИП)\s+[«"А-ЯЁ]/,
+          /(?:^|[\s>])(ООО|АО|ПАО|ЗАО|ОАО)\s+[«"][^"»]{2,80}["»]/,
+          /индивидуальный\s+предприниматель/i,
+          /(общество\s+с\s+ограниченной\s+ответственностью|акционерное\s+общество)/i,
+        ],
+      },
+      {
+        id: 'contact_info',
+        label: 'Контакты (email / телефон)',
+        patterns: [
+          /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i,
+          /(?:\+7|(?:^|\D)8)[\s\(\-]*\d{3}[\s\)\-]*\d{3}[\s\-]*\d{2}[\s\-]*\d{2}/,
+        ],
+      },
+    ];
+
+    const result = { items: [], found: 0, total: checks.length, status: 'unknown', isCommercial, kind };
+    for (const c of checks) {
+      let present = c.patterns.some(p => p.test(fullText));
+      if (c.bonus) present = present || c.bonus;
+      result.items.push({ id: c.id, label: c.label, present });
+      if (present) result.found++;
+    }
+
+    // Логика статуса:
+    // - Не коммерческий сайт → ok (оферта не обязательна для информационных сайтов)
+    // - Коммерческий и все 4 → ok
+    // - Коммерческий и 3 из 4 → risk
+    // - Коммерческий и <3 → violation
+    if (!isCommercial) {
+      result.status = 'ok';
+    } else if (result.found === 4) {
+      result.status = 'ok';
+    } else if (result.found >= 3) {
+      result.status = 'risk';
+    } else {
+      result.status = 'violation';
+    }
+
+    return result;
+  }
+
+  // ── Чек-лист наркотиков (ст.6.13 КоАП, ФЗ №3 «О наркотических средствах») ──
+  // Список запрещённых веществ + сленга. Источник: пул ключевых слов sleza.media.
+  // Алиасы разделены `;` и разворачиваются в линейный список.
+  const DRUG_TERMS_RAW = `Адамантан
+адамантил
+Адамантоилиндол
+адрафинил
+азабицикл
+азабицикло
+азаиндол
+азапентацикл
+азепино
+айаваск;айяваск;айяуаск;аяуаск;ayahuasca;яауаск;ауаск
+Аллилбензол
+Аллилпродин
+Аллобарбитал
+Алпразолам
+альфа-диметил
+альфа-метил
+Альфамепродин
+Альфаметадол
+Альфапродин
+Альфацетилметадол
+амилнитрит;popper;nitrous
+амин5
+Аминептин
+аминобутан
+аминопиперидин
+аминобензоат
+Аминоиндан
+Аминопропиофенон
+Аминорекс
+Амобарбитал
+АМТ
+Амфепрамон
+амфетамин;спид;adderall
+анаша
+Ангидрид уксусной кислоты
+анилинопиперидин
+Анилэридин
+Антраниловая кислота
+Апробарбитал
+Апрофен
+ацетамид
+ацетилантранил
+ацетилантраниловая кислота
+Ацетилдигидрокодеин
+ацетилдигидрокодеинон
+Ацетилирован
+Ацетилированный опий
+Ацетилкодеин
+Ацетилметадол
+Ацетилхлорид
+Ацетоксимитрагинин
+Ацетонитрил
+Ацеторфин
+барбамил
+Барбитал
+барбитурат
+барыжит
+БДБ
+Безитрамид
+Бензальдегид
+Бензетидин
+Бензилморфин
+бензилнитроэтан
+бензилпиперазин;BZP
+бензилпиперидин
+бензилпирролидин
+Бензилхлорид
+Бензилцианид
+бензимидазол
+бензогидразид
+бензодиазепин
+Бензодиоксол
+Бензоилиндол
+бензойная кислота;Бензойный ангидрид
+бензоксазин
+бензолсульфонамид
+Бензофуран
+Бензфетамин
+Беноциклидин
+Бетамепродин
+Бетаметадол
+Бетапродин
+Бетацетилметадол
+БМК;глицидная кислота;этилглицидат
+бонг
+бошки
+Браллобарбитал
+Бретазенил
+бромадол
+Бромазепам
+Бромазолам
+бромгексан
+бромгептан
+Бромистый этил
+бромпентан
+бромпропан
+Бромэтил
+брорфин
+Бротизолам
+бульбик;бульбулятор;булька
+Бупренорфин
+Буталбитал
+бутан-2-амин
+бутанамид
+бутандиол
+бутановая кислота
+Бутаноил
+бутанон
+бутерат
+Бутиролактон;Гаммабутиролактон;GBL;gbl
+Бутобарбитал
+Буторфанол
+вигил
+виминол
+Винбарбитал
+Винилбитал
+Галазепам
+Галоксазолам
+галюциноген;галлюциноген
+галлюциногенная лиана;галюциногенная лиана;лиана для ритуалов;лиана шаманов
+гашиш;hashish
+Гептабарбитал
+героин;гераiн;heroin;china_white
+джанки;Junkie
+Гидрокодон
+Гидроморфинол
+Гидроморфон
+Глютетимид
+дезметилморамид
+дезоксикодеин
+Дезоморфин
+Дезпропионил
+Дезхлорэтизолам
+Декстрометорфан;dxm
+Декстроморамид
+Декстропропоксифен
+Делоразепам
+дживиаш
+дживик
+Диазепам
+диаморфин
+Диампромид
+диацетилморфин
+Дигидрокодеин
+Дигидроморфин
+дигидротебаин
+дигидрохиназолин
+дигидрохинолин
+Дигидроэторфин
+Диклазепам
+Дименоксадол
+Димепгептанол
+диметиламин
+диметилбутаноат
+диметилгептилпиран
+диметилпропил
+Диметилтиамбутен
+диметилтриптамин;ДМТ;dmt
+Диметоксифенэтиламин
+Диоксафетил
+диоксолан
+дипидолор
+Дипипанон
+Дифеноксилат
+Дифеноксин
+дифуран
+дихлорбензамид
+диэтиламино
+Диэтилтиамбутен
+диэтилтриптамин;ДЭТ
+ДМГП;диметилгептилпиран
+долофин
+ДОЭТ
+Дротебанол
+заторчат
+Золпидем
+ибогаин
+ибупроксирон
+изо-пентедрон
+Изометадон
+Изосафрол
+изотонитазен
+изофенметразин
+Изохинолин
+индазол
+иодгексан
+иодгептан
+иодпропан
+Камазепам
+канабис
+канаш
+Каннабис;cannabis;marijuana;weed;марихуана;конопл;канопл
+карбоксипропил
+Катинон
+Квазепам
+Кетазолам
+Кетамин;ketamine
+Кетобемидон
+кладмен
+Клобазам
+Клоксазолам
+Клоназепам
+Клоназолам
+Клонипразепам
+Клонитазен
+Клоразепат
+Клотиазепам
+Кодеин
+Кодоксим
+кокаин;кокс;crack;крэк;coke
+конопля
+коринантеидин
+Левометорфан
+Левоморамид
+Леворфанол
+Левофенацилморфан
+леморан
+Лефетамин
+Лизергид;ЛСД;LSD
+Лизергин
+лиризол
+Лопразолам
+Лоразепам
+Лорметазепам
+лофлазепат
+Мазиндол
+марихуана
+мастер-клад
+МБДБ
+МДМА;MDMA;экстази;экстези;молли;molly
+мдпв
+Медазепам
+Мезембрин
+Мезокарб
+Меклоквалон
+Меклоназепам
+Мепробамат
+Мескалин;mescaline
+Метадон;ANPP
+Метазоцин
+Метаквалон
+Метамфетамин;первитин;meth
+Метизолам
+метилсульфинил
+Метилакрилат
+Метиламино
+метилгексагидро
+Метилдезорфин
+Метилдигидроморфин
+метилендиоксипировалерон
+Метилендиоксипировалерон
+метилкатинон
+Метилметакрилат
+метилоксиран
+Метилон;methylone
+Метилпиперидин
+Метилприлон
+Метилфенидат;риталин;ritalin
+Метилфенобарбитал
+Метилэтилкетон
+метилэфедрин
+меткатинон
+методезнитазен
+Метоксетамин
+метоксибензил
+метоксибензиламин
+метоксибензилметилкетон
+Метоксикетамин
+метоксиэтил
+Метопон
+Мефедрон;метилметкатинон;метилэфедрон;mephedrone
+Мефенорекс
+Мидазолам
+Мирофин
+Митрагинин
+мифик
+ММДА
+модафиендз
+Модафинил
+Моноацетилморфин
+Морамид
+Морферидин
+Морфин
+Морфилонг
+Морфолин
+МППП
+МФПП
+Налбуфин
+нарик;наркотик;наркоман
+Нафтоилиндол
+ненаход
+Никодикодин
+Никокодин
+Никоморфин
+Ниметазепам
+Нитразепам
+Нитрометан
+нитропропен
+Нитроэтан
+нитроэтен
+Нифоксипам
+Ноксирон
+Норациметадол
+Нордазепам
+Норкодеин
+Норлеворфанол
+Норметадон
+Норморфин
+Норпипанон
+Норпсевдоэфедрин
+норэфедрин
+оксадиазол
+Оксазепам
+Оксазолам
+Оксикодон;oxycontin
+Оксиморфон
+оксобензимидазол
+октагидрофенантридин
+Омнопон
+опий;опиум;opium
+Орипавин
+Парагексил
+пейот;peyote
+Пемолин
+Пентазоцин
+пентедрон
+пентилциклогекс
+пентобарбитал
+ПЕПАП
+перезаклад
+Петидин
+Пивоксазепам
+Пиминодин
+Пиназепам
+пиперидинил
+пиперидинол
+пиперидинон
+пиперидон
+Пиперональ
+Пипрадрол
+Пиразолам
+Пиритрамид
+Пировалерон
+пирролидин
+ПМК-глицидат;ПМК-глицидная кислота;ПМК-этилглицидат
+Празепам
+Прекурсор
+Прогептазин
+проксивон
+промедол
+пропанамид
+Проперидин
+пропиламино
+пропилсульфанил
+пропионанилид
+Пропирам
+Просидол
+псевдоэфедрин
+Псилоцибин;psilocybin
+Псилоцин
+Психотроп
+PAPP
+Рацеметорфан
+Рацеморамид
+Рацеморфан
+Ролициклидин
+Сальвинорин;salvia
+сассафрасов
+Сафрол
+Секбутабарбитал
+Секобарбитал
+Сомбревин
+спазмопроксивон
+спайс
+стафф
+Тарен
+Тебаин
+Тебакон
+текодин
+Темазепам
+Теноциклидин
+Тетразепам
+тиазол
+Тианептин
+фентанил
+Тилидин
+Тионилхлорид
+торчок
+трамадол;tramadol
+триазолам
+Тримеперидин
+триметилбицикл
+триметокси-альфа
+Тропакокаин
+ТЦП
+Фенадоксон
+фенадон
+Феназоцин
+Фенампромид
+Фенатин
+Фендиметразин
+Фенетиллин
+фенкамин
+Фенкамфамин
+Фенметразин
+Фенобарбитал
+Феноморфан
+Феноперидин
+фенпрометамин
+Фенпропорекс
+Фентермин
+Фенфлурамин
+Фенциклидин;PCP
+фенэтиламин;phenethylamine
+фепранон
+фладрафинил
+Флуалпразолам
+Флубротизолам
+Флудиазепам
+Флуклотизолам
+Флунитразепам
+Флунитразолам
+Флуразепам
+Фолькодин
+Фоназепам
+фторпентил
+фторэфедрин
+Фторбромазепам
+Фторбромазолам
+Фуретидин
+Хальцион
+ханка
+Хелиамин
+хиназолин
+Хлордиазепоксид
+хлороквалон
+Хлорпсевдоэфедрин
+хлорхиназолин
+Хлорэфедрин
+Циклобарбитал
+циклогексанон
+Циназепам
+Ципепрол
+ширнут;ширят;ширяют
+шкуроход
+шмаль
+Экгонин
+эпирокаин
+эпоксиморфинан
+Эргометрин
+эргоновин
+Эрготамин
+Эскодол
+Эстазолам
+этаквалон
+этаминал
+Этизолам
+Этил лофлазепат
+этилглицидат
+Этилметилтиамбутен
+Этилморфин
+Этилпиперидин
+этилфенкамфамин
+Этинамат
+Этициклидин
+Этоксеридин
+Этонитазен
+Эторфин
+Этриптамин
+Этхлорвинол
+эфедрин
+эфедрон
+ab-fubinaca
+captagon
+JWH-018;JWH-073;JWH-081;JWH-122;JWH-133;JWH-200;JWH-250
+HU-210;HU-308;HU-331
+MDMA
+NBOMe;25i-nbome
+TFMPP
+THPINACA
+U-47700;U-48800
+α-php
+α-pvp
+2C-B
+3-MeO-PCMMo
+4-альфа-метилендиокси
+5-MeO-DIBF
+изотонитазен
+метонитазен
+бромадол`;
+
+  // Дисклеймер / контекст: упоминание рядом с такими маркерами считается «безопасным».
+  // Это новости о борьбе с наркотиками, медицина, статьи УК — упоминание необходимо по смыслу.
+  const DRUG_CONTEXT_RE = [
+    /запрещ[её]н[а-яё]*\s+(в\s+(рф|росси)|оборот|вещество)/i,
+    /(статья|ст\.?)\s*2(28|30|31|32|34)/,
+    /уголовн[а-яё]+\s+(наказан|ответственн|преследован|кодекс|дело)/i,
+    /(незаконн|противоправн)[а-яё]+\s+(оборот|сбыт|произво|хранен|приобрет|изготовл|распростран)/i,
+    /профилактик[аеуи]+\s+(наркомани|зависим|потреблен)/i,
+    /реабилитац[ияюей]+/i,
+    /наркологическ/i,
+    /(борьб|противодейств)[аеи]+\s+(наркот|незаконн)/i,
+    /\bМВД\b|\bФСКН\b|\bУБНОН\b|\bГНК\b|\bУНК\b/,
+    /(задержан|изъят|обнаружен|конфискован|арестован)[ыо]?\s/i,
+    /(приговор|обвиняем|подозреваем|осужд[её]н|преступлен|правонарушен)/i,
+    /(наркокурьер|наркодилер|наркосбытчик|наркопритон|наркокартел|наркотраффик)/i,
+    /не\s+(рекоменд|употребл)|отказ\s+от\s+(употреб|наркот)/i,
+    /(вред[ноаыеиом]+|опасн[аоыеи]+)\s+(здоровь|жизн|организм)/i,
+    /(по\s+рецепт|строго\s+по\s+рецепт|рецептурн[а-яё]+)/i,
+    /(медицинск|лекарственн|клиническ|научн)[а-яё]+\s+(препарат|применен|использован|исследован|публикац)/i,
+    /(анестези|обезболиван|болеутол|премедикац)/i, // мед.контекст
+    /(ВИЧ|СПИД|гепатит)/, // эпидемиологический контекст
+    /(новост|статья|материал|публикация|исследование)\s/i, // явно журналистский контекст
+  ];
+
+  // Lazy-init: компилируем единый regex со всеми наркотиками только при первом вызове.
+  // Это дорого (~1000 альтернатив), но делается один раз за сессию.
+  let _drugRegex = null;
+  let _drugTermsList = null;
+  function getDrugRegex() {
+    if (_drugRegex) return { re: _drugRegex, terms: _drugTermsList };
+    const all = DRUG_TERMS_RAW
+      .split('\n')
+      .flatMap(l => l.split(';'))
+      .map(s => s.trim().toLowerCase())
+      .filter(s => s.length >= 3); // отбрасываем слишком короткие (false positives)
+    _drugTermsList = [...new Set(all)];
+    // Сортируем по убыванию длины — длинные термины должны матчиться раньше коротких
+    _drugTermsList.sort((a, b) => b.length - a.length);
+    const escaped = _drugTermsList.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    // Cyrillic-aware: строгая граница СПЕРЕДИ (защита от false-positive типа "копий"→"опий"),
+    // НО без границы сзади — иначе теряем формы "кокаина", "героином", "марихуаны" и т.п.
+    // Расчёт: терминов <3 символов нет (отфильтрованы), длинные термины идут первыми
+    // в альтернации (longest-match), морфологические окончания добавляются естественно.
+    _drugRegex = new RegExp(
+      '(?:^|[^а-яёa-z0-9_])(' + escaped.join('|') + ')',
+      'gi'
+    );
+    try { console.log('[Слеза] Drug regex скомпилирован,', _drugTermsList.length, 'уникальных терминов'); } catch(_) {}
+    return { re: _drugRegex, terms: _drugTermsList };
+  }
+
+  function checkDrugs(fullText) {
+    if (!fullText || fullText.length < 100) {
+      try { console.log('[Слеза] checkDrugs: текст слишком короткий', fullText?.length || 0); } catch(_) {}
+      return { hasMentions: false, status: 'ok', mentions: [], totalMentions: 0, withContext: 0, withoutContext: 0 };
+    }
+    const { re } = getDrugRegex();
+    re.lastIndex = 0; // важно: re глобальный, сбрасываем перед matchAll
+    const matches = [...fullText.matchAll(re)];
+    try { console.log('[Слеза] checkDrugs: текст', fullText.length, 'симв., совпадений', matches.length); } catch(_) {}
+    if (matches.length === 0) {
+      return { hasMentions: false, status: 'ok', mentions: [], totalMentions: 0, withContext: 0, withoutContext: 0 };
+    }
+
+    // Группируем по термину (учитываем все вхождения).
+    // m[0] = (опциональный leading-boundary char) + m[1]. Captured group всегда в конце,
+    // поэтому позиция термина = m.index + (m[0].length - m[1].length).
+    // indexOf не подходит — он case-sensitive, а regex с флагом /i может вернуть "Героин",
+    // что вызовет indexOf("героин") = -1 и смещение на -1.
+    const grouped = new Map();
+    for (const m of matches) {
+      const term = m[1].toLowerCase();
+      const pos = m.index + (m[0].length - m[1].length);
+      if (!grouped.has(term)) grouped.set(term, []);
+      grouped.get(term).push(pos);
+    }
+
+    // Для каждого термина проверяем дисклеймер хотя бы возле одного вхождения
+    const mentions = [];
+    let withContext = 0;
+    let withoutContext = 0;
+    for (const [term, positions] of grouped.entries()) {
+      let hasContext = false;
+      for (const pos of positions) {
+        const start = Math.max(0, pos - 300);
+        const end = Math.min(fullText.length, pos + term.length + 300);
+        const window = fullText.slice(start, end);
+        if (DRUG_CONTEXT_RE.some(p => p.test(window))) {
+          hasContext = true;
+          break;
+        }
+      }
+      mentions.push({ term, count: positions.length, hasContext });
+      if (hasContext) withContext++;
+      else withoutContext++;
+    }
+
+    // Сортируем: сначала без контекста (это нарушения), потом с контекстом
+    mentions.sort((a, b) => {
+      if (a.hasContext !== b.hasContext) return a.hasContext ? 1 : -1;
+      return b.count - a.count;
+    });
+
+    // Статус:
+    // - Все упоминания в контексте → ok
+    // - 1-2 без контекста → risk
+    // - 3+ без контекста → violation
+    let status;
+    if (withoutContext === 0) status = 'ok';
+    else if (withoutContext <= 2) status = 'risk';
+    else status = 'violation';
+
+    return {
+      hasMentions: true,
+      status,
+      totalMentions: matches.length,
+      uniqueTerms: grouped.size,
+      withContext,
+      withoutContext,
+      mentions: mentions.slice(0, 15), // первые 15 для UI
+    };
+  }
+
+  // Определяет, что текущая страница — SPA (React/Vue/Next.js/Angular).
+  // Проверяет DOM: корневые контейнеры и путь к бандлированным скриптам.
+  function detectSpaFromDom() {
+    if (document.querySelector('#root,#app,#__next,#__nuxt,[data-reactroot],[data-v-app],[ng-version]')) return true;
+    const scripts = [...document.querySelectorAll('script[src]')];
+    return scripts.some(s => /\/_next\/static\/|\/static\/js\/(?:main|bundle|app)\.[a-f0-9]{6}|chunk\.[a-f0-9]{6}/.test(s.src || ''));
+  }
+
+  function fetchUrl(url) {
+    return new Promise(resolve => {
+      if (scanCancelled) return resolve({ url, ok: false, html: '', text: '' });
+      _httpRequest({
+        method: 'GET', url, timeout: FETCH_TIMEOUT,
+        onload(r) {
+          try {
+            const html = r.responseText || '';
+            const stripped = html
+              .replace(/<script[\s\S]*?<\/script>/gi, '')
+              .replace(/<style[\s\S]*?<\/style>/gi, '')
+              .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
+              .replace(/<[^>]+>/g, ' ')
+              .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
+              .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+              .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+              .replace(/\s+/g, ' ').trim();
+            const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+            const title = titleMatch ? titleMatch[1].trim() : url;
+            resolve({ url, ok: true, html, text: stripped, title });
+          } catch(e) { resolve({ url, ok: false, html: '', text: '' }); }
+        },
+        onerror() { resolve({ url, ok: false, html: '', text: '' }); },
+        ontimeout() { resolve({ url, ok: false, html: '', text: '' }); }
+      });
+    });
+  }
+
+  // ── Sitemap ───────────────────────────────────
+  // Normalises CDATA-wrapped <loc> before extraction so both
+  // <loc>url</loc> and <loc><![CDATA[url]]></loc> are handled.
+  function extractLocs(xml) {
+    const normalised = xml.replace(/<loc><!\[CDATA\[([\s\S]*?)\]\]><\/loc>/gi, '<loc>$1</loc>');
+    return [...normalised.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1].trim());
+  }
+
+  async function trySitemap(origin) {
+    const urls = [
+      origin + '/sitemap.xml',
+      origin + '/sitemap_index.xml',
+      origin + '/sitemap-index.xml',
+      origin + '/sitemap1.xml',
+      origin + '/sitemap-news.xml',
+      origin + '/sitemap-posts.xml',
+      origin + '/sitemap-articles.xml',
+      origin + '/news-sitemap.xml',
+      origin + '/post-sitemap.xml',
+      origin + '/sitemap/sitemap.xml',
+      origin + '/sitemaps/sitemap.xml',
+    ];
+    for (const u of urls) {
+      const r = await fetchUrl(u);
+      if (r.ok && (r.html.includes('<loc>') || r.html.includes('<loc><![CDATA['))) {
+        const matches = extractLocs(r.html);
+        const filtered = matches.filter(url => url.startsWith(origin) && isHtmlUrl(url));
+        const subSitemaps = matches.filter(m => m.endsWith('.xml') && m !== u);
+
+        // sitemap-index: ходим по дочерним и собираем URL
+        if (subSitemaps.length > 0) {
+          const subUrls = [];
+          // Берём до 20 sub-sitemaps (часто разбит по годам/категориям — нужны все для покрытия архива)
+          for (const sm of subSitemaps.slice(0, 20)) {
+            if (scanCancelled) break;
+            const sr = await fetchUrl(sm);
+            if (sr.ok) {
+              subUrls.push(...extractLocs(sr.html).filter(url => url.startsWith(origin) && isHtmlUrl(url)));
+            }
+          }
+          if (subUrls.length > 0) {
+            return { source: 'sitemap-index', urls: [...new Set([...filtered, ...subUrls])] };
+          }
+        }
+        if (filtered.length > 0) {
+          return { source: 'sitemap', urls: [...new Set(filtered)] };
+        }
+      }
+    }
+    return null;
+  }
+
+  // Извлечь год публикации из URL: ловит /2019/, /2021-05-15/, /2020/05/, ?date=2018-...
+  function extractYearFromUrl(url) {
+    const m = url.match(/(?:^|[\/=_\-?&])(20[0-3]\d)(?:[\/=_\-?&]|$)/);
+    if (m) {
+      const y = parseInt(m[1], 10);
+      if (y >= 2010 && y <= 2030) return y;
+    }
+    return null;
+  }
+
+  // Stride-сэмплинг: равномерная выборка N элементов из массива
+  function strideSample(arr, n) {
+    if (arr.length <= n) return [...arr];
+    const step = arr.length / n;
+    const result = [];
+    for (let i = 0; i < n; i++) result.push(arr[Math.floor(i * step)]);
+    return result;
+  }
+
+  // Year-bucket сэмплинг: распределяет budget равномерно по годам.
+  // Если <3 различных года определилось — fallback на stride-сэмплинг.
+  function sampleByYear(urls, budget) {
+    if (urls.length <= budget) return [...urls];
+    const buckets = new Map();
+    for (const u of urls) {
+      const y = extractYearFromUrl(u);
+      const key = y || 'unknown';
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(u);
+    }
+    const years = [...buckets.keys()].filter(k => typeof k === 'number').sort();
+    if (years.length < 3) return strideSample(urls, budget);
+
+    // Резервируем 15% бюджета на URL без года (главная, секции, статичные)
+    const noYear = buckets.get('unknown') || [];
+    const noYearShare = Math.min(noYear.length, Math.floor(budget * 0.15));
+    const yearBudget = budget - noYearShare;
+    const perYear = Math.ceil(yearBudget / years.length);
+
+    const result = [];
+    for (const y of years) {
+      const bucket = buckets.get(y);
+      // Внутри года тоже распределяем равномерно (а не первые N — там вверху обычно свежее)
+      result.push(...strideSample(bucket, Math.min(perYear, bucket.length)));
+    }
+    // URL без года — страйдом
+    result.push(...strideSample(noYear, noYearShare));
+    return result.slice(0, budget);
+  }
+
+  function isHtmlUrl(url) {
+    const lower = url.toLowerCase();
+    if (/\.(pdf|jpg|jpeg|png|gif|webp|svg|ico|zip|rar|exe|mp3|mp4|mov|css|js|json|xml|woff|woff2|ttf|eot)(\?|$)/.test(lower)) return false;
+    if (/(wp-admin|wp-content|wp-includes|admin|api\/|cdn\.|static\.|assets\.)/.test(lower)) return false;
+    return true;
+  }
+
+  // ── Приоритизация URL по вероятности контента ──
+  // Возвращает: 10 = контентная, 7 = главная, 5 = средняя, 3 = обычная, 1 = низкий приоритет, -1 = пропустить
+  // Глобальный сборщик причин отброса URL — для диагностики "0 контентных страниц"
+  const SKIP_REASONS = new Map(); // pattern → [пример URL, ...]
+
+  function scoreUrl(url) {
+    let path = '';
+    let queryParamCount = 0;
+    try {
+      const u = new URL(url);
+      path = u.pathname.toLowerCase();
+      queryParamCount = [...u.searchParams.keys()].length;
+    } catch(e) { return 3; }
+    const full = (path + ' ' + url.toLowerCase());
+
+    // Пропускаем URL с большим количеством query-параметров (фильтры, рефералки, варианты)
+    if (queryParamCount >= 2) {
+      const arr = SKIP_REASONS.get('queryParams>=2') || [];
+      if (arr.length < 3) arr.push(url);
+      SKIP_REASONS.set('queryParams>=2', arr);
+      return -1;
+    }
+
+    // Пропускаем технические и каталожные страницы
+    const SKIP = [
+      // Корзина и заказы
+      /\/cart\b/, /\/basket\b/, /\/корзин/,
+      /\/checkout\b/, /\/оформ/, /\/order\//, /\/orders\b/, /\/заказ/,
+      /\/payment\b/, /\/оплат/, /\/pay\b/,
+      /\/shipping\b/, /\/доставк/, /\/delivery\b/,
+      // Авторизация
+      /\/login\b/, /\/register\b/, /\/signin\b/, /\/signup\b/, /\/войти/, /\/регистр/, /\/auth\b/,
+      /\/profile\b/, /\/account\b/, /\/cabinet\b/, /\/личн/,
+      // Поиск и фильтры
+      /\/search\b/, /\/поиск/,
+      /\/filter\b/, /\/фильтр/,
+      /\/tag\//, /\/метк/, /\/tags\//,
+      /\/category\//, /\/категори/, /\/categories\//,
+      // Продукты, каталог, магазин — НЕ нужны для проверки маркировки
+      /\/products?\b/, /\/товар/, /\/produkty/,
+      /\/catalog\b/, /\/каталог/,
+      /\/shop\b/, /\/магазин/, /\/store\b/,
+      /\/price\b/, /\/prices\b/, /\/цены/, /\/цена\b/, /\/стоимост/, /\/тариф/, /\/pricing\b/,
+      /\/sku\b/, /\/item\//,
+      // Технические
+      /\/feed\b/, /\/rss\b/,
+      /\/sitemap/, /\/карта-сайт/,
+      /\/404/, /\/error\b/,
+      /\/admin\b/, /\/wp-/, /\/api\b/,
+      /\/print\b/, /\/share\b/, /\/preview\b/,
+      // Пагинация
+      /\/page\/\d+$/, /[?&]page=\d+/, /[?&]p=\d+/
+    ];
+    const matchedSkip = SKIP.find(p => p.test(full));
+    if (matchedSkip) {
+      const key = matchedSkip.toString();
+      const arr = SKIP_REASONS.get(key) || [];
+      if (arr.length < 3) arr.push(url);
+      SKIP_REASONS.set(key, arr);
+      return -1;
+    }
+
+    // ВЫСОКИЙ приоритет — контентные страницы (блог, новости, архивы, публикации)
+    const HIGH = [
+      // Базовое
+      /\/blog/, /\/news/, /\/press/, /\/article/, /\/post/, /\/story/, /\/stories/,
+      /\/блог/, /\/новост/, /\/стат(ь|и)/, /\/пресс/, /\/редакция/, /\/медиа/, /\/post/,
+      // Публикации и архивы
+      /\/publication/, /\/публикаци/, /\/опубликован/,
+      /\/archive/, /\/архив/,
+      /\/issues?\b/, /\/выпуск/, /\/issue\b/,
+      /\/digest/, /\/дайджест/,
+      /\/journal/, /\/журнал/, /\/magazine/,
+      /\/media\b/, /\/material/, /\/материал/,
+      // Контент и колонки
+      /\/content\b/, /\/контент/,
+      /\/column/, /\/колонк/,
+      /\/opinion/, /\/мнения?/, /\/мнение/, /\/editorial/, /\/редакторск/,
+      // Исследования и отчёты
+      /\/research/, /\/исследовани/,
+      /\/report\b/, /\/reports\b/, /\/отчёт/, /\/отчет/,
+      /\/analytic/, /\/аналитик/,
+      /\/trend/, /\/тренд/,
+      /\/case-?stud/, /\/кейс/,
+      // Экспертный контент
+      /\/insights?/, /\/инсайт/,
+      /\/expert/, /\/эксперт/,
+      /\/review/, /\/отзыв/, /\/обзор/,
+      // События и интервью
+      /\/events?\b/, /\/мероприят/,
+      /\/interview/, /\/интервью/,
+      /\/podcast/, /\/подкаст/,
+      // Авторы (часто содержат имена и цитаты)
+      /\/author/, /\/автор/, /\/писател/, /\/columnist/,
+      // Год/месяц в URL = архивная публикация
+      /\/(19|20)\d{2}\//, /\/(19|20)\d{2}-\d{2}/
+    ];
+    if (HIGH.some(p => p.test(full))) return 10;
+
+    // Главная страница
+    if (path === '/' || path === '') return 7;
+
+    // Средний приоритет — корпоративные страницы (нужны для AI: 152-ФЗ, 149-ФЗ, оферта)
+    const MED = [
+      /\/about/, /\/о-?(нас|компани)/, /\/about-us/,
+      /\/team/, /\/команд/, /\/коллектив/,
+      /\/career/, /\/работ/, /\/вакан/, /\/jobs/,
+      /\/contact/, /\/контакт/,
+      /\/portfolio/, /\/портфолио/,
+      /\/help/, /\/faq/, /\/помощ/,
+      /\/policy/, /\/privacy/, /\/политик/, /\/конфиденц/, /\/persondata/,
+      /\/offer/, /\/оферт/, /\/agreement/, /\/договор/, /\/правила/
+    ];
+    if (MED.some(p => p.test(full))) return 5;
+
+    // Всё остальное
+    return 3;
+  }
+
+  // ── Краулер (если нет sitemap) ────────────────
+  async function crawlSite(startUrl, maxPages, maxDepth, onProgress) {
+    const origin = new URL(startUrl).origin;
+    const visited = new Set();
+    const queued = new Set([startUrl]); // O(1) duplicate check for the queue
+    const queue = [{ url: startUrl, depth: 0 }];
+    const results = [];
+
+    while (queue.length > 0 && results.length < maxPages && !scanCancelled) {
+      const { url, depth } = queue.shift();
+      if (visited.has(url)) continue;
+      visited.add(url);
+
+      onProgress({ phase: 'crawl', current: results.length, queued: queue.length, url });
+
+      const page = await fetchUrl(url);
+      if (!page.ok) continue;
+      results.push(url);
+
+      if (depth < maxDepth) {
+        const links = [...page.html.matchAll(/href=["']([^"']+)["']/gi)]
+          .map(m => m[1])
+          .map(href => {
+            try { return new URL(href, url).href.split('#')[0]; } catch(e) { return null; }
+          })
+          .filter(u => u && u.startsWith(origin) && !visited.has(u) && isHtmlUrl(u));
+
+        const unique = [...new Set(links)];
+        unique.slice(0, 20).forEach(u => {
+          if (!visited.has(u) && !queued.has(u)) {
+            queued.add(u);
+            queue.push({ url: u, depth: depth + 1 });
+          }
+        });
+      }
+    }
+    return { source: 'crawl', urls: results };
+  }
+
+  // ── DOM helpers ───────────────────────────────
+  function getCurrentPageContent() {
+    const url = location.href;
+    const title = document.title || '';
+    const links = Array.from(document.querySelectorAll('a[href]'))
+      .map(a => ({
+        text: (a.innerText||a.textContent||'').trim().slice(0,80),
+        href: a.href,
+        path: (() => { try { return new URL(a.href).pathname.toLowerCase(); } catch(e) { return ''; } })()
+      }))
+      .filter(l => l.text && l.href.startsWith(location.origin));
+    const seen = new Set();
+    const uniqueLinks = links.filter(l => seen.has(l.href) ? false : (seen.add(l.href), true));
+
+    // Маркеры для классификации ссылок в навигации/футере.
+    // Удалены жадные коротыши:
+    //   'пд'    → матчился внутри "подкаст", "командировка", "подобн"
+    //   'данных' → матчился в "база данных", "управление данных"
+    // Оставлены либо длинные стемы, либо URL-фрагменты.
+    const KW = {
+      policy: ['политик','конфиденц','персональн','privacy','cookie','gdpr','согласие','обработки данн','persdata','personal-data','privacy-policy','/policy','/policies'],
+      offer:  ['оферт','договор','правила','усло','public-offer','соглашен','agreement','terms'],
+      ret:    ['возврат','обмен','отказ'],
+      about:  ['о компани','о нас','контакт','about','contact','реквизит']
+    };
+    const m = (l, kws) => { const t = (l.text+' '+l.path).toLowerCase(); return kws.some(k => t.includes(k)); };
+
+    const headerEl = document.querySelector('header,#header,.header');
+    const footerEl = document.querySelector('footer,#footer,.footer');
+
+    return {
+      url, title,
+      header: headerEl ? headerEl.innerText.slice(0, 500) : '',
+      footer: footerEl ? footerEl.innerText.slice(0, 800) : '',
+      bodyText: document.body.innerText.slice(0, 8000),
+      links: uniqueLinks.slice(0, 40),
+      policyLinks: uniqueLinks.filter(l => m(l, KW.policy)).slice(0, 2),
+      offerLinks:  uniqueLinks.filter(l => m(l, KW.offer)).slice(0, 2),
+      returnLinks: uniqueLinks.filter(l => m(l, KW.ret)).slice(0, 2),
+      aboutLinks:  uniqueLinks.filter(l => m(l, KW.about)).slice(0, 2),
+      // Расширенная детекция трекинга — Yandex Metrica, Google Analytics, VK, Mail.ru,
+      // Facebook Pixel, Hotjar, Mixpanel, Roistat, AmoCRM, Bitrix24, и т.п.
+      hasAdScripts: document.querySelectorAll(
+        'script[src*="googletagmanager"],script[src*="google-analytics"],script[src*="gtag"],' +
+        'script[src*="mc.yandex"],script[src*="yandex.ru/metrika"],script[src*="yandex.ru/watch"],' +
+        'script[src*="vk.com/js"],script[src*="vk-tracker"],script[src*="vk.com/rtrg"],' +
+        'script[src*="top.mail.ru"],script[src*="counter.yadro"],' +
+        'script[src*="connect.facebook"],script[src*="fbq"],' +
+        'script[src*="hotjar"],script[src*="mixpanel"],script[src*="amplitude"],' +
+        'script[src*="roistat"],script[src*="bitrix"],script[src*="amocrm"]'
+      ).length > 0 ||
+        // Inline-инициализация: смотрим только в <head> и в текстовых inline-скриптах,
+        // не пересериализуем весь DOM (на крупных новостных сайтах innerHTML = 5-15 МБ).
+        (() => {
+          const INLINE_RE = /(ym\s*\(\s*\d|gtag\(|fbq\(|_tmr\.push|VK\.Retargeting)/;
+          if (document.head && INLINE_RE.test(document.head.innerHTML)) return true;
+          const scripts = document.querySelectorAll('script:not([src])');
+          for (let i = 0; i < scripts.length && i < 50; i++) {
+            if (INLINE_RE.test(scripts[i].textContent || '')) return true;
+          }
+          return false;
+        })(),
+      // Cookie-баннер: расширенная детекция
+      hasCookieBanner: !!document.querySelector(
+        '[class*="cookie"i],[id*="cookie"i],' +
+        '[class*="consent"i],[id*="consent"i],' +
+        '[class*="gdpr"i],[id*="gdpr"i],' +
+        '[class*="privacy-banner"i],[class*="policy-banner"i]'
+      ) || /cookie|куки/.test(
+        // Ищем явный баннер в первых 50KB DOM с текстом про cookie
+        [...document.querySelectorAll('div[role="dialog"],div[role="banner"],aside,[class*="banner"i],[class*="popup"i]')]
+          .map(e => (e.textContent || '').slice(0, 200))
+          .join(' ')
+          .toLowerCase()
+      )
+    };
+  }
+
+  function findElementByText(searchText) {
+    if (!searchText || searchText.length < 5) return null;
+    const clean = searchText.replace(/^["«]|["»]$/g, '').trim();
+    if (clean.length < 5) return null;
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(n) {
+        if (!n.textContent || n.textContent.length < 3) return NodeFilter.FILTER_REJECT;
+        const p = n.parentElement;
+        if (!p || ['SCRIPT','STYLE','NOSCRIPT'].includes(p.tagName)) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    let node;
+    while ((node = w.nextNode())) {
+      if (node.textContent.includes(clean)) return node.parentElement;
+    }
+    const short = clean.slice(0, 25);
+    const w2 = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while ((node = w2.nextNode())) {
+      if (node.textContent.includes(short)) {
+        const p = node.parentElement;
+        if (p && !['SCRIPT','STYLE'].includes(p.tagName)) return p;
+      }
+    }
+    return null;
+  }
+
+  let activeHighlight = null;
+  function highlightElement(el) {
+    if (!el) return false;
+    if (activeHighlight) {
+      activeHighlight.style.outline = ''; activeHighlight.style.outlineOffset = '';
+      activeHighlight.style.backgroundColor = '';
+    }
+    activeHighlight = el;
+    el.style.transition = 'outline-color 0.4s, background-color 0.4s';
+    el.style.outline = '3px solid #ef4444'; el.style.outlineOffset = '4px';
+    el.style.backgroundColor = 'rgba(239,68,68,0.12)';
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    let c = 0;
+    const p = setInterval(() => {
+      if (c >= 6) { clearInterval(p); return; }
+      el.style.outline = c % 2 === 0 ? '3px solid #f87171' : '5px solid #ef4444';
+      c++;
+    }, 350);
+    return true;
+  }
+
+  function setModalDimmed(d) {
+    const ov = document.getElementById('sz-ov');
+    if (!ov) return;
+    if (d) ov.classList.add('sz-dimmed');
+    else ov.classList.remove('sz-dimmed');
+  }
+
+  // ── AI промпт (для остальных законов) ────────
+  const SYSTEM = `Ты эксперт по российскому digital compliance.
+Маркировка иноагентов/экстремистов проверена через API Слезы — НЕ оценивай её, оценивай только остальные законы.
+
+Правила:
+- ok: требование выполнено
+- risk: возможное нарушение
+- violation: явное нарушение
+- unknown: нет данных
+
+Если контент политики/оферты есть — это НЕ нарушение.
+Не уверен — ставь "ok" или "unknown", НЕ "violation".
+
+Верни ТОЛЬКО JSON:
+{
+  "site_name":"...","site_type":"...","summary":"2-3 предложения",
+  "checks":[
+    {"law":"Упоминание наркотиков","law_code":"ст.6.13 КоАП, ФЗ №3","status":"violation|risk|ok|unknown","issue":"...","location":"...","found_text":"...","found_url":"","fine":"до 1 500 000 руб.","action":"..."},
+    {"law":"152-ФЗ — персональные данные","law_code":"152-ФЗ, ст.13.11 КоАП","status":"...","issue":"...","location":"...","found_text":"...","found_url":"","fine":"до 300 000 руб.","action":"..."},
+    {"law":"Маркировка рекламы (ЕРИР)","law_code":"ФЗ №347, ст.14.3 КоАП","status":"...","issue":"...","location":"...","found_text":"...","found_url":"","fine":"100 000 — 500 000 руб.","action":"..."},
+    {"law":"149-ФЗ — информация о владельце","law_code":"149-ФЗ ст.10, ст.13.31 КоАП","status":"...","issue":"...","location":"...","found_text":"...","found_url":"","fine":"до 100 000 руб.","action":"..."},
+    {"law":"Публичная оферта и условия возврата","law_code":"ГК РФ ст.435, ЗоЗПП ст.26.1","status":"...","issue":"...","location":"...","found_text":"...","found_url":"","fine":"до 500 000 руб.","action":"..."}
+  ]
+}`;
+
+  GM_addStyle(`
+    #sz-btn{position:fixed;bottom:28px;right:28px;z-index:2147483647;background:#1a5fb4;color:#fff;border:none;border-radius:50px;padding:12px 20px;font-family:'Courier New',monospace;font-size:13px;font-weight:700;letter-spacing:.06em;cursor:pointer;box-shadow:0 4px 24px rgba(26,95,180,.5);display:flex;align-items:center;gap:8px;transition:transform .2s,box-shadow .2s;user-select:none}
+    #sz-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(26,95,180,.6)}
+    .sz-dot{width:7px;height:7px;background:#60a5fa;border-radius:50%;animation:sz-p 2s infinite}
+    @keyframes sz-p{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(1.6)}}
+    @keyframes sz-s{to{transform:rotate(360deg)}}
+    #sz-ov{position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:20px;transition:opacity .3s,background .3s}
+    #sz-ov.sz-dimmed{background:rgba(0,0,0,.15);backdrop-filter:none;pointer-events:none}
+    #sz-ov.sz-dimmed #sz-modal{opacity:.25;transform:scale(.95);pointer-events:none}
+    #sz-ov.sz-dimmed .sz-restore{display:flex !important;pointer-events:auto}
+    #sz-modal{background:#0b0f1a;border:1px solid #1e2d45;border-radius:16px;width:100%;max-width:840px;max-height:92vh;overflow-y:auto;font-family:system-ui,sans-serif;color:#e2e8f0;scrollbar-width:thin;scrollbar-color:#1e2d45 transparent;transition:opacity .3s,transform .3s}
+    #sz-modal::-webkit-scrollbar{width:5px}#sz-modal::-webkit-scrollbar-thumb{background:#1e2d45;border-radius:3px}
+    .sz-restore{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:2147483647;background:#1a5fb4;color:#fff;border:none;border-radius:50px;padding:10px 18px;font-family:'Courier New',monospace;font-size:12px;font-weight:700;letter-spacing:.06em;cursor:pointer;box-shadow:0 4px 24px rgba(26,95,180,.6);align-items:center;gap:8px}
+    .sz-hdr{background:#111827;border-bottom:1px solid #1e2d45;padding:13px 20px;display:flex;align-items:center;gap:12px;border-radius:16px 16px 0 0;position:sticky;top:0;z-index:1}
+    .sz-brand{font-family:'Courier New',monospace;font-size:12px;font-weight:700;letter-spacing:.1em;color:#fff}
+    .sz-hsub{font-family:'Courier New',monospace;font-size:9px;color:#64748b;margin-top:1px}
+    .sz-vbadge{font-family:'Courier New',monospace;font-size:9px;padding:2px 7px;border-radius:10px;background:linear-gradient(90deg,#1a5fb4,#3b82f6);color:#fff;border:1px solid rgba(59,130,246,.4);margin-left:4px}
+    .sz-close{margin-left:auto;background:#1a2235;border:1px solid #2d3f5a;border-radius:6px;padding:5px 11px;font-family:'Courier New',monospace;font-size:11px;color:#94a3b8;cursor:pointer}
+    .sz-close:hover{color:#ef4444;border-color:rgba(239,68,68,.4)}
+    .sz-body{padding:18px}
+
+    /* Выбор режима */
+    .sz-mode{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .sz-mode-btn{background:#111827;border:1px solid #1e2d45;border-radius:10px;padding:14px 16px;cursor:pointer;text-align:left;transition:all .15s}
+    .sz-mode-btn:hover{border-color:#3b82f6;background:#1a2235}
+    .sz-mode-btn.full{border-color:#3b82f6;background:linear-gradient(135deg,#1a2235,#1e3a5f)}
+    .sz-mode-title{font-size:14px;font-weight:600;color:#fff;margin-bottom:4px}
+    .sz-mode-desc{font-size:11px;color:#94a3b8;line-height:1.5}
+    .sz-mode-time{font-family:'Courier New',monospace;font-size:9px;color:#60a5fa;margin-top:6px}
+
+    /* Прогресс */
+    .sz-progress{padding:24px 20px;text-align:center}
+    .sz-spinner{width:32px;height:32px;border:3px solid #1e2d45;border-top-color:#3b82f6;border-radius:50%;animation:sz-s .8s linear infinite;margin:0 auto 14px}
+    .sz-prog-title{font-size:13px;font-weight:600;color:#fff;margin-bottom:6px}
+    .sz-prog-stage{font-family:'Courier New',monospace;font-size:11px;color:#60a5fa;margin-bottom:14px}
+    .sz-prog-bar{background:#0f1923;border-radius:6px;height:10px;overflow:hidden;border:1px solid #1e2d45;margin:0 auto 10px;max-width:480px}
+    .sz-prog-fill{background:linear-gradient(90deg,#3b82f6,#60a5fa);height:100%;transition:width .3s;border-radius:6px}
+    .sz-prog-stats{font-family:'Courier New',monospace;font-size:10px;color:#94a3b8;display:flex;justify-content:center;gap:18px;margin-bottom:14px}
+    .sz-prog-stats span{color:#fff;font-weight:700}
+    .sz-prog-current{font-family:'Courier New',monospace;font-size:9px;color:#475569;word-break:break-all;text-align:center;max-width:600px;margin:0 auto;line-height:1.5}
+    .sz-cancel-btn{background:#1a2235;border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:7px 16px;font-family:inherit;font-size:11px;color:#f87171;cursor:pointer;margin-top:14px}
+    .sz-cancel-btn:hover{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.08)}
+
+    .sz-found-live{display:flex;justify-content:center;gap:14px;margin-top:14px;font-family:'Courier New',monospace;font-size:10px}
+    .sz-found-live .lbl{color:#64748b}
+    .sz-found-live .num{color:#f87171;font-weight:700;font-size:13px}
+    .sz-found-live .num.zero{color:#4ade80}
+
+    /* Результаты */
+    .sz-sum{border-radius:10px;padding:16px;margin-bottom:12px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+    .sz-sum.high{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2)}
+    .sz-sum.medium{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)}
+    .sz-sum.low{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2)}
+    .sz-sl{font-family:'Courier New',monospace;font-size:10px;color:#64748b;margin-bottom:4px}
+    .sz-sl span{color:#60a5fa}
+    .sz-rt{font-size:17px;font-weight:700;margin-bottom:3px}
+    .sz-rd{font-size:12px;color:#94a3b8;line-height:1.5}
+    .sz-sc{font-family:'Courier New',monospace;font-size:42px;font-weight:700;line-height:1;text-align:right}
+    .sz-scl{font-family:'Courier New',monospace;font-size:9px;color:#64748b;text-align:right;margin-top:1px;letter-spacing:.06em}
+    .c-high{color:#f87171}.c-medium{color:#fbbf24}.c-low{color:#4ade80}
+
+    .sz-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+    .sz-stat{background:#111827;border:1px solid #1e2d45;border-radius:8px;padding:10px 12px;text-align:center}
+    .sz-stat-num{font-family:'Courier New',monospace;font-size:18px;font-weight:700;color:#fff;line-height:1}
+    .sz-stat-num.bad{color:#f87171}
+    .sz-stat-num.warn{color:#fbbf24}
+    .sz-stat-num.ok{color:#4ade80}
+    .sz-stat-lbl{font-family:'Courier New',monospace;font-size:9px;color:#64748b;margin-top:5px;letter-spacing:.04em;text-transform:uppercase}
+
+    .sz-cl{font-family:'Courier New',monospace;font-size:10px;letter-spacing:.1em;color:#64748b;text-transform:uppercase;margin-bottom:8px}
+    .sz-checks{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+    .sz-check{background:#111827;border-radius:8px;padding:12px 14px}
+    .sz-check.violation{border-left:3px solid #ef4444}
+    .sz-check.risk{border-left:3px solid #f59e0b}
+    .sz-check.ok{border-left:3px solid #22c55e}
+    .sz-check.unknown{border-left:3px solid #334155}
+    .sz-ct{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .sz-ln{font-size:12px;font-weight:600;color:#fff;margin-bottom:2px}
+    .sz-lc{font-family:'Courier New',monospace;font-size:9px;color:#64748b}
+    .sz-pill{font-family:'Courier New',monospace;font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;letter-spacing:.05em;white-space:nowrap;flex-shrink:0}
+    .sz-pill.violation{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+    .sz-pill.risk{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+    .sz-pill.ok{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.3)}
+    .sz-pill.unknown{background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.25)}
+    .sz-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .sz-full{grid-column:span 2}
+    .sz-fl{font-family:'Courier New',monospace;font-size:8px;letter-spacing:.08em;color:#475569;text-transform:uppercase;margin-bottom:2px}
+    .sz-fv{font-size:11px;color:#94a3b8;line-height:1.5}
+    .sz-fv.iss{font-size:12px}
+    .sz-check.violation .sz-fv.iss{color:#f87171}
+    .sz-check.ok .sz-fv.iss{color:#4ade80}
+
+    /* Список нарушений по страницам */
+    .sz-pages-list{margin-top:8px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;background:#0f1923;border-radius:6px;padding:8px}
+    .sz-page-item{background:#111827;border:1px solid #1e2d45;border-radius:6px;padding:8px 10px}
+    .sz-page-item.bad{border-left:2px solid #ef4444}
+    .sz-page-url{font-family:'Courier New',monospace;font-size:10px;color:#60a5fa;word-break:break-all;display:block;margin-bottom:4px;text-decoration:none}
+    .sz-page-url:hover{color:#93c5fd;text-decoration:underline}
+    .sz-page-violations{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+    .sz-page-violation{font-family:'Courier New',monospace;font-size:9px;display:flex;justify-content:space-between;gap:6px;padding:3px 6px;background:rgba(239,68,68,.06);border-radius:3px}
+    .sz-page-violation .name{color:#f87171;font-weight:700}
+    .sz-page-violation .mark{color:#94a3b8;font-style:italic;flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+    .sz-loc-btn{display:inline-flex;align-items:center;gap:6px;background:#1a2235;border:1px solid #2d3f5a;border-radius:5px;padding:5px 10px;font-family:'Courier New',monospace;font-size:10px;color:#60a5fa;margin-top:6px;cursor:pointer;text-decoration:none;transition:all .15s;max-width:100%;text-align:left}
+    .sz-loc-btn:hover{background:#243044;border-color:#3b82f6;color:#93c5fd;transform:translateX(2px)}
+    .sz-loc-btn.absent{cursor:default;color:#94a3b8;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
+    .sz-loc-btn.absent:hover{transform:none;background:rgba(245,158,11,.08)}
+    .sz-loc-icon{font-size:11px;flex-shrink:0}
+    .sz-loc-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+    .sz-quote{background:#0f1923;border-left:2px solid #2d3f5a;border-radius:0 4px 4px 0;padding:6px 10px;font-family:'Courier New',monospace;font-size:10px;color:#64748b;margin-top:5px;line-height:1.5;font-style:italic;word-break:break-word}
+
+    .sz-cta{background:linear-gradient(135deg,#111827,#1a2235);border:1px solid #1e2d45;border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .sz-ctat{font-size:13px;font-weight:600;color:#fff;margin-bottom:2px}
+    .sz-ctas{font-size:11px;color:#64748b}
+    .sz-ctal{font-family:'Courier New',monospace;font-size:11px;color:#3b82f6;font-weight:700;white-space:nowrap;margin-left:16px}
+    .sz-disc{font-family:'Courier New',monospace;font-size:9px;color:#374151;line-height:1.8;background:#111827;border-radius:6px;padding:10px 12px}
+    .sz-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:16px;text-align:center;color:#f87171;font-size:13px;line-height:1.8}
+    .sz-acts{display:flex;gap:8px;margin-bottom:12px}
+    .sz-abtn{background:#1a2235;border:1px solid #2d3f5a;border-radius:6px;padding:7px 13px;font-size:11px;color:#94a3b8;cursor:pointer;font-family:inherit}
+    .sz-abtn:hover{color:#e2e8f0;border-color:#3b82f6}
+
+    /* Блок ЕГРЮЛ */
+    .sz-egrul-block{margin-top:8px;border-radius:8px;padding:10px 12px;border:1px solid;background:#0f1923}
+    .sz-egrul-block.good{border-color:rgba(34,197,94,.3);background:linear-gradient(135deg,rgba(34,197,94,.04),rgba(34,197,94,.08))}
+    .sz-egrul-block.bad{border-color:rgba(239,68,68,.3);background:linear-gradient(135deg,rgba(239,68,68,.04),rgba(239,68,68,.08))}
+    .sz-egrul-block.warn{border-color:rgba(245,158,11,.3);background:linear-gradient(135deg,rgba(245,158,11,.04),rgba(245,158,11,.08))}
+    .sz-egrul-title{font-family:'Courier New',monospace;font-size:11px;font-weight:700;margin-bottom:6px;letter-spacing:.04em}
+    .sz-egrul-block.good .sz-egrul-title{color:#4ade80}
+    .sz-egrul-block.bad .sz-egrul-title{color:#f87171}
+    .sz-egrul-block.warn .sz-egrul-title{color:#fbbf24}
+    .sz-egrul-row{font-family:'Courier New',monospace;font-size:10px;color:#94a3b8;padding:2px 0;display:grid;grid-template-columns:90px 1fr;gap:6px}
+    .sz-egrul-row span{color:#64748b}
+    .sz-egrul-row strong.ok{color:#4ade80}
+    .sz-egrul-row strong.bad{color:#f87171}
+    .sz-egrul-desc{font-size:11px;color:#94a3b8;margin-top:6px;line-height:1.5;font-style:italic}
+
+    /* Чек-лист 152-ФЗ */
+    .sz-152-list{display:flex;flex-direction:column;gap:3px;margin-top:6px;background:rgba(0,0,0,.25);border-radius:5px;padding:8px 10px}
+    .sz-152-row{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:center;font-family:'Courier New',monospace;font-size:11px;padding:2px 0}
+    .sz-152-icon{font-weight:700;font-size:12px;text-align:center}
+    .sz-152-icon.ok{color:#4ade80}
+    .sz-152-icon.ai{color:#60a5fa}
+    .sz-152-icon.miss{color:#f87171}
+    .sz-152-label{color:#94a3b8}
+    .sz-152-label.miss{color:#f87171;text-decoration:line-through;text-decoration-color:rgba(239,68,68,.4)}
+  `);
+
+  const btn = document.createElement('button');
+  btn.id = 'sz-btn';
+  btn.innerHTML = '<span class="sz-dot"></span>СЛЕЗА // ПРОВЕРИТЬ';
+  document.body.appendChild(btn);
+  btn.onclick = openModal;
+
+  let ov = null;
+
+  function openModal() {
+    if (ov) return;
+    scanCancelled = false;
+
+    ov = document.createElement('div');
+    ov.id = 'sz-ov';
+    ov.innerHTML = `
+      <div id="sz-modal">
+        <div class="sz-hdr">
+          <div class="sz-dot"></div>
+          <div>
+            <div class="sz-brand">СЛЕЗА // COMPLIANCE SCANNER<span class="sz-vbadge">v7.0 FULL SITE</span></div>
+            <div class="sz-hsub">ВЫБЕРИТЕ РЕЖИМ ПРОВЕРКИ</div>
+          </div>
+          <button class="sz-close" id="sz-settings" title="Изменить API-ключи">⚙ Ключи</button>
+          <button class="sz-close" id="sz-x">✕ закрыть</button>
+        </div>
+        <div class="sz-body" id="sz-bd"></div>
+      </div>
+      <button class="sz-restore" id="sz-restore">⬆ Вернуться к отчёту</button>`;
+
+    document.body.appendChild(ov);
+    document.getElementById('sz-x').onclick = closeModal;
+    document.getElementById('sz-settings').onclick = () => showSettings(false);
+    document.getElementById('sz-restore').onclick = () => setModalDimmed(false);
+    if (!hasKeys()) showSettings(true);
+    else showModeChooser();
+  }
+
+  function showSettings(firstRun) {
+    const bd = document.getElementById('sz-bd');
+    bd.innerHTML = `
+      <div style="padding:8px 0 4px;text-align:center;color:#94a3b8;font-size:13px;line-height:1.6">
+        <div style="font-family:'Courier New',monospace;font-size:10px;color:#3b82f6;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">API-ключи</div>
+        <div>${firstRun ? 'Введите ключи для запуска сканера. Они хранятся локально в Tampermonkey, не в коде.' : 'Изменение ключей. Сохраняется локально в Tampermonkey.'}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;padding:14px 4px 6px;max-width:560px;margin:0 auto">
+        <label style="display:flex;flex-direction:column;gap:4px;font-family:'Courier New',monospace;font-size:11px;color:#94a3b8">
+          <span>GROQ_KEY <span style="color:#64748b">— api.groq.com</span></span>
+          <input id="sz-key-groq" type="password" value="${escapeHtml(GROQ_KEY)}" placeholder="gsk_..."
+            style="background:#0f172a;border:1px solid #334155;border-radius:6px;color:#e2e8f0;padding:8px 10px;font-family:'Courier New',monospace;font-size:12px;outline:none">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font-family:'Courier New',monospace;font-size:11px;color:#94a3b8">
+          <span>SLEZA_KEY <span style="color:#64748b">— sleza.media/api</span></span>
+          <input id="sz-key-sleza" type="password" value="${escapeHtml(SLEZA_KEY)}" placeholder="..."
+            style="background:#0f172a;border:1px solid #334155;border-radius:6px;color:#e2e8f0;padding:8px 10px;font-family:'Courier New',monospace;font-size:12px;outline:none">
+        </label>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button id="sz-key-save" style="flex:1;background:#3b82f6;border:none;border-radius:6px;color:#fff;padding:10px 14px;font-family:'Courier New',monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer">Сохранить</button>
+          ${firstRun ? '' : '<button id="sz-key-cancel" style="background:#1e293b;border:1px solid #334155;border-radius:6px;color:#94a3b8;padding:10px 14px;font-family:\'Courier New\',monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer">Отмена</button>'}
+        </div>
+        <div style="color:#64748b;font-size:10px;text-align:center;padding-top:4px">
+          Ключи сохраняются через GM_setValue. Никуда не отправляются, кроме соответствующих API.
+        </div>
+      </div>`;
+    document.getElementById('sz-key-save').onclick = () => {
+      const g = document.getElementById('sz-key-groq').value;
+      const s = document.getElementById('sz-key-sleza').value;
+      saveKeys(g, s);
+      showModeChooser();
+    };
+    if (!firstRun) document.getElementById('sz-key-cancel').onclick = showModeChooser;
+  }
+
+  function closeModal() {
+    scanCancelled = true;
+    if (ov) { ov.remove(); ov = null; }
+    if (activeHighlight) {
+      activeHighlight.style.outline = ''; activeHighlight.style.outlineOffset = '';
+      activeHighlight.style.backgroundColor = ''; activeHighlight = null;
+    }
+  }
+
+  function showModeChooser() {
+    const bd = document.getElementById('sz-bd');
+    bd.innerHTML = `
+      <div style="padding:8px 0 4px;text-align:center;color:#94a3b8;font-size:13px;line-height:1.6">
+        <div style="font-family:'Courier New',monospace;font-size:10px;color:#3b82f6;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Что проверяем</div>
+        <div>${escapeHtml(location.hostname)}</div>
+      </div>
+      <div class="sz-mode">
+        <div class="sz-mode-btn" id="mode-current">
+          <div class="sz-mode-title">Текущая страница</div>
+          <div class="sz-mode-desc">Быстрая проверка только этой страницы. Хорошо для демо за 10 секунд.</div>
+          <div class="sz-mode-time">~ 10 сек</div>
+        </div>
+        <div class="sz-mode-btn full" id="mode-full">
+          <div class="sz-mode-title">Весь сайт</div>
+          <div class="sz-mode-desc">Полный аудит — sitemap.xml или обход до ${MAX_PAGES} страниц. Точно покажет все нарушения.</div>
+          <div class="sz-mode-time">~ 40-60 сек</div>
+        </div>
+      </div>`;
+    document.getElementById('mode-current').onclick = () => runSinglePageScan();
+    document.getElementById('mode-full').onclick = () => runFullSiteScan();
+  }
+
+  function showProgress({ phase, current, total, queued, url, found, skipped }) {
+    const bd = document.getElementById('sz-bd');
+    if (!bd) return;
+    const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+    const phaseText = {
+      'sitemap': 'Поиск sitemap.xml',
+      'crawl': 'Обход сайта',
+      'sleza': 'Проверка по реестру Слезы',
+      'ai': 'AI-анализ остальных законов',
+    }[phase] || phase;
+
+    bd.innerHTML = `
+      <div class="sz-progress">
+        <div class="sz-spinner"></div>
+        <div class="sz-prog-title">${phaseText}</div>
+        <div class="sz-prog-stage">${url ? '→ ' + escapeHtml(url.slice(0, 80)) : ''}</div>
+        ${total > 0 ? `<div class="sz-prog-bar"><div class="sz-prog-fill" style="width:${pct}%"></div></div>` : ''}
+        <div class="sz-prog-stats">
+          ${total > 0 ? `<span>${current}</span> из <span>${total}</span> страниц` : ''}
+          ${queued !== undefined ? `· в очереди: <span>${queued}</span>` : ''}
+          ${skipped !== undefined && skipped > 0 ? `· <span style="color:#4ade80">⚡ пропущено фильтром: <strong>${skipped}</strong></span>` : ''}
+        </div>
+        ${found ? `<div class="sz-found-live">
+          <div><span class="lbl">найдено упоминаний:</span> <span class="num ${found.total === 0 ? 'zero' : ''}">${found.total}</span></div>
+          <div><span class="lbl">без маркировки:</span> <span class="num ${found.unmarked === 0 ? 'zero' : ''}">${found.unmarked}</span></div>
+        </div>` : ''}
+        <button class="sz-cancel-btn" id="sz-cancel-btn">✕ Отменить</button>
+      </div>`;
+    const cancelBtn = document.getElementById('sz-cancel-btn');
+    if (cancelBtn) cancelBtn.addEventListener('click', () => { scanCancelled = true; });
+  }
+
+  // ── Сценарий: одна страница ───────────────────
+  async function runSinglePageScan() {
+    SKIP_REASONS.clear();
+    showProgress({ phase: 'sleza', current: 0, total: 1, url: location.href });
+    const c = getCurrentPageContent();
+    const fullText = `${c.title}\n${c.header}\n${c.bodyText}\n${c.footer}`;
+
+    const slezaResult = await checkWithSleza(fullText);
+    const items = (slezaResult.items || []).map(parseSlezaItem);
+    const checked = items.map(item => ({ ...item, ...checkMarkingNearby(fullText, item.name, item.category), pageUrl: location.href }));
+
+    // ЕГРЮЛ-проверка реквизитов
+    showProgress({ phase: 'sleza', current: 1, total: 1, url: 'Проверка ЕГРЮЛ...' });
+    const ids = extractIdentifiers(fullText);
+    let egrulResult = null;
+    if (ids.ogrn || ids.inn) {
+      egrulResult = await checkEgrul(ids.ogrn || ids.inn);
+    }
+    const egrul = { checked: true, ids, result: egrulResult };
+
+    showProgress({ phase: 'ai', current: 1, total: 1 });
+    const aiData = await runAIAnalysis(c, egrul, fullText);
+
+    renderResults({
+      mode: 'single',
+      origin: location.origin,
+      hostname: location.hostname,
+      pages: [{ url: location.href, title: c.title, items: checked, isCurrent: true }],
+      aiData,
+      egrul,
+      slezaError: slezaResult.errors || null,
+      spaWarning: detectSpaFromDom(),
+    });
+  }
+
+  // ── Сценарий: весь сайт ──────────────────────
+  async function runFullSiteScan() {
+    const origin = location.origin;
+    const hostname = location.hostname;
+
+    // 1. Получаем список URL
+    showProgress({ phase: 'sitemap', current: 0, total: 0, url: origin });
+    let urlList = await trySitemap(origin);
+    if (scanCancelled) return;
+
+    if (!urlList || urlList.urls.length === 0) {
+      showProgress({ phase: 'crawl', current: 0, total: MAX_PAGES, url: origin });
+      urlList = await crawlSite(location.href, MAX_PAGES, MAX_DEPTH, p => {
+        if (!scanCancelled) showProgress({ phase: 'crawl', current: p.current, total: MAX_PAGES, queued: p.queued, url: p.url });
+      });
+    }
+    if (scanCancelled) return;
+
+    let urls = urlList.urls;
+    const totalDiscovered = urls.length;
+
+    // ── Стратегия отбора: HIGH-контент с покрытием по годам ──
+    SKIP_REASONS.clear(); // Сбрасываем диагностику с прошлого скана
+    let scored = urls
+      .map(u => ({ url: u, score: scoreUrl(u) }))
+      .filter(x => x.score >= 0); // отбрасываем технические страницы
+
+    // Fallback: если SKIP-фильтр отбросил >95% URL — нестандартная структура сайта.
+    // Логируем причины и берём все URL как LOW, чтобы хоть что-то просканировать.
+    let usedFallback = false;
+    if (scored.length === 0 && totalDiscovered > 0) {
+      try {
+        console.warn('[Слеза] scoreUrl отбросил все', totalDiscovered, 'URL. Топ-причины:');
+        for (const [pattern, examples] of SKIP_REASONS.entries()) {
+          console.warn('  •', pattern, '→', examples.slice(0, 3));
+        }
+        console.warn('[Слеза] Fallback: использую все URL как LOW (приоритет 3).');
+      } catch(_) {}
+      scored = urls.map(u => ({ url: u, score: 3 }));
+      usedFallback = true;
+    }
+
+    const highPages = scored.filter(x => x.score >= 10).map(x => x.url);
+    const medPages  = scored.filter(x => x.score === 5 || x.score === 7).map(x => x.url);
+    const lowPages  = scored.filter(x => x.score === 3).map(x => x.url);
+
+    // Бюджет: MED ≤10 (корпоративные нужны для 152/149/оферты), остальное под HIGH, остаток LOW.
+    const medBudget = Math.min(medPages.length, 10);
+    const lowBudget = Math.min(lowPages.length, Math.max(0, Math.min(20, MAX_PAGES - highPages.length - medBudget)));
+    const highBudget = Math.max(0, MAX_PAGES - medBudget - lowBudget);
+
+    // HIGH-страницы сэмплируем по годам — гарантирует покрытие архива до и после 2022
+    const highSampled = sampleByYear(highPages, highBudget);
+    const medSampled  = medPages.slice(0, medBudget); // корпоративные не сэмплируем по годам
+    const lowSampled  = strideSample(lowPages, lowBudget);
+
+    // Главная всегда первая
+    const all = [...highSampled, ...medSampled, ...lowSampled];
+    const withoutCurrent = all.filter(u => u !== location.href);
+    urls = [location.href, ...withoutCurrent].slice(0, MAX_PAGES);
+
+    // Подсчёт лет в финальной выборке — для статистики в UI
+    const yearsSet = new Set();
+    for (const u of urls) {
+      const y = extractYearFromUrl(u);
+      if (y) yearsSet.add(y);
+    }
+
+    // Статистика по типам
+    const yearsSorted = [...yearsSet].sort();
+    const stats = {
+      high: highPages.length,
+      highScanned: highSampled.length,
+      mid: medBudget,
+      low: lowSampled.length,
+      skipped: totalDiscovered - scored.length,
+      totalHighFound: highPages.length,
+      yearsCovered: yearsSorted,
+      yearRange: yearsSorted.length > 0 ? `${yearsSorted[0]}–${yearsSorted[yearsSorted.length-1]}` : null,
+      usedFallback,
+      totalDiscovered,
+    };
+
+    // 2. Сканируем каждую страницу через API Слезы
+    const pages = [];
+    let totalUnmarked = 0;
+    let totalFound = 0;
+    let skippedByFilter = 0; // счётчик пропущенных предфильтром
+    let allPagesRawText = ''; // накапливаем хвосты страниц для поиска ИНН/ОГРН в подвалах
+    let firstSlezaError = null; // первая ошибка API Слезы (для диагностики)
+    let spaLikeCount = 0; // страниц с признаками SPA-оболочки (мало текста, большой HTML)
+
+    for (let i = 0; i < urls.length; i++) {
+      if (scanCancelled) break;
+      const url = urls[i];
+      const score = scoreUrl(url);
+      const typeLabel = score >= 10 ? '📰 контент' : score >= 7 ? '🏠 главная' : score >= 5 ? '🏢 корпоративн.' : '📄 страница';
+
+      showProgress({
+        phase: 'sleza', current: i, total: urls.length,
+        url: `${typeLabel} · ${url.replace(location.origin, '')}`,
+        found: { total: totalFound, unmarked: totalUnmarked },
+        skipped: skippedByFilter
+      });
+
+      let pageData;
+      if (url === location.href) {
+        // Текущая страница — берём из DOM (быстрее и точнее)
+        const c = getCurrentPageContent();
+        pageData = {
+          url, ok: true,
+          text: `${c.title}\n${c.header}\n${c.bodyText}\n${c.footer}`,
+          title: c.title
+        };
+      } else {
+        pageData = await fetchUrl(url);
+        // Считаем SPA-оболочки: мало текста при большом HTML — JS-рендеринг
+        if (pageData.ok && pageData.text.length < 200 && (pageData.html || '').length > 3000) {
+          spaLikeCount++;
+        }
+      }
+
+      if (!pageData.ok || !pageData.text) {
+        pages.push({ url, title: pageData.title || url, items: [], error: 'не загружено', isCurrent: url === location.href });
+        continue;
+      }
+
+      // ── ПРЕДФИЛЬТР: пропускаем страницы без признаков имён ──
+      if (!hasNameLikePatterns(pageData.text)) {
+        // Хвост — для ЕГРЮЛ: ИНН/ОГРН часто в подвале даже у страниц без имён (/contacts, /about)
+        allPagesRawText += ' ' + pageData.text.slice(-1500);
+        pages.push({
+          url, title: pageData.title, items: [],
+          skipped: true, // помечаем как пропущенную
+          isCurrent: url === location.href
+        });
+        skippedByFilter++;
+        continue; // НЕ тратим API-запрос, НЕ делаем задержку
+      }
+
+      const slezaResult = await checkWithSleza(pageData.text);
+      if (slezaResult.errors && !firstSlezaError) firstSlezaError = slezaResult.errors;
+      const items = (slezaResult.items || []).map(parseSlezaItem);
+      const checked = items.map(item => ({ ...item, ...checkMarkingNearby(pageData.text, item.name, item.category), pageUrl: url }));
+
+      const unmarkedCount = checked.filter(x => !x.hasMarking).length;
+      totalFound += checked.length;
+      totalUnmarked += unmarkedCount;
+
+      // Хвост страницы (1500 симв.) — подвалы часто содержат ИНН/ОГРН
+      allPagesRawText += ' ' + pageData.text.slice(-1500);
+
+      pages.push({
+        url, title: pageData.title, items: checked,
+        isCurrent: url === location.href
+      });
+
+      // Задержка перед следующим запросом (только если был API-запрос)
+      if (i < urls.length - 1 && !scanCancelled) {
+        await new Promise(r => setTimeout(r, SLEZA_DELAY_MS));
+      }
+    }
+
+    if (scanCancelled) {
+      const bd = document.getElementById('sz-bd');
+      if (bd) bd.innerHTML = `<div class="sz-err">⚠ Сканирование отменено<br><br><small>Просканировано ${pages.length} страниц</small></div>`;
+      return;
+    }
+
+    // 3. AI-анализ остальных законов (только на главной)
+    showProgress({ phase: 'ai', current: urls.length, total: urls.length, found: { total: totalFound, unmarked: totalUnmarked } });
+    const c = getCurrentPageContent();
+
+    // ЕГРЮЛ-проверка: объединяем хвосты всех страниц + DOM текущей (подвал = главный источник ИНН/ОГРН)
+    const allPagesText = allPagesRawText + ' ' + c.bodyText + ' ' + c.footer + ' ' + c.header;
+    const ids = extractIdentifiers(allPagesText);
+    let egrulResult = null;
+    if (ids.ogrn || ids.inn) {
+      egrulResult = await checkEgrul(ids.ogrn || ids.inn);
+    }
+    const egrul = { checked: true, ids, result: egrulResult };
+
+    const aiData = await runAIAnalysis(c, egrul, allPagesText);
+
+    const spaWarning = detectSpaFromDom() || (urls.length > 3 && spaLikeCount / urls.length > 0.3);
+    renderResults({ mode: 'full', origin, hostname, pages, aiData, source: urlList.source, egrul, stats, slezaError: firstSlezaError, spaWarning });
+  }
+
+  // Пытается найти политику по типовым URL-путям, если ссылок в DOM не нашлось
+  // или текст оказался слишком коротким (SPA-оболочка, нестандартный текст линка).
+  // Возвращает [{url, text}] или [] если нигде не получилось.
+  async function discoverPolicyByCommonPaths(originUrl) {
+    if (scanCancelled) return [];
+    let origin;
+    try { origin = new URL(originUrl).origin; } catch (e) { return []; }
+
+    // Две волны: сначала 5 самых частых путей параллельно — если нашли, не идём дальше.
+    // Вторая волна — оставшиеся 9. Это убирает 8 с задержку по 8 с на SPA-сайтах.
+    const wave1 = ['/privacy-policy', '/privacy', '/policy', '/personal-data', '/legal/privacy'];
+    const wave2 = [
+      '/legal/privacy-policy', '/info/privacy', '/about/privacy',
+      '/static/privacy', '/static-pages/privacy', '/policies/privacy',
+      '/privacy.html', '/privacy.shtml', '/persdata',
+    ];
+
+    function isPolicyPage(r) {
+      if (!r || !r.ok || !r.text || r.text.length < 500) return false;
+      const t = r.text.toLowerCase();
+      return t.includes('персональн') || t.includes('privacy') ||
+             t.includes('конфиденц')   || t.includes('обработк');
+    }
+
+    for (const wave of [wave1, wave2]) {
+      if (scanCancelled) return [];
+      const results = await Promise.all(wave.map(p => fetchUrl(origin + p)));
+      if (scanCancelled) return [];
+      const found = results.filter(isPolicyPage);
+      if (found.length > 0) {
+        found.sort((a, b) => b.text.length - a.text.length);
+        return [{ url: found[0].url, text: found[0].text.slice(0, 50000) }];
+      }
+    }
+    return [];
+  }
+
+  // ── AI-арбитр для 152-ФЗ: подтверждает пункты, которые локальный чек не нашёл ──
+  // Вызывается ТОЛЬКО при неуверенном результате (1 ≤ found ≤ 5). Никогда не понижает статус.
+  async function verify152FZWithAI(policyText, result152) {
+    if (!policyText || result152.found >= 6 || result152.found === 0 || result152.status === 'no_policy') {
+      return result152;
+    }
+    if (scanCancelled) return result152;
+
+    const missing = result152.items.filter(i => !i.present);
+    if (missing.length === 0) return result152;
+
+    const policySnippet = policyText.slice(0, 30000);
+
+    const system = `Ты эксперт по 152-ФЗ. Тебе дан текст политики конфиденциальности и список обязательных пунктов ст. 18.1, которые локальный регулярный поиск НЕ нашёл. Твоя задача: для КАЖДОГО пункта решить — есть ли он на самом деле в тексте политики.
+
+Правила:
+- present: true — если пункт явно присутствует в тексте, пусть и сформулирован нестандартно
+- present: false — если пункта действительно нет
+- quote — короткий фрагмент (15-60 симв.) из политики, доказывающий наличие пункта (только если present: true)
+- Не придумывай. Сомневаешься — false.
+
+Верни ТОЛЬКО JSON, без пояснений:
+{"items":[{"id":"<id>","present":true|false,"quote":"<фрагмент>"}, ...]}`;
+
+    const user = `ПУНКТЫ ДЛЯ ПРОВЕРКИ:\n${missing.map(m => `- ${m.id}: ${m.label}`).join('\n')}\n\nТЕКСТ ПОЛИТИКИ:\n${policySnippet}`;
+
+    return new Promise(resolve => {
+      _httpRequest({
+        method: 'POST',
+        url: 'https://api.groq.com/openai/v1/chat/completions',
+        timeout: 15000,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+        data: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          max_tokens: 600,
+          temperature: 0,
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: user }
+          ]
+        }),
+        onload(r) {
+          try {
+            const j = JSON.parse(r.responseText);
+            if (j.error) return resolve(result152);
+            const txt = j.choices?.[0]?.message?.content || '';
+            const m = txt.match(/\{[\s\S]*\}/);
+            if (!m) return resolve(result152);
+            const parsed = JSON.parse(m[0]);
+            const aiItems = Array.isArray(parsed.items) ? parsed.items : [];
+
+            // Применяем только подтверждения. Никогда не отбираем уже найденное локально.
+            const updatedItems = result152.items.map(item => {
+              if (item.present) return item;
+              const aiHit = aiItems.find(a => a && a.id === item.id && a.present === true);
+              if (aiHit) {
+                return { ...item, present: true, confirmedBy: 'ai', quote: String(aiHit.quote || '').slice(0, 200) };
+              }
+              return item;
+            });
+
+            const updated = { ...result152, items: updatedItems };
+            updated.found = updatedItems.filter(i => i.present).length;
+            if (updated.found >= 6) updated.status = 'ok';
+            else if (updated.found >= 3) updated.status = 'risk';
+            else updated.status = 'violation';
+            // per-item flag confirmedBy='ai' уже выставлен выше → UI этого достаточно
+            resolve(updated);
+          } catch (e) {
+            resolve(result152); // fail-safe
+          }
+        },
+        onerror() { resolve(result152); },
+        ontimeout() { resolve(result152); }
+      });
+    });
+  }
+
+  async function runAIAnalysis(c, egrul, siteText) {
+    // Загружаем подстраницы политики/оферты для AI
+    const allLinks = [...c.policyLinks, ...c.offerLinks, ...c.returnLinks, ...c.aboutLinks];
+    const fetched = {};
+    if (allLinks.length > 0) {
+      const results = await Promise.all(allLinks.map(l => fetchUrl(l.href)));
+      // Для политики храним полный текст (нужен check152FZ); остальное обрезаем до 3000.
+      const tag = (links, label, limit) => {
+        const r = links.map(l => {
+          const f = results.find(x => x.url === l.href);
+          return f && f.ok ? { url: l.href, text: f.text.slice(0, limit) } : null;
+        }).filter(Boolean);
+        if (r.length > 0) fetched[label] = r;
+      };
+      tag(c.policyLinks, 'policy', 50000);
+      tag(c.offerLinks, 'offer', 3000);
+      tag(c.returnLinks, 'return', 3000);
+      tag(c.aboutLinks, 'about', 3000);
+    }
+
+    // Fallback: политики нет или текст подозрительно короткий (SPA-оболочка,
+    // нестандартный текст линка) — пробуем типовые URL-пути на origin сайта.
+    const initialPolicyText = (fetched.policy || []).map(p => p.text).join('\n');
+    if (initialPolicyText.length < 500 && !scanCancelled) {
+      const fallbackPolicy = await discoverPolicyByCommonPaths(c.url);
+      if (fallbackPolicy.length > 0) fetched.policy = fallbackPolicy;
+    }
+
+    let msg = `URL: ${c.url}\nЗаголовок: ${c.title}\n\nШАПКА: ${c.header}\nПОДВАЛ: ${c.footer}\n\nТЕКСТ:\n${c.bodyText}\n\nTracking: ${c.hasAdScripts?'ЕСТЬ':'нет'}\nCookie-баннер: ${c.hasCookieBanner?'ЕСТЬ':'нет'}\n`;
+
+    // Передаём результат проверки реквизитов через ЕГРЮЛ
+    if (egrul && egrul.checked) {
+      msg += `\n═══ ПРОВЕРКА РЕКВИЗИТОВ ЧЕРЕЗ ЕГРЮЛ/ЕГРИП (149-ФЗ) ═══\n`;
+      if (egrul.ids.inn || egrul.ids.ogrn) {
+        msg += `Найдено на сайте: ИНН=${egrul.ids.inn||'—'}, ОГРН=${egrul.ids.ogrn||'—'}\n`;
+        if (egrul.result && egrul.result.found && egrul.result.parsed) {
+          const p = egrul.result.parsed;
+          msg += `Сверка с ФНС: НАЙДЕНО в реестре\n`;
+          msg += `  Тип: ${p.type === 'ip' ? 'ИП' : 'ЮЛ'}\n`;
+          msg += `  Название: ${p.name}\n`;
+          if (p.address) msg += `  Адрес: ${p.address}\n`;
+          msg += `  Статус: ${p.isActive ? 'ДЕЙСТВУЮЩАЯ' : 'ПРЕКРАЩЕНА (' + p.reason + ')'}\n`;
+          if (p.regDate) msg += `  Дата регистрации: ${p.regDate}\n`;
+          msg += `→ Для 149-ФЗ: реквизиты ВЕРИФИЦИРОВАНЫ через ФНС. Если организация действующая — статус "ok".\n`;
+          if (!p.isActive) msg += `→ ВНИМАНИЕ: организация ПРЕКРАЩЕНА — это критическое нарушение.\n`;
+        } else {
+          msg += `Сверка с ФНС: НЕ НАЙДЕНО — ${egrul.result?.error || 'данные не вернулись'}\n`;
+          msg += `→ Для 149-ФЗ: указанный на сайте ИНН/ОГРН не найден в ЕГРЮЛ — это нарушение (фейковые реквизиты или ошибка).\n`;
+        }
+      } else {
+        msg += `Реквизиты (ИНН/ОГРН) НЕ НАЙДЕНЫ на сайте\n`;
+        msg += `→ Для 149-ФЗ ст.10: явное нарушение, реквизиты владельца обязательны.\n`;
+      }
+      msg += `═══════════════════════════════════════════\n`;
+    }
+
+    // Для AI-промпта политику урезаем до 3000 симв./шт. — контекст модели ограничен.
+    // Для check152FZ ниже используем ПОЛНЫЙ текст (хранится в fetched.policy[i].text).
+    if (fetched.policy) msg += `\n=== ПОЛИТИКА ===\n${fetched.policy.map(p => `${p.url}\n${p.text.slice(0, 3000)}`).join('\n---\n')}\n`;
+    else msg += `\n[ПОЛИТИКА: не найдена]\n`;
+    if (fetched.offer) msg += `\n=== ОФЕРТА ===\n${fetched.offer.map(p => `${p.url}\n${p.text.slice(0,1500)}`).join('\n---\n')}\n`;
+    else msg += `\n[ОФЕРТА: не найдена]\n`;
+    if (fetched.about) msg += `\n=== О КОМПАНИИ ===\n${fetched.about.map(p => `${p.url}\n${p.text.slice(0,1500)}`).join('\n---\n')}\n`;
+
+    // ── Локальный чек-лист 152-ФЗ ст.18.1 (7 пунктов) ──
+    const policyText = (fetched.policy || []).map(p => p.text).join('\n\n');
+    let result152 = check152FZ(policyText);
+    // AI-арбитр: если локально найдено 1-5 из 7 — спрашиваем модель по каждому пропущенному пункту.
+    // Никогда не понижает статус, только дополняет. При ошибке/таймауте — возвращает локальный результат.
+    // Пропускается если USE_AI=false или нет ключа.
+    const groqForArbiter = USE_AI && !!GROQ_KEY;
+    if (groqForArbiter && result152.status !== 'no_policy' && result152.found >= 1 && result152.found < 6) {
+      result152 = await verify152FZWithAI(policyText, result152);
+    }
+    if (result152.status !== 'no_policy') {
+      msg += `\n═══ ЛОКАЛЬНЫЙ ЧЕК-ЛИСТ 152-ФЗ ст.18.1 ═══\n`;
+      msg += `Найдено пунктов: ${result152.found} из ${result152.total}\n`;
+      result152.items.forEach(item => {
+        msg += `${item.present ? '✓' : '✗'} ${item.label}\n`;
+      });
+      msg += `Локальный вывод: ${result152.status === 'ok' ? 'политика полная' : result152.status === 'risk' ? 'политика неполная — есть пробелы' : 'критические пробелы'}\n`;
+      msg += `→ Используй этот чек-лист как ОСНОВУ для 152-ФЗ. Не пересчитывай заново.\n`;
+      msg += `═══════════════════════════════════════════\n`;
+    } else {
+      msg += `\n═══ 152-ФЗ: ПОЛИТИКА НЕ НАЙДЕНА ═══\nЭто явное нарушение — на сайте должна быть политика конфиденциальности.\n═══════════════════════════════════════════\n`;
+    }
+
+    // ── Локальный чек-лист 149-ФЗ ст.10 (5 пунктов: ИНН/ОГРН, название, адрес, email, телефон) ──
+    // Берём комбинированный текст: страницы сайта + страницы политики/о компании/контактов.
+    const aboutText = (fetched.about || []).map(p => p.text).join('\n');
+    const contactText = (fetched.policy || []).map(p => p.text).join('\n') + '\n' + aboutText;
+    const text149 = (siteText || '') + '\n' + contactText;
+    const result149 = check149FZ(text149);
+    msg += `\n═══ ЛОКАЛЬНЫЙ ЧЕК-ЛИСТ 149-ФЗ ст.10 ═══\n`;
+    msg += `Найдено пунктов: ${result149.found} из ${result149.total}\n`;
+    result149.items.forEach(item => {
+      msg += `${item.present ? '✓' : '✗'} ${item.label}\n`;
+    });
+    msg += `Локальный вывод: ${result149.status === 'ok' ? 'реквизиты на месте' : result149.status === 'risk' ? 'часть реквизитов отсутствует' : 'критические пробелы по реквизитам'}\n`;
+    msg += `→ Используй этот чек-лист + результат ЕГРЮЛ выше. Не пересчитывай заново.\n`;
+    msg += `═══════════════════════════════════════════\n`;
+
+    // ── Локальный чек-лист ЕРИР (ФЗ №347): маркировка интернет-рекламы ──
+    const resultERIR = checkERIR(text149);
+    msg += `\n═══ ЛОКАЛЬНЫЙ ЧЕК-ЛИСТ ЕРИР (ФЗ №347) ═══\n`;
+    msg += `Рекламный контент: ${resultERIR.hasAdContent ? 'ОБНАРУЖЕН' : 'не обнаружен'}\n`;
+    if (resultERIR.hasAdContent) {
+      resultERIR.items.forEach(item => {
+        msg += `${item.present ? '✓' : '✗'} ${item.label}\n`;
+      });
+    }
+    msg += `Локальный вывод: ${resultERIR.status === 'ok' ? (resultERIR.hasAdContent ? 'реклама маркирована корректно' : 'рекламы не обнаружено') : resultERIR.status === 'risk' ? 'есть рекламный контент, но маркировка неполная' : 'реклама без обязательной маркировки'}\n`;
+    msg += `═══════════════════════════════════════════\n`;
+
+    // ── Локальный чек-лист публичной оферты (ГК РФ ст.435, ЗоЗПП ст.26.1) ──
+    const resultOffer = checkOffer(text149, c.offerLinks || []);
+    msg += `\n═══ ЛОКАЛЬНЫЙ ЧЕК-ЛИСТ ОФЕРТЫ ═══\n`;
+    msg += `Коммерческий сайт: ${resultOffer.isCommercial ? `ДА (${resultOffer.kind === 'saas' ? 'SaaS / лицензионный договор' : resultOffer.kind === 'ecommerce' ? 'e-commerce' : resultOffer.kind === 'services' ? 'B2B-услуги / договор подряда' : 'смешанная коммерческая модель'})` : 'нет (информационный сайт)'}\n`;
+    if (resultOffer.isCommercial) {
+      resultOffer.items.forEach(item => {
+        msg += `${item.present ? '✓' : '✗'} ${item.label}\n`;
+      });
+    }
+    msg += `Локальный вывод: ${resultOffer.status === 'ok' ? (resultOffer.isCommercial ? 'оферта и реквизиты на месте' : 'не торговая площадка — оферта не обязательна') : resultOffer.status === 'risk' ? 'часть требований не выполнена' : 'критические пробелы (нет оферты/возврата/реквизитов)'}\n`;
+    msg += `═══════════════════════════════════════════\n`;
+
+    // ── Cookie compliance: трекинг + баннер ──
+    const policyText_lc = ((fetched.policy || []).map(p => p.text).join('\n')).toLowerCase();
+    const policyHasCookies = /cookie|куки|файл[ы]?\s+cookie/i.test(policyText_lc);
+    const resultCookie = checkCookieCompliance({
+      hasTracking: !!c.hasAdScripts,
+      hasCookieBanner: !!c.hasCookieBanner,
+      policyHasCookies,
+    });
+    msg += `\n═══ ЛОКАЛЬНЫЙ ЧЕК COOKIE-COMPLIANCE ═══\n`;
+    msg += `Трекинг: ${resultCookie.hasTracking ? 'ОБНАРУЖЕН' : 'не обнаружен'}\n`;
+    msg += `Cookie-баннер: ${resultCookie.hasCookieBanner ? 'есть' : 'нет'}\n`;
+    msg += `Cookies упоминаются в политике: ${policyHasCookies ? 'да' : 'нет'}\n`;
+    msg += `Локальный вывод: ${resultCookie.title}\n`;
+    msg += `═══════════════════════════════════════════\n`;
+
+    // ── Локальный чек-лист наркотиков (ст.6.13 КоАП, ФЗ №3) ──
+    const resultDrugs = checkDrugs(text149);
+    msg += `\n═══ ЛОКАЛЬНЫЙ ЧЕК-ЛИСТ НАРКОТИКИ ═══\n`;
+    if (!resultDrugs.hasMentions) {
+      msg += `Упоминаний запрещённых веществ не обнаружено.\n`;
+    } else {
+      msg += `Всего упоминаний: ${resultDrugs.totalMentions} (${resultDrugs.uniqueTerms} уникальных терминов)\n`;
+      msg += `С контекстом (УК, медицина, профилактика): ${resultDrugs.withContext}\n`;
+      msg += `Без контекста (потенциальные нарушения): ${resultDrugs.withoutContext}\n`;
+      if (resultDrugs.mentions.length > 0) {
+        msg += `Топ упоминаний:\n`;
+        resultDrugs.mentions.slice(0, 10).forEach(m => {
+          msg += `  ${m.hasContext ? '✓' : '✗'} «${m.term}» (×${m.count})${m.hasContext ? ' — в контексте' : ' — без контекста'}\n`;
+        });
+      }
+    }
+    msg += `Локальный вывод: ${resultDrugs.status === 'ok' ? (resultDrugs.hasMentions ? 'упоминания в допустимом контексте' : 'упоминаний нет') : resultDrugs.status === 'risk' ? 'есть упоминания без явного контекста — нужна проверка' : 'упоминания без контекста — потенциальное нарушение ст.6.13 КоАП'}\n`;
+    msg += `═══════════════════════════════════════════\n`;
+
+    // ── Если AI отключён или нет ключа — собираем отчёт только из локальных чек-листов ──
+    const groqAvailable = USE_AI && !!GROQ_KEY;
+    if (!groqAvailable) {
+      try { console.log('[Слеза] Groq пропущен (USE_AI=' + USE_AI + ', key=' + (GROQ_KEY ? 'есть' : 'нет') + '). Используем локальные чек-листы.'); } catch(_) {}
+      return {
+        site_name: c.title || c.url,
+        site_type: '',
+        summary: 'Отчёт собран из локальных детерминированных проверок (без AI).',
+        checks: buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul }),
+        fetched, result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie,
+      };
+    }
+
+    return new Promise(resolve => {
+      _httpRequest({
+        method: 'POST',
+        url: 'https://api.groq.com/openai/v1/chat/completions',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+        data: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          max_tokens: 2500,
+          temperature: 0.1,
+          messages: [
+            { role: 'system', content: SYSTEM },
+            { role: 'user', content: msg }
+          ]
+        }),
+        onload(r) {
+          try {
+            const j = JSON.parse(r.responseText);
+            if (j.error) throw new Error(j.error.message);
+            const txt = j.choices?.[0]?.message?.content || '';
+            const m = txt.match(/\{[\s\S]*\}/);
+            if (!m) throw new Error('parse');
+            const parsed = JSON.parse(m[0]);
+            resolve({ ...parsed, fetched, result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie });
+          } catch(e) {
+            // Groq упал/rate-limit/parse — собираем отчёт из локальных результатов, не теряем данные
+            const localChecks = buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul });
+            resolve({ error: e.message, checks: localChecks, summary: 'Groq недоступен — отчёт собран из локальных проверок.', fetched, result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie });
+          }
+        },
+        onerror() {
+          const localChecks = buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul });
+          resolve({ error: 'net', checks: localChecks, summary: 'Groq недоступен (сетевая ошибка) — отчёт собран из локальных проверок.', fetched, result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie });
+        },
+        ontimeout() {
+          const localChecks = buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul });
+          resolve({ error: 'timeout', checks: localChecks, summary: 'Groq не ответил вовремя — отчёт собран из локальных проверок.', fetched, result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie });
+        }
+      });
+    });
+  }
+
+  const ST = {
+    violation:{label:'НАРУШЕНИЕ',cls:'violation'},
+    risk:     {label:'РИСК',     cls:'risk'},
+    ok:       {label:'В ПОРЯДКЕ',cls:'ok'},
+    unknown:  {label:'НЕТ ДАННЫХ',cls:'unknown'},
+  };
+
+  // Заглушки для 5 AI-законов — рендерятся всегда, даже если Groq недоступен.
+  // Каждая запись имеет ЯВНЫЙ id — используется для сопоставления с локальными
+  // чекерами и render-блоками. Раньше использовали substring matching по law_code
+  // (ch.law_code.includes('152-ФЗ')) — было хрупко при пересекающихся кодах.
+  const AI_LAW_STUBS = [
+    { id: 'drugs',  law: 'Упоминание наркотиков',             law_code: 'ст.6.13 КоАП, ФЗ №3',         fine: 'до 1 500 000 руб.',        status: 'unknown', issue: '', location: '', found_text: '', action: '' },
+    { id: 'law152', law: '152-ФЗ — персональные данные',       law_code: '152-ФЗ, ст.13.11 КоАП',       fine: 'до 300 000 руб.',           status: 'unknown', issue: '', location: '', found_text: '', action: '' },
+    { id: 'erir',   law: 'Маркировка рекламы (ЕРИР)',          law_code: 'ФЗ №347, ст.14.3 КоАП',       fine: '100 000 — 500 000 руб.',    status: 'unknown', issue: '', location: '', found_text: '', action: '' },
+    { id: 'law149', law: '149-ФЗ — информация о владельце',    law_code: '149-ФЗ ст.10, ст.13.31 КоАП', fine: 'до 100 000 руб.',           status: 'unknown', issue: '', location: '', found_text: '', action: '' },
+    { id: 'offer',  law: 'Публичная оферта и условия возврата',law_code: 'ГК РФ ст.435, ЗоЗПП ст.26.1', fine: 'до 500 000 руб.',           status: 'unknown', issue: '', location: '', found_text: '', action: '' },
+  ];
+
+  // Текстовые шаблоны issue/action по каждому закону на основе локальных результатов.
+  // Используется когда Groq отключён или недоступен — отчёт остаётся полным.
+  function buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType = 'auto' }) {
+    const out = AI_LAW_STUBS.map(s => ({ ...s }));
+
+    // 1) Наркотики
+    const drugs = out.find(c => c.id === 'drugs');
+    if (drugs && resultDrugs) {
+      drugs.status = resultDrugs.status;
+      if (!resultDrugs.hasMentions) {
+        drugs.issue = 'Упоминаний запрещённых веществ не обнаружено';
+        drugs.action = '—';
+      } else if (resultDrugs.status === 'ok') {
+        drugs.issue = `${resultDrugs.totalMentions} упоминаний в допустимом контексте (УК, медицина, профилактика)`;
+        drugs.action = '—';
+      } else {
+        const top = resultDrugs.mentions.filter(m => !m.hasContext).slice(0, 3).map(m => `«${m.term}»`).join(', ');
+        drugs.issue = `${resultDrugs.withoutContext} упоминаний без явного контекста: ${top}`;
+        drugs.found_text = top;
+        drugs.action = resultDrugs.status === 'violation'
+          ? 'Удалить упоминания или добавить ссылку на статью УК / профилактический контекст. По ст.6.13 КоАП — пропаганда наркотиков'
+          : 'Добавить дисклеймер или контекст (статья УК, медицинская публикация, новость о борьбе)';
+      }
+      if (siteType === 'media' && resultDrugs.hasMentions) {
+        if (resultDrugs.withoutContext < 3) { drugs.status = 'ok'; drugs.action = '—'; }
+        else if (resultDrugs.withoutContext < 5) drugs.status = 'risk';
+      }
+    }
+
+    // 2) 152-ФЗ + Cookie compliance
+    const law152 = out.find(c => c.id === 'law152');
+    if (law152 && result152) {
+      law152.status = result152.status === 'no_policy' ? 'violation' : result152.status;
+      // Cookie может ужесточить статус: policy ok + cookie violation → risk
+      if (resultCookie) {
+        if (resultCookie.status === 'violation' && law152.status === 'ok') law152.status = 'risk';
+        else if (resultCookie.status === 'risk'  && law152.status === 'ok') law152.status = 'risk';
+      }
+      const cookieNote = resultCookie && resultCookie.status !== 'ok'
+        ? ` Дополнительно: ${resultCookie.title.toLowerCase()}.`
+        : '';
+      const cookieAction = resultCookie && resultCookie.status === 'violation'
+        ? ' Добавить cookie-баннер с согласием пользователя на использование трекинга.'
+        : resultCookie && resultCookie.status === 'risk'
+          ? ' Рекомендуется добавить активный cookie-баннер на странице.'
+          : '';
+      if (result152.status === 'no_policy') {
+        law152.issue = 'Политика конфиденциальности не найдена на сайте.' + cookieNote;
+        law152.action = 'Создать и разместить политику обработки персональных данных (152-ФЗ ст.18.1) — обязательна для всех сайтов, собирающих данные.' + cookieAction;
+      } else if (result152.status === 'ok') {
+        law152.issue = `Политика конфиденциальности соответствует требованиям 152-ФЗ (${result152.found} из ${result152.total} пунктов).` + cookieNote;
+        law152.action = cookieAction.trim() || '—';
+      } else {
+        const missing = result152.items.filter(i => !i.present).map(i => i.label.toLowerCase()).join('; ');
+        law152.issue = `Политика неполная — отсутствует: ${missing}.` + cookieNote;
+        law152.action = (result152.status === 'violation'
+          ? 'Переработать политику с учётом всех 7 пунктов ст.18.1 152-ФЗ.'
+          : 'Дополнить отсутствующие обязательные пункты политики.') + cookieAction;
+      }
+    }
+
+    // 3) ЕРИР
+    const erir = out.find(c => c.id === 'erir');
+    if (erir && resultERIR) {
+      erir.status = resultERIR.status;
+      if (!resultERIR.hasAdContent) {
+        erir.issue = 'Рекламного контента не обнаружено';
+        erir.action = '—';
+      } else if (resultERIR.status === 'ok') {
+        erir.issue = 'Реклама маркирована корректно: токен ERID, метка «реклама», информация о рекламодателе';
+        erir.action = '—';
+      } else {
+        const missing = resultERIR.items.filter(i => !i.present).map(i => i.label.toLowerCase()).join('; ');
+        erir.issue = `Реклама без обязательной маркировки: отсутствует ${missing}`;
+        erir.action = resultERIR.status === 'violation'
+          ? 'Получить ERID через ОРД, добавить метку «реклама» и информацию о рекламодателе. С 01.09.2022 это обязательно'
+          : 'Дополнить маркировку рекламных публикаций';
+      }
+    }
+
+    // 4) 149-ФЗ
+    const law149 = out.find(c => c.id === 'law149');
+    if (law149 && result149) {
+      const egrulInactive = egrul?.result?.parsed && egrul.result.parsed.isActive === false;
+      law149.status = egrulInactive ? 'violation' : result149.status;
+      if (egrulInactive) {
+        law149.issue = `Организация прекращена в ЕГРЮЛ — ${egrul.result.parsed.reason || 'деятельность прекращена'}`;
+        law149.action = 'Обновить реквизиты на сайте — указанная организация не ведёт деятельность';
+      } else if (result149.status === 'ok') {
+        law149.issue = `Обязательные реквизиты владельца на сайте указаны (${result149.found} из ${result149.total})`;
+        law149.action = '—';
+      } else {
+        const missing = result149.items.filter(i => !i.present).map(i => i.label.toLowerCase()).join('; ');
+        law149.issue = `Отсутствует: ${missing}`;
+        law149.action = 'Добавить недостающие реквизиты владельца (149-ФЗ ст.10): ИНН, ОГРН, полное наименование, адрес, контакты';
+      }
+    }
+
+    // 5) Оферта
+    const offer = out.find(c => c.id === 'offer');
+    if (offer && resultOffer) {
+      offer.status = resultOffer.status;
+      const kindHuman = resultOffer.kind === 'saas' ? 'SaaS / лицензионный договор' :
+                        resultOffer.kind === 'ecommerce' ? 'торговая площадка' :
+                        resultOffer.kind === 'services' ? 'B2B-услуги / договор подряда' : null;
+      if (!resultOffer.isCommercial) {
+        offer.issue = 'Признаков торговой / SaaS-деятельности не обнаружено — оферта не обязательна';
+        offer.action = '—';
+      } else if (resultOffer.status === 'ok') {
+        offer.issue = `Публичная оферта, условия расторжения / возврата и реквизиты на месте (${kindHuman})`;
+        offer.action = '—';
+      } else {
+        const missing = resultOffer.items.filter(i => !i.present).map(i => i.label.toLowerCase()).join('; ');
+        offer.issue = `Отсутствует: ${missing}${kindHuman ? ` (${kindHuman})` : ''}`;
+        offer.action = resultOffer.status === 'violation'
+          ? (resultOffer.kind === 'saas'
+              ? 'Опубликовать лицензионный договор / публичную оферту с условиями расторжения и реквизитами лицензиара'
+              : resultOffer.kind === 'services'
+                ? 'Опубликовать публичную оферту на оказание услуг с порядком расторжения и реквизитами исполнителя'
+                : 'Создать публичную оферту с условиями возврата (ЗоЗПП ст.26.1 — возврат в течение 7 дней) и указать реквизиты продавца')
+          : 'Дополнить оферту недостающими элементами';
+      }
+      if (siteType === 'media' && offer) {
+        offer.status = 'ok';
+        offer.issue  = 'Информационный/медиа-сайт — публичная оферта не требуется (ЗоЗПП ст.26.1 применяется только к интернет-торговле)';
+        offer.action = '—';
+      }
+    }
+
+    // Media override: оферта не обязательна для СМИ/блогов; наркотики — журналистский контекст
+    if (siteType === 'media') {
+      const offerCard = out.find(c => c.id === 'offer');
+      if (offerCard && offerCard.status !== 'ok') {
+        offerCard.status = 'ok';
+        offerCard.issue  = 'Информационный/медиа-сайт — публичная оферта не требуется (ЗоЗПП ст.26.1 применяется только к интернет-торговле)';
+        offerCard.action = '—';
+      }
+      const drugsCard = out.find(c => c.id === 'drugs');
+      if (drugsCard && drugsCard.status === 'risk') {
+        drugsCard.action = 'Добавить редакционный дисклеймер к материалу: «Редакция не пропагандирует употребление наркотиков. Материал носит информационный / новостной характер»';
+      }
+    }
+
+    return out;
+  }
+
+  function renderResults({ mode, origin, hostname, pages, aiData, source, egrul, stats, slezaError, spaWarning }) {
+    // Аггрегация по реестру
+    const allItems = pages.flatMap(p => p.items);
+    const inoItems = allItems.filter(i => i.category === 'inoagent');
+    const extItems = allItems.filter(i => i.category === 'extremist' || i.category === 'terrorist');
+    const inoUnmarked = inoItems.filter(i => !i.hasMarking);
+    const extUnmarked = extItems.filter(i => !i.hasMarking);
+
+    const aiWorked = aiData && aiData.checks && aiData.checks.length > 0;
+    const aiError  = aiData && aiData.error;
+    // aiData.checks теперь всегда есть (либо от Groq, либо от buildLocalChecks).
+    // AI_LAW_STUBS используется только если aiData вообще нет (что не должно случаться).
+    const aiChecks = aiWorked ? aiData.checks : AI_LAW_STUBS.map(s => ({ ...s }));
+    const totalSlezaUnmarked = inoUnmarked.length + extUnmarked.length;
+    const totalAIViolations = aiChecks.filter(c => c.status === 'violation').length;
+    const totalViolations = totalSlezaUnmarked + totalAIViolations;
+
+    let riskCls, riskTitle, riskDesc;
+    if (totalViolations >= 5 || totalSlezaUnmarked >= 3) {
+      riskCls = 'high'; riskTitle = 'ВЫСОКИЙ РИСК'; riskDesc = 'Множественные нарушения по сайту. Срочно требуется маркировка.';
+    } else if (totalViolations >= 1) {
+      riskCls = 'medium'; riskTitle = 'СРЕДНИЙ РИСК'; riskDesc = 'Есть нарушения, требуется устранение.';
+    } else {
+      riskCls = 'low'; riskTitle = 'НИЗКИЙ РИСК'; riskDesc = 'Критических нарушений не выявлено.';
+    }
+
+    const pagesWithIssues = pages.filter(p => p.items.some(i => !i.hasMarking));
+    const okPages = pages.filter(p => p.items.length > 0 && !p.items.some(i => !i.hasMarking));
+
+    const bd = document.getElementById('sz-bd');
+    bd.innerHTML = `
+      <div class="sz-sum ${riskCls}">
+        <div>
+          <div class="sz-sl">Сайт: <span>${escapeHtml(aiData?.site_name || hostname)}</span>${aiData?.site_type ? ` · ${escapeHtml(aiData.site_type)}` : ''}</div>
+          <div class="sz-rt c-${riskCls}">${riskTitle}</div>
+          <div class="sz-rd">${escapeHtml(aiData?.summary || riskDesc)}</div>
+        </div>
+        <div>
+          <div class="sz-sc c-${riskCls}">${totalViolations}</div>
+          <div class="sz-scl">НАРУШЕНИЙ</div>
+        </div>
+      </div>
+
+      ${mode === 'full' ? `
+      <div class="sz-stats-row">
+        <div class="sz-stat">
+          <div class="sz-stat-num">${pages.length}</div>
+          <div class="sz-stat-lbl">Страниц проверено</div>
+        </div>
+        <div class="sz-stat">
+          <div class="sz-stat-num ${allItems.length > 0 ? 'warn' : 'ok'}">${allItems.length}</div>
+          <div class="sz-stat-lbl">Упоминаний</div>
+        </div>
+        <div class="sz-stat">
+          <div class="sz-stat-num ${totalSlezaUnmarked > 0 ? 'bad' : 'ok'}">${totalSlezaUnmarked}</div>
+          <div class="sz-stat-lbl">Без маркировки</div>
+        </div>
+        <div class="sz-stat">
+          <div class="sz-stat-num ${pagesWithIssues.length > 0 ? 'bad' : 'ok'}">${pagesWithIssues.length}</div>
+          <div class="sz-stat-lbl">Проблемных стр.</div>
+        </div>
+      </div>
+      <div style="font-family:'Courier New',monospace;font-size:10px;color:#64748b;margin-bottom:14px;text-align:center;line-height:1.7">
+        // источник: ${source === 'sitemap' ? 'sitemap.xml' : source === 'sitemap-index' ? 'sitemap-index' : 'обход страниц'} · максимум: ${MAX_PAGES} страниц
+        ${stats ? `<br>// приоритизация: <span style="color:#4ade80">📰 ${stats.highScanned} из ${stats.totalHighFound} контентн.</span> · <span style="color:#94a3b8">🏢 ${stats.mid} корпорат.</span>${stats.low > 0 ? ` · <span style="color:#64748b">📄 ${stats.low} прочих</span>` : ''}${stats.skipped > 0 ? ` · <span style="color:#475569">✗ ${stats.skipped} тех.страниц пропущено</span>` : ''}${stats.yearRange ? `<br>// покрытие архива: <span style="color:#60a5fa">📅 ${stats.yearRange}</span> · ${stats.yearsCovered.length} ${plural(stats.yearsCovered.length, 'год', 'года', 'лет')}` : ''}` : ''}
+        ${(() => {
+          const skippedCount = pages.filter(p => p.skipped).length;
+          const apiCalled = pages.length - skippedCount - pages.filter(p => p.error).length;
+          const otherItems = allItems.filter(i => i.category !== 'inoagent' && i.category !== 'extremist' && i.category !== 'terrorist');
+          const debugHint = apiCalled === 0
+            ? `<br>// <span style="color:#f87171">⚠ API Слезы: 0 вызовов — все страницы пропущены предфильтром</span>`
+            : allItems.length === 0
+              ? `<br>// <span style="color:#fbbf24">⚠ API Слезы: ${apiCalled} вызовов → 0 упоминаний в реестре</span>`
+              : otherItems.length > 0
+                ? `<br>// <span style="color:#fbbf24">API нашёл ${allItems.length} упоминаний (${otherItems.length} не классифицированы)</span>`
+                : '';
+          const filterHint = skippedCount > 0
+            ? `<br>// предфильтр: <span style="color:#60a5fa">🔍 ${apiCalled} API-запросов</span> · <span style="color:#4ade80">⚡ ${skippedCount} страниц пропущено без API</span> · экономия ${Math.round(skippedCount / pages.length * 100)}%`
+            : '';
+          return debugHint + filterHint;
+        })()}
+      </div>
+      ` : ''}
+
+      <div class="sz-acts">
+        <button class="sz-abtn" onclick="window.print()">⬇ Печать / PDF</button>
+      </div>
+
+      <div class="sz-cl">// результаты по 7 законам</div>
+      ${slezaError ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-family:'Courier New',monospace;font-size:11px;color:#f87171;line-height:1.6">
+        ⚠ API Слезы недоступен (${escapeHtml(String(slezaError))})<br>
+        <span style="color:#94a3b8">${
+          slezaError === 'no_key' ? 'SLEZA_KEY не заполнен — нажмите «⚙ Ключи» в шапке модалки и введите его.' :
+          /^http_(401|403)/.test(slezaError) ? 'Неверный SLEZA_KEY — нажмите «⚙ Ключи» в шапке и обновите его.' :
+          /^http_422/.test(slezaError) ? 'Подписка на sleza.media неактивна — войдите в аккаунт и активируйте подписку.' :
+          /^http_/.test(slezaError) ? 'API вернул ошибку. Проверьте статус sleza.media.' :
+          slezaError === 'timeout' ? 'API не ответил за 10 сек. Возможно перегрузка — попробуйте позже.' :
+          slezaError === 'net' ? 'Сетевая ошибка при обращении к sleza.media.' :
+          slezaError === 'parse' || /^parse_http_/.test(slezaError) ? 'API вернул не-JSON ответ.' :
+          'Иноагенты и экстремисты не проверены — отчёт неполный.'
+        }</span>
+      </div>` : ''}
+      ${aiError ? `<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-family:'Courier New',monospace;font-size:11px;color:#fbbf24;line-height:1.6">
+        ⚠ AI-полировка отчёта недоступна (${escapeHtml(String(aiError))})<br>
+        <span style="color:#94a3b8">Все 5 законов проверены локально (детерминированные чек-листы). AI добавлял бы только литературные формулировки в карточках — на вердикты это не влияет.</span>
+      </div>` : ''}
+      ${spaWarning ? `<div style="background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-family:'Courier New',monospace;font-size:11px;color:#60a5fa;line-height:1.6">
+        ⚡ Сайт использует JavaScript-рендеринг (React / Vue / Next.js)<br>
+        <span style="color:#94a3b8">Подстраницы (политика, оферта, реквизиты) загружаются как пустой HTML-шаблон — часть данных может быть не найдена. Для точной проверки откройте нужную страницу в браузере и запустите <strong style="color:#e2e8f0">«Текущая страница»</strong>.</span>
+      </div>` : ''}
+      ${stats?.usedFallback ? `<div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-family:'Courier New',monospace;font-size:11px;color:#fbbf24;line-height:1.6">
+        ⚠ Нестандартная структура URL — приоритизация не сработала<br>
+        <span style="color:#94a3b8">В sitemap найдено ${stats.totalDiscovered} URL, но все попали под фильтр «технических страниц». Скан выполнен по всем URL без приоритета — результаты могут быть менее релевантными. Откройте DevTools (F12) → Console для деталей: какие URL и по какому правилу отброшены.</span>
+      </div>` : ''}
+      <div class="sz-checks">
+        ${renderSlezaCheck(inoItems, 'Маркировка иноагентов', 'ФЗ №121, №255-ФЗ', '40 000 — 500 000 руб.', pages, 'inoagent')}
+        ${renderSlezaCheck(extItems, 'Маркировка экстремистов / террористов', 'ст.13.15 КоАП, ФЗ №114', 'до 500 000 руб.', pages, 'extremist')}
+        ${aiChecks.map((ch, i) => renderAICheck(ch, i, {
+          egrul,
+          result152:   aiData?.result152,
+          result149:   aiData?.result149,
+          resultERIR:  aiData?.resultERIR,
+          resultOffer: aiData?.resultOffer,
+          resultDrugs: aiData?.resultDrugs,
+          resultCookie: aiData?.resultCookie,
+        })).join('')}
+      </div>
+
+      <div class="sz-cta">
+        <div>
+          <div class="sz-ctat">Автомаркировка на всех страницах сразу?</div>
+          <div class="sz-ctas">JS-скрипт Слеза + полный реестр + автообновления 24/7</div>
+        </div>
+        <div class="sz-ctal">sleza.media →</div>
+      </div>
+
+      <div class="sz-disc">
+        // Иноагенты/экстремисты: официальный API sleza.media (актуально)<br>
+        // Остальные законы: AI-анализ (предварительная оценка)<br>
+        // ${pages.length} страниц проверено · полный аудит — sleza.media
+      </div>`;
+
+    // Обработчики
+    bd.querySelectorAll('.sz-loc-btn[data-check-idx]').forEach(btn => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        const idx = parseInt(btn.getAttribute('data-check-idx'), 10);
+        const ch = aiChecks[idx];
+        if (!ch) return;
+        const target = findElementByText(ch.found_text);
+        if (target) { setModalDimmed(true); highlightElement(target); }
+      };
+    });
+    bd.querySelectorAll('[data-find-name][data-page-url]').forEach(btn => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        const url = btn.getAttribute('data-page-url');
+        const name = decodeURIComponent(btn.getAttribute('data-find-name'));
+        if (url === location.href) {
+          const target = findElementByText(name);
+          if (target) { setModalDimmed(true); highlightElement(target); }
+        } else {
+          window.open(url, '_blank');
+        }
+      };
+    });
+  }
+
+  function renderSlezaCheck(items, title, code, fine, pages, type) {
+    const unmarked = items.filter(i => !i.hasMarking);
+    const marked = items.filter(i => i.hasMarking);
+
+    let status, issue, action;
+    if (items.length === 0) {
+      status = 'ok'; issue = 'Упоминаний не найдено на сайте'; action = '—';
+    } else if (unmarked.length === 0) {
+      status = 'ok';
+      issue = `${items.length} ${plural(items.length, 'упоминание','упоминания','упоминаний')} с корректной маркировкой`;
+      action = 'Поддерживайте маркировку при новых публикациях';
+    } else {
+      status = 'violation';
+      issue = `${unmarked.length} ${plural(unmarked.length, 'упоминание','упоминания','упоминаний')} БЕЗ маркировки на ${countPagesWith(pages, type)} ${plural(countPagesWith(pages, type), 'странице','страницах','страницах')}`;
+      action = 'Добавить маркировку на каждой указанной странице';
+    }
+
+    const st = ST[status];
+    const pagesBlock = items.length > 0 ? renderPagesList(pages, type) : '';
+
+    return `
+      <div class="sz-check ${st.cls}">
+        <div class="sz-ct">
+          <div>
+            <div class="sz-ln">${title}</div>
+            <div class="sz-lc">${code} · API Слезы</div>
+          </div>
+          <div class="sz-pill ${st.cls}">${st.label}</div>
+        </div>
+        <div class="sz-grid">
+          <div class="sz-full">
+            <div class="sz-fl">// результат</div>
+            <div class="sz-fv iss">${issue}</div>
+            ${pagesBlock}
+          </div>
+          <div>
+            <div class="sz-fl">// штраф</div>
+            <div class="sz-fv">${fine}</div>
+          </div>
+          <div>
+            <div class="sz-fl">// что нужно сделать</div>
+            <div class="sz-fv">${action}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function countPagesWith(pages, type) {
+    return pages.filter(p => p.items.some(i =>
+      !i.hasMarking && (type === 'inoagent' ? i.category === 'inoagent' : (i.category === 'extremist' || i.category === 'terrorist'))
+    )).length;
+  }
+
+  function renderPagesList(pages, type) {
+    const filtered = pages.filter(p => p.items.some(i =>
+      type === 'inoagent' ? i.category === 'inoagent' : (i.category === 'extremist' || i.category === 'terrorist')
+    ));
+    if (filtered.length === 0) return '';
+
+    return `<div class="sz-pages-list">
+      ${filtered.map(p => {
+        const relevant = p.items.filter(i =>
+          type === 'inoagent' ? i.category === 'inoagent' : (i.category === 'extremist' || i.category === 'terrorist')
+        );
+        const unmarked = relevant.filter(i => !i.hasMarking);
+        const marked = relevant.filter(i => i.hasMarking);
+        const isBad = unmarked.length > 0;
+        const shortUrl = p.url.replace(location.origin, '') || '/';
+
+        return `<div class="sz-page-item ${isBad ? 'bad' : ''}">
+          <a class="sz-page-url" href="${p.url}" target="_blank">${shortUrl}${p.isCurrent ? ' · текущая' : ''}</a>
+          <div style="font-family:'Courier New',monospace;font-size:9px;color:#64748b;margin-bottom:4px">
+            ${unmarked.length > 0 ? `<span style="color:#f87171;font-weight:700">✗ ${unmarked.length} без маркировки</span>` : ''}
+            ${unmarked.length > 0 && marked.length > 0 ? ' · ' : ''}
+            ${marked.length > 0 ? `<span style="color:#4ade80">✓ ${marked.length} с маркировкой</span>` : ''}
+          </div>
+          ${unmarked.length > 0 ? `<div class="sz-page-violations">
+            ${unmarked.map(item => `
+              <div class="sz-page-violation">
+                <span class="name">${escapeHtml(item.name)}</span>
+                <span class="mark">→ «${escapeHtml(item.marking.slice(0, 60))}${item.marking.length > 60 ? '...' : ''}»</span>
+                ${p.isCurrent ? `<button data-find-name="${encodeURIComponent(item.name)}" data-page-url="${escapeHtml(p.url)}" style="font-family:inherit;font-size:9px;background:#1a2235;border:1px solid #2d3f5a;color:#60a5fa;padding:1px 6px;border-radius:3px;cursor:pointer">📍</button>` : ''}
+              </div>
+            `).join('')}
+          </div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  function plural(n, one, two, many) {
+    const m = n % 10; const m2 = n % 100;
+    if (m2 >= 11 && m2 <= 14) return many;
+    if (m === 1) return one;
+    if (m >= 2 && m <= 4) return two;
+    return many;
+  }
+
+  // Каждая карточка чек-листа рендерится только в карточке СВОЕГО закона
+  // (определяется по explicit `id` в AI_LAW_STUBS, не substring matching).
+  function renderAICheck(ch, i, ctx) {
+    // ctx = { egrul, result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie }
+    const { egrul, result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie } = ctx || {};
+    const showLoc = ch.status !== 'ok' && ch.status !== 'unknown' && ch.found_text && !ch.found_text.toLowerCase().includes('отсутств');
+    const showQuote = ch.found_text && !ch.found_text.toLowerCase().includes('отсутств') && ch.status !== 'ok';
+
+    // Блок верификации ЕГРЮЛ — только для 149-ФЗ
+    const egrulBlock = (egrul && egrul.checked && ch.id === 'law149') ? renderEgrulBlock(egrul) : '';
+
+    // Чек-листы по id — каждый закон рендерится только в своей карточке
+    const block152    = (ch.id === 'law152' && result152)   ? render152Block(result152)   : '';
+    const blockCookie = (ch.id === 'law152' && resultCookie) ? renderCookieBlock(resultCookie) : '';
+    const block149    = (ch.id === 'law149' && result149)   ? render149Block(result149)   : '';
+    const blockERIR   = (ch.id === 'erir'   && resultERIR)  ? renderERIRBlock(resultERIR) : '';
+    const blockOffer  = (ch.id === 'offer'  && resultOffer) ? renderOfferBlock(resultOffer) : '';
+    const blockDrugs  = (ch.id === 'drugs'  && resultDrugs) ? renderDrugsBlock(resultDrugs) : '';
+
+    // Переопределение статуса локальным результатом
+    let effectiveStatus = ch.status;
+    let effectiveLabel = ST[ch.status]?.label || 'НЕТ ДАННЫХ';
+    let effectiveCls = ST[ch.status]?.cls || 'unknown';
+    const overrideFromLocal = (localStatus) => {
+      if (localStatus === 'ok') { effectiveStatus = 'ok'; effectiveLabel = ST.ok.label; effectiveCls = ST.ok.cls; }
+      else if (localStatus === 'risk') { effectiveStatus = 'risk'; effectiveLabel = ST.risk.label; effectiveCls = ST.risk.cls; }
+      else if (localStatus === 'violation' || localStatus === 'no_policy') { effectiveStatus = 'violation'; effectiveLabel = ST.violation.label; effectiveCls = ST.violation.cls; }
+    };
+    if (ch.id === 'law152' && result152) {
+      overrideFromLocal(result152.status);
+      // Cookie-нарушение может ужесточить статус 152-ФЗ (но не ослабить)
+      if (resultCookie && (resultCookie.status === 'violation' || resultCookie.status === 'risk') && effectiveStatus === 'ok') {
+        overrideFromLocal('risk');
+      }
+    }
+    if (ch.id === 'law149' && result149) {
+      // ЕГРЮЛ может ужесточить статус: организация прекращена → нарушение независимо от чек-листа
+      const egrulInactive = egrul?.result?.parsed && egrul.result.parsed.isActive === false;
+      overrideFromLocal(egrulInactive ? 'violation' : result149.status);
+    }
+    if (ch.id === 'erir'  && resultERIR)  overrideFromLocal(resultERIR.status);
+    if (ch.id === 'offer' && resultOffer) overrideFromLocal(resultOffer.status);
+    if (ch.id === 'drugs' && resultDrugs) overrideFromLocal(resultDrugs.status);
+
+    const hasLocalCheck = block152 || block149 || blockERIR || blockOffer || blockDrugs || blockCookie;
+
+    return `
+      <div class="sz-check ${effectiveCls}">
+        <div class="sz-ct">
+          <div>
+            <div class="sz-ln">${escapeHtml(ch.law)}</div>
+            <div class="sz-lc">${escapeHtml(ch.law_code)}${egrulBlock ? ' · ЕГРЮЛ' : ''}${hasLocalCheck ? ' · чек-лист' : ''}</div>
+          </div>
+          <div class="sz-pill ${effectiveCls}">${effectiveLabel}</div>
+        </div>
+        <div class="sz-grid">
+          <div class="sz-full">
+            <div class="sz-fl">// что обнаружено</div>
+            <div class="sz-fv iss">${escapeHtml(ch.issue || '—')}</div>
+            ${egrulBlock}
+            ${block152}
+            ${blockCookie}
+            ${block149}
+            ${blockERIR}
+            ${blockOffer}
+            ${blockDrugs}
+            ${showLoc ? `<button class="sz-loc-btn" data-check-idx="${i}"><span class="sz-loc-icon">📍</span><span class="sz-loc-label">${escapeHtml(ch.location || 'на странице')}</span></button>` : ''}
+            ${showQuote ? `<div class="sz-quote">"${escapeHtml(ch.found_text)}"</div>` : ''}
+          </div>
+          <div>
+            <div class="sz-fl">// штраф</div>
+            <div class="sz-fv">${escapeHtml(ch.fine || '—')}</div>
+          </div>
+          <div>
+            <div class="sz-fl">// что нужно сделать</div>
+            <div class="sz-fv">${escapeHtml(ch.action || '—')}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Общая оболочка для всех чек-листов (152-ФЗ, 149-ФЗ, ЕРИР, Оферта, Наркотики, Cookie).
+  // status → cls/icon, title и desc передаются как готовые строки, itemsHtml — заранее
+  // отрендеренные строки с <div class="sz-152-row">. Это убирает ~6 одинаковых
+  // оболочек по 8-10 строк каждая.
+  function renderChecklistShell({ status, title, itemsHtml, desc, titlePrefix }) {
+    const cls = status === 'ok' ? 'good' : status === 'risk' ? 'warn' : status === 'no_policy' ? 'bad' : 'bad';
+    const icon = status === 'ok' ? '✓' : status === 'risk' ? '⚠' : '✗';
+    const prefix = titlePrefix ? `${titlePrefix} — ` : '';
+    return `<div class="sz-egrul-block ${cls}">
+      <div class="sz-egrul-title">${icon} ${prefix}${escapeHtml(title)}</div>
+      ${itemsHtml ? `<div class="sz-152-list">${itemsHtml}</div>` : ''}
+      <div class="sz-egrul-desc">${desc}</div>
+    </div>`;
+  }
+  // Простая строка чек-листа: галочка/крестик + лейбл. Используется большинством блоков.
+  function checklistRow({ present, label, extra }) {
+    const iconChar = present ? '✓' : '✗';
+    const iconCls = present ? 'ok' : 'miss';
+    return `<div class="sz-152-row">
+        <span class="sz-152-icon ${iconCls}">${iconChar}</span>
+        <span class="sz-152-label ${present ? '' : 'miss'}">${escapeHtml(label)}${extra || ''}</span>
+      </div>`;
+  }
+
+  function renderCookieBlock(r) {
+    if (!r) return '';
+    const trackDot = r.hasTracking ? '🔴' : '⚪';
+    const bannerDot = r.hasCookieBanner ? '🟢' : '⚪';
+    const itemsHtml = [
+      `<div class="sz-152-row"><span class="sz-152-icon ${r.hasTracking ? 'miss' : 'ok'}">${trackDot}</span><span class="sz-152-label">Аналитический трекинг: ${r.hasTracking ? 'обнаружен (Метрика / GA / Pixel)' : 'не обнаружен'}</span></div>`,
+      `<div class="sz-152-row"><span class="sz-152-icon ${r.hasCookieBanner ? 'ok' : 'miss'}">${bannerDot}</span><span class="sz-152-label">Cookie-баннер: ${r.hasCookieBanner ? 'присутствует' : 'отсутствует'}</span></div>`,
+      `<div class="sz-152-row"><span class="sz-152-icon ${r.policyHasCookies ? 'ok' : 'miss'}">${r.policyHasCookies ? '✓' : '✗'}</span><span class="sz-152-label">Cookies упоминаются в политике: ${r.policyHasCookies ? 'да' : 'нет'}</span></div>`,
+    ].join('');
+    return renderChecklistShell({
+      status: r.status,
+      titlePrefix: 'Cookie-compliance',
+      title: r.title,
+      itemsHtml,
+      desc: escapeHtml(r.message),
+    });
+  }
+
+  function render152Block(r) {
+    // Политика не найдена
+    if (r.status === 'no_policy') {
+      return renderChecklistShell({
+        status: 'no_policy',
+        title: 'Политика конфиденциальности НЕ НАЙДЕНА',
+        itemsHtml: '',
+        desc: 'По 152-ФЗ оператор обязан опубликовать политику конфиденциальности с 7 обязательными пунктами (ст. 18.1).',
+      });
+    }
+    const title = r.status === 'ok' ? `Политика полная (${r.found} из ${r.total})` :
+                  r.status === 'risk' ? `Политика неполная (${r.found} из ${r.total})` :
+                  `Критические пробелы (${r.found} из ${r.total})`;
+    const itemsHtml = r.items.map(item => {
+      const isAi = item.present && item.confirmedBy === 'ai';
+      const iconChar = item.present ? (isAi ? '◆' : '✓') : '✗';
+      const iconCls = item.present ? (isAi ? 'ai' : 'ok') : 'miss';
+      const titleAttr = isAi && item.quote ? ` title="Подтверждено AI: «${escapeHtml(item.quote)}»"` : '';
+      const aiTag = isAi ? ' <span style="font-family:\'Courier New\',monospace;font-size:9px;color:#60a5fa">· AI</span>' : '';
+      return `<div class="sz-152-row"${titleAttr}>
+        <span class="sz-152-icon ${iconCls}">${iconChar}</span>
+        <span class="sz-152-label ${item.present ? '' : 'miss'}">${escapeHtml(item.label)}${aiTag}</span>
+      </div>`;
+    }).join('');
+    const missingItems = r.items.filter(i => !i.present);
+    const aiCount = r.items.filter(i => i.present && i.confirmedBy === 'ai').length;
+    let desc;
+    if (missingItems.length > 0) {
+      desc = `Отсутствует: ${escapeHtml(missingItems.map(i => i.label.toLowerCase()).join('; '))}.`;
+    } else if (aiCount > 0) {
+      desc = `Политика содержит все обязательные пункты по ст. 18.1 152-ФЗ (${aiCount} ${aiCount === 1 ? 'пункт подтверждён' : 'пунктов подтверждено'} AI после локального чек-листа).`;
+    } else {
+      desc = 'Политика содержит все обязательные пункты по ст. 18.1 152-ФЗ.';
+    }
+    return renderChecklistShell({ status: r.status, title, itemsHtml, desc });
+  }
+
+  function render149Block(r) {
+    const title = r.status === 'ok' ? `Реквизиты полные (${r.found} из ${r.total})` :
+                  r.status === 'risk' ? `Реквизиты неполные (${r.found} из ${r.total})` :
+                  `Критические пробелы (${r.found} из ${r.total})`;
+    const itemsHtml = r.items.map(item => checklistRow({ present: item.present, label: item.label })).join('');
+    const missing = r.items.filter(i => !i.present);
+    const desc = missing.length > 0
+      ? `Отсутствует на сайте: ${escapeHtml(missing.map(i => i.label.toLowerCase()).join('; '))}.`
+      : 'Все обязательные реквизиты владельца указаны на сайте.';
+    return renderChecklistShell({ status: r.status, title, itemsHtml, desc });
+  }
+
+  function renderERIRBlock(r) {
+    if (!r.hasAdContent) {
+      return renderChecklistShell({
+        status: 'ok',
+        title: 'Рекламный контент не обнаружен',
+        itemsHtml: '',
+        desc: 'Сайт не содержит признаков интернет-рекламы — маркировка ЕРИР не требуется. Если реклама размещается динамически (через JS), проверка может быть неточной.',
+      });
+    }
+    const title = r.status === 'ok' ? `Реклама маркирована (${r.found} из ${r.total})` :
+                  r.status === 'risk' ? `Маркировка неполная (${r.found} из ${r.total})` :
+                  `Реклама без маркировки (${r.found} из ${r.total})`;
+    const itemsHtml = r.items.map(item => checklistRow({ present: item.present, label: item.label })).join('');
+    const missing = r.items.filter(i => !i.present);
+    const desc = missing.length > 0
+      ? `Отсутствует: ${escapeHtml(missing.map(i => i.label.toLowerCase()).join('; '))}. С 01.09.2022 интернет-реклама без токена ERID — штраф до 500 000 руб.`
+      : 'Рекламный контент маркирован корректно: токен ERID, метка «реклама», информация о рекламодателе на месте.';
+    return renderChecklistShell({ status: r.status, title, itemsHtml, desc });
+  }
+
+  function renderOfferBlock(r) {
+    if (!r.isCommercial) {
+      return renderChecklistShell({
+        status: 'ok',
+        title: 'Информационный сайт',
+        itemsHtml: '',
+        desc: 'Признаков торговой / SaaS-деятельности не обнаружено — публичная оферта и условия возврата не обязательны.',
+      });
+    }
+    const kindLabel = r.kind === 'saas' ? 'SaaS / лицензионный договор' :
+                      r.kind === 'ecommerce' ? 'E-commerce / товары' :
+                      r.kind === 'services' ? 'B2B-услуги / договор подряда' :
+                      'Коммерческая деятельность';
+    const title = r.status === 'ok' ? `Оферта на месте (${r.found} из ${r.total}) · ${kindLabel}` :
+                  r.status === 'risk' ? `Оферта неполная (${r.found} из ${r.total}) · ${kindLabel}` :
+                  `Критические пробелы (${r.found} из ${r.total})`;
+    const itemsHtml = r.items.map(item => checklistRow({ present: item.present, label: item.label })).join('');
+    const missing = r.items.filter(i => !i.present);
+    const desc = missing.length > 0
+      ? `Отсутствует: ${escapeHtml(missing.map(i => i.label.toLowerCase()).join('; '))}. По ЗоЗПП покупатель имеет право вернуть товар в течение 7 дней — это должно быть указано на сайте.`
+      : 'Все обязательные элементы публичной оферты на месте: договор, условия возврата, реквизиты продавца и контакты.';
+    return renderChecklistShell({ status: r.status, title, itemsHtml, desc });
+  }
+
+  function renderDrugsBlock(r) {
+    if (!r.hasMentions) {
+      return renderChecklistShell({
+        status: 'ok',
+        title: 'Упоминаний запрещённых веществ не обнаружено',
+        itemsHtml: '',
+        desc: 'Сканирование по базе из ~900 терминов (вещества, сленг, прекурсоры) не нашло совпадений.',
+      });
+    }
+    const title = r.status === 'ok'
+      ? `Упоминания в допустимом контексте (${r.totalMentions} вхождений)`
+      : r.status === 'risk'
+        ? `Упоминания без контекста — ${r.withoutContext} из ${r.uniqueTerms}`
+        : `Упоминания без дисклеймера — ${r.withoutContext} из ${r.uniqueTerms}`;
+    const itemsHtml = r.mentions.map(m => {
+      const note = m.hasContext ? 'в контексте (УК/медицина/новости)' : 'без явного контекста';
+      return checklistRow({
+        present: m.hasContext,
+        label: `«${m.term}» (×${m.count}) — ${note}`,
+      });
+    }).join('');
+    const desc = r.status === 'ok'
+      ? 'Все упоминания сопровождаются контекстом (статья УК, медицина, профилактика, новость о борьбе с наркотиками).'
+      : r.status === 'risk'
+        ? `Найдено ${r.withoutContext} упоминаний без явного юридического/медицинского контекста — рекомендуется добавить дисклеймер или удалить.`
+        : `Найдено ${r.withoutContext} упоминаний без дисклеймера. По ст.6.13 КоАП — пропаганда наркотиков: штраф до 1 500 000 руб.`;
+    return renderChecklistShell({ status: r.status, title, itemsHtml, desc });
+  }
+
+  function renderEgrulBlock(egrul) {
+    const ids = egrul.ids;
+    const res = egrul.result;
+
+    // Реквизиты не найдены на сайте
+    if (!ids.inn && !ids.ogrn) {
+      return `<div class="sz-egrul-block bad">
+        <div class="sz-egrul-title">⚠ Реквизиты НЕ НАЙДЕНЫ на сайте</div>
+        <div class="sz-egrul-desc">По 149-ФЗ ст.10 ИНН и ОГРН должны быть размещены публично — обычно в подвале или на странице "О компании".</div>
+      </div>`;
+    }
+
+    // Реквизиты найдены, но не проверены или не нашлись в ФНС
+    if (!res || !res.found) {
+      return `<div class="sz-egrul-block warn">
+        <div class="sz-egrul-title">⚠ ИНН/ОГРН не подтверждён в ФНС</div>
+        <div class="sz-egrul-row"><span>На сайте:</span> ИНН ${escapeHtml(ids.inn||'—')}, ОГРН ${escapeHtml(ids.ogrn||'—')}</div>
+        <div class="sz-egrul-row"><span>Ошибка:</span> ${escapeHtml(res?.error || 'данные не вернулись')}</div>
+        <div class="sz-egrul-desc">Возможно: ИНН неверный, организация ликвидирована, или сервис временно недоступен.</div>
+      </div>`;
+    }
+
+    // ВСЁ ОК
+    const p = res.parsed;
+    const cls = p.isActive ? 'good' : 'bad';
+    const statusIcon = p.isActive ? '✓' : '✗';
+    return `<div class="sz-egrul-block ${cls}">
+      <div class="sz-egrul-title">${statusIcon} Реквизиты сверены с ФНС</div>
+      <div class="sz-egrul-row"><span>Тип:</span> ${p.type === 'ip' ? 'Индивидуальный предприниматель' : 'Юридическое лицо'}</div>
+      <div class="sz-egrul-row"><span>Название:</span> ${escapeHtml(p.name || '—')}</div>
+      ${p.inn ? `<div class="sz-egrul-row"><span>ИНН:</span> ${escapeHtml(p.inn)}</div>` : ''}
+      ${p.ogrn ? `<div class="sz-egrul-row"><span>ОГРН:</span> ${escapeHtml(p.ogrn)}</div>` : ''}
+      ${p.kpp ? `<div class="sz-egrul-row"><span>КПП:</span> ${escapeHtml(p.kpp)}</div>` : ''}
+      ${p.address ? `<div class="sz-egrul-row"><span>Адрес:</span> ${escapeHtml(p.address)}</div>` : ''}
+      ${p.regDate ? `<div class="sz-egrul-row"><span>Дата рег.:</span> ${escapeHtml(p.regDate)}</div>` : ''}
+      <div class="sz-egrul-row"><span>Статус:</span> <strong class="${p.isActive ? 'ok' : 'bad'}">${p.isActive ? 'ДЕЙСТВУЮЩАЯ' : 'ПРЕКРАЩЕНА'}</strong></div>
+      ${!p.isActive && p.reason ? `<div class="sz-egrul-desc">${escapeHtml(p.reason)} — критическое нарушение, сайт нельзя использовать для коммерческой деятельности.</div>` : ''}
+    </div>`;
+  }
+
+  // ── Экспорт чистых функций для тестов (Node/vitest) ─────────────
+  // В Tampermonkey `module` undefined и блок игнорируется.
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      escapeHtml, escapeRegex,
+      parseSlezaItem, checkMarkingNearby, checkWithSleza,
+      extractIdentifiers, checkEgrul, parseEgrulData,
+      hasNameLikePatterns,
+      check152FZ, check149FZ, checkERIR, checkCookieCompliance,
+      checkOffer, getDrugRegex, checkDrugs,
+      scoreUrl, isHtmlUrl, extractYearFromUrl, strideSample, sampleByYear,
+      fetchUrl, trySitemap, crawlSite, discoverPolicyByCommonPaths, extractLocs,
+      runAIAnalysis, verify152FZWithAI,
+      buildLocalChecks, plural,
+      setHttpTransport, setKeyStore, saveKeys, setScanCancelled,
+    };
+  }
+})();
