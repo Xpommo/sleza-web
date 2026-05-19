@@ -35,10 +35,12 @@ function parseFine(str) {
   return m ? parseInt(m[1], 10) : 0;
 }
 
+// Web view shows only status + fine — full details are in PDF (lead gen gate)
 function CheckCard({ check }) {
+  const isIssue = check.status === 'violation' || check.status === 'risk';
   return (
     <div className={`rounded-xl border p-4 ${STATUS_COLOR[check.status] || STATUS_COLOR.unknown}`}>
-      <div className="flex items-start justify-between gap-2 mb-2">
+      <div className="flex items-start justify-between gap-2">
         <div>
           <div className="text-sm font-semibold text-gray-800">{check.law}</div>
           <div className="text-xs text-gray-400 mt-0.5">
@@ -48,15 +50,14 @@ function CheckCard({ check }) {
             }
             {' · штраф '}{check.fine}
           </div>
+          {isIssue && (
+            <p className="text-xs text-gray-400 mt-1.5 italic">Подробнее — в PDF-отчёте</p>
+          )}
         </div>
-        <span className={`text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${STATUS_BADGE[check.status] || STATUS_BADGE.unknown}`}>
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${STATUS_BADGE[check.status] || STATUS_BADGE.unknown}`}>
           {STATUS_LABEL[check.status] || check.status}
         </span>
       </div>
-      {check.issue && <p className="text-xs text-gray-600 mb-1.5">{check.issue}</p>}
-      {check.action && check.action !== '—' && (
-        <p className="text-xs text-gray-400 italic">→ {check.action}</p>
-      )}
     </div>
   );
 }
@@ -166,14 +167,19 @@ export default function Results({ data, uuid, onShare, onNewScan }) {
         ) : (
           <div className="text-sm font-medium text-green-700 mb-4">✓ Критических нарушений не обнаружено</div>
         )}
+        {violations.length > 0 && (
+          <p className="text-xs text-gray-500 mb-3">
+            В PDF-отчёте: конкретные нарушения по каждому пункту, рекомендации по устранению, приоритеты.
+          </p>
+        )}
         <div className="flex gap-2">
-          <button onClick={() => onShare?.('share')} disabled={!uuid}
-            className="flex-1 text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-wait text-white rounded-lg py-2 px-3 transition-colors font-medium">
-            {uuid ? '🔗 Поделиться' : '⏳…'}
-          </button>
           <button onClick={() => onShare?.('pdf')} disabled={!uuid}
-            className="flex-1 text-sm bg-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:cursor-wait text-white rounded-lg py-2 px-3 transition-colors font-medium">
-            {uuid ? '📄 PDF' : '⏳…'}
+            className="flex-1 text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-wait text-white rounded-lg py-2.5 px-3 transition-colors font-semibold">
+            {uuid ? '📄 Скачать полный отчёт' : '⏳ Подготовка…'}
+          </button>
+          <button onClick={() => onShare?.('share')} disabled={!uuid}
+            className="text-sm bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-wait text-gray-600 border border-gray-200 rounded-lg py-2.5 px-3 transition-colors">
+            {uuid ? '🔗' : '⏳'}
           </button>
         </div>
       </div>

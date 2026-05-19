@@ -234,10 +234,15 @@ app.get('/api/results/:uuid/pdf', async (request, reply) => {
     const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
     try {
-      await page.goto(`${FRONTEND_URL}?report=${uuid}`, { waitUntil: 'networkidle', timeout: 30000 });
-      await page.waitForSelector('[data-results]', { timeout: 15000 }).catch(() => {});
-      await page.waitForTimeout(1000);
-      await page.pdf({ path: pdfFile, format: 'A4', printBackground: true });
+      // Use /print page — clean full report without UI chrome (form, buttons, landing)
+      await page.goto(`${FRONTEND_URL}/print?report=${uuid}`, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.waitForTimeout(1500);
+      await page.pdf({
+        path: pdfFile,
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },
+      });
     } finally {
       await browser.close();
     }
