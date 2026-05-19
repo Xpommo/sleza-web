@@ -46,6 +46,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   // 1. Get page content via Playwright (rendered DOM, same as Tampermonkey in browser)
   const pageContext = await buildPageContext(url);
   const fullText = `${pageContext.title}\n${pageContext.header}\n${pageContext.bodyText}\n${pageContext.footer}`;
+  const fullTextWithMeta = fullText + '\n' + (pageContext.jsonLdText || '');
 
   // 2. Check against the Sleza foreign-agents / extremists registry
   const slezaResult = await engine.checkWithSleza(fullText);
@@ -56,8 +57,8 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     pageUrl: url,
   }));
 
-  // 3. EGRUL verification — look for INN/OGRN in page text, check against FNS registry
-  const ids = engine.extractIdentifiers(fullText);
+  // 3. EGRUL verification — include JSON-LD so ИНН/ОГРН in structured data is found
+  const ids = engine.extractIdentifiers(fullTextWithMeta);
   let egrulResult = null;
   if (ids.ogrn || ids.inn) {
     egrulResult = await engine.checkEgrul(ids.ogrn || ids.inn);

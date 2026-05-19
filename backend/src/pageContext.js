@@ -99,19 +99,48 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
         '[class*="gdpr"],[id*="gdpr"]',
       ].join(',');
 
+      // Text-based cookie banner detection — catches Russian banners with custom class names
+      const cookieTextRe = /\b(cookie|куки)\b|согласие\s+на\s+(обработку|использование)\s+персональн|принять\s+(все\s+)?(cookie|куки)|политик[ауе]\s+(cookie|куки)/i;
+      const hasCookieBannerByText = (() => {
+        const candidates = document.querySelectorAll('div[class],section[class],aside[class],div[id],section[id]');
+        for (const el of candidates) {
+          const text = el.innerText || '';
+          if (text.length < 20 || text.length > 600) continue;
+          if (!cookieTextRe.test(text)) continue;
+          const s = window.getComputedStyle(el);
+          if (s.display !== 'none' && s.visibility !== 'hidden' && s.opacity !== '0') return true;
+        }
+        return false;
+      })();
+
+      // JSON-LD structured data — many Russian business sites put ИНН/ОГРН here
+      const jsonLdText = (() => {
+        const out = [];
+        document.querySelectorAll('script[type="application/ld+json"]').forEach(s => {
+          try { out.push(s.textContent); } catch (_) {}
+        });
+        return out.join(' ');
+      })();
+
+      // Image alt texts in footer — ИНН/ОГРН sometimes rendered as images
+      const footerImgAlt = Array.from(
+        (footerEl || document.body).querySelectorAll('img[alt]')
+      ).map(img => img.alt).join(' ');
+
       return {
         url: location.href,
         title: (document.title || '').replace(/<[^>]+>/g, '').trim(),
         header: headerEl ? headerEl.innerText.slice(0, 500) : '',
-        footer: footerEl ? footerEl.innerText.slice(0, 800) : '',
+        footer: footerEl ? (footerEl.innerText + ' ' + footerImgAlt).slice(0, 1200) : footerImgAlt.slice(0, 400),
         bodyText: document.body.innerText.slice(0, 8000),
+        jsonLdText,
         links: uniqueLinks.slice(0, 40),
         policyLinks: uniqueLinks.filter(l => m(l, kw.policy)).slice(0, 2),
         offerLinks:  uniqueLinks.filter(l => m(l, kw.offer)).slice(0, 2),
         returnLinks: uniqueLinks.filter(l => m(l, kw.ret)).slice(0, 2),
         aboutLinks:  uniqueLinks.filter(l => m(l, kw.about)).slice(0, 2),
         hasAdScripts:    document.querySelectorAll(adScriptSelectors).length > 0,
-        hasCookieBanner: document.querySelectorAll(cookieBannerSelectors).length > 0,
+        hasCookieBanner: document.querySelectorAll(cookieBannerSelectors).length > 0 || hasCookieBannerByText,
       };
     }, KW);
 
