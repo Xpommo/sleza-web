@@ -108,49 +108,86 @@ Result shape is identical to what the Tampermonkey script's `runFullSiteScan` / 
 - Backend is Node ESM (`"type": "module"`) — use `import`/`export`, not `require`.
 - Do not push to `master` without explicit user request.
 
-## Текущий статус (2026-05-18)
-
-Последнее что сделано: `fix: Round 1 stability — 3 bugs fixed + singleton browser`
-
-## Текущий статус (2026-05-19)
+## Текущий статус (2026-05-20) — АКТУАЛЬНО
 
 ### Что реализовано и работает локально ✅
 
-**Раунд 1 — базовый скан:**
-- Single-scan и full-scan, SSE-стриминг, кнопка «Стоп»
-- Singleton Chromium, адаптивный лимит страниц
+**Раунд 1 — базовый скан** ✅
+**Раунд 1.5 — точность детектирования** ✅
+**Раунд 2 — лидогенерация** ✅ (UUID отчёты, PDF, ShareModal, CTA штрафов)
 
-**Раунд 1.5 — точность:**
-- Выбор типа сайта (Авто / Магазин / СМИ / Услуги / SaaS)
-- `htmlToText()` для compliance-страниц (fetchPolicyText, fetchExtraText)
-- `fetchExtraText` читает все offerLinks + aboutLinks + policyLinks (не только [0])
-- `fetchPolicyText` пробует offerLinks как fallback + 1 уровень вглубь (extractPolicyHrefs)
-- Фильтрация контентных путей из policyLinks (исключает /news/, /YYYY/MM/ и т.д.)
-- `check149FZ`: негативный lookbehind для ООО/АО, города кроме Москвы/СПб, адреса «Name шоссе»
-- `checkERIR`: негация «не является рекламой», ERID в data-атрибутах
-- Поддомены в link detection (forum.ixbt.com для ixbt.com)
-- Cookie banner: lazy-load scroll, bodyText head+tail
+**Раунд 3 — качество сканирования** ✅ (2026-05-20)
 
-**Раунд 2 — лидогенерация:**
-- `POST /api/results` → UUID → `?report=<uuid>` (24ч TTL)
-- `POST /api/leads` → `backend/leads.jsonl`
-- `GET /api/results/:uuid/pdf` — Playwright PDF
-- ShareModal: email + компания gate
-- CTA-блок с суммой штрафов, кнопка «← Проверить другой сайт»
-- Авто-сохранение после скана, загрузка отчёта по URL
+_pageContext.js:_
+- `bodyText` cap: 25k для compliance-страниц (/privacy, /oferta и т.д.), 10k для остальных
+- `policyLinks` лимит 2→5, `offerLinks` 2→4, `aboutLinks` 2→4
+- Авто-закрытие cookie-баннеров перед извлечением DOM
+- Детект Cloudflare/DDoS-Guard challenge страниц → fallback на plain fetch
+- Новые поля: `hasPolicyFooterLink`, `hasConsentCheckbox`
+- User-Agent: Windows Chrome (уже был), таймаут 20s→30s
+- Логи скрипта подавлены по умолчанию (включить: `SLEZA_DEBUG=1`)
+
+_scanner.js:_
+- PDF-парсинг через `pdf-parse`: читает оферты/договоры в PDF (напр. callibri.ru/Offer.pdf)
+- `fetchExtraText` проактивно пробует `/Offer.pdf`, `/oferta.pdf` и т.д. при каждом скане
+- `fetchPolicyText` Fallback 2: пробует `/terms`, `/legal`, `/rules`, `/agreement` напрямую (напр. artlebedev.ru/terms/)
+- C1: при single-scan субстраницы — добавляет текст главной для check149FZ (ИНН в footer)
+- C2: трёхуровневая стратификация URL при full-scan:
+  - Layer 1 (mandatory): главная + известные compliance-пути (/privacy, /about, /contacts...)
+  - Layer 2 (scored): топ URL по scoreUrl() — 70% бюджета
+  - Layer 3 (sample): stride-sample из остатка — 15% бюджета
+
+_engine.js:_
+- Логи скрипта через `scriptConsole` — тихо по умолчанию, `SLEZA_DEBUG=1` для отладки
+
+_test/:_
+- `backend/test/smoke.js` — smoke-тест по 5 типам сайтов
+- `backend/test-urls.txt` — список тестовых URL (shop/media/services/saas/large)
+- Запуск: `node backend/test/smoke.js 2>/dev/null`
+- С диффом: `node backend/test/smoke.js --diff 2>/dev/null`
 
 ### Деплой
 
-- **Frontend:** https://sleza-web.vercel.app (Vercel, auto-deploy от master)
-- **Backend:** https://sleza-web-production.up.railway.app (Railway)
+- **Frontend:** https://sleza-web.vercel.app (Vercel, auto-deploy от master) ✅
+- **Backend:** https://sleza-web-production.up.railway.app (Railway) ⚠️
 
 **ПРОБЛЕМА Railway (не решена):** Railway не применяет новые коммиты автоматически.
-Нужно: зайти в Railway → Deployments → Redeploy вручную после каждого push.
-Проверить что задеплоился правильный код: `curl https://sleza-web-production.up.railway.app/health` должен вернуть `"v":"bundled-script-v1"`.
+Нужно: Railway → Deployments → **Redeploy** вручную после каждого push.
 
-Скрипт `sleza_script` теперь бандлован в `backend/sleza_script` — Railway не нуждается в внешних репо.
+Проверка версии: `curl https://sleza-web-production.up.railway.app/health`
+- Актуальная версия должна вернуть: `"v":"r3-pdf-fallback"`
+- Если `"v":"bundled-script-v1"` — Railway не обновился, нужен ручной Redeploy
 
-### Следующие задачи
-- Разобраться с Railway auto-deploy (проверить Settings → Source → ветка)
-- После починки Railway — протестировать полный флоу на продакшене
-- (опционально) Мониторинг: еженедельные проверки сайтов с уведомлениями
+### Следующие задачи (Раунд 3 продолжение)
+
+**В скрипте `sleza_tets_js/script` (B-блок):**
+- B1: check149FZ — улучшить адресный regex (слишком широкий, дают false positives)
+- B3: checkERIR — детект рекламных сетей по script src (Яндекс.Директ, VK Реклама)
+- B4: check152FZ — использовать `hasPolicyFooterLink` и `hasConsentCheckbox`
+
+**AI (D-блок):**
+- D1: Retry для Groq API (2 попытки с backoff)
+- D2: Структурированный prompt с разбивкой по страницам
+
+**Инфраструктура:**
+- Починить Railway auto-deploy (Settings → Source → проверить ветку master)
+- Telegram webhook для новых лидов
+- Предупреждение пользователю когда сайт вернул 403 (заблокировал сканер)
+
+### Известные ограничения / false positives
+
+- **Cloudflare/DDoS-Guard** (wildberries.ru, некоторые крупные сайты): детектируются, fallback на plain fetch. Результаты могут быть неполными — показать предупреждение пользователю (TODO).
+- **403 на главной странице** (1cbit.ru): false positives по 149-ФЗ и 152-ФЗ т.к. нет доступа к HTML. Критично редко — SMB сайты (наша аудитория) блокируют ~5-10%.
+- **Реквизиты только в PDF** (callibri.ru): теперь читаем PDF через pdf-parse. Если PDF недоступен — показываем риск (корректно).
+- **Политика скрыта в order-виджете** (artlebedev.ru): теперь проверяем /terms/, /legal/ напрямую.
+
+### Smoke test baseline (2026-05-20)
+
+```
+shop     wildberries.ru  → ❌ ❌ ✅ ✅ ✅  (fallback ⚡, Cloudflare)
+media    rbc.ru          → ❌ ⚠️ ✅ ✅ ✅
+services hh.ru           → ⚠️ ✅ ✅ ✅ ✅
+saas     bitrix24.ru     → ✅ ✅ ✅ ❌ ✅
+large    vc.ru           → ⚠️ ✅ ✅ ✅ ✅
+Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Наркотики
+```
