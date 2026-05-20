@@ -7,8 +7,32 @@
  * - No UI updates — returns plain JSON instead of rendering HTML
  * - No GM_* calls — all handled by engine.js wiring
  */
+import { createRequire } from 'module';
 import { createEngine } from './engine.js';
 import { buildPageContext } from './pageContext.js';
+
+const _require = createRequire(import.meta.url);
+
+// Extract text from a PDF URL. Returns empty string on any error.
+async function fetchPdfText(url) {
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(15000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+    });
+    if (!res.ok) return '';
+    const buf = Buffer.from(await res.arrayBuffer());
+    const pdfParse = _require('pdf-parse');
+    const { text } = await pdfParse(buf);
+    return text.slice(0, 15000);
+  } catch {
+    return '';
+  }
+}
+
+function isPdfUrl(url, contentType = '') {
+  return url.toLowerCase().includes('.pdf') || (contentType || '').includes('pdf');
+}
 
 // Extract hrefs from raw HTML that look like personal-data policy pages (1-level follow).
 // Handles sites like ixbt.com where rules:persdatapolicy is only linked from rules:cookie.
@@ -36,6 +60,12 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
   const visited = new Set(candidates);
 
   for (const href of candidates) {
+    // PDF policy documents (e.g. /Offer.pdf containing privacy section)
+    if (isPdfUrl(href)) {
+      const text = await fetchPdfText(href);
+      if (text.length > 200) combined += '\n' + text;
+      continue;
+    }
     const p = await engine.fetchUrl(href);
     if (!p.ok || p.text.length < 200) continue;
     combined += '\n' + htmlToText(p.text);
@@ -43,15 +73,33 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     for (const sub of extractPolicyHrefs(p.text, href)) {
       if (visited.has(sub)) continue;
       visited.add(sub);
-      const sp = await engine.fetchUrl(sub);
-      if (sp.ok && sp.text.length > 200) combined += '\n' + htmlToText(sp.text);
+      if (isPdfUrl(sub)) {
+        const t = await fetchPdfText(sub);
+        if (t.length > 200) combined += '\n' + t;
+      } else {
+        const sp = await engine.fetchUrl(sub);
+        if (sp.ok && sp.text.length > 200) combined += '\n' + htmlToText(sp.text);
+      }
     }
   }
   if (combined.length > 200) return combined;
 
-  // Fallback: probe common URL patterns
+  // Fallback 1: probe common URL patterns via script's built-in discovery
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
   if (policyPages[0]?.text) return htmlToText(policyPages[0].text);
+
+  // Fallback 2: try additional paths not covered by discoverPolicyByCommonPaths
+  // (e.g. artlebedev.ru uses /terms/, some sites use /legal/, /rules/)
+  const EXTRA_PATHS = ['/terms', '/terms/', '/legal', '/legal/', '/rules', '/rules/',
+    '/user-agreement', '/agreement', '/tos', '/privacypolicy'];
+  for (const path of EXTRA_PATHS) {
+    const url = origin + path;
+    if (visited.has(url)) continue;
+    visited.add(url);
+    const r = await engine.fetchUrl(url);
+    if (r.ok && r.text.length > 500) return htmlToText(r.text);
+  }
+
   return fallback;
 }
 
@@ -73,17 +121,41 @@ function htmlToText(html) {
 
 // Fetch ALL offer + about + policy pages for 149-FZ rekvizity.
 // aboutLinks[0] may not be the реквизиты page — try all available links.
-async function fetchExtraText(engine, pageContext) {
+async function fetchExtraText(engine, pageContext, origin) {
   const hrefs = [
     ...(pageContext.offerLinks  || []).map(l => l.href),
     ...(pageContext.aboutLinks  || []).map(l => l.href),
     ...(pageContext.policyLinks || []).map(l => l.href),
   ].filter((h, i, a) => h && a.indexOf(h) === i);
+
   let extra = '';
+  const visited = new Set(hrefs);
+
   for (const href of hrefs) {
-    const r = await engine.fetchUrl(href);
-    if (r.ok) extra += '\n' + htmlToText(r.text);
+    if (isPdfUrl(href)) {
+      // PDF offer/terms documents often contain INN/OGRN (e.g. callibri.ru/Offer.pdf)
+      extra += '\n' + await fetchPdfText(href);
+    } else {
+      const r = await engine.fetchUrl(href);
+      if (r.ok) extra += '\n' + htmlToText(r.text);
+    }
   }
+
+  // Fallback: try common rekvizity paths if nothing found via links
+  if (!extra.trim() && origin) {
+    const REKVIZITY_PATHS = ['/contacts', '/contact', '/about', '/о-компании',
+      '/rekvizity', '/реквизиты', '/company', '/terms', '/legal'];
+    for (const path of REKVIZITY_PATHS) {
+      const url = origin + path;
+      if (visited.has(url)) continue;
+      const r = await engine.fetchUrl(url);
+      if (r.ok && r.text.length > 200) {
+        extra += '\n' + htmlToText(r.text);
+        break;
+      }
+    }
+  }
+
   return extra;
 }
 
@@ -202,7 +274,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     const policyText = await fetchPolicyText(engine, pageContext, origin, fullText);
     const result152  = engine.check152FZ(policyText + ' ' + pageContext.header);
     // Fetch offer + about pages — rekvizity (INN, address, phone) often live in user-agreement
-    const extraText  = await fetchExtraText(engine, pageContext);
+    const extraText  = await fetchExtraText(engine, pageContext, origin);
     // C1: INN/OGRN are often only in the homepage footer — include it when scanning a subpage
     let homepageText = '';
     const isSubpage = url !== origin && url !== origin + '/';
@@ -376,7 +448,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     onProgress?.({ phase: 'policy', url: origin });
     const policyText = await fetchPolicyText(engine, mainPageContext, origin, mainPageContext.bodyText + ' ' + mainPageContext.header);
     // Fetch offer + about pages explicitly — on large sites they're crowded out by articles
-    const extraText  = await fetchExtraText(engine, mainPageContext);
+    const extraText  = await fetchExtraText(engine, mainPageContext, origin);
 
     const result152  = engine.check152FZ(policyText);
     const result149  = engine.check149FZ(allPagesText + extraText);
