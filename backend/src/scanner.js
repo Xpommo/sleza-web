@@ -203,7 +203,14 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     const result152  = engine.check152FZ(policyText + ' ' + pageContext.header);
     // Fetch offer + about pages — rekvizity (INN, address, phone) often live in user-agreement
     const extraText  = await fetchExtraText(engine, pageContext);
-    const result149  = engine.check149FZ(fullText + extraText);
+    // C1: INN/OGRN are often only in the homepage footer — include it when scanning a subpage
+    let homepageText = '';
+    const isSubpage = url !== origin && url !== origin + '/';
+    if (isSubpage) {
+      const homeR = await engine.fetchUrl(origin);
+      if (homeR.ok) homepageText = '\n' + htmlToText(homeR.text).slice(0, 4000);
+    }
+    const result149  = engine.check149FZ(fullText + extraText + homepageText);
     const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''));
     const resultOffer = engine.checkOffer(fullText, pageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(fullText);
@@ -263,10 +270,44 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   // Adaptive limit: without Sleza key there's no rate limit, so we can scan more pages.
   // With key: capped at 50 (1.1s/page × 50 = ~55s just waiting).
   const MAX_SCAN = slezaKey ? 50 : 150;
-  const scored = scoredList.slice(0, MAX_SCAN).map(x => x.url);
 
-  // Ensure current page is first
-  const finalUrls = [url, ...scored.filter(u => u !== url)].slice(0, MAX_SCAN);
+  // C2: Three-tier URL stratification to guarantee compliance pages are always scanned.
+  //
+  // Layer 1 — mandatory (always included): homepage + common compliance paths.
+  //   These are guaranteed regardless of score — they hold policy/contacts/legal info.
+  const COMPLIANCE_PATHS = ['/privacy', '/personal-data', '/policy', '/cookies', '/gdpr',
+    '/about', '/contacts', '/contact', '/oferta', '/offer', '/terms', '/rules',
+    '/rekvizity', '/реквизиты', '/политика', '/конфиденциальность', '/о-компании'];
+  const layer1 = new Set([origin, origin + '/']);
+  for (const p of COMPLIANCE_PATHS) {
+    const candidate = origin + p;
+    if (urls.includes(candidate)) layer1.add(candidate);
+  }
+  // Also include policy pages discovered by discoverPolicyByCommonPaths (already in urlList via sitemap)
+  for (const u of urls) {
+    const path = (() => { try { return new URL(u).pathname.toLowerCase(); } catch { return ''; } })();
+    if (COMPLIANCE_PATHS.some(p => path === p || path === p + '/')) layer1.add(u);
+  }
+
+  // Layer 2 — scored: top compliance-scored pages not already in layer 1.
+  const LAYER2_MAX = Math.floor(MAX_SCAN * 0.7); // 70% of budget
+  const layer2 = scoredList
+    .filter(x => !layer1.has(x.url))
+    .slice(0, LAYER2_MAX)
+    .map(x => x.url);
+
+  // Layer 3 — random sample: stride-sample from remaining pages not in layers 1+2.
+  const LAYER3_MAX = Math.floor(MAX_SCAN * 0.15); // 15% of budget
+  const inLayers = new Set([...layer1, ...layer2]);
+  const remaining = urls.filter(u => !inLayers.has(u));
+  const step = remaining.length > LAYER3_MAX ? Math.floor(remaining.length / LAYER3_MAX) : 1;
+  const layer3 = remaining.filter((_, i) => i % step === 0).slice(0, LAYER3_MAX);
+
+  // Merge: start with current page, then layer1, layer2, layer3
+  const seen = new Set();
+  const finalUrls = [url, ...layer1, ...layer2, ...layer3]
+    .filter(u => seen.has(u) ? false : (seen.add(u), true))
+    .slice(0, MAX_SCAN);
 
   const pages = [];
   let allPagesRawText = '';

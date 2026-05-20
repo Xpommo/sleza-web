@@ -68,10 +68,16 @@ export async function createEngine({ groqKey = '', slezaKey = '' } = {}) {
   const location = document.location;
 
   const moduleObj = { exports: {} };
+  // Prefix script logs with [script] so they can be filtered; avoid polluting scan output
+  const scriptConsole = {
+    log:   (...a) => process.env.SLEZA_DEBUG ? console.log('[script]', ...a) : undefined,
+    warn:  (...a) => console.warn('[script]', ...a),
+    error: (...a) => console.error('[script]', ...a),
+  };
   const sandbox = {
     module: moduleObj,
     exports: moduleObj.exports,
-    console,
+    console: scriptConsole,
     setTimeout, clearTimeout, setInterval, clearInterval,
     Promise, Error, RegExp, JSON, Math, Date,
     URL, URLSearchParams,

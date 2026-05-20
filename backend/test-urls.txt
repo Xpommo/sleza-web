@@ -1,0 +1,13 @@
+# Тестовые URL для smoke.js
+# Формат: <type> <url>
+#
+# Запуск:
+#   node backend/test/smoke.js          # без AI (быстро)
+#   node backend/test/smoke.js --ai     # с AI (нужен Groq key в .env)
+#   node backend/test/smoke.js --diff   # сравнение с предыдущим baseline
+
+shop     https://www.wildberries.ru
+media    https://www.rbc.ru
+services https://www.hh.ru
+saas     https://www.bitrix24.ru
+large    https://vc.ru

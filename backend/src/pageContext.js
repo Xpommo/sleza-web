@@ -47,7 +47,7 @@ export async function closeBrowser() {
  * @param {{ timeout?: number }} options
  * @returns {Promise<object>} pageContent object expected by runAIAnalysis()
  */
-export async function buildPageContext(url, { timeout = 20000 } = {}) {
+export async function buildPageContext(url, { timeout = 30000 } = {}) {
   const browser = await getBrowser();
   const browserCtx = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -69,6 +69,32 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
     // Scroll slightly to trigger lazy-loaded cookie banners (some appear only on scroll)
     await page.evaluate(() => window.scrollTo(0, 400));
     await page.waitForTimeout(600);
+
+    // Try to dismiss cookie banner so it doesn't pollute bodyText
+    try {
+      await page.evaluate(() => {
+        const ACCEPT = [
+          '[class*="cookie"] button[class*="accept"]',
+          '[id*="cookie"] button[class*="accept"]',
+          '[class*="cookie-banner"] button', '[class*="cookie-notice"] button',
+          'button[aria-label*="Accept"], button[aria-label*="Принять"]',
+          '#cookie-accept, .cookie-accept, .js-cookie-accept',
+          '[data-testid*="cookie"] button',
+        ];
+        for (const sel of ACCEPT) {
+          const btn = document.querySelector(sel);
+          if (btn) { btn.click(); return; }
+        }
+        // Text-based fallback: find a button with "принять" or "согласен"
+        for (const btn of document.querySelectorAll('button')) {
+          const t = (btn.innerText || '').toLowerCase();
+          if (/принять|согласен|accept all|ok/.test(t) && btn.offsetParent !== null) {
+            btn.click(); return;
+          }
+        }
+      });
+      await page.waitForTimeout(400);
+    } catch (_) {}
 
     // Run the same extraction logic as getCurrentPageContent() — inside the real browser
     const context = await page.evaluate((kw) => {
@@ -152,31 +178,69 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
       // to avoid news headlines with «персональн» being classified as policy pages
       const isContentPath = p => /\/\d{4}\/\d{2}[/\-]|\/(news|article|review|blog|post|video|forum)\//i.test(p);
 
+      // A1: for compliance pages give more body text; cap at 25k instead of 10k
+      const isCompliancePage = /polic|privacy|personal|ofert|конфиденц|персон|оферт|cookie|gdpr/i.test(location.pathname + location.href);
+      const bodyText = (() => {
+        const t = document.body.innerText;
+        const cap = isCompliancePage ? 25000 : 10000;
+        if (t.length <= cap) return t;
+        return t.slice(0, cap - 2000) + '\n' + t.slice(-2000);
+      })();
+
+      // A4: РКН требует ссылку на политику в footer на каждой странице с формой
+      const hasPolicyFooterLink = (() => {
+        if (!footerEl) return false;
+        const html = footerEl.innerHTML || '';
+        return /пол[ие]тик|конфиденц|privacy|personal.?data|персональн/i.test(html);
+      })();
+
+      // A5: наличие checkbox согласия на обработку ПД в формах
+      const hasConsentCheckbox = (() => {
+        const checkboxSels = [
+          'input[type="checkbox"][name*="agree"]',
+          'input[type="checkbox"][name*="consent"]',
+          'input[type="checkbox"][name*="personal"]',
+          'input[type="checkbox"][id*="agree"]',
+          'input[type="checkbox"][id*="consent"]',
+        ].join(',');
+        if (document.querySelector(checkboxSels)) return true;
+        const labels = Array.from(document.querySelectorAll('label')).map(l => l.textContent).join(' ');
+        return /соглас[еёаюяшь]|персональн|обработ[еёаку]/i.test(labels);
+      })();
+
       return {
         url: location.href,
         title: (document.title || '').replace(/<[^>]+>/g, '').trim(),
         header: headerEl ? headerEl.innerText.slice(0, 500) : '',
         footer: footerEl ? (footerEl.innerText + ' ' + footerImgAlt).slice(0, 1200) : '',
-        bodyText: (() => {
-          const t = document.body.innerText;
-          if (t.length <= 10000) return t;
-          return t.slice(0, 8000) + '\n' + t.slice(-2000);
-        })(),
+        bodyText,
         jsonLdText,
         eridAttrs,
         links: uniqueLinks.slice(0, 40),
-        policyLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.policy)).slice(0, 2),
-        offerLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.offer)).slice(0, 2),
-        returnLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.ret)).slice(0, 2),
-        aboutLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.about)).slice(0, 2),
-        hasAdScripts:    document.querySelectorAll(adScriptSelectors).length > 0,
-        hasCookieBanner: document.querySelectorAll(cookieBannerSelectors).length > 0 || hasCookieBannerByText,
+        policyLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.policy)).slice(0, 5),
+        offerLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.offer)).slice(0, 4),
+        returnLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.ret)).slice(0, 3),
+        aboutLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.about)).slice(0, 4),
+        hasAdScripts:       document.querySelectorAll(adScriptSelectors).length > 0,
+        hasCookieBanner:    document.querySelectorAll(cookieBannerSelectors).length > 0 || hasCookieBannerByText,
+        hasPolicyFooterLink,
+        hasConsentCheckbox,
       };
     }, KW);
 
+    // Detect anti-bot challenge pages (Cloudflare, DDoS-Guard, etc.)
+    // They render a short JS challenge that never gives us real content.
+    const isChallenge = context.bodyText.length < 300 && (
+      /just a moment|почти готово|проверка браузера|checking your browser|ddos.guard|enable javascript/i.test(context.title + ' ' + context.bodyText)
+    );
+    if (isChallenge) {
+      // Fall through to plain-fetch fallback below
+      throw new Error(`challenge:${context.title}`);
+    }
+
     return context;
   } catch (err) {
-    // Playwright failed (timeout, network block, SSL) — fall back to plain fetch.
+    // Playwright failed (timeout, network block, SSL, challenge) — fall back to plain fetch.
     // We get less data (no JS rendering, no link extraction) but at least basic text.
     try {
       const res = await fetch(url, {
@@ -204,7 +268,9 @@ export async function buildPageContext(url, { timeout = 20000 } = {}) {
         bodyText: text.slice(0, 10000), jsonLdText: '', eridAttrs: '',
         links: [], policyLinks: [], offerLinks: [], returnLinks: [], aboutLinks: [],
         hasAdScripts: false, hasCookieBanner: false,
+        hasPolicyFooterLink: false, hasConsentCheckbox: false,
         _fallback: true,
+        _blocked: /^challenge:/.test(String(err?.message)),
       };
     } catch {
       throw err; // rethrow original Playwright error
