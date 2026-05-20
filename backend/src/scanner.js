@@ -141,17 +141,28 @@ async function fetchExtraText(engine, pageContext, origin) {
     }
   }
 
-  // Fallback: try common rekvizity paths if nothing found via links
-  if (!extra.trim() && origin) {
-    const REKVIZITY_PATHS = ['/contacts', '/contact', '/about', '/о-компании',
-      '/rekvizity', '/реквизиты', '/company', '/terms', '/legal'];
-    for (const path of REKVIZITY_PATHS) {
+  if (origin) {
+    // Always probe common offer PDF paths — many Russian SaaS/B2B sites
+    // put INN/OGRN only in a PDF document (e.g. callibri.ru/Offer.pdf)
+    const PDF_PATHS = ['/Offer.pdf', '/offer.pdf', '/Oferta.pdf', '/oferta.pdf',
+      '/terms.pdf', '/agreement.pdf', '/contract.pdf', '/оферта.pdf'];
+    for (const path of PDF_PATHS) {
       const url = origin + path;
       if (visited.has(url)) continue;
-      const r = await engine.fetchUrl(url);
-      if (r.ok && r.text.length > 200) {
-        extra += '\n' + htmlToText(r.text);
-        break;
+      visited.add(url);
+      const text = await fetchPdfText(url);
+      if (text.length > 200) { extra += '\n' + text; break; }
+    }
+
+    // Fallback HTML paths — try when no links found at all
+    if (!extra.trim()) {
+      const REKVIZITY_PATHS = ['/contacts', '/contact', '/about', '/о-компании',
+        '/rekvizity', '/реквизиты', '/company', '/terms', '/legal'];
+      for (const path of REKVIZITY_PATHS) {
+        const url = origin + path;
+        if (visited.has(url)) continue;
+        const r = await engine.fetchUrl(url);
+        if (r.ok && r.text.length > 200) { extra += '\n' + htmlToText(r.text); break; }
       }
     }
   }
