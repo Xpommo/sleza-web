@@ -367,7 +367,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       if (homeR.ok) homepageText = '\n' + htmlToText(homeR.text).slice(0, 4000);
     }
     const result149  = engine.check149FZ(fullText + extraText + homepageText);
-    const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''));
+    const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''), { hasAdScripts: pageContext.hasAdScripts });
     // Include extraText so PDF offer documents are checked for seller info / return conditions
     const resultOffer = engine.checkOffer(fullText + '\n' + extraText, pageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(fullText);
@@ -548,7 +548,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     // ERIR: check main page only — allPagesText includes blog/articles about advertising
     // which cause false positives on marketing platforms (callibri, roistat, etc.)
     const mainPageText = `${mainPageContext.title}\n${mainPageContext.header}\n${mainPageContext.bodyText}\n${mainPageContext.footer}`;
-    const resultERIR = engine.checkERIR(mainPageText + '\n' + (mainPageContext.eridAttrs || ''));
+    const resultERIR = engine.checkERIR(mainPageText + '\n' + (mainPageContext.eridAttrs || ''), { hasAdScripts: mainPageContext.hasAdScripts });
     // checkOffer: include extraText so PDF offer documents (e.g. /Offer.pdf) are checked
     const resultOffer = engine.checkOffer(mainPageText + '\n' + extraText, mainPageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(allPagesText);
