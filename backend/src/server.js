@@ -11,19 +11,17 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { randomUUID } from 'crypto';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled } from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const RESULTS_DIR = join(__dirname, '../results');
-const PDFS_DIR    = join(__dirname, '../pdfs');
-const LEADS_FILE  = join(__dirname, '../leads.jsonl');
-const TTL_MS      = 24 * 60 * 60 * 1000;
-const UUID_RE     = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const PDFS_DIR = join(__dirname, '../pdfs');
+const UUID_RE  = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 // Extract just the URL in case the env var was accidentally set as "FRONTEND_URL = https://..."
 const FRONTEND_URL = (() => {
   const raw = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -31,8 +29,7 @@ const FRONTEND_URL = (() => {
   return m ? m[0].replace(/\/$/, '') : 'http://localhost:3000';
 })();
 
-if (!existsSync(RESULTS_DIR)) mkdirSync(RESULTS_DIR, { recursive: true });
-if (!existsSync(PDFS_DIR))    mkdirSync(PDFS_DIR,    { recursive: true });
+if (!existsSync(PDFS_DIR)) mkdirSync(PDFS_DIR, { recursive: true });
 
 const PORT = Number(process.env.PORT) || 3001;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
@@ -87,8 +84,18 @@ app.post('/api/scan/single', { schema: { body: scanBodySchema } }, async (reques
   try {
     const { url, useAI = true, siteType = 'auto' } = request.body;
     const { groqKey, slezaKey } = extractKeys(request);
+
+    // Return cached result if same URL was scanned recently (20 min window)
+    const cached = await findCachedScan(url, siteType, useAI);
+    if (cached) {
+      app.log.info({ url }, 'cache hit — returning cached scan');
+      return reply.send({ ...cached.result_json, uuid: cached.uuid, fromCache: true });
+    }
+
     const result = await scanSinglePage({ url, groqKey, slezaKey, useAI, siteType });
-    return reply.send(result);
+    const uuid = randomUUID();
+    await saveScan({ uuid, url, siteType, mode: 'single', useAI, result, ip });
+    return reply.send({ ...result, uuid });
   } catch (err) {
     app.log.error(err);
     return reply.status(500).send({ error: String(err.message) });
@@ -150,7 +157,9 @@ app.post('/api/scan/full/stream', { schema: { body: scanBodySchema } }, async (r
       url, groqKey, slezaKey, useAI, siteType,
       onProgress: (p) => send(p),
     });
-    send({ done: true, result });
+    const uuid = randomUUID();
+    await saveScan({ uuid, url, siteType, mode: 'full', useAI, result, ip: request.ip });
+    send({ done: true, result: { ...result, uuid } });
   } catch (err) {
     app.log.error(err);
     send({ error: String(err.message) });
@@ -179,23 +188,25 @@ app.get('/api/debug/links', async (request, reply) => {
 
 // ── Results storage ──────────────────────────────────────────────────────────
 
+// Explicit save endpoint (for backward compat — scan endpoints now auto-save)
 app.post('/api/results', async (request, reply) => {
   const { result } = request.body || {};
   if (!result || typeof result !== 'object') return reply.status(400).send({ error: 'result required' });
-  const uuid = randomUUID();
-  writeFileSync(join(RESULTS_DIR, `${uuid}.json`), JSON.stringify({ uuid, createdAt: new Date().toISOString(), result }));
+  // If result already has a uuid (from scan endpoint), reuse it
+  const uuid = result.uuid || randomUUID();
+  if (!result.uuid) {
+    const url = result.url || result.hostname || 'unknown';
+    await saveScan({ uuid, url, mode: result.mode || 'single', result });
+  }
   return reply.send({ uuid });
 });
 
 app.get('/api/results/:uuid', async (request, reply) => {
   const { uuid } = request.params;
   if (!UUID_RE.test(uuid)) return reply.status(400).send({ error: 'Invalid UUID' });
-  const file = join(RESULTS_DIR, `${uuid}.json`);
-  if (!existsSync(file)) return reply.status(404).send({ error: 'Отчёт не найден' });
-  const record = JSON.parse(readFileSync(file, 'utf8'));
-  if (Date.now() - new Date(record.createdAt).getTime() > TTL_MS)
-    return reply.status(410).send({ error: 'Срок хранения отчёта истёк (24 часа)' });
-  return reply.send(record);
+  const record = await getScan(uuid);
+  if (!record) return reply.status(404).send({ error: 'Отчёт не найден' });
+  return reply.send({ uuid: record.uuid, createdAt: record.created_at, result: record.result_json });
 });
 
 // ── Leads ────────────────────────────────────────────────────────────────────
@@ -214,7 +225,7 @@ app.post('/api/leads', {
   },
 }, async (request, reply) => {
   const { email, company, uuid } = request.body;
-  appendFileSync(LEADS_FILE, JSON.stringify({ email, company, uuid, ts: new Date().toISOString() }) + '\n');
+  await saveLead({ email, company, scanUuid: uuid });
   return reply.send({ ok: true });
 });
 
@@ -223,11 +234,8 @@ app.post('/api/leads', {
 app.get('/api/results/:uuid/pdf', async (request, reply) => {
   const { uuid } = request.params;
   if (!UUID_RE.test(uuid)) return reply.status(400).send({ error: 'Invalid UUID' });
-  const file = join(RESULTS_DIR, `${uuid}.json`);
-  if (!existsSync(file)) return reply.status(404).send({ error: 'Отчёт не найден' });
-  const record = JSON.parse(readFileSync(file, 'utf8'));
-  if (Date.now() - new Date(record.createdAt).getTime() > TTL_MS)
-    return reply.status(410).send({ error: 'Срок хранения отчёта истёк' });
+  const record = await getScan(uuid);
+  if (!record) return reply.status(404).send({ error: 'Отчёт не найден' });
 
   const pdfFile = join(PDFS_DIR, `${uuid}.pdf`);
   if (!existsSync(pdfFile)) {
@@ -265,6 +273,9 @@ process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
 try {
+  await initSchema();
+  // Clean up scans older than 7 days on startup
+  cleanupOldScans(7).then(n => { if (n > 0) console.log(`[db] cleaned up ${n} old scans`); }).catch(() => {});
   await app.listen({ port: PORT, host: '0.0.0.0' });
   console.log(`Backend running on http://localhost:${PORT}`);
 } catch (err) {
