@@ -262,7 +262,7 @@ app.get('/api/results/:uuid/pdf', async (request, reply) => {
     .send(readFileSync(pdfFile));
 });
 
-app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString(), v: 'r3-pdf-fallback' }));
+app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString(), v: 'r4-supabase', db: dbEnabled }));
 
 const shutdown = async () => {
   await closeBrowser();
