@@ -144,8 +144,13 @@ async function fetchExtraText(engine, pageContext, origin) {
   if (origin) {
     // Always probe common offer PDF paths — many Russian SaaS/B2B sites
     // put INN/OGRN only in a PDF document (e.g. callibri.ru/Offer.pdf)
-    const PDF_PATHS = ['/Offer.pdf', '/offer.pdf', '/Oferta.pdf', '/oferta.pdf',
-      '/terms.pdf', '/agreement.pdf', '/contract.pdf', '/оферта.pdf'];
+    const PDF_PATHS = [
+      '/Offer.pdf', '/offer.pdf', '/Oferta.pdf', '/oferta.pdf',
+      '/terms.pdf', '/terms_of_use.pdf', '/user_agreement.pdf',
+      '/agreement.pdf', '/contract.pdf', '/оферта.pdf',
+      '/privacy_policy.pdf', '/privacy.pdf', '/personal_data.pdf',
+      '/политика.pdf', '/соглашение.pdf',
+    ];
     for (const path of PDF_PATHS) {
       const url = origin + path;
       if (visited.has(url)) continue;
