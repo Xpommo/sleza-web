@@ -11,3 +11,5 @@ media    https://www.rbc.ru
 services https://www.hh.ru
 saas     https://www.bitrix24.ru
 large    https://vc.ru
+saas     https://callibri.ru
+ip       https://sleza.media      ip

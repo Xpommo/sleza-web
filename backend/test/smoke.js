@@ -53,9 +53,10 @@ function readUrls() {
     if (!t || t.startsWith('#')) continue;
     const parts = t.split(/\s+/);
     if (parts.length >= 2 && parts[1].startsWith('http')) {
-      entries.push({ type: parts[0], url: parts[1] });
+      // format: <displayType> <url> [siteType]
+      entries.push({ type: parts[0], url: parts[1], siteType: parts[2] || 'auto' });
     } else if (parts[0].startsWith('http')) {
-      entries.push({ type: 'unknown', url: parts[0] });
+      entries.push({ type: 'unknown', url: parts[0], siteType: 'auto' });
     }
   }
   if (entries.length === 0) {
@@ -84,9 +85,9 @@ function icon(status) {
 }
 
 // --- Run scan with timeout ---
-async function runScan(url) {
+async function runScan(url, siteType = 'auto') {
   return Promise.race([
-    scanSinglePage({ url, groqKey: GROQ, slezaKey: SLEZA, useAI: USE_AI }),
+    scanSinglePage({ url, groqKey: GROQ, slezaKey: SLEZA, useAI: USE_AI, siteType }),
     new Promise((_, rej) => setTimeout(() => rej(new Error('timeout 90s')), 90_000)),
   ]);
 }
@@ -140,7 +141,7 @@ console.log('─'.repeat(HDR.length));
 
 const totals = { ok: 0, risk: 0, violation: 0, error: 0 };
 
-for (const { type, url } of urls) {
+for (const { type, url, siteType } of urls) {
   let hostname = url;
   try { hostname = new URL(url).hostname; } catch {}
 
@@ -151,7 +152,7 @@ for (const { type, url } of urls) {
   console.log = () => {};
   let result, scanErr;
   try {
-    result = await runScan(url);
+    result = await runScan(url, siteType);
   } catch (e) {
     scanErr = e;
   } finally {
