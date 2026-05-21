@@ -295,7 +295,8 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     }
     const result149  = engine.check149FZ(fullText + extraText + homepageText);
     const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''));
-    const resultOffer = engine.checkOffer(fullText, pageContext.offerLinks);
+    // Include extraText so PDF offer documents are checked for seller info / return conditions
+    const resultOffer = engine.checkOffer(fullText + '\n' + extraText, pageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(fullText);
     const policyHasCookies = /cookie|куки|файл[ыа]\s+cookie/i.test(policyText);
     const resultCookie = engine.checkCookieCompliance({
@@ -463,10 +464,12 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
 
     const result152  = engine.check152FZ(policyText);
     const result149  = engine.check149FZ(allPagesText + extraText);
-    const resultERIR = engine.checkERIR(allPagesText + '\n' + (mainPageContext.eridAttrs || ''));
-    // checkOffer on main page only — legal terms in user-agreement trigger false SaaS detection
+    // ERIR: check main page only — allPagesText includes blog/articles about advertising
+    // which cause false positives on marketing platforms (callibri, roistat, etc.)
     const mainPageText = `${mainPageContext.title}\n${mainPageContext.header}\n${mainPageContext.bodyText}\n${mainPageContext.footer}`;
-    const resultOffer = engine.checkOffer(mainPageText, mainPageContext.offerLinks);
+    const resultERIR = engine.checkERIR(mainPageText + '\n' + (mainPageContext.eridAttrs || ''));
+    // checkOffer: include extraText so PDF offer documents (e.g. /Offer.pdf) are checked
+    const resultOffer = engine.checkOffer(mainPageText + '\n' + extraText, mainPageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(allPagesText);
     const policyHasCookies = /cookie|куки|файл[ыа]\s+cookie/i.test(policyText);
     const resultCookie = engine.checkCookieCompliance({
