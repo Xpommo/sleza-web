@@ -108,15 +108,15 @@ Result shape is identical to what the Tampermonkey script's `runFullSiteScan` / 
 - Backend is Node ESM (`"type": "module"`) — use `import`/`export`, not `require`.
 - Do not push to `master` without explicit user request.
 
-## Текущий статус (2026-05-20) — АКТУАЛЬНО
+## Текущий статус (2026-05-21) — АКТУАЛЬНО
 
-### Что реализовано и работает локально ✅
+### Что реализовано и задеплоено ✅
 
 **Раунд 1 — базовый скан** ✅
 **Раунд 1.5 — точность детектирования** ✅
 **Раунд 2 — лидогенерация** ✅ (UUID отчёты, PDF, ShareModal, CTA штрафов)
 
-**Раунд 3 — качество сканирования** ✅ (2026-05-20)
+**Раунд 3 — качество сканирования** ✅
 
 _pageContext.js:_
 - `bodyText` cap: 25k для compliance-страниц (/privacy, /oferta и т.д.), 10k для остальных
@@ -130,7 +130,7 @@ _pageContext.js:_
 _scanner.js:_
 - PDF-парсинг через `pdf-parse`: читает оферты/договоры в PDF (напр. callibri.ru/Offer.pdf)
 - `fetchExtraText` проактивно пробует `/Offer.pdf`, `/oferta.pdf` и т.д. при каждом скане
-- `fetchPolicyText` Fallback 2: пробует `/terms`, `/legal`, `/rules`, `/agreement` напрямую (напр. artlebedev.ru/terms/)
+- `fetchPolicyText` Fallback 2: пробует `/terms`, `/legal`, `/rules`, `/agreement` напрямую
 - C1: при single-scan субстраницы — добавляет текст главной для check149FZ (ИНН в footer)
 - C2: трёхуровневая стратификация URL при full-scan:
   - Layer 1 (mandatory): главная + известные compliance-пути (/privacy, /about, /contacts...)
@@ -141,10 +141,32 @@ _engine.js:_
 - Логи скрипта через `scriptConsole` — тихо по умолчанию, `SLEZA_DEBUG=1` для отладки
 
 _test/:_
-- `backend/test/smoke.js` — smoke-тест по 5 типам сайтов
-- `backend/test-urls.txt` — список тестовых URL (shop/media/services/saas/large)
-- Запуск: `node backend/test/smoke.js 2>/dev/null`
-- С диффом: `node backend/test/smoke.js --diff 2>/dev/null`
+- `backend/test/smoke.js` — smoke-тест по 7 типам сайтов
+- `backend/test-urls.txt` — список тестовых URL
+- Запуск: `export NVM_DIR="$HOME/.nvm" && source "$NVM_DIR/nvm.sh" && node backend/test/smoke.js 2>/dev/null`
+- С диффом: добавить флаг `--diff`
+
+**Раунд 4 — Supabase PostgreSQL** ✅ (версия `r4-supabase`)
+
+_db.js:_
+- Таблица `scans`: хранит результаты по UUID (заменяет `backend/results/*.json`)
+- Таблица `leads`: email-лиды (заменяет `backend/leads.jsonl`)
+- Кэш повторных сканов одного URL — 20 минут (`findCachedScan`)
+- `cleanupOldScans(7)` — автоочистка при старте (старше 7 дней)
+- Graceful fallback: если `DATABASE_URL` не задан — работает без БД (local dev)
+
+_server.js:_
+- `initSchema()` запускается после `app.listen` — Railway healthcheck не блокируется
+- `/api/results/:uuid` — чтение отчёта из БД
+- `/health` возвращает `"db": true/false`
+
+**D2 — Структурированный AI-промпт** ✅ (2026-05-21)
+
+_sleza_tets_js/script (runAIAnalysis):_
+- `bodyText` в промпте обрезан 25k → 2000 симв. (local checks уже используют полный текст)
+- Секции policy/offer/about перенесены **перед** блоком ЕГРЮЛ — AI читает источники первым
+- Каждая секция помечена URL источника: `─── ПОЛИТИКА [https://example.ru/privacy] ───`
+- `hasConsentCheckbox` добавлен в мета-строку промпта
 
 ### Деплой
 
@@ -155,39 +177,35 @@ _test/:_
 Нужно: Railway → Deployments → **Redeploy** вручную после каждого push.
 
 Проверка версии: `curl https://sleza-web-production.up.railway.app/health`
-- Актуальная версия должна вернуть: `"v":"r3-pdf-fallback"`
-- Если `"v":"bundled-script-v1"` — Railway не обновился, нужен ручной Redeploy
+- Актуальная версия: `"v":"r4-supabase"` + `"db":true`
 
-### Следующие задачи (Раунд 3 продолжение)
+### Следующие задачи
 
-**В скрипте `sleza_tets_js/script` (B-блок):**
-- B1: check149FZ — улучшить адресный regex (слишком широкий, дают false positives)
-- B3: checkERIR — детект рекламных сетей по script src (Яндекс.Директ, VK Реклама)
-- B4: check152FZ — использовать `hasPolicyFooterLink` и `hasConsentCheckbox`
+**D1 — Retry для Groq API** (приоритет 1):
+- 2 попытки с backoff при ошибке/rate-limit
+- В `sleza_tets_js/script`, `runAIAnalysis`, блок `_httpRequest` к Groq (~строка 2774)
+- После: `cp ~/sleza_tets_js/script ~/sleza-web/backend/sleza_script && git add ... && git commit`
 
-**AI (D-блок):**
-- D1: Retry для Groq API (2 попытки с backoff)
-- D2: Структурированный prompt с разбивкой по страницам
-
-**Инфраструктура:**
-- Починить Railway auto-deploy (Settings → Source → проверить ветку master)
-- Telegram webhook для новых лидов
+**UX:**
 - Предупреждение пользователю когда сайт вернул 403 (заблокировал сканер)
+- Telegram webhook для новых лидов
 
 ### Известные ограничения / false positives
 
-- **Cloudflare/DDoS-Guard** (wildberries.ru, некоторые крупные сайты): детектируются, fallback на plain fetch. Результаты могут быть неполными — показать предупреждение пользователю (TODO).
-- **403 на главной странице** (1cbit.ru): false positives по 149-ФЗ и 152-ФЗ т.к. нет доступа к HTML. Критично редко — SMB сайты (наша аудитория) блокируют ~5-10%.
-- **Реквизиты только в PDF** (callibri.ru): теперь читаем PDF через pdf-parse. Если PDF недоступен — показываем риск (корректно).
-- **Политика скрыта в order-виджете** (artlebedev.ru): теперь проверяем /terms/, /legal/ напрямую.
+- **Cloudflare/DDoS-Guard** (wildberries.ru): fallback на plain fetch, результаты неполные.
+- **403 на главной** (1cbit.ru): false positives по 149-ФЗ и 152-ФЗ (~5% SMB сайтов).
+- **Реквизиты только в PDF** (callibri.ru): читаем через pdf-parse; если PDF недоступен — риск.
+- **Политика скрыта в JS-виджете** (artlebedev.ru): fallback на /terms/, /legal/.
 
-### Smoke test baseline (2026-05-20)
+### Smoke test baseline (2026-05-21)
 
 ```
 shop     wildberries.ru  → ❌ ❌ ✅ ✅ ✅  (fallback ⚡, Cloudflare)
 media    rbc.ru          → ❌ ⚠️ ✅ ✅ ✅
-services hh.ru           → ⚠️ ✅ ✅ ✅ ✅
-saas     bitrix24.ru     → ✅ ✅ ✅ ❌ ✅
-large    vc.ru           → ⚠️ ✅ ✅ ✅ ✅
-Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Наркотики
+services hh.ru           → ⚠️ ✅ ⚠️ ✅ ✅
+saas     bitrix24.ru     → ✅ ✅ ❌ ✅ ✅
+large    vc.ru           → ⚠️ ✅ ✅ ⚠️ ✅
+saas     callibri.ru     → ✅ ✅ ❌ ✅ ✅
+ip       sleza.media     → ⚠️ ⚠️ ❌ ⚠️ ⚠️
+Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Куки
 ```
