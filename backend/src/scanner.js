@@ -376,9 +376,10 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       hasTracking: pageContext.hasAdScripts,
       hasCookieBanner: pageContext.hasCookieBanner,
       policyHasCookies,
+      hasConsentCheckbox: pageContext.hasConsentCheckbox,
     });
     aiData = {
-      checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType }),
+      checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType, hasPolicyFooterLink: pageContext.hasPolicyFooterLink }),
       site_name: pageContext.title,
     };
     // Promote to 'ip' if ИП detected in extraText/PDF (not visible in main page HTML)
@@ -556,9 +557,10 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       hasTracking: mainPageContext.hasAdScripts,
       hasCookieBanner: mainPageContext.hasCookieBanner,
       policyHasCookies,
+      hasConsentCheckbox: mainPageContext.hasConsentCheckbox,
     });
     aiData = {
-      checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType }),
+      checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType, hasPolicyFooterLink: mainPageContext.hasPolicyFooterLink }),
       site_name: mainPageContext.title,
     };
     // Promote to 'ip' if ИП detected in extraText/PDF even if not visible in main page HTML
