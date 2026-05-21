@@ -125,12 +125,26 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
 
       const m = (l, kws) => matchesKw(l.text + ' ' + l.path, kws);
 
-      const adScriptSelectors = [
-        'script[src*="googletagmanager"]','script[src*="google-analytics"]','script[src*="gtag"]',
-        'script[src*="mc.yandex"]','script[src*="metrika"]','script[src*="top.mail.ru"]',
-        'script[src*="vk.com/js"]','script[src*="facebook.net"]',
-        'script[src*="hotjar"]','script[src*="roistat"]',
+      // Analytics scripts — user tracking but NOT advertising; ERIR does NOT apply
+      const analyticsScriptSelectors = [
+        'script[src*="mc.yandex"]','script[src*="metrika"]',
+        'script[src*="google-analytics"]','script[src*="gtag"]',
+        'script[src*="top.mail.ru"]','script[src*="hotjar"]',
+        'script[src*="roistat"]','script[src*="mindbox"]',
+        'script[src*="carrotquest"]','script[src*="jivosite"]',
       ].join(',');
+
+      // Ad network scripts — actual advertising placement; ERIR marking required
+      const adNetworkScriptSelectors = [
+        'script[src*="an.yandex"]','script[src*="yandex-ads"]','script[src*="adfox"]',
+        'script[src*="googletagmanager"]',  // GTM often loads ad tags
+        'script[src*="facebook.net"]',       // FB Pixel used for paid retargeting ads
+        'script[src*="vk.com/js/api"]',      // VK ad pixel
+        'script[src*="soloway"]','script[src*="buzzoola"]',
+        'script[src*="otm-r.com"]','script[src*="mail.ru/counter"]',
+      ].join(',');
+
+      const adScriptSelectors = adNetworkScriptSelectors; // keep variable name for compatibility
 
       const cookieBannerSelectors = [
         '[class*="cookie-banner"],[class*="cookie-consent"],[class*="cookie-notice"]',
@@ -221,7 +235,8 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         offerLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.offer)).slice(0, 4),
         returnLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.ret)).slice(0, 3),
         aboutLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.about)).slice(0, 4),
-        hasAdScripts:       document.querySelectorAll(adScriptSelectors).length > 0,
+        hasAdScripts:       document.querySelectorAll(adNetworkScriptSelectors).length > 0,
+        hasAnalytics:       document.querySelectorAll(analyticsScriptSelectors).length > 0,
         hasCookieBanner:    document.querySelectorAll(cookieBannerSelectors).length > 0 || hasCookieBannerByText,
         hasPolicyFooterLink,
         hasConsentCheckbox,
@@ -267,7 +282,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         url, title: titleM?.[1]?.trim() || '', header: '', footer: '',
         bodyText: text.slice(0, 10000), jsonLdText: '', eridAttrs: '',
         links: [], policyLinks: [], offerLinks: [], returnLinks: [], aboutLinks: [],
-        hasAdScripts: false, hasCookieBanner: false,
+        hasAdScripts: false, hasAnalytics: false, hasCookieBanner: false,
         hasPolicyFooterLink: false, hasConsentCheckbox: false,
         _fallback: true,
         _blocked: /^challenge:/.test(String(err?.message)),
