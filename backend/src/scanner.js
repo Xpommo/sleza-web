@@ -263,7 +263,9 @@ function detectSiteType(pageContext) {
 function applyIPOverride(aiData) {
   if (!aiData?.checks) return;
 
-  // 149-FZ: clarify that ОГРНИП is required (not ОГРН)
+  // 149-FZ: ОГРНИП (15 digits) and ИНН физлица (12 digits), not ОГРН/ИНН of organisation.
+  // Note: buildLocalChecks in the script already applies this for local-only scans; here we
+  // handle AI-generated results where the text may still contain organisation wording.
   const law149 = aiData.checks.find(c => c.id === 'law149');
   if (law149) {
     if (law149.issue) {
@@ -272,33 +274,39 @@ function applyIPOverride(aiData) {
         .replace(/инн\s+организации/gi, 'ИНН ИП (12 цифр)');
     }
     if (law149.action) {
-      law149.action = 'Опубликовать на сайте (в footer или странице реквизитов): ' +
-        'полное ФИО ИП, ОГРНИП (15 цифр), ИНН (12 цифр), адрес регистрации, email или телефон';
+      law149.action = 'Опубликовать на сайте (footer или страница "Реквизиты"): ' +
+        'полное ФИО — "ИП Иванов Иван Иванович", ОГРНИП (15 цифр), ИНН (12 цифр), ' +
+        'адрес регистрации, email или телефон.';
     }
   }
 
-  // Offer: пользовательское соглашение = valid offer for ИП providing digital services.
-  // Override both 'violation' and 'risk' — remove physical goods return requirements.
+  // Offer: пользовательское соглашение = valid offer substitute for ИП service/SaaS sites.
+  // Ecommerce ИП still need return conditions under ЗоЗПП ст.26.1 and ПП 2463 — keep them.
   const offer = aiData.checks.find(c => c.id === 'offer');
   if (offer && offer.status !== 'ok') {
     if (offer.status === 'violation') offer.status = 'risk';
-    // Remove physical-goods language irrelevant for ИП digital services
-    if (offer.issue) {
-      offer.issue = offer.issue
-        .replace(/условия?\s+возврата\s+товара[^;.]*/gi, '')
-        .replace(/торговая\s+площадка/gi, 'цифровой сервис ИП')
-        .trim().replace(/^[;,\s]+/, '');
+    const isEcommerce = /торговая\s+площадка/i.test(offer.issue || '');
+    if (!isEcommerce) {
+      if (offer.issue) {
+        offer.issue = offer.issue
+          .replace(/условия?\s+возврата\s+товара[^;.]*/gi, '')
+          .replace(/торговая\s+площадка/gi, 'цифровой сервис ИП')
+          .trim().replace(/^[;,\s]+/, '');
+      }
+      offer.action = 'Пользовательское соглашение заменяет публичную оферту для ИП. ' +
+        'Добавьте в соглашение: ОГРНИП, ИНН (12 цифр), адрес регистрации, email, ' +
+        'порядок расторжения. Ссылку на соглашение — в footer сайта.';
+    } else {
+      offer.action = 'ИП-продавец: опубликуйте оферту с условиями возврата товара ' +
+        '(ЗоЗПП ст.26.1 — 7 дней), ОГРНИП, ИНН (12 цифр) и адресом регистрации.';
     }
-    offer.action = 'Пользовательское соглашение заменяет публичную оферту для ИП. ' +
-      'Добавьте в соглашение: ОГРНИП, ИНН (12 цифр), адрес регистрации, email, ' +
-      'порядок расторжения. Ссылку на соглашение — в footer сайта.';
   }
 
-  // 149-FZ: fix wording for ИП (ОГРНИП not ОГРН, 12-digit INN)
-  if (law149?.action) {
-    law149.action = 'Опубликовать на сайте (footer или страница "Реквизиты"): ' +
-      'полное ФИО — "ИП Иванов Иван Иванович", ОГРНИП (15 цифр), ИНН (12 цифр), ' +
-      'адрес регистрации, email или телефон.';
+  // 152-FZ: operator must be named as "ИП Фамилия И.О." in the privacy policy
+  const law152 = aiData.checks.find(c => c.id === 'law152');
+  if (law152 && law152.status !== 'ok' && law152.action && law152.action !== '—' &&
+      !law152.action.includes('ИП Фамилия')) {
+    law152.action += ' Укажите оператора ПД как "ИП Фамилия И.О." вместо названия организации.';
   }
 }
 
@@ -334,6 +342,8 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     egrulResult = await engine.checkEgrul(ids.ogrn || ids.inn);
   }
   const egrul = { checked: true, ids, result: egrulResult };
+  // Promote siteType to 'ip' if EGRUL confirms the owner is an individual entrepreneur
+  if (siteType !== 'ip' && egrulResult?.parsed?.type === 'ip') siteType = 'ip';
 
   // 4. AI analysis (152-FZ, ERIR, offer, drugs, cookie) — or local-only if useAI=false
   let aiData;
@@ -513,6 +523,8 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     egrulResult = await engine.checkEgrul(ids.ogrn || ids.inn);
   }
   const egrul = { checked: true, ids, result: egrulResult };
+  // Promote siteType to 'ip' if EGRUL confirms the owner is an individual entrepreneur
+  if (siteType !== 'ip' && egrulResult?.parsed?.type === 'ip') siteType = 'ip';
 
   // 5. AI analysis on main page context
   onProgress?.({ phase: 'ai', url });
