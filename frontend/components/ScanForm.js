@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 const SITE_TYPES = [
   { value: 'auto',      label: 'Авто' },
+  { value: 'ip',        label: 'ИП' },
   { value: 'ecommerce', label: 'Магазин' },
   { value: 'media',     label: 'СМИ / Блог' },
   { value: 'services',  label: 'Услуги / B2B' },

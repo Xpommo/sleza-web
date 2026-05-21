@@ -207,31 +207,40 @@ function applyServicesOverride(aiData, siteType) {
 
 /**
  * Auto-detect site type from page context when user left selector at 'auto'.
- * Returns 'media', 'ecommerce', 'services', 'saas', or 'auto' (= full checks).
+ * Returns 'ip', 'media', 'ecommerce', 'services', 'saas', or 'auto' (= full checks).
  */
 function detectSiteType(pageContext) {
   const titleHeader = `${pageContext.title || ''} ${pageContext.header || ''}`.toLowerCase();
-  // Also check first 2000 chars of body for signals missed in title/header
   const body2k = (pageContext.bodyText || '').slice(0, 2000).toLowerCase();
-  const text = titleHeader + ' ' + body2k;
+  const footer  = (pageContext.footer || '').toLowerCase();
+  const text    = titleHeader + ' ' + body2k + ' ' + footer;
   const allLinks = (pageContext.links || []).map(l => (l.href || '').toLowerCase());
   const hostname = (() => { try { return new URL(pageContext.url || '').hostname.toLowerCase(); } catch { return ''; } })();
 
-  // Media/news signals — title/header contains journalistic keywords
+  // ИП detection — ОГРНИП is 15 digits (starts with 3), ИНН for ИП is 12 digits.
+  // Detect via explicit "ИП" marker in footer/text or ОГРНИП pattern.
+  const ipTextRe = /\bип\s+[а-яёa-z]/i;
+  const ogrnipRe = /огрнип[\s:№.]*3\d{14}/i;
+  const ipNameRe = /индивидуальн[а-яё]+\s+предприниматель/i;
+  const inn12Re  = /инн[\s:№.]*\d{12}\b/i;
+  if (ipTextRe.test(footer) || ogrnipRe.test(text) || ipNameRe.test(text) ||
+      (inn12Re.test(text) && ipTextRe.test(text)))
+    return 'ip';
+
+  // Media/news signals
   if (/новост|обзор|статьи|журнал|\bсми\b|медиа|редакци|публикац|пресс-релиз/.test(titleHeader))
     return 'media';
 
-  // Services/corporate/edu signals — domain or text contains institutional keywords.
-  // These sites may sell services but return-of-goods rules don't apply.
+  // Services/corporate/edu signals
   const servicesDomainRe = /institut|clinic|hospital|academy|school|university|edu\.|\.edu|медцентр|клиник|больниц/;
   const servicesTextRe   = /институт|клиника|больниц|академия|университет|факультет|кафедр|АНО\b|НКО\b|ДПО\b|ЧОУ\b|ФГБУ|ФГБОУ|кабинет\s+врач|медицинск|стоматолог|поликлиник|образовательн|учебн[ыйое]+\s+центр|курсы\s+повышени|профессиональн[ао]+\s+переподготовк/;
   if (servicesDomainRe.test(hostname) || servicesTextRe.test(titleHeader)) return 'services';
 
-  // E-commerce signals — cart/checkout links or shop keywords in title
+  // E-commerce signals
   if (/магазин|интернет.магазин|купить|каталог товар/.test(titleHeader)) return 'ecommerce';
   if (allLinks.some(l => /\/(cart|basket|checkout|product|catalog)\b/.test(l))) return 'ecommerce';
 
-  // SaaS signals — require at least 2 signals to avoid "новостная подписка" false positive
+  // SaaS signals — require at least 2 signals
   const saasTextHits = [
     /\bтариф[ыа]?\b/.test(text),
     /\bподписк[аи]\b/.test(text) && !/новостная|email.подписк|рассылк/.test(text),
@@ -243,6 +252,41 @@ function detectSiteType(pageContext) {
   if (allLinks.some(l => /\/(pricing|plans|tariff)\b/.test(l))) return 'saas';
 
   return 'auto';
+}
+
+/**
+ * ИП-specific overrides:
+ * - ОГРНИП (15 digits) instead of ОГРН (13 digits) for 149-FZ
+ * - Пользовательское соглашение counts as valid offer substitute
+ * - ИНН is 12 digits for physical person
+ */
+function applyIPOverride(aiData) {
+  if (!aiData?.checks) return;
+
+  // 149-FZ: clarify that ОГРНИП is required (not ОГРН)
+  const law149 = aiData.checks.find(c => c.id === 'law149');
+  if (law149) {
+    if (law149.issue) {
+      law149.issue = law149.issue
+        .replace(/огрн\b/gi, 'ОГРНИП')
+        .replace(/инн\s+организации/gi, 'ИНН ИП (12 цифр)');
+    }
+    if (law149.action) {
+      law149.action = 'Опубликовать на сайте (в footer или странице реквизитов): ' +
+        'полное ФИО ИП, ОГРНИП (15 цифр), ИНН (12 цифр), адрес регистрации, email или телефон';
+    }
+  }
+
+  // Offer: пользовательское соглашение = valid offer for ИП providing digital services
+  const offer = aiData.checks.find(c => c.id === 'offer');
+  if (offer && offer.status === 'violation') {
+    offer.status = 'risk';
+    offer.issue  = (offer.issue || '') +
+      ' (для ИП пользовательское соглашение заменяет публичную оферту — ' +
+      'убедитесь что в нём есть реквизиты ИП, контакты и условия расторжения)';
+    offer.action = 'Добавить в пользовательское соглашение: ОГРНИП, ИНН, адрес, email, ' +
+      'порядок расторжения. Разместить ссылку на соглашение в footer сайта.';
+  }
 }
 
 /**
@@ -284,6 +328,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     aiData = await engine.runAIAnalysis(pageContext, egrul, fullText);
     applyMediaOverride(aiData, siteType);
     applyServicesOverride(aiData, siteType);
+    if (siteType === 'ip') applyIPOverride(aiData);
   } else {
     // Discover privacy policy page for accurate 152-FZ check
     // (homepage rarely has the full policy text)
@@ -459,6 +504,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     aiData = await engine.runAIAnalysis(mainPageContext, egrul, allPagesText);
     applyMediaOverride(aiData, siteType);
     applyServicesOverride(aiData, siteType);
+    if (siteType === 'ip') applyIPOverride(aiData);
   } else {
     // Discover privacy policy page — critical for accurate 152-FZ check.
     // runAIAnalysis does this internally; we replicate it for local-only mode.
