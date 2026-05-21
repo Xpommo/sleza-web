@@ -277,15 +277,28 @@ function applyIPOverride(aiData) {
     }
   }
 
-  // Offer: пользовательское соглашение = valid offer for ИП providing digital services
+  // Offer: пользовательское соглашение = valid offer for ИП providing digital services.
+  // Override both 'violation' and 'risk' — remove physical goods return requirements.
   const offer = aiData.checks.find(c => c.id === 'offer');
-  if (offer && offer.status === 'violation') {
-    offer.status = 'risk';
-    offer.issue  = (offer.issue || '') +
-      ' (для ИП пользовательское соглашение заменяет публичную оферту — ' +
-      'убедитесь что в нём есть реквизиты ИП, контакты и условия расторжения)';
-    offer.action = 'Добавить в пользовательское соглашение: ОГРНИП, ИНН, адрес, email, ' +
-      'порядок расторжения. Разместить ссылку на соглашение в footer сайта.';
+  if (offer && offer.status !== 'ok') {
+    if (offer.status === 'violation') offer.status = 'risk';
+    // Remove physical-goods language irrelevant for ИП digital services
+    if (offer.issue) {
+      offer.issue = offer.issue
+        .replace(/условия?\s+возврата\s+товара[^;.]*/gi, '')
+        .replace(/торговая\s+площадка/gi, 'цифровой сервис ИП')
+        .trim().replace(/^[;,\s]+/, '');
+    }
+    offer.action = 'Пользовательское соглашение заменяет публичную оферту для ИП. ' +
+      'Добавьте в соглашение: ОГРНИП, ИНН (12 цифр), адрес регистрации, email, ' +
+      'порядок расторжения. Ссылку на соглашение — в footer сайта.';
+  }
+
+  // 149-FZ: fix wording for ИП (ОГРНИП not ОГРН, 12-digit INN)
+  if (law149?.action) {
+    law149.action = 'Опубликовать на сайте (footer или страница "Реквизиты"): ' +
+      'полное ФИО — "ИП Иванов Иван Иванович", ОГРНИП (15 цифр), ИНН (12 цифр), ' +
+      'адрес регистрации, email или телефон.';
   }
 }
 
@@ -358,6 +371,10 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType }),
       site_name: pageContext.title,
     };
+    // Promote to 'ip' if ИП detected in extraText/PDF (not visible in main page HTML)
+    if (siteType !== 'ip' && /\bип\s+[а-яёa-z]|огрнип|индивидуальн[а-яё]+\s+предприниматель/i.test(extraText + homepageText))
+      siteType = 'ip';
+    if (siteType === 'ip') applyIPOverride(aiData);
   }
 
   return {
@@ -532,6 +549,10 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType }),
       site_name: mainPageContext.title,
     };
+    // Promote to 'ip' if ИП detected in extraText/PDF even if not visible in main page HTML
+    if (siteType !== 'ip' && /\bип\s+[а-яёa-z]|огрнип|индивидуальн[а-яё]+\s+предприниматель/i.test(extraText))
+      siteType = 'ip';
+    if (siteType === 'ip') applyIPOverride(aiData);
   }
 
   return {
