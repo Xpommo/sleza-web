@@ -273,11 +273,14 @@ process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
 try {
-  await initSchema();
-  // Clean up scans older than 7 days on startup
-  cleanupOldScans(7).then(n => { if (n > 0) console.log(`[db] cleaned up ${n} old scans`); }).catch(() => {});
+  // Start listening first so Railway healthcheck passes immediately
   await app.listen({ port: PORT, host: '0.0.0.0' });
   console.log(`Backend running on http://localhost:${PORT}`);
+  // Init DB in background — server stays up even if Supabase is slow/unreachable
+  initSchema()
+    .then(() => cleanupOldScans(7))
+    .then(n => { if (n > 0) console.log(`[db] cleaned up ${n} old scans`); })
+    .catch(err => console.error('[db] init error:', err.message));
 } catch (err) {
   app.log.error(err);
   process.exit(1);
