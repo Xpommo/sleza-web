@@ -143,7 +143,7 @@ _engine.js:_
 _test/:_
 - `backend/test/smoke.js` — smoke-тест по 7 типам сайтов
 - `backend/test-urls.txt` — список тестовых URL
-- Запуск: `export NVM_DIR="$HOME/.nvm" && source "$NVM_DIR/nvm.sh" && node backend/test/smoke.js 2>/dev/null`
+- Запуск: `export NVM_DIR="$HOME/.nvm" && source "$NVM_DIR/nvm.sh" && cd backend && node test/smoke.js 2>/dev/null` (запускать из `backend/`, не из root)
 - С диффом: добавить флаг `--diff`
 
 **Раунд 4 — Supabase PostgreSQL** ✅ (версия `r4-supabase`)
@@ -168,6 +168,16 @@ _sleza_tets_js/script (runAIAnalysis):_
 - Каждая секция помечена URL источника: `─── ПОЛИТИКА [https://example.ru/privacy] ───`
 - `hasConsentCheckbox` добавлен в мета-строку промпта
 
+**D1 — Retry Groq API + улучшенный SYSTEM prompt** ✅ (2026-05-22)
+
+_sleza_tets_js/script (runAIAnalysis):_
+- `tryGroq()` — `_httpRequest` обёрнут в Promise
+- 2 попытки с паузой 3 секунды между ними (обрабатывает rate-limit спайки)
+- Fallback на локальные проверки только если обе попытки упали
+- SYSTEM prompt: явная инструкция доверять локальным чек-листам и не пересчитывать их
+- Чёткие критерии `violation` / `risk` / `unknown` (презумпция соответствия)
+- Инструкция по заполнению `found_text` (цитата), `location` (где на сайте), `found_url`
+
 ### Деплой
 
 - **Frontend:** https://sleza-web.vercel.app (Vercel, auto-deploy от master) ✅
@@ -180,11 +190,6 @@ _sleza_tets_js/script (runAIAnalysis):_
 - Актуальная версия: `"v":"r4-supabase"` + `"db":true`
 
 ### Следующие задачи
-
-**D1 — Retry для Groq API** (приоритет 1):
-- 2 попытки с backoff при ошибке/rate-limit
-- В `sleza_tets_js/script`, `runAIAnalysis`, блок `_httpRequest` к Groq (~строка 2774)
-- После: `cp ~/sleza_tets_js/script ~/sleza-web/backend/sleza_script && git add ... && git commit`
 
 **UX:**
 - Предупреждение пользователю когда сайт вернул 403 (заблокировал сканер)
