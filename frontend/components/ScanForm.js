@@ -28,10 +28,10 @@ export default function ScanForm({ onScan, loading }) {
   };
 
   return (
-    <div className="border border-gray-200 rounded-xl p-5 space-y-4 bg-white shadow-sm">
+    <div className="space-y-4">
       <input
         type="text"
-        className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm font-mono text-gray-800 placeholder-gray-400 focus:border-blue-400 focus:outline-none transition-colors"
+        className="w-full bg-neutral-900 border border-neutral-800 px-4 py-4 text-sm font-mono text-neutral-100 placeholder-neutral-600 focus:border-neutral-500 focus:outline-none transition-colors"
         placeholder="example.ru или https://example.ru"
         value={url}
         onChange={e => setUrl(e.target.value)}
@@ -39,8 +39,8 @@ export default function ScanForm({ onScan, loading }) {
         disabled={loading}
       />
 
-      <div className="space-y-1.5">
-        <div className="text-xs text-gray-400">Тип сайта</div>
+      <div className="space-y-2">
+        <div className="text-xs text-neutral-600 uppercase tracking-[0.15em]">Тип сайта</div>
         <div className="flex flex-wrap gap-1.5">
           {SITE_TYPES.map(({ value, label }) => (
             <button
@@ -48,10 +48,10 @@ export default function ScanForm({ onScan, loading }) {
               type="button"
               onClick={() => setSiteType(value)}
               disabled={loading}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
+              className={`px-3 py-1 text-xs font-medium transition-colors border ${
                 siteType === value
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700'
+                  ? 'bg-neutral-100 text-neutral-950 border-neutral-100'
+                  : 'bg-transparent text-neutral-500 border-neutral-800 hover:border-neutral-600 hover:text-neutral-300'
               }`}
             >
               {label}
@@ -60,20 +60,20 @@ export default function ScanForm({ onScan, loading }) {
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <button
           onClick={() => submit('single')}
           disabled={loading || !url}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-2.5 text-sm font-medium transition-colors"
+          className="flex-1 bg-neutral-100 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed text-neutral-950 py-3 text-sm font-bold transition-colors uppercase tracking-wider"
         >
-          Текущая страница (~30 сек)
+          Одна страница
         </button>
         <button
           onClick={() => submit('full')}
           disabled={loading || !url}
-          className="flex-1 bg-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-2.5 text-sm font-medium transition-colors"
+          className="flex-1 bg-transparent hover:bg-neutral-900 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-500 hover:text-neutral-200 border border-neutral-800 hover:border-neutral-600 py-3 text-sm font-medium transition-colors uppercase tracking-wider"
         >
-          Весь сайт (~2–5 мин)
+          Весь сайт
         </button>
       </div>
     </div>
