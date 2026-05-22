@@ -15,6 +15,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
+import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
 import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled, getCheckStats, findScansWithStatus } from './db.js';
@@ -260,6 +261,51 @@ app.get('/api/results/:uuid/pdf', async (request, reply) => {
     .header('Content-Type', 'application/pdf')
     .header('Content-Disposition', `attachment; filename="sleza-${uuid.slice(0, 8)}.pdf"`)
     .send(readFileSync(pdfFile));
+});
+
+// ── Admin smoke runner ───────────────────────────────────────────────────────
+
+async function sendTelegram(text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chat  = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chat) return;
+  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chat, text }),
+    signal: AbortSignal.timeout(10000),
+  }).catch(() => {});
+}
+
+// POST /api/admin/run-smoke
+// Protected by ADMIN_TOKEN env var. Runs smoke test in background, sends Telegram on regression.
+app.post('/api/admin/run-smoke', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (adminToken && request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+
+  // Fire-and-forget — respond immediately, run smoke in background
+  reply.send({ ok: true, message: 'Smoke test started' });
+
+  const smokeJs = join(__dirname, '../test/smoke.js');
+  const child = spawn(process.execPath, [smokeJs, '--vs-baseline', '--strict'], {
+    cwd: join(__dirname, '..'),
+    env: { ...process.env },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  let output = '';
+  child.stdout.on('data', d => { output += d; });
+  child.stderr.on('data', d => { output += d; });
+
+  child.on('close', async (code) => {
+    app.log.info({ code }, 'smoke finished');
+    if (code !== 0) {
+      const lines = output.split('\n').filter(l => l.includes('РЕГРЕССИЯ') || l.includes('Итого')).join('\n');
+      await sendTelegram(`🚨 Sleza smoke РЕГРЕССИЯ\n${new Date().toISOString()}\n\n${lines}`);
+    }
+  });
 });
 
 // ── Admin analytics ──────────────────────────────────────────────────────────

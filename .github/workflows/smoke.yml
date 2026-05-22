@@ -37,21 +37,6 @@ jobs:
       - name: Run smoke test vs baseline
         run: node test/smoke.js --vs-baseline --strict 2>/dev/null
         working-directory: backend
-        env:
-          DEFAULT_GROQ_KEY: ${{ secrets.DEFAULT_GROQ_KEY }}
-          DEFAULT_SLEZA_KEY: ${{ secrets.DEFAULT_SLEZA_KEY }}
-
-      - name: Notify Telegram on regression
-        if: failure()
-        run: |
-          MSG="🚨 Sleza smoke РЕГРЕССИЯ%0A"
-          MSG+="Ветка: master%0A"
-          MSG+="Время: $(date -u '+%Y-%m-%d %H:%M UTC')%0A"
-          MSG+="Подробности: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -d "text=${MSG}" \
-            -d "parse_mode=HTML" || true
 
       - name: Upload smoke results
         uses: actions/upload-artifact@v4
