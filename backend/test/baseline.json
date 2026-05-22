@@ -1,0 +1,34 @@
+{
+  "generated": "2026-05-22",
+  "note": "Golden baseline. Update intentionally with --update-baseline after a verified fix. Never auto-overwrite.",
+  "urls": [
+    {
+      "hostname": "www.wildberries.ru", "type": "shop",
+      "checks": { "law152": "risk", "law149": "violation", "erir": "ok", "offer": "ok", "drugs": "ok" }
+    },
+    {
+      "hostname": "www.rbc.ru", "type": "media",
+      "checks": { "law152": "risk", "law149": "risk", "erir": "ok", "offer": "ok", "drugs": "ok" }
+    },
+    {
+      "hostname": "www.hh.ru", "type": "services",
+      "checks": { "law152": "risk", "law149": "ok", "erir": "risk", "offer": "ok", "drugs": "ok" }
+    },
+    {
+      "hostname": "www.bitrix24.ru", "type": "saas",
+      "checks": { "law152": "ok", "law149": "ok", "erir": "risk", "offer": "ok", "drugs": "ok" }
+    },
+    {
+      "hostname": "vc.ru", "type": "large",
+      "checks": { "law152": "risk", "law149": "ok", "erir": "ok", "offer": "risk", "drugs": "ok" }
+    },
+    {
+      "hostname": "callibri.ru", "type": "saas",
+      "checks": { "law152": "ok", "law149": "ok", "erir": "risk", "offer": "ok", "drugs": "ok" }
+    },
+    {
+      "hostname": "sleza.media", "type": "ip",
+      "checks": { "law152": "risk", "law149": "risk", "erir": "risk", "offer": "risk", "drugs": "risk" }
+    }
+  ]
+}

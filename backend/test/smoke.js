@@ -3,9 +3,12 @@
  * и выводит таблицу статусов проверок.
  *
  * Использование:
- *   node backend/test/smoke.js              # без AI (быстрее)
- *   node backend/test/smoke.js --ai         # с AI (нужен DEFAULT_GROQ_KEY в .env)
- *   node backend/test/smoke.js --diff       # сравнить с предыдущим baseline
+ *   node backend/test/smoke.js                        # без AI (быстрее)
+ *   node backend/test/smoke.js --ai                   # с AI (нужен DEFAULT_GROQ_KEY в .env)
+ *   node backend/test/smoke.js --diff                 # сравнить с предыдущим запуском
+ *   node backend/test/smoke.js --vs-baseline          # сравнить с baseline.json
+ *   node backend/test/smoke.js --vs-baseline --strict # exit 1 при регрессии (для CI)
+ *   node backend/test/smoke.js --update-baseline      # перезаписать baseline.json текущими результатами
  *
  * Подавить диагностику скрипта (stderr):
  *   node backend/test/smoke.js 2>/dev/null
@@ -35,10 +38,15 @@ function loadEnv() {
 }
 loadEnv();
 
-const USE_AI = process.argv.includes('--ai');
-const DIFF   = process.argv.includes('--diff');
+const USE_AI          = process.argv.includes('--ai');
+const DIFF            = process.argv.includes('--diff');
+const VS_BASELINE     = process.argv.includes('--vs-baseline');
+const STRICT          = process.argv.includes('--strict');
+const UPDATE_BASELINE = process.argv.includes('--update-baseline');
 const GROQ   = process.env.DEFAULT_GROQ_KEY || '';
 const SLEZA  = process.env.DEFAULT_SLEZA_KEY || '';
+
+const BASELINE_PATH = join(__dirname, 'baseline.json');
 
 // --- Read test URLs ---
 function readUrls() {
@@ -127,6 +135,57 @@ function printDiff(current, previous) {
   if (!changed) console.log('    (нет изменений)');
 }
 
+// --- Baseline helpers ---
+
+// Severity: higher = worse. Used to detect regressions.
+const SEVERITY = { ok: 0, risk: 1, violation: 2, error: 3, unknown: -1 };
+
+function classifyChange(from, to) {
+  const f = SEVERITY[from] ?? -1;
+  const t = SEVERITY[to]   ?? -1;
+  if (t > f && f >= 0) return 'regression';   // ok→risk, ok→violation, risk→violation
+  if (t < f && t >= 0) return 'improvement';  // violation→risk, risk→ok
+  return 'neutral';
+}
+
+function loadBaseline() {
+  if (!existsSync(BASELINE_PATH)) return null;
+  try { return JSON.parse(readFileSync(BASELINE_PATH, 'utf8')); } catch { return null; }
+}
+
+function saveBaseline(results) {
+  const data = {
+    generated: new Date().toISOString().slice(0, 10),
+    note: 'Golden baseline. Update intentionally with --update-baseline after a verified fix.',
+    urls: results.map(({ hostname, type, result }) => ({
+      hostname,
+      type,
+      checks: Object.fromEntries(CHECK_IDS.map(id => [id, getStatus(result.aiData, id)])),
+    })),
+  };
+  writeFileSync(BASELINE_PATH, JSON.stringify(data, null, 2));
+  console.log(`\n✅ baseline.json обновлён (${data.urls.length} URL)`);
+}
+
+function printBaselineDiff(hostname, current, baselineEntry) {
+  if (!baselineEntry) { console.log('    (нет в baseline — пропускаем)'); return { regressions: 0, improvements: 0 }; }
+  let regressions = 0, improvements = 0;
+  for (const id of CHECK_IDS) {
+    const from = baselineEntry.checks[id] || 'unknown';
+    const to   = getStatus(current.aiData, id);
+    const kind = classifyChange(from, to);
+    if (kind === 'regression') {
+      console.log(`    🔴 РЕГРЕССИЯ ${id.padEnd(8)}: ${icon(from)} → ${icon(to)}`);
+      regressions++;
+    } else if (kind === 'improvement') {
+      console.log(`    🟢 УЛУЧШЕНИЕ ${id.padEnd(8)}: ${icon(from)} → ${icon(to)}`);
+      improvements++;
+    }
+  }
+  if (regressions === 0 && improvements === 0) console.log('    ✓ совпадает с baseline');
+  return { regressions, improvements };
+}
+
 // --- Main ---
 const urls = readUrls();
 
@@ -140,6 +199,9 @@ console.log(HDR);
 console.log('─'.repeat(HDR.length));
 
 const totals = { ok: 0, risk: 0, violation: 0, error: 0 };
+const baseline = (VS_BASELINE || UPDATE_BASELINE) ? loadBaseline() : null;
+const scanResults = []; // collected for --update-baseline
+let totalRegressions = 0, totalImprovements = 0;
 
 for (const { type, url, siteType } of urls) {
   let hostname = url;
@@ -184,10 +246,18 @@ for (const { type, url, siteType } of urls) {
   );
 
   saveResult(hostname, result);
+  scanResults.push({ hostname, type, result });
 
   if (DIFF) {
     const prev = loadPrevious(hostname);
     printDiff(result, prev);
+  }
+
+  if (VS_BASELINE) {
+    const entry = baseline?.urls?.find(u => u.hostname === hostname);
+    const counts = printBaselineDiff(hostname, result, entry);
+    totalRegressions  += counts.regressions;
+    totalImprovements += counts.improvements;
   }
 }
 
@@ -195,5 +265,22 @@ console.log('─'.repeat(HDR.length));
 console.log(`\nИтого: ✅ ${totals.ok}  ⚠️  ${totals.risk}  ❌ ${totals.violation}  💥 ${totals.error}`);
 console.log('Результаты: backend/test/results/');
 console.log('⚡ = Playwright упал, использован plain fetch\n');
+
+if (VS_BASELINE) {
+  if (totalRegressions > 0) {
+    console.log(`🔴 РЕГРЕССИЙ: ${totalRegressions} | Улучшений: ${totalImprovements}`);
+    if (STRICT) {
+      console.log('   --strict: выход с кодом 1\n');
+      await closeBrowser();
+      process.exit(1);
+    }
+  } else {
+    console.log(`✅ Регрессий нет. Улучшений: ${totalImprovements}`);
+  }
+}
+
+if (UPDATE_BASELINE) {
+  saveBaseline(scanResults);
+}
 
 await closeBrowser();

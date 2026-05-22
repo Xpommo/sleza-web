@@ -1,0 +1,62 @@
+name: Daily Smoke Test
+
+on:
+  schedule:
+    - cron: '0 5 * * *'   # Ежедневно в 5:00 UTC (8:00 МСК)
+  push:
+    branches: [master]
+    paths:
+      - 'backend/sleza_script'   # обновление бандла скрипта
+      - 'backend/src/**'         # изменения в логике бэкенда
+      - 'backend/test/baseline.json'
+  workflow_dispatch:             # ручной запуск из GitHub UI
+
+jobs:
+  smoke:
+    name: Smoke vs baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+        working-directory: backend
+
+      - name: Run smoke test vs baseline
+        run: node test/smoke.js --vs-baseline --strict 2>/dev/null
+        working-directory: backend
+        env:
+          DEFAULT_GROQ_KEY: ${{ secrets.DEFAULT_GROQ_KEY }}
+          DEFAULT_SLEZA_KEY: ${{ secrets.DEFAULT_SLEZA_KEY }}
+
+      - name: Notify Telegram on regression
+        if: failure()
+        run: |
+          MSG="🚨 Sleza smoke РЕГРЕССИЯ%0A"
+          MSG+="Ветка: master%0A"
+          MSG+="Время: $(date -u '+%Y-%m-%d %H:%M UTC')%0A"
+          MSG+="Подробности: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "text=${MSG}" \
+            -d "parse_mode=HTML" || true
+
+      - name: Upload smoke results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-results-${{ github.run_id }}
+          path: backend/test/results/
+          retention-days: 7
