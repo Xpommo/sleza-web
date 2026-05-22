@@ -189,6 +189,29 @@ _server.js:_
 
 **Переменная окружения:** `ADMIN_TOKEN` — обязательно выставить в Railway Variables. Без неё все `/api/admin/*` и `/api/debug/*` возвращают 401. `/api/debug/links` оставлен намеренно на период разработки — удалить перед публичным релизом.
 
+**UI v2 — audit-report дизайн** 🔄 (2026-05-23, в ревью)
+
+Ветка: `design/audit-report-v2` → PR #2: https://github.com/Xpommo/sleza-web/pull/2
+
+_Статус: ждём Vercel Preview → проверить визуально → мержить в master_
+
+8 изменённых файлов:
+- `tailwind.config.js` — новые токены (ink, paper, brand, danger, ok, warn, line), Onest/JetBrains Mono
+- `app/globals.css` — Onest base, `.label-micro`, `prefers-reduced-motion`
+- `app/layout.js` — Google Fonts, обновлённые мета-теги
+- `app/page.js` — новый layout, нав-бар, шапка отчёта
+- `components/ScanForm.js` — URL input, site-type chips, dual CTA
+- `components/ScanProgress.js` — **новый** тёмный live-log + прогресс-бар
+- `components/Results.js` — report-frame: мета-хедер, штамп, риск-скор 0–10, findings table
+- `components/Landing.js` — **новый** лендинг-секция (что проверяем, для кого, FAQ)
+
+Что проверить в Preview перед мержем:
+1. Лендинг — заголовок «сколько штрафов прячется...», форма, тип сайта
+2. Скан в режиме «текущая страница» — тёмный лог с фазами
+3. Full-scan — прогресс-бар с фазами от бэкенда
+4. Результаты — штамп, риск-скор, findings table
+5. PDF, ShareModal, `?report=<uuid>`, feedback-кнопки
+
 ### Деплой
 
 - **Frontend:** https://sleza-web.vercel.app (Vercel, auto-deploy от master) ✅
@@ -199,10 +222,14 @@ _server.js:_
 
 Проверка версии: `curl https://sleza-web-production.up.railway.app/health`
 - Актуальная версия: `"v":"r4-supabase"` + `"db":true`
+- После security-фикса нужен Redeploy (коммит `e8cff6b` в master, `ADMIN_TOKEN` нужен в Railway Variables)
 
 ### Следующие задачи
 
-**UX:**
+**В процессе:**
+- Проверить Vercel Preview для PR #2 (design/audit-report-v2) → мержить в master
+
+**UX (после мержа дизайна):**
 - Предупреждение пользователю когда сайт вернул 403 (заблокировал сканер)
 - Telegram webhook для новых лидов
 
