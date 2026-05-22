@@ -1,4 +1,7 @@
 'use client';
+import { useState } from 'react';
+
+const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 const LAW_LINKS = {
   'law152': 'https://www.consultant.ru/document/cons_doc_LAW_61801/',
@@ -29,19 +32,128 @@ const STATUS_LABEL = {
   unknown:   '? Не определено',
 };
 
+const CONFIDENCE_STYLE = {
+  high:   'bg-green-100 text-green-700',
+  medium: 'bg-amber-100 text-amber-700',
+  low:    'bg-red-100 text-red-700',
+};
+
+const CONFIDENCE_LABEL = {
+  high:   'Достоверность высокая',
+  medium: 'Достоверность средняя',
+  low:    'Достоверность низкая',
+};
+
 function parseFine(str) {
   if (!str) return 0;
   const m = str.replace(/[\s ]/g, '').match(/(\d+)руб/);
   return m ? parseInt(m[1], 10) : 0;
 }
 
-// Web view shows only status + fine — full details are in PDF (lead gen gate)
-function CheckCard({ check }) {
+function ConfidenceBadge({ confidence }) {
+  if (!confidence) return null;
+  const style = CONFIDENCE_STYLE[confidence.label] || CONFIDENCE_STYLE.medium;
+  return (
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${style}`}>
+      {CONFIDENCE_LABEL[confidence.label] || 'Достоверность'} ({confidence.score}/100)
+    </span>
+  );
+}
+
+function DiffSummary({ diff }) {
+  if (!diff || (diff.resolved.length === 0 && diff.newViolations.length === 0)) return null;
+  const prevDate = diff.scannedAt
+    ? new Date(diff.scannedAt).toLocaleString('ru-RU', { day: 'numeric', month: 'long' })
+    : null;
+  return (
+    <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 flex flex-wrap gap-x-4 gap-y-1">
+      <span className="font-medium">С прошлой проверки{prevDate ? ` (${prevDate})` : ''}:</span>
+      {diff.resolved.length > 0 && (
+        <span className="text-green-700">✅ исправлено {diff.resolved.length}</span>
+      )}
+      {diff.newViolations.length > 0 && (
+        <span className="text-red-600">❌ появилось {diff.newViolations.length}</span>
+      )}
+    </div>
+  );
+}
+
+function DiffBadge({ diffEntry }) {
+  if (!diffEntry || diffEntry.direction === 'unchanged') return null;
+  if (diffEntry.direction === 'improved') {
+    return (
+      <span className="text-xs text-green-600 font-medium mt-1 block">
+        было {STATUS_LABEL[diffEntry.prev] || diffEntry.prev} → стало лучше
+      </span>
+    );
+  }
+  return (
+    <span className="text-xs text-red-500 font-medium mt-1 block">
+      было {STATUS_LABEL[diffEntry.prev] || diffEntry.prev} → стало хуже
+    </span>
+  );
+}
+
+function FeedbackButton({ checkId, scanUuid }) {
+  const [state, setState] = useState('idle'); // idle | picking | sending | done | error
+
+  if (!scanUuid) return null;
+
+  if (state === 'done') {
+    return <span className="text-xs text-gray-400 mt-2 block">Спасибо за отзыв</span>;
+  }
+
+  if (state === 'error') {
+    return (
+      <button onClick={() => setState('idle')} className="text-xs text-red-400 mt-2 block hover:underline">
+        Не удалось отправить. Повторить?
+      </button>
+    );
+  }
+
+  if (state === 'picking') {
+    const send = async (verdict) => {
+      setState('sending');
+      try {
+        const r = await fetch(`${BASE}/api/feedback`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scan_uuid: scanUuid, check_id: checkId, verdict }),
+        });
+        setState(r.ok ? 'done' : 'error');
+      } catch {
+        setState('error');
+      }
+    };
+    return (
+      <div className="flex gap-2 mt-2">
+        <button onClick={() => send('false_positive')}
+          className="text-xs bg-white border border-gray-300 rounded px-2 py-1 hover:bg-gray-50 transition-colors">
+          Нарушения нет
+        </button>
+        <button onClick={() => send('confirm')}
+          className="text-xs bg-white border border-gray-300 rounded px-2 py-1 hover:bg-gray-50 transition-colors">
+          Подтвердить
+        </button>
+        <button onClick={() => setState('idle')} className="text-xs text-gray-400 hover:text-gray-600 px-1">✕</button>
+      </div>
+    );
+  }
+
+  return (
+    <button onClick={() => setState('picking')}
+      className="text-xs text-gray-400 hover:text-gray-500 mt-2 block underline-offset-2 hover:underline transition-colors">
+      Неверно?
+    </button>
+  );
+}
+
+function CheckCard({ check, diffEntry, scanUuid }) {
   const isIssue = check.status === 'violation' || check.status === 'risk';
   return (
     <div className={`rounded-xl border p-4 ${STATUS_COLOR[check.status] || STATUS_COLOR.unknown}`}>
       <div className="flex items-start justify-between gap-2">
-        <div>
+        <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold text-gray-800">{check.law}</div>
           <div className="text-xs text-gray-400 mt-0.5">
             {LAW_LINKS[check.id]
@@ -53,6 +165,8 @@ function CheckCard({ check }) {
           {isIssue && (
             <p className="text-xs text-gray-400 mt-1.5 italic">Подробнее — в PDF-отчёте</p>
           )}
+          <DiffBadge diffEntry={diffEntry} />
+          {isIssue && <FeedbackButton checkId={check.id} scanUuid={scanUuid} />}
         </div>
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${STATUS_BADGE[check.status] || STATUS_BADGE.unknown}`}>
           {STATUS_LABEL[check.status] || check.status}
@@ -100,6 +214,8 @@ export default function Results({ data, uuid, onShare, onNewScan }) {
     ? new Date(data.scannedAt).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
     : null;
 
+  const diffMap = new Map((data.diff?.checks || []).map(c => [c.id, c]));
+
   return (
     <div className="mt-6 space-y-3" data-results>
 
@@ -110,14 +226,22 @@ export default function Results({ data, uuid, onShare, onNewScan }) {
         </div>
       )}
 
+      {/* Diff summary */}
+      <DiffSummary diff={data.diff} />
+
       {/* Header */}
       <div className="flex items-start justify-between gap-3 pb-3 border-b border-gray-100">
-        <div>
+        <div className="flex-1 min-w-0">
           <div className="text-base font-bold text-gray-900">{data.aiData?.site_name || hostname}</div>
           <div className="text-xs text-gray-400 mt-0.5">
             {hostname} · {data.mode === 'full' ? 'Весь сайт' : 'Одна страница'}
             {scannedAt && ` · ${scannedAt}`}
           </div>
+          {data.confidence && (
+            <div className="mt-1.5">
+              <ConfidenceBadge confidence={data.confidence} />
+            </div>
+          )}
         </div>
         {data.stats && (
           <div className="text-xs text-gray-400 text-right flex-shrink-0">
@@ -134,7 +258,14 @@ export default function Results({ data, uuid, onShare, onNewScan }) {
       {/* Law cards */}
       {checks.length > 0 && (
         <div className="space-y-2">
-          {checks.map(check => <CheckCard key={check.id} check={check} />)}
+          {checks.map(check => (
+            <CheckCard
+              key={check.id}
+              check={check}
+              diffEntry={diffMap.get(check.id)}
+              scanUuid={uuid}
+            />
+          ))}
         </div>
       )}
 

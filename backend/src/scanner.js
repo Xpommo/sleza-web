@@ -10,6 +10,8 @@
 import { createRequire } from 'module';
 import { createEngine } from './engine.js';
 import { buildPageContext } from './pageContext.js';
+import { getLastScanForDomain } from './db.js';
+import { computeScanDiff, calcConfidence } from './scanDiff.js';
 
 const _require = createRequire(import.meta.url);
 
@@ -392,17 +394,22 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     if (siteType === 'ip') applyIPOverride(aiData);
   }
 
-  return {
+  const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
+  const prevScan = await getLastScanForDomain(hostname);
+  const result = {
     mode: 'single',
     scannedAt: new Date().toISOString(),
     fallback: pageContext._fallback || false,
     url,
-    hostname: (() => { try { return new URL(url).hostname; } catch { return url; } })(),
+    hostname,
     pages: [{ url, title: pageContext.title, items: checked, isCurrent: true }],
     aiData,
     egrul,
     slezaError: slezaResult.errors || null,
   };
+  result.confidence = calcConfidence(result, [pageContext], useAI && !!groqKey);
+  result.diff = computeScanDiff(prevScan?.result_json ?? null, result);
+  return result;
 }
 
 /**
@@ -574,11 +581,13 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     if (siteType === 'ip') applyIPOverride(aiData);
   }
 
-  return {
+  const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
+  const prevScan = await getLastScanForDomain(hostname);
+  const result = {
     mode: 'full',
     scannedAt: new Date().toISOString(),
     url,
-    hostname: (() => { try { return new URL(url).hostname; } catch { return url; } })(),
+    hostname,
     source: urlList.source,
     pages,
     aiData,
@@ -586,4 +595,8 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     slezaError: firstSlezaError,
     stats: { discovered: urls.length, total: finalUrls.length, scanned: pages.length, found: totalFound },
   };
+  result.confidence = calcConfidence(result, [mainPageContext], useAI && !!groqKey);
+  result.diff = computeScanDiff(prevScan?.result_json ?? null, result);
+  return result;
 }
+

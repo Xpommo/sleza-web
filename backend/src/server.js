@@ -11,17 +11,15 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { randomUUID } from 'crypto';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
-import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled, getCheckStats, findScansWithStatus } from './db.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled, getCheckStats, findScansWithStatus, saveFeedback, getFeedbackStats } from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PDFS_DIR = join(__dirname, '../pdfs');
 const UUID_RE  = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 // Extract just the URL in case the env var was accidentally set as "FRONTEND_URL = https://..."
 const FRONTEND_URL = (() => {
@@ -29,8 +27,6 @@ const FRONTEND_URL = (() => {
   const m = raw.match(/https?:\/\/[^\s]+/);
   return m ? m[0].replace(/\/$/, '') : 'http://localhost:3000';
 })();
-
-if (!existsSync(PDFS_DIR)) mkdirSync(PDFS_DIR, { recursive: true });
 
 const PORT = Number(process.env.PORT) || 3001;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
@@ -232,35 +228,33 @@ app.post('/api/leads', {
 
 // ── PDF generation ───────────────────────────────────────────────────────────
 
+// PDF is generated on-demand from Supabase data — no disk cache (safe on Railway restarts).
 app.get('/api/results/:uuid/pdf', async (request, reply) => {
   const { uuid } = request.params;
   if (!UUID_RE.test(uuid)) return reply.status(400).send({ error: 'Invalid UUID' });
   const record = await getScan(uuid);
   if (!record) return reply.status(404).send({ error: 'Отчёт не найден' });
 
-  const pdfFile = join(PDFS_DIR, `${uuid}.pdf`);
-  if (!existsSync(pdfFile)) {
-    const browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
-    try {
-      // Use /print page — clean full report without UI chrome (form, buttons, landing)
-      await page.goto(`${FRONTEND_URL}/print?report=${uuid}`, { waitUntil: 'networkidle', timeout: 30000 });
-      await page.waitForTimeout(1500);
-      await page.pdf({
-        path: pdfFile,
-        format: 'A4',
-        printBackground: true,
-        margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },
-      });
-    } finally {
-      await browser.close();
-    }
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  try {
+    await page.goto(`${FRONTEND_URL}/print?report=${uuid}`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(1500);
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },
+    });
+    return reply
+      .header('Content-Type', 'application/pdf')
+      .header('Content-Disposition', `attachment; filename="sleza-${uuid.slice(0, 8)}.pdf"`)
+      .send(pdfBuffer);
+  } catch (err) {
+    app.log.error(err, 'PDF generation failed');
+    return reply.status(503).send({ error: 'PDF генерация не удалась, попробуйте позже' });
+  } finally {
+    await browser.close();
   }
-
-  return reply
-    .header('Content-Type', 'application/pdf')
-    .header('Content-Disposition', `attachment; filename="sleza-${uuid.slice(0, 8)}.pdf"`)
-    .send(readFileSync(pdfFile));
 });
 
 // ── Admin smoke runner ───────────────────────────────────────────────────────
@@ -306,6 +300,42 @@ app.post('/api/admin/run-smoke', async (request, reply) => {
       await sendTelegram(`🚨 Sleza smoke РЕГРЕССИЯ\n${new Date().toISOString()}\n\n${lines}`);
     }
   });
+});
+
+// ── Feedback ─────────────────────────────────────────────────────────────────
+
+const VALID_CHECK_IDS = new Set(['offer', 'law149', 'law152', 'erir', 'drugs', 'cookie']);
+const VALID_VERDICTS  = new Set(['confirm', 'false_positive']);
+
+app.post('/api/feedback', {
+  schema: {
+    body: {
+      type: 'object',
+      required: ['scan_uuid', 'check_id', 'verdict'],
+      properties: {
+        scan_uuid: { type: 'string', pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' },
+        check_id:  { type: 'string' },
+        verdict:   { type: 'string' },
+      },
+    },
+  },
+}, async (request, reply) => {
+  const { scan_uuid, check_id, verdict } = request.body;
+  if (!VALID_CHECK_IDS.has(check_id)) return reply.status(400).send({ error: 'Invalid check_id' });
+  if (!VALID_VERDICTS.has(verdict))   return reply.status(400).send({ error: 'Invalid verdict' });
+  const record = await getScan(scan_uuid);
+  if (!record) return reply.status(404).send({ error: 'Скан не найден' });
+  const id = await saveFeedback({ scanUuid: scan_uuid, checkId: check_id, verdict });
+  return reply.status(201).send({ ok: true, id });
+});
+
+app.get('/api/admin/feedback-stats', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (adminToken && request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const rows = await getFeedbackStats();
+  return reply.send(rows);
 });
 
 // ── Admin analytics ──────────────────────────────────────────────────────────

@@ -2,8 +2,9 @@
  * Database layer — Supabase PostgreSQL via postgres.js
  *
  * Tables:
- *   scans  — scan results stored by UUID (replaces backend/results/*.json files)
- *   leads  — email captures (replaces backend/leads.jsonl)
+ *   scans    — scan results stored by UUID (replaces backend/results/*.json files)
+ *   leads    — email captures (replaces backend/leads.jsonl)
+ *   feedback — operator verdicts on check results (confirm / false_positive)
  *
  * If DATABASE_URL is not set the module exports no-op stubs so the app
  * still works without a DB (local dev, smoke tests).
@@ -36,6 +37,7 @@ export async function initSchema() {
     CREATE TABLE IF NOT EXISTS scans (
       uuid        TEXT        PRIMARY KEY,
       url         TEXT        NOT NULL,
+      hostname    TEXT,
       site_type   TEXT,
       mode        TEXT,
       use_ai      BOOLEAN     DEFAULT false,
@@ -44,6 +46,8 @@ export async function initSchema() {
       ip          TEXT
     )
   `;
+  // Add hostname to existing tables (no-op if already present)
+  await sql`ALTER TABLE scans ADD COLUMN IF NOT EXISTS hostname TEXT`;
   await sql`
     CREATE TABLE IF NOT EXISTS leads (
       id          SERIAL      PRIMARY KEY,
@@ -53,8 +57,20 @@ export async function initSchema() {
       created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS feedback (
+      id          BIGSERIAL   PRIMARY KEY,
+      scan_uuid   TEXT        NOT NULL REFERENCES scans(uuid) ON DELETE CASCADE,
+      check_id    TEXT        NOT NULL,
+      verdict     TEXT        NOT NULL CHECK (verdict IN ('confirm', 'false_positive')),
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
   await sql`CREATE INDEX IF NOT EXISTS idx_scans_url_created ON scans(url, created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_scans_created ON scans(created_at)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_scans_hostname_created ON scans(hostname, created_at DESC)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_feedback_scan_uuid ON feedback(scan_uuid)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_feedback_check_id ON feedback(check_id)`;
   console.log('[db] schema ready');
 }
 
@@ -62,9 +78,11 @@ export async function initSchema() {
 
 export async function saveScan({ uuid, url, siteType = 'auto', mode = 'single', useAI = false, result, ip = null }) {
   if (!enabled) return;
+  let hostname = null;
+  try { hostname = new URL(url).hostname.toLowerCase(); } catch { /* invalid url */ }
   await sql`
-    INSERT INTO scans (uuid, url, site_type, mode, use_ai, result_json, ip)
-    VALUES (${uuid}, ${url}, ${siteType}, ${mode}, ${useAI}, ${result}, ${ip})
+    INSERT INTO scans (uuid, url, hostname, site_type, mode, use_ai, result_json, ip)
+    VALUES (${uuid}, ${url}, ${hostname}, ${siteType}, ${mode}, ${useAI}, ${result}, ${ip})
     ON CONFLICT (uuid) DO NOTHING
   `;
 }
@@ -90,14 +108,33 @@ export async function findCachedScan(url, siteType = 'auto', useAI = false, maxA
   return rows[0] || null;
 }
 
-// Delete scans older than N days (call periodically to keep storage lean)
+// Delete scans older than N days, but always keep the most recent scan per hostname.
 export async function cleanupOldScans(olderThanDays = 7) {
   if (!enabled) return 0;
   const result = await sql`
     DELETE FROM scans
     WHERE created_at < NOW() - MAKE_INTERVAL(days => ${olderThanDays})
+      AND uuid NOT IN (
+        SELECT DISTINCT ON (hostname) uuid
+        FROM scans
+        WHERE hostname IS NOT NULL
+        ORDER BY hostname, created_at DESC
+      )
   `;
   return result.count;
+}
+
+// Returns the most recent scan for a given hostname, or null.
+export async function getLastScanForDomain(hostname) {
+  if (!enabled || !hostname) return null;
+  const rows = await sql`
+    SELECT uuid, result_json, created_at
+    FROM scans
+    WHERE hostname = ${hostname}
+    ORDER BY created_at DESC
+    LIMIT 1
+  `;
+  return rows[0] || null;
 }
 
 // ── Analytics ───────────────────────────────────────────────────────────────
@@ -132,6 +169,28 @@ export async function findScansWithStatus(checkId, status, days = 30) {
       AND result_json->'aiData'->'checks' @> ${filter}::jsonb
     ORDER BY created_at DESC
     LIMIT 50
+  `;
+}
+
+// ── Feedback ─────────────────────────────────────────────────────────────────
+
+export async function saveFeedback({ scanUuid, checkId, verdict }) {
+  if (!enabled) return null;
+  const rows = await sql`
+    INSERT INTO feedback (scan_uuid, check_id, verdict)
+    VALUES (${scanUuid}, ${checkId}, ${verdict})
+    RETURNING id
+  `;
+  return rows[0]?.id ?? null;
+}
+
+export async function getFeedbackStats() {
+  if (!enabled) return [];
+  return sql`
+    SELECT check_id, verdict, COUNT(*)::int AS count
+    FROM feedback
+    GROUP BY check_id, verdict
+    ORDER BY check_id, verdict
   `;
 }
 

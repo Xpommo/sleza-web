@@ -74,6 +74,11 @@ export default function PrintPage() {
     ? new Date(data.scannedAt).toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : new Date().toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
   const allSlezaItems = (data.pages || []).flatMap(p => p.items || []);
+  const conf = data.confidence;
+  const diff = data.diff;
+  const prevDate = diff?.scannedAt
+    ? new Date(diff.scannedAt).toLocaleString('ru-RU', { day: 'numeric', month: 'long' })
+    : null;
 
   return (
     <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: 720, margin: '0 auto', padding: '40px 32px', color: '#111827', fontSize: 14 }}>
@@ -100,7 +105,7 @@ export default function PrintPage() {
       </div>
 
       {/* Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
         <div style={{ border: '1px solid #fecaca', background: '#fef2f2', borderRadius: 10, padding: '14px 16px' }}>
           <div style={{ fontSize: 28, fontWeight: 700, color: '#dc2626' }}>{violations.length}</div>
           <div style={{ fontSize: 11, color: '#991b1b' }}>нарушений</div>
@@ -116,6 +121,27 @@ export default function PrintPage() {
           <div style={{ fontSize: 11, color: '#6b7280' }}>потенц. штрафы</div>
         </div>
       </div>
+
+      {/* Confidence + Diff summary */}
+      {(conf || (diff && (diff.resolved.length > 0 || diff.newViolations.length > 0))) && (
+        <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+          {conf && (
+            <div style={{ fontSize: 11, padding: '4px 10px', borderRadius: 20, fontWeight: 600,
+              background: conf.label === 'high' ? '#dcfce7' : conf.label === 'medium' ? '#fef9c3' : '#fee2e2',
+              color: conf.label === 'high' ? '#166534' : conf.label === 'medium' ? '#713f12' : '#991b1b',
+            }}>
+              Достоверность: {conf.label === 'high' ? 'высокая' : conf.label === 'medium' ? 'средняя' : 'низкая'} ({conf.score}/100)
+            </div>
+          )}
+          {diff && (diff.resolved.length > 0 || diff.newViolations.length > 0) && (
+            <div style={{ fontSize: 11, padding: '4px 10px', borderRadius: 20, background: '#eff6ff', color: '#1d4ed8', fontWeight: 500 }}>
+              С прошлой проверки{prevDate ? ` (${prevDate})` : ''}:
+              {diff.resolved.length > 0 && ` ✅ исправлено ${diff.resolved.length}`}
+              {diff.newViolations.length > 0 && ` ❌ появилось ${diff.newViolations.length}`}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Sleza registry */}
       {allSlezaItems.length > 0 ? (
