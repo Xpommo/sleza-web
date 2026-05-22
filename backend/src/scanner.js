@@ -348,7 +348,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   // 4. AI analysis (152-FZ, ERIR, offer, drugs, cookie) — or local-only if useAI=false
   let aiData;
   if (useAI && groqKey) {
-    aiData = await engine.runAIAnalysis(pageContext, egrul, fullText);
+    aiData = await engine.runAIAnalysis(pageContext, egrul, fullText, siteType);
     applyMediaOverride(aiData, siteType);
     applyServicesOverride(aiData, siteType);
     if (siteType === 'ip') applyIPOverride(aiData);
@@ -531,7 +531,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   onProgress?.({ phase: 'ai', url });
   let aiData;
   if (useAI && groqKey) {
-    aiData = await engine.runAIAnalysis(mainPageContext, egrul, allPagesText);
+    aiData = await engine.runAIAnalysis(mainPageContext, egrul, allPagesText, siteType);
     applyMediaOverride(aiData, siteType);
     applyServicesOverride(aiData, siteType);
     if (siteType === 'ip') applyIPOverride(aiData);
