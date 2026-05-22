@@ -82,11 +82,11 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
       }
     }
   }
-  if (combined.length > 200) return combined;
+  if (combined.length > 200) return { text: combined, found: true };
 
   // Fallback 1: probe common URL patterns via script's built-in discovery
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
-  if (policyPages[0]?.text) return htmlToText(policyPages[0].text);
+  if (policyPages[0]?.text) return { text: htmlToText(policyPages[0].text), found: true };
 
   // Fallback 2: try additional paths not covered by discoverPolicyByCommonPaths
   // (e.g. artlebedev.ru uses /terms/, some sites use /legal/, /rules/)
@@ -97,10 +97,12 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     if (visited.has(url)) continue;
     visited.add(url);
     const r = await engine.fetchUrl(url);
-    if (r.ok && r.text.length > 500) return htmlToText(r.text);
+    if (r.ok && r.text.length > 500) return { text: htmlToText(r.text), found: true };
   }
 
-  return fallback;
+  // Policy not found/accessible — return fallback text with found=false so callers
+  // can treat 152-FZ as risk (not violation) when we can't verify the policy exists.
+  return { text: fallback, found: false };
 }
 
 // Fetch extra compliance pages (offer, about) for 149-FZ rekvizity check.
@@ -355,8 +357,10 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   } else {
     // Discover privacy policy page for accurate 152-FZ check
     // (homepage rarely has the full policy text)
-    const policyText = await fetchPolicyText(engine, pageContext, origin, fullText);
-    const result152  = engine.check152FZ(policyText + ' ' + pageContext.header);
+    const { text: policyText, found: policyFound } = await fetchPolicyText(engine, pageContext, origin, fullText);
+    let result152 = engine.check152FZ(policyText + ' ' + pageContext.header);
+    // If policy was inaccessible (401/403/not found), cap at risk — can't prove violation
+    if (!policyFound && result152.status === 'violation') result152 = { ...result152, status: 'risk' };
     // Fetch offer + about pages — rekvizity (INN, address, phone) often live in user-agreement
     const extraText  = await fetchExtraText(engine, pageContext, origin);
     // C1: INN/OGRN are often only in the homepage footer — include it when scanning a subpage
@@ -539,11 +543,12 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     // Discover privacy policy page — critical for accurate 152-FZ check.
     // runAIAnalysis does this internally; we replicate it for local-only mode.
     onProgress?.({ phase: 'policy', url: origin });
-    const policyText = await fetchPolicyText(engine, mainPageContext, origin, mainPageContext.bodyText + ' ' + mainPageContext.header);
+    const { text: policyText, found: policyFound } = await fetchPolicyText(engine, mainPageContext, origin, mainPageContext.bodyText + ' ' + mainPageContext.header);
     // Fetch offer + about pages explicitly — on large sites they're crowded out by articles
     const extraText  = await fetchExtraText(engine, mainPageContext, origin);
 
-    const result152  = engine.check152FZ(policyText);
+    let result152 = engine.check152FZ(policyText);
+    if (!policyFound && result152.status === 'violation') result152 = { ...result152, status: 'risk' };
     const result149  = engine.check149FZ(allPagesText + extraText);
     // ERIR: check main page only — allPagesText includes blog/articles about advertising
     // which cause false positives on marketing platforms (callibri, roistat, etc.)
