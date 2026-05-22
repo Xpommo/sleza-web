@@ -100,6 +100,41 @@ export async function cleanupOldScans(olderThanDays = 7) {
   return result.count;
 }
 
+// ── Analytics ───────────────────────────────────────────────────────────────
+
+// Aggregate check statuses across all scans — used for diagnosing false positives.
+export async function getCheckStats(days = 30) {
+  if (!enabled) return [];
+  return sql`
+    SELECT
+      elem->>'id'     AS check_id,
+      elem->>'status' AS status,
+      s.site_type,
+      COUNT(*)::int   AS cnt
+    FROM scans s,
+      jsonb_array_elements(s.result_json->'aiData'->'checks') AS elem
+    WHERE s.created_at > NOW() - MAKE_INTERVAL(days => ${days})
+      AND s.result_json->'aiData'->'checks' IS NOT NULL
+    GROUP BY check_id, status, s.site_type
+    ORDER BY check_id, status, cnt DESC
+  `;
+}
+
+// Find individual scans where a specific check has a given status.
+export async function findScansWithStatus(checkId, status, days = 30) {
+  if (!enabled) return [];
+  const filter = JSON.stringify([{ id: checkId, status }]);
+  return sql`
+    SELECT uuid, url, site_type, created_at,
+           result_json->'aiData'->'checks' AS checks
+    FROM scans
+    WHERE created_at > NOW() - MAKE_INTERVAL(days => ${days})
+      AND result_json->'aiData'->'checks' @> ${filter}::jsonb
+    ORDER BY created_at DESC
+    LIMIT 50
+  `;
+}
+
 // ── Leads ───────────────────────────────────────────────────────────────────
 
 export async function saveLead({ email, company, scanUuid = null }) {

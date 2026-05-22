@@ -17,7 +17,7 @@ import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
-import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled } from './db.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled, getCheckStats, findScansWithStatus } from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PDFS_DIR = join(__dirname, '../pdfs');
@@ -260,6 +260,21 @@ app.get('/api/results/:uuid/pdf', async (request, reply) => {
     .header('Content-Type', 'application/pdf')
     .header('Content-Disposition', `attachment; filename="sleza-${uuid.slice(0, 8)}.pdf"`)
     .send(readFileSync(pdfFile));
+});
+
+// ── Admin analytics ──────────────────────────────────────────────────────────
+
+app.get('/api/admin/stats', async (request, reply) => {
+  const days = Math.min(Number(request.query.days || 30), 90);
+  const rows = await getCheckStats(days);
+  return reply.send({ days, rows });
+});
+
+app.get('/api/admin/cases', async (request, reply) => {
+  const { check, status, days } = request.query;
+  if (!check || !status) return reply.status(400).send({ error: 'check and status required' });
+  const rows = await findScansWithStatus(check, status, Math.min(Number(days || 30), 90));
+  return reply.send({ check, status, rows });
 });
 
 app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString(), v: 'r4-supabase', db: dbEnabled }));
