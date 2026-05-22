@@ -17,7 +17,7 @@ const LAWS = [
 ];
 
 const FAQ = [
-  { q: 'Это бесплатно?', a: 'Да, базовая проверка бесплатна. Для AI-анализа потребуется GROQ API ключ (бесплатный тариф на groq.com). Для проверки по реестрам иноагентов — ключ sleza.media.' },
+  { q: 'Это бесплатно?', a: 'Да, проверка полностью бесплатна. AI-анализ и проверка по реестрам иноагентов включены.' },
   { q: 'Насколько точны результаты?', a: 'Мы используем детерминированные алгоритмы по актуальным требованиям законодательства + AI-арбитр для спорных случаев. Точность ~85–90%. Инструмент не заменяет юридическую консультацию.' },
   { q: 'Как часто нужно проверять сайт?', a: 'Рекомендуем раз в квартал и при каждом обновлении политики конфиденциальности или добавлении форм сбора данных.' },
   { q: 'Что делать если нашли нарушения?', a: 'Каждая карточка содержит конкретное действие по устранению. Вы можете скачать PDF-отчёт и передать разработчику или юристу.' },
@@ -121,13 +121,6 @@ export default function Home() {
   const cancelRef = useRef(null);
   const formRef = useRef(null);
 
-  const [keys, setKeys] = useState({ groqKey: '', slezaKey: '' });
-  useEffect(() => {
-    setKeys({
-      groqKey:  localStorage.getItem('groqKey')  || '',
-      slezaKey: localStorage.getItem('slezaKey') || '',
-    });
-  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -163,12 +156,6 @@ export default function Home() {
     } catch (_) {}
   };
 
-  const saveKeys = (k) => {
-    setKeys(k);
-    localStorage.setItem('groqKey', k.groqKey);
-    localStorage.setItem('slezaKey', k.slezaKey);
-  };
-
   const PHASE_LABELS = {
     sitemap: 'Ищу карту сайта…', crawl: 'Обхожу страницы…',
     render: 'Открываю главную страницу…', sleza: 'Проверяю по реестрам иноагентов…',
@@ -187,8 +174,8 @@ export default function Home() {
     cancelRef.current = null;
     window.history.replaceState(null, '', '/');
 
-    const headers = { 'Content-Type': 'application/json', 'x-groq-key': keys.groqKey, 'x-sleza-key': keys.slezaKey };
-    const body = JSON.stringify({ url, useAI: !!keys.groqKey, siteType });
+    const headers = { 'Content-Type': 'application/json' };
+    const body = JSON.stringify({ url, useAI: true, siteType });
 
     try {
       if (mode === 'single') {
@@ -247,29 +234,6 @@ export default function Home() {
           </p>
         )}
       </header>
-
-      {/* API Keys */}
-      <details className="mb-5 border border-gray-200 rounded-xl">
-        <summary className="cursor-pointer px-4 py-3 text-sm text-gray-500 hover:text-gray-700 flex items-center gap-2 select-none">
-          <span>⚙</span>
-          <span>API ключи</span>
-          {!keys.groqKey && <span className="ml-auto text-xs text-amber-500">AI-анализ отключён</span>}
-        </summary>
-        <div className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-3">
-          <div>
-            <label className="text-xs text-gray-400 block mb-1">
-              GROQ KEY — для AI-анализа{' '}
-              <a href="https://console.groq.com" target="_blank" rel="noopener" className="text-blue-500 hover:underline">получить бесплатно</a>
-            </label>
-            <input type="password" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-800 focus:border-blue-400 focus:outline-none" value={keys.groqKey} onChange={e => saveKeys({ ...keys, groqKey: e.target.value })} placeholder="gsk_..." />
-          </div>
-          <div>
-            <label className="text-xs text-gray-400 block mb-1">SLEZA KEY — для реестров иноагентов</label>
-            <input type="password" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-gray-800 focus:border-blue-400 focus:outline-none" value={keys.slezaKey} onChange={e => saveKeys({ ...keys, slezaKey: e.target.value })} placeholder="sleza_..." />
-          </div>
-          <p className="text-xs text-gray-400">Ключи хранятся только в вашем браузере.</p>
-        </div>
-      </details>
 
       {/* Scan form */}
       {showForm && <div ref={formRef}><ScanForm onScan={scan} loading={loading} /></div>}
