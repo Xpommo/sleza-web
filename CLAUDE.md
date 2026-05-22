@@ -108,7 +108,7 @@ Result shape is identical to what the Tampermonkey script's `runFullSiteScan` / 
 - Backend is Node ESM (`"type": "module"`) — use `import`/`export`, not `require`.
 - Do not push to `master` without explicit user request.
 
-## Текущий статус (2026-05-21) — АКТУАЛЬНО
+## Текущий статус (2026-05-23) — АКТУАЛЬНО
 
 ### Что реализовано и задеплоено ✅
 
@@ -177,6 +177,17 @@ _sleza_tets_js/script (runAIAnalysis):_
 - SYSTEM prompt: явная инструкция доверять локальным чек-листам и не пересчитывать их
 - Чёткие критерии `violation` / `risk` / `unknown` (презумпция соответствия)
 - Инструкция по заполнению `found_text` (цитата), `location` (где на сайте), `found_url`
+
+**S1 — Security hardening** ✅ (2026-05-23)
+
+_server.js:_
+- `isSafeUrl()` — SSRF-защита: блокирует `file://`, `gopher://`, `javascript:`, RFC-1918, loopback (`127.*`), link-local (`169.254.*`). Применена во всех 4 точках где URL попадает в Playwright/fetch: `/api/scan/single`, `/api/scan/full`, `/api/scan/full/stream`, `/api/debug/links`
+- `/api/admin/stats` и `/api/admin/cases` — добавлен `ADMIN_TOKEN` guard (раньше не было совсем)
+- `/api/debug/links` — добавлен `ADMIN_TOKEN` guard (раньше публичный)
+- Все admin guard-ы переведены на **fail-closed**: без токена → 401 всегда (было: без токена → открыто)
+- Предупреждение в логах при старте если `ADMIN_TOKEN` не выставлен
+
+**Переменная окружения:** `ADMIN_TOKEN` — обязательно выставить в Railway Variables. Без неё все `/api/admin/*` и `/api/debug/*` возвращают 401. `/api/debug/links` оставлен намеренно на период разработки — удалить перед публичным релизом.
 
 ### Деплой
 

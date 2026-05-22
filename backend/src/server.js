@@ -63,6 +63,17 @@ function extractKeys(request) {
   };
 }
 
+// Block SSRF: only allow public http/https URLs
+function isSafeUrl(raw) {
+  let parsed;
+  try { parsed = new URL(raw); } catch { return false; }
+  if (!['http:', 'https:'].includes(parsed.protocol)) return false;
+  const host = parsed.hostname;
+  if (host === 'localhost') return false;
+  if (/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.)/.test(host)) return false;
+  return true;
+}
+
 // Input validation schema
 const scanBodySchema = {
   type: 'object',
@@ -81,6 +92,7 @@ app.post('/api/scan/single', { schema: { body: scanBodySchema } }, async (reques
   }
   try {
     const { url, useAI = true, siteType = 'auto' } = request.body;
+    if (!isSafeUrl(url)) return reply.status(400).send({ error: 'Недопустимый URL. Разрешены только публичные http/https адреса.' });
     const { groqKey, slezaKey } = extractKeys(request);
 
     // Return cached result if same URL was scanned recently (20 min window)
@@ -109,6 +121,7 @@ app.post('/api/scan/full', { schema: { body: scanBodySchema } }, async (request,
   }
   try {
     const { url, useAI = true, siteType = 'auto' } = request.body;
+    if (!isSafeUrl(url)) return reply.status(400).send({ error: 'Недопустимый URL. Разрешены только публичные http/https адреса.' });
     const { groqKey, slezaKey } = extractKeys(request);
     const result = await scanFullSite({
       url, groqKey, slezaKey, useAI, siteType,
@@ -132,6 +145,9 @@ app.post('/api/scan/full/stream', { schema: { body: scanBodySchema } }, async (r
   }
 
   const { url, useAI = true, siteType = 'auto' } = request.body;
+  if (!isSafeUrl(url)) {
+    return reply.status(400).send({ error: 'Недопустимый URL. Разрешены только публичные http/https адреса.' });
+  }
   const { groqKey, slezaKey } = extractKeys(request);
   const origin = request.headers.origin || ALLOWED_ORIGINS[0];
 
@@ -169,8 +185,13 @@ app.post('/api/scan/full/stream', { schema: { body: scanBodySchema } }, async (r
 
 // ── Debug: show what links Playwright finds on a page ────────────────────────
 app.get('/api/debug/links', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
   const { url } = request.query;
   if (!url) return reply.status(400).send({ error: 'url required' });
+  if (!isSafeUrl(url)) return reply.status(400).send({ error: 'Недопустимый URL. Разрешены только публичные http/https адреса.' });
   const { buildPageContext } = await import('./pageContext.js');
   const ctx = await buildPageContext(url);
   return reply.send({
@@ -286,7 +307,7 @@ async function sendTelegram(text) {
 // Protected by ADMIN_TOKEN env var. Runs smoke test in background, sends Telegram on regression.
 app.post('/api/admin/run-smoke', async (request, reply) => {
   const adminToken = process.env.ADMIN_TOKEN;
-  if (adminToken && request.headers['x-admin-token'] !== adminToken) {
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
     return reply.status(401).send({ error: 'unauthorized' });
   }
 
@@ -342,7 +363,7 @@ app.post('/api/feedback', {
 
 app.get('/api/admin/feedback-stats', async (request, reply) => {
   const adminToken = process.env.ADMIN_TOKEN;
-  if (adminToken && request.headers['x-admin-token'] !== adminToken) {
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
     return reply.status(401).send({ error: 'unauthorized' });
   }
   const rows = await getFeedbackStats();
@@ -352,12 +373,20 @@ app.get('/api/admin/feedback-stats', async (request, reply) => {
 // ── Admin analytics ──────────────────────────────────────────────────────────
 
 app.get('/api/admin/stats', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
   const days = Math.min(Number(request.query.days || 30), 90);
   const rows = await getCheckStats(days);
   return reply.send({ days, rows });
 });
 
 app.get('/api/admin/cases', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
   const { check, status, days } = request.query;
   if (!check || !status) return reply.status(400).send({ error: 'check and status required' });
   const rows = await findScansWithStatus(check, status, Math.min(Number(days || 30), 90));
@@ -378,6 +407,9 @@ try {
   // Start listening first so Railway healthcheck passes immediately
   await app.listen({ port: PORT, host: '0.0.0.0' });
   console.log(`Backend running on http://localhost:${PORT}`);
+  if (!process.env.ADMIN_TOKEN) {
+    console.warn('[security] ADMIN_TOKEN is not set — all /api/admin/* and /api/debug/* endpoints are locked out. Set ADMIN_TOKEN in Railway env vars.');
+  }
   // Init DB in background — server stays up even if Supabase is slow/unreachable
   initSchema()
     .then(() => cleanupOldScans(7))
