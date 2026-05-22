@@ -353,7 +353,7 @@ app.get('/api/admin/cases', async (request, reply) => {
   return reply.send({ check, status, rows });
 });
 
-app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString(), v: 'r4-supabase', db: dbEnabled }));
+app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString(), v: 'r5-improvements', db: dbEnabled }));
 
 const shutdown = async () => {
   await closeBrowser();
