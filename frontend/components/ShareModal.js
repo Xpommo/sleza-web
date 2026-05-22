@@ -1,32 +1,100 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
+// ── Client-side validation (mirrors backend validateLead.js) ─────────────────
+
+const EMAIL_RE = /^[a-zA-Z0-9]([a-zA-Z0-9.+_-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+
+const COMPANY_JUNK = new Set([
+  'test', 'тест', 'aaa', 'ааа', 'bbb', 'ббб', 'ccc', 'ввв',
+  'asdf', 'qwerty', 'йцукен', 'фыва', 'zxcv', 'null', 'none',
+  'company', 'компания', 'фирма', 'org', 'organization',
+  'no', 'нет', 'na', 'n/a', 'xxx', 'yyy', 'zzz',
+]);
+
+function checkEmail(email) {
+  const v = email.trim();
+  if (!v) return 'Введите email';
+  if (v.indexOf('..') !== -1 || v.startsWith('.') || v.split('@')[0]?.endsWith('.'))
+    return 'Некорректный email';
+  if (!EMAIL_RE.test(v)) return 'Некорректный email — проверьте формат';
+  return null;
+}
+
+function checkCompany(company) {
+  const v = company.trim();
+  if (!v) return 'Введите название компании';
+  if (v.length < 2) return 'Слишком короткое';
+  const letters = v.match(/[a-zA-Zа-яёА-ЯЁ]/g) || [];
+  if (letters.length < 2) return 'Введите корректное название';
+  if (new Set(v.toLowerCase().replace(/\s/g, '')).size <= 1) return 'Введите корректное название';
+  if (COMPANY_JUNK.has(v.toLowerCase())) return 'Введите реальное название компании';
+  return null;
+}
+
+// ── Component ────────────────────────────────────────────────────────────────
+
 export default function ShareModal({ open, onClose, uuid, mode }) {
-  const [email,   setEmail]   = useState('');
-  const [company, setCompany] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [done,    setDone]    = useState(false);
-  const [error,   setError]   = useState('');
+  const [email,        setEmail]        = useState('');
+  const [company,      setCompany]      = useState('');
+  const [emailErr,     setEmailErr]     = useState('');
+  const [companyErr,   setCompanyErr]   = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [compTouched,  setCompTouched]  = useState(false);
+  const [loading,      setLoading]      = useState(false);
+  const [done,         setDone]         = useState(false);
+  const [submitError,  setSubmitError]  = useState('');
 
   if (!open) return null;
 
-  const reset = () => { setEmail(''); setCompany(''); setDone(false); setError(''); };
+  const reset = () => {
+    setEmail(''); setCompany('');
+    setEmailErr(''); setCompanyErr('');
+    setEmailTouched(false); setCompTouched(false);
+    setDone(false); setSubmitError('');
+  };
   const close = () => { reset(); onClose(); };
 
+  const handleEmail = (v) => {
+    setEmail(v);
+    if (emailTouched) setEmailErr(checkEmail(v) || '');
+  };
+
+  const handleCompany = (v) => {
+    setCompany(v);
+    if (compTouched) setCompanyErr(checkCompany(v) || '');
+  };
+
+  const emailOk   = !checkEmail(email);
+  const companyOk = !checkCompany(company);
+  const canSubmit = emailOk && companyOk && !loading;
+
   const submit = async () => {
-    if (!email.trim())   { setError('Введите email'); return; }
-    if (!company.trim()) { setError('Введите название компании'); return; }
+    // Show all errors on submit
+    setEmailTouched(true);
+    setCompTouched(true);
+    const eErr = checkEmail(email);
+    const cErr = checkCompany(company);
+    setEmailErr(eErr || '');
+    setCompanyErr(cErr || '');
+    if (eErr || cErr) return;
+
     setLoading(true);
-    setError('');
+    setSubmitError('');
     try {
-      await fetch(`${BASE}/api/leads`, {
+      const res = await fetch(`${BASE}/api/leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), company: company.trim(), uuid }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setSubmitError(body.error || 'Ошибка. Попробуйте ещё раз.');
+        return;
+      }
       if (mode === 'share') {
         const url = `${window.location.origin}?report=${uuid}`;
         await navigator.clipboard.writeText(url).catch(() => {});
@@ -35,7 +103,7 @@ export default function ShareModal({ open, onClose, uuid, mode }) {
       }
       setDone(true);
     } catch {
-      setError('Ошибка. Попробуйте ещё раз.');
+      setSubmitError('Ошибка сети. Попробуйте ещё раз.');
     } finally {
       setLoading(false);
     }
@@ -72,36 +140,68 @@ export default function ShareModal({ open, onClose, uuid, mode }) {
               Оставьте контакт — мы поможем с устранением нарушений
             </p>
             <div className="space-y-3">
+
+              {/* Email field */}
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Email *</label>
                 <input
                   type="email"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:border-blue-400 outline-none"
+                  className={`w-full border rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none transition-colors ${
+                    emailTouched && emailErr
+                      ? 'border-red-400 focus:border-red-400 bg-red-50'
+                      : emailTouched && emailOk
+                        ? 'border-green-400 focus:border-green-400'
+                        : 'border-gray-200 focus:border-blue-400'
+                  }`}
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={e => handleEmail(e.target.value)}
+                  onBlur={() => { setEmailTouched(true); setEmailErr(checkEmail(email) || ''); }}
                   placeholder="you@company.ru"
                   autoFocus
                 />
+                {emailTouched && emailErr && (
+                  <p className="text-xs text-red-500 mt-1">{emailErr}</p>
+                )}
               </div>
+
+              {/* Company field */}
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Компания *</label>
                 <input
                   type="text"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:border-blue-400 outline-none"
+                  className={`w-full border rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none transition-colors ${
+                    compTouched && companyErr
+                      ? 'border-red-400 focus:border-red-400 bg-red-50'
+                      : compTouched && companyOk
+                        ? 'border-green-400 focus:border-green-400'
+                        : 'border-gray-200 focus:border-blue-400'
+                  }`}
                   value={company}
-                  onChange={e => setCompany(e.target.value)}
+                  onChange={e => handleCompany(e.target.value)}
+                  onBlur={() => { setCompTouched(true); setCompanyErr(checkCompany(company) || ''); }}
                   placeholder="ООО Пример"
                   onKeyDown={e => e.key === 'Enter' && submit()}
                 />
+                {compTouched && companyErr && (
+                  <p className="text-xs text-red-500 mt-1">{companyErr}</p>
+                )}
               </div>
-              {error && <p className="text-xs text-red-500">{error}</p>}
+
+              {submitError && <p className="text-xs text-red-500">{submitError}</p>}
+
               <button
                 onClick={submit}
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg py-2.5 transition-colors"
+                disabled={!canSubmit}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg py-2.5 transition-colors"
               >
-                {loading ? 'Отправка…' : mode === 'share' ? 'Получить ссылку' : 'Скачать PDF'}
+                {loading ? 'Проверка…' : mode === 'share' ? 'Получить ссылку' : 'Скачать PDF'}
               </button>
+
+              {(!emailOk || !companyOk) && (emailTouched || compTouched) && (
+                <p className="text-xs text-center text-gray-400">
+                  Заполните все поля корректно чтобы продолжить
+                </p>
+              )}
             </div>
           </>
         )}

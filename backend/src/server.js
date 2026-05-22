@@ -18,6 +18,7 @@ import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
 import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled, getCheckStats, findScansWithStatus, saveFeedback, getFeedbackStats } from './db.js';
+import { validateEmail, validateCompany, validateEmailMX } from './validateLead.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const UUID_RE  = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -222,6 +223,16 @@ app.post('/api/leads', {
   },
 }, async (request, reply) => {
   const { email, company, uuid } = request.body;
+
+  const emailErr   = validateEmail(email);
+  if (emailErr) return reply.status(400).send({ error: emailErr });
+
+  const companyErr = validateCompany(company);
+  if (companyErr) return reply.status(400).send({ error: companyErr });
+
+  const mxErr = await validateEmailMX(email);
+  if (mxErr) return reply.status(400).send({ error: mxErr });
+
   await saveLead({ email, company, scanUuid: uuid });
   return reply.send({ ok: true });
 });
