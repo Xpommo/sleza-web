@@ -11,37 +11,37 @@ const LAW_LINKS = {
   'drugs':  'https://www.consultant.ru/document/cons_doc_LAW_10172/',
 };
 
-const STATUS_COLOR = {
-  ok:        'border-green-200 bg-green-50',
-  risk:      'border-amber-200 bg-amber-50',
-  violation: 'border-red-200 bg-red-50',
-  unknown:   'border-gray-200 bg-gray-50',
-};
-
-const STATUS_BADGE = {
-  ok:        'bg-green-100 text-green-700',
-  risk:      'bg-amber-100 text-amber-700',
-  violation: 'bg-red-100 text-red-700',
-  unknown:   'bg-gray-100 text-gray-500',
+const STATUS_BADGE_CLASS = {
+  ok:        'bg-[rgba(26,122,82,0.1)] text-ok',
+  risk:      'bg-[rgba(184,121,0,0.12)] text-warn',
+  violation: 'bg-[rgba(214,56,22,0.1)] text-danger',
+  unknown:   'bg-line text-ink/50',
 };
 
 const STATUS_LABEL = {
-  ok:        '✓ Соответствует',
-  risk:      '⚠ Риск',
-  violation: '✗ Нарушение',
-  unknown:   '? Не определено',
+  ok:        'в норме',
+  risk:      'риск',
+  violation: 'нарушено',
+  unknown:   '?',
+};
+
+const STATUS_DOT_BG = {
+  ok:        'bg-ok',
+  risk:      'bg-warn',
+  violation: 'bg-danger',
+  unknown:   'bg-ink/30',
 };
 
 const CONFIDENCE_STYLE = {
-  high:   'bg-green-100 text-green-700',
-  medium: 'bg-amber-100 text-amber-700',
-  low:    'bg-red-100 text-red-700',
+  high:   'bg-[rgba(26,122,82,0.1)] text-ok',
+  medium: 'bg-[rgba(184,121,0,0.12)] text-warn',
+  low:    'bg-[rgba(214,56,22,0.1)] text-danger',
 };
 
 const CONFIDENCE_LABEL = {
-  high:   'Достоверность высокая',
-  medium: 'Достоверность средняя',
-  low:    'Достоверность низкая',
+  high:   'достоверность высокая',
+  medium: 'достоверность средняя',
+  low:    'достоверность низкая',
 };
 
 function parseFine(str) {
@@ -50,12 +50,16 @@ function parseFine(str) {
   return m ? parseInt(m[1], 10) : 0;
 }
 
+function fmtMoney(n) {
+  return n.toLocaleString('ru-RU').replace(/,/g, ' ');
+}
+
 function ConfidenceBadge({ confidence }) {
   if (!confidence) return null;
   const style = CONFIDENCE_STYLE[confidence.label] || CONFIDENCE_STYLE.medium;
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${style}`}>
-      {CONFIDENCE_LABEL[confidence.label] || 'Достоверность'} ({confidence.score}/100)
+    <span className={`font-mono text-[10.5px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded-[4px] ${style}`}>
+      {CONFIDENCE_LABEL[confidence.label] || 'достоверность'} · {confidence.score}/100
     </span>
   );
 }
@@ -66,13 +70,13 @@ function DiffSummary({ diff }) {
     ? new Date(diff.scannedAt).toLocaleString('ru-RU', { day: 'numeric', month: 'long' })
     : null;
   return (
-    <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 flex flex-wrap gap-x-4 gap-y-1">
-      <span className="font-medium">С прошлой проверки{prevDate ? ` (${prevDate})` : ''}:</span>
+    <div className="rounded-lg border border-brand/30 bg-brand/5 px-4 py-3 text-[13px] flex flex-wrap gap-x-4 gap-y-1 text-ink-2">
+      <span className="font-semibold">С прошлой проверки{prevDate ? ` (${prevDate})` : ''}:</span>
       {diff.resolved.length > 0 && (
-        <span className="text-green-700">✅ исправлено {diff.resolved.length}</span>
+        <span className="text-ok">✓ исправлено {diff.resolved.length}</span>
       )}
       {diff.newViolations.length > 0 && (
-        <span className="text-red-600">❌ появилось {diff.newViolations.length}</span>
+        <span className="text-danger">✗ появилось {diff.newViolations.length}</span>
       )}
     </div>
   );
@@ -82,35 +86,32 @@ function DiffBadge({ diffEntry }) {
   if (!diffEntry || diffEntry.direction === 'unchanged') return null;
   if (diffEntry.direction === 'improved') {
     return (
-      <span className="text-xs text-green-600 font-medium mt-1 block">
-        было {STATUS_LABEL[diffEntry.prev] || diffEntry.prev} → стало лучше
+      <span className="text-[11px] text-ok font-medium mt-1 block">
+        было «{STATUS_LABEL[diffEntry.prev] || diffEntry.prev}» → стало лучше
       </span>
     );
   }
   return (
-    <span className="text-xs text-red-500 font-medium mt-1 block">
-      было {STATUS_LABEL[diffEntry.prev] || diffEntry.prev} → стало хуже
+    <span className="text-[11px] text-danger font-medium mt-1 block">
+      было «{STATUS_LABEL[diffEntry.prev] || diffEntry.prev}» → стало хуже
     </span>
   );
 }
 
 function FeedbackButton({ checkId, scanUuid }) {
-  const [state, setState] = useState('idle'); // idle | picking | sending | done | error
-
+  const [state, setState] = useState('idle');
   if (!scanUuid) return null;
 
   if (state === 'done') {
-    return <span className="text-xs text-gray-400 mt-2 block">Спасибо за отзыв</span>;
+    return <span className="text-[11px] text-ink/40 mt-1.5 block">спасибо за отзыв</span>;
   }
-
   if (state === 'error') {
     return (
-      <button onClick={() => setState('idle')} className="text-xs text-red-400 mt-2 block hover:underline">
-        Не удалось отправить. Повторить?
+      <button onClick={() => setState('idle')} className="text-[11px] text-danger/70 mt-1.5 block hover:underline">
+        не удалось отправить · повторить
       </button>
     );
   }
-
   if (state === 'picking') {
     const send = async (verdict) => {
       setState('sending');
@@ -126,79 +127,102 @@ function FeedbackButton({ checkId, scanUuid }) {
       }
     };
     return (
-      <div className="flex gap-2 mt-2">
-        <button onClick={() => send('false_positive')}
-          className="text-xs bg-white border border-gray-300 rounded px-2 py-1 hover:bg-gray-50 transition-colors">
-          Нарушения нет
-        </button>
-        <button onClick={() => send('confirm')}
-          className="text-xs bg-white border border-gray-300 rounded px-2 py-1 hover:bg-gray-50 transition-colors">
-          Подтвердить
-        </button>
-        <button onClick={() => setState('idle')} className="text-xs text-gray-400 hover:text-gray-600 px-1">✕</button>
+      <div className="flex gap-1.5 mt-2">
+        <button onClick={() => send('false_positive')} className="text-[11px] bg-white border border-line-2 rounded px-2 py-1 hover:border-ink/30 transition-colors">нет нарушения</button>
+        <button onClick={() => send('confirm')} className="text-[11px] bg-white border border-line-2 rounded px-2 py-1 hover:border-ink/30 transition-colors">подтвердить</button>
+        <button onClick={() => setState('idle')} className="text-[11px] text-ink/30 hover:text-ink/60 px-1">✕</button>
       </div>
     );
   }
-
   return (
-    <button onClick={() => setState('picking')}
-      className="text-xs text-gray-400 hover:text-gray-500 mt-2 block underline-offset-2 hover:underline transition-colors">
-      Неверно?
+    <button onClick={() => setState('picking')} className="text-[11px] text-ink/40 hover:text-ink/70 mt-1.5 block underline-offset-2 hover:underline transition-colors">
+      неверно?
     </button>
   );
 }
 
-function CheckCard({ check, diffEntry, scanUuid }) {
+function FindingRow({ check, idx, diffEntry, scanUuid }) {
   const isIssue = check.status === 'violation' || check.status === 'risk';
   return (
-    <div className={`rounded-xl border p-4 ${STATUS_COLOR[check.status] || STATUS_COLOR.unknown}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-gray-800">{check.law}</div>
-          <div className="text-xs text-gray-400 mt-0.5">
-            {LAW_LINKS[check.id]
-              ? <a href={LAW_LINKS[check.id]} target="_blank" rel="noopener" className="hover:text-blue-500 transition-colors">{check.law_code}</a>
-              : check.law_code
-            }
-            {' · штраф '}{check.fine}
-          </div>
-          {isIssue && (
-            <p className="text-xs text-gray-400 mt-1.5 italic">Подробнее — в PDF-отчёте</p>
-          )}
-          <DiffBadge diffEntry={diffEntry} />
-          {isIssue && <FeedbackButton checkId={check.id} scanUuid={scanUuid} />}
+    <div className="grid grid-cols-[40px_minmax(0,1.4fr)_minmax(0,2fr)_auto_28px] gap-4 px-6 py-4 items-start border-b border-line last:border-b-0 hover:bg-warm/40 transition-colors">
+      <div className="font-mono text-[11px] text-ink/25 tracking-wider pt-1">{String(idx + 1).padStart(2, '0')}</div>
+
+      <div>
+        <h4 className="font-bold text-[15px] tracking-tight leading-snug">{check.law}</h4>
+        <div className="font-mono text-[11px] text-ink/40 mt-0.5">
+          {LAW_LINKS[check.id]
+            ? <a href={LAW_LINKS[check.id]} target="_blank" rel="noopener" className="text-brand hover:underline">{check.law_code}</a>
+            : <span className="text-brand">{check.law_code}</span>
+          }
         </div>
-        <span className={`text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${STATUS_BADGE[check.status] || STATUS_BADGE.unknown}`}>
-          {STATUS_LABEL[check.status] || check.status}
+      </div>
+
+      <div className="text-[13px] text-ink/60 leading-snug pt-0.5">
+        {isIssue ? (
+          <>
+            <span>требует устранения · подробности и рекомендации в PDF-отчёте.</span>
+            <DiffBadge diffEntry={diffEntry} />
+            <FeedbackButton checkId={check.id} scanUuid={scanUuid} />
+          </>
+        ) : (
+          <>
+            <span>параметр соответствует требованию.</span>
+            <DiffBadge diffEntry={diffEntry} />
+          </>
+        )}
+      </div>
+
+      <div className="text-right whitespace-nowrap pt-0.5">
+        <div className="font-mono text-[9px] uppercase tracking-wider text-ink/25 mb-0.5">штраф</div>
+        <div className={`font-bold text-[15px] tracking-tight ${isIssue ? 'text-danger' : 'text-ink/40 line-through'}`}>
+          {check.fine}
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-1">
+        <span className={`inline-flex items-center justify-center font-mono text-[9px] font-semibold uppercase tracking-wider px-2 py-1 rounded-[3px] ${STATUS_BADGE_CLASS[check.status] || STATUS_BADGE_CLASS.unknown}`}>
+          {STATUS_LABEL[check.status] || '?'}
         </span>
       </div>
     </div>
   );
 }
 
-function SlezaSection({ pages }) {
+function SlezaBlock({ pages }) {
   const allItems = pages.flatMap(p => p.items || []);
   if (allItems.length === 0) {
     return (
-      <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700 flex items-center gap-2">
-        <span>💧</span>
-        <span>Иноагентов, экстремистов и нежелательных организаций не обнаружено</span>
+      <div className="rounded-lg border border-ok/30 bg-ok/[0.04] px-5 py-4 flex items-center gap-3">
+        <span className="w-7 h-7 rounded-full bg-ok text-white flex items-center justify-center text-[14px] font-bold shrink-0">✓</span>
+        <div className="text-[14px] text-ink">
+          <b className="font-semibold">реестр слезы:</b>{' '}
+          <span className="text-ink/70">иноагентов, экстремистов и нежелательных организаций не обнаружено.</span>
+        </div>
       </div>
     );
   }
   const unmarked = allItems.filter(i => !i.hasMarking);
   return (
-    <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-2">
-      <div className="text-sm font-semibold text-red-700">
-        💧 Реестр Слезы: {allItems.length} упоминаний
-        {unmarked.length > 0 && `, из них ${unmarked.length} без маркировки`}
+    <div className="rounded-lg border border-danger/30 bg-danger/[0.04] px-5 py-4">
+      <div className="text-[14px] font-semibold text-danger mb-2 flex items-center gap-2">
+        <span className="w-7 h-7 rounded-full bg-danger text-white flex items-center justify-center text-[14px] font-bold">!</span>
+        <span>
+          реестр слезы: {allItems.length} упоминаний
+          {unmarked.length > 0 && <span className="text-ink/70 font-normal">, из них <b className="text-danger">{unmarked.length} без маркировки</b></span>}
+        </span>
       </div>
-      {allItems.slice(0, 10).map((item, i) => (
-        <div key={i} className="text-xs text-gray-600 flex gap-2">
-          <span className={item.hasMarking ? 'text-green-500' : 'text-red-500'}>{item.hasMarking ? '✓' : '✗'}</span>
-          <span>{item.name} <span className="text-gray-400">({item.category})</span></span>
-        </div>
-      ))}
+      <div className="space-y-1.5 pl-9">
+        {allItems.slice(0, 10).map((item, i) => (
+          <div key={i} className="text-[12px] text-ink/70 flex gap-2 items-baseline">
+            <span className={item.hasMarking ? 'text-ok' : 'text-danger'}>{item.hasMarking ? '✓' : '✗'}</span>
+            <span>{item.name}</span>
+            <span className="font-mono text-[10px] text-ink/35 uppercase tracking-wider">{item.category}</span>
+          </div>
+        ))}
+        {allItems.length > 10 && (
+          <div className="text-[11px] text-ink/40 italic">… и ещё {allItems.length - 10}</div>
+        )}
+      </div>
     </div>
   );
 }
@@ -206,119 +230,213 @@ function SlezaSection({ pages }) {
 export default function Results({ data, uuid, onShare, onNewScan }) {
   const hostname = data.hostname || data.url;
   const checks   = data.aiData?.checks || [];
-  const issues   = checks.filter(c => c.status === 'violation' || c.status === 'risk');
   const violations = checks.filter(c => c.status === 'violation');
+  const risks      = checks.filter(c => c.status === 'risk');
+  const oks        = checks.filter(c => c.status === 'ok');
   const totalFine  = violations.reduce((sum, c) => sum + parseFine(c.fine), 0);
-  const fineStr    = totalFine > 0 ? totalFine.toLocaleString('ru-RU') : null;
+  const fineStr    = totalFine > 0 ? fmtMoney(totalFine) : null;
   const scannedAt  = data.scannedAt
-    ? new Date(data.scannedAt).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
+    ? new Date(data.scannedAt).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : null;
 
   const diffMap = new Map((data.diff?.checks || []).map(c => [c.id, c]));
 
+  // Risk score 0–10: violations weigh 2x, risks 1x, normalized to # checks.
+  const totalWeight = checks.length * 2 || 1;
+  const score = Math.min(10, ((violations.length * 2 + risks.length) / totalWeight) * 10);
+  const scoreLevel = score >= 6 ? { label: 'высокий', color: 'text-danger' }
+                    : score >= 3 ? { label: 'средний', color: 'text-warn' }
+                    : score > 0  ? { label: 'низкий',  color: 'text-ok' }
+                    : { label: 'минимальный', color: 'text-ok' };
+  const scorePct = (score / 10) * 100;
+  const stampIntent = violations.length > 0 ? 'требует действий' : risks.length > 0 ? 'есть риски' : 'в норме';
+  const stampClass = violations.length > 0 ? 'border-danger text-danger bg-danger/[0.04]'
+                   : risks.length > 0      ? 'border-warn text-warn bg-warn/[0.04]'
+                   : 'border-ok text-ok bg-ok/[0.04]';
+
   return (
-    <div className="mt-6 space-y-3" data-results>
+    <div className="mt-7 space-y-3" data-results>
 
       {/* Fallback warning */}
       {data.fallback && (
-        <div className="border border-amber-200 bg-amber-50 rounded-xl px-4 py-3 text-amber-700 text-sm">
-          ⚠ Страница загружена без JS-рендеринга — сайт ограничил доступ автоматическому браузеру. Часть данных может отсутствовать.
+        <div className="border border-warn/40 bg-warn/[0.06] rounded-lg px-4 py-3 text-warn text-[13px]">
+          ⚠ страница загружена без JS-рендеринга — сайт ограничил доступ автоматическому браузеру. часть данных может отсутствовать.
         </div>
       )}
 
       {/* Diff summary */}
       <DiffSummary diff={data.diff} />
 
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 pb-3 border-b border-gray-100">
-        <div className="flex-1 min-w-0">
-          <div className="text-base font-bold text-gray-900">{data.aiData?.site_name || hostname}</div>
-          <div className="text-xs text-gray-400 mt-0.5">
-            {hostname} · {data.mode === 'full' ? 'Весь сайт' : 'Одна страница'}
-            {scannedAt && ` · ${scannedAt}`}
-          </div>
-          {data.confidence && (
-            <div className="mt-1.5">
-              <ConfidenceBadge confidence={data.confidence} />
-            </div>
-          )}
+      {/* REPORT FRAME */}
+      <div className="bg-white border border-line-2 rounded-[10px] overflow-hidden">
+
+        {/* meta header */}
+        <div className="bg-paper border-b border-line px-7 py-4 flex flex-wrap gap-x-7 gap-y-3 items-center font-mono text-[11px] text-ink/60 tracking-wide">
+          <MetaCell k="домен" v={hostname} />
+          <MetaCell k="режим"  v={data.mode === 'full' ? 'весь сайт' : 'одна страница'} />
+          {scannedAt && <MetaCell k="отчёт от" v={scannedAt} />}
+          <MetaCell k="параметров" v={`${checks.length} / ${checks.length}`} />
+          <span className={`ml-auto font-mono text-[9.5px] uppercase tracking-[0.16em] font-bold border rounded-[4px] px-2.5 py-1 ${stampClass}`}>
+            {stampIntent}
+          </span>
         </div>
-        {data.stats && (
-          <div className="text-xs text-gray-400 text-right flex-shrink-0">
-            {data.stats.scanned} из {data.stats.total}
-            {data.stats.discovered > data.stats.total && ` (${data.stats.discovered})`} стр.<br/>
-            Упоминаний: {data.stats.found}
+
+        {/* site name + confidence */}
+        <div className="px-7 pt-6 pb-4 border-b border-line flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="label-micro mb-1.5">сайт</div>
+            <div className="font-bold text-[20px] tracking-tight">{data.aiData?.site_name || hostname}</div>
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            {data.confidence && <ConfidenceBadge confidence={data.confidence} />}
+            {data.stats && (
+              <span className="font-mono text-[11px] text-ink/40">
+                {data.stats.scanned} из {data.stats.total} стр
+                {data.stats.found > 0 && ` · ${data.stats.found} упомин.`}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* VERDICT */}
+        <div className="px-7 py-8 border-b border-line grid md:grid-cols-[1fr_auto] gap-8 items-center">
+          <div>
+            <div className="label-micro mb-2">потенциальные штрафы · 13.15 коап рф</div>
+            <div className={`font-extrabold tracking-[-0.05em] leading-[0.92] tabular-nums ${
+              totalFine > 0 ? 'text-danger' : 'text-ok'
+            }`} style={{ fontSize: 'clamp(48px, 6vw, 84px)' }}>
+              {totalFine > 0 ? `${fineStr} ₽` : '0 ₽'}
+            </div>
+            <div className="mt-3 text-[13px] text-ink/60 leading-snug max-w-[52ch]">
+              {totalFine > 0 ? (
+                <>суммарно по найденным нарушениям. <b className="text-ink">считаем по верхней границе санкции</b> для юр. лиц. реальная сумма зависит от региона и количества эпизодов.</>
+              ) : (
+                <>критических нарушений не обнаружено. <b className="text-ink">это не значит, что их нет</b> — рекомендуем перепроверить через квартал и при изменениях на сайте.</>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 items-start md:items-end min-w-[240px]">
+            <div className="label-micro">риск-скор</div>
+            <div className="w-[240px] h-2 bg-warm border border-line rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-[width] duration-[1300ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+                style={{
+                  width: `${scorePct}%`,
+                  background: 'linear-gradient(90deg, #b87900 0%, #d63816 100%)',
+                }}
+              />
+            </div>
+            <div className="w-[240px] flex justify-between font-mono text-[10px] text-ink/25">
+              <span>0</span><span>5</span><span>10</span>
+            </div>
+            <div className={`font-bold text-[14px] tracking-tight ${scoreLevel.color}`}>
+              {score.toFixed(1)} / 10 · {scoreLevel.label}
+            </div>
+          </div>
+        </div>
+
+        {/* SUMMARY DOTS */}
+        <div className="px-7 py-4 border-b border-line flex flex-wrap gap-x-6 gap-y-2 font-mono text-[11px] uppercase tracking-wider text-ink/60">
+          <SummaryDot color="bg-danger" n={violations.length} label="нарушений" />
+          <SummaryDot color="bg-warn"   n={risks.length}      label="рисков" />
+          <SummaryDot color="bg-ok"     n={oks.length}        label="в норме" />
+        </div>
+
+        {/* FINDINGS */}
+        {checks.length > 0 && (
+          <div className="bg-white">
+            {checks.map((check, i) => (
+              <FindingRow
+                key={check.id || i}
+                check={check}
+                idx={i}
+                diffEntry={diffMap.get(check.id)}
+                scanUuid={uuid}
+              />
+            ))}
           </div>
         )}
       </div>
 
       {/* Sleza */}
-      <SlezaSection pages={data.pages || []} />
-
-      {/* Law cards */}
-      {checks.length > 0 && (
-        <div className="space-y-2">
-          {checks.map(check => (
-            <CheckCard
-              key={check.id}
-              check={check}
-              diffEntry={diffMap.get(check.id)}
-              scanUuid={uuid}
-            />
-          ))}
-        </div>
-      )}
+      <SlezaBlock pages={data.pages || []} />
 
       {/* EGRUL */}
       {data.egrul?.result?.parsed && (
-        <div className={`rounded-xl border p-4 text-sm ${
-          data.egrul.result.parsed.isActive ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+        <div className={`rounded-lg border px-5 py-4 ${
+          data.egrul.result.parsed.isActive ? 'border-ok/30 bg-ok/[0.04]' : 'border-danger/30 bg-danger/[0.04]'
         }`}>
-          <div className={`font-semibold mb-1 ${data.egrul.result.parsed.isActive ? 'text-green-700' : 'text-red-700'}`}>
-            {data.egrul.result.parsed.isActive ? '✓' : '✗'} ЕГРЮЛ: {data.egrul.result.parsed.name}
+          <div className={`font-semibold text-[14px] mb-1.5 ${data.egrul.result.parsed.isActive ? 'text-ok' : 'text-danger'}`}>
+            {data.egrul.result.parsed.isActive ? '✓' : '✗'} ЕГРЮЛ · {data.egrul.result.parsed.name}
           </div>
-          <div className="text-xs text-gray-500 space-y-0.5">
+          <div className="text-[12px] text-ink/60 space-y-0.5 font-mono">
             {data.egrul.ids.inn  && <div>ИНН: {data.egrul.ids.inn}</div>}
             {data.egrul.ids.ogrn && <div>ОГРН: {data.egrul.ids.ogrn}</div>}
-            <div>Статус: {data.egrul.result.parsed.isActive ? 'ДЕЙСТВУЮЩАЯ' : `ПРЕКРАЩЕНА — ${data.egrul.result.parsed.reason || ''}`}</div>
+            <div>статус: {data.egrul.result.parsed.isActive ? 'действующая' : `прекращена — ${data.egrul.result.parsed.reason || ''}`}</div>
           </div>
         </div>
       )}
 
       {/* CTA */}
-      <div className={`rounded-xl border p-5 ${violations.length > 0 ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'}`}>
-        {violations.length > 0 ? (
-          <>
-            <div className="text-xs font-semibold text-red-500 uppercase tracking-widest mb-1">Потенциальные штрафы</div>
-            {fineStr && <div className="text-3xl font-bold text-red-600 mb-1">до {fineStr} ₽</div>}
-            <div className="text-xs text-gray-500 mb-4">
-              {violations.length} {violations.length === 1 ? 'нарушение требует' : 'нарушений требуют'} устранения
+      <div className={`rounded-[10px] border px-6 py-7 ${violations.length > 0 ? 'border-line-2 bg-paper' : 'border-line-2 bg-paper'}`}>
+        <div className="grid md:grid-cols-[1fr_auto] gap-5 items-center">
+          <div>
+            <div className="label-micro mb-1.5">полный отчёт</div>
+            <div className="text-[18px] font-bold tracking-tight mb-1.5 leading-snug">
+              {violations.length > 0
+                ? <>скачайте PDF · в нём <span className="text-danger">конкретные нарушения, цитаты статей и приоритеты</span></>
+                : <>скачайте PDF — там полная сводка для юриста или подрядчика</>
+              }
             </div>
-          </>
-        ) : (
-          <div className="text-sm font-medium text-green-700 mb-4">✓ Критических нарушений не обнаружено</div>
-        )}
-        {violations.length > 0 && (
-          <p className="text-xs text-gray-500 mb-3">
-            В PDF-отчёте: конкретные нарушения по каждому пункту, рекомендации по устранению, приоритеты.
-          </p>
-        )}
-        <div className="flex gap-2">
-          <button onClick={() => onShare?.('pdf')} disabled={!uuid}
-            className="flex-1 text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-wait text-white rounded-lg py-2.5 px-3 transition-colors font-semibold">
-            {uuid ? '📄 Скачать полный отчёт' : '⏳ Подготовка…'}
-          </button>
-          <button onClick={() => onShare?.('share')} disabled={!uuid}
-            className="text-sm bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-wait text-gray-600 border border-gray-200 rounded-lg py-2.5 px-3 transition-colors">
-            {uuid ? '🔗' : '⏳'}
-          </button>
+            <div className="text-[13px] text-ink/55 leading-snug">
+              отчёт сохраняется по UUID · ссылкой можно поделиться. срок хранения — 7 дней.
+            </div>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => onShare?.('pdf')}
+              disabled={!uuid}
+              className="bg-ink hover:bg-brand disabled:opacity-40 disabled:cursor-wait text-white rounded-lg px-5 py-3 text-[14px] font-bold transition-colors inline-flex items-center gap-2"
+            >
+              {uuid ? '📄 Скачать PDF' : '⏳ Подготовка…'}
+            </button>
+            <button
+              onClick={() => onShare?.('share')}
+              disabled={!uuid}
+              className="bg-white hover:bg-warm disabled:opacity-40 disabled:cursor-wait text-ink border border-line-2 rounded-lg px-4 py-3 text-[14px] font-medium transition-colors"
+              title="поделиться ссылкой"
+            >
+              🔗
+            </button>
+          </div>
         </div>
       </div>
 
-      <button onClick={onNewScan}
-        className="w-full text-sm text-gray-400 hover:text-gray-600 border border-gray-200 hover:border-gray-300 rounded-xl py-2.5 transition-colors">
-        ← Проверить другой сайт
+      <button
+        onClick={onNewScan}
+        className="w-full text-[13px] text-ink/50 hover:text-ink border border-line-2 hover:border-ink/30 bg-paper rounded-lg py-3 transition-colors font-mono uppercase tracking-wider"
+      >
+        ← проверить другой сайт
       </button>
     </div>
+  );
+}
+
+function MetaCell({ k, v }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[9.5px] uppercase tracking-[0.1em] text-ink/25">{k}</span>
+      <span className="text-ink font-medium font-mono">{v}</span>
+    </div>
+  );
+}
+
+function SummaryDot({ color, n, label }) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span className={`w-2 h-2 rounded-full ${color}`} />
+      <span><b className="text-ink font-semibold">{n}</b> {label}</span>
+    </span>
   );
 }
