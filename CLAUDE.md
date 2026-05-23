@@ -108,7 +108,7 @@ Result shape is identical to what the Tampermonkey script's `runFullSiteScan` / 
 - Backend is Node ESM (`"type": "module"`) — use `import`/`export`, not `require`.
 - Do not push to `master` without explicit user request.
 
-## Текущий статус (2026-05-23) — АКТУАЛЬНО
+## Текущий статус (2026-05-24) — АКТУАЛЬНО
 
 ### Что реализовано и задеплоено ✅
 
@@ -189,28 +189,37 @@ _server.js:_
 
 **Переменная окружения:** `ADMIN_TOKEN` — обязательно выставить в Railway Variables. Без неё все `/api/admin/*` и `/api/debug/*` возвращают 401. `/api/debug/links` оставлен намеренно на период разработки — удалить перед публичным релизом.
 
-**UI v2 — audit-report дизайн** 🔄 (2026-05-23, в ревью)
+**UI v2 — audit-report дизайн** ✅ (2026-05-24, в master)
 
-Ветка: `design/audit-report-v2` → PR #2: https://github.com/Xpommo/sleza-web/pull/2
+Смержено в master. Новый дизайн задеплоен на Vercel.
 
-_Статус: ждём Vercel Preview → проверить визуально → мержить в master_
+**Раунд 5 — точность детектирования (фикс 4 root-cause bugs)** ✅ (2026-05-24)
 
-8 изменённых файлов:
-- `tailwind.config.js` — новые токены (ink, paper, brand, danger, ok, warn, line), Onest/JetBrains Mono
-- `app/globals.css` — Onest base, `.label-micro`, `prefers-reduced-motion`
-- `app/layout.js` — Google Fonts, обновлённые мета-теги
-- `app/page.js` — новый layout, нав-бар, шапка отчёта
-- `components/ScanForm.js` — URL input, site-type chips, dual CTA
-- `components/ScanProgress.js` — **новый** тёмный live-log + прогресс-бар
-- `components/Results.js` — report-frame: мета-хедер, штамп, риск-скор 0–10, findings table
-- `components/Landing.js` — **новый** лендинг-секция (что проверяем, для кого, FAQ)
+_pageContext.js:_
+- `isContentPath` — `COMPLIANCE_IN_PATH` exception: compliance-пути (personal_data, privacy, ofert...) никогда не считаются content-путями → hh.ru `/article/personal_data` теперь корректно попадает в policyLinks
+- `hasPolicyFooterLink` — возвращает `null` (не `false`) когда footer-элемент не найден; исключает false-positive "нет ссылки в footer" для сайтов без `<footer>`
+- KW.policy расширен: `personal_data`, `privacy_policy`, `personaldata` (underscore/слитные варианты)
+- KW.policy расширен: EN-фразы (`privacy policy`, `data protection`, `cookie policy`, etc.)
+- KW.offer расширен: EN-фразы (`terms of service`, `terms of use`, `eula`, `license agreement`, etc.)
+- Новые ad-network скрипты: `adriver.ru`, `begun.ru`, `smi2.ru`, `relap.io`, `recreativ.ru`, `segmento.net`, `criteo.net`, `doubleclick.net`, `adnxs.com`
+- GTM вынесен из adNetworkSelectors → отдельный `hasGtm` флаг
+- Новые CMP dismiss-селекторы: OneTrust, Cookiebot, Axeptio, Usercentrics
 
-Что проверить в Preview перед мержем:
-1. Лендинг — заголовок «сколько штрафов прячется...», форма, тип сайта
-2. Скан в режиме «текущая страница» — тёмный лог с фазами
-3. Full-scan — прогресс-бар с фазами от бэкенда
-4. Результаты — штамп, риск-скор, findings table
-5. PDF, ShareModal, `?report=<uuid>`, feedback-кнопки
+_scanner.js:_
+- `fetchPolicyText` quality-check: использует combined текст только если `check152FZ` находит ≥4/7 разделов — предотвращает использование страницы «Правила» (vc.ru) вместо /privacy
+- `detectSiteType`: media-детект расширен на body2k + паттерны community-платформ (`моя лента`, `написать/войти`)
+- `applyMediaOverride` / `applyServicesOverride` теперь вызываются и для local-checks (не только AI)
+- `effectiveHasAdScripts`: GTM считается рекламой только если на странице есть текстовые ad-маркеры
+- `tryDiscoverFromSitemap`: sitemap-discovery как Fallback 1.5 в fetchPolicyText
+- `EXTRA_PATHS` расширен: `/help/privacy`, `/help/terms`, `/article/personal_data`, `/v10/privacy` и др.
+- `REKVIZITY_PATHS` расширен: `/rbc_about`, `/about-us`, `/company/about` и др.
+- `blocked403` поле в результатах → frontend показывает предупреждение
+
+_frontend:_
+- 403 warning banner в Results.js
+- Auto-scroll к результатам при завершении сканирования
+- ConfidenceBadge с tooltip-объяснением
+- Кнопка «← проверить другой сайт»
 
 ### Деплой
 
@@ -226,29 +235,32 @@ _Статус: ждём Vercel Preview → проверить визуально
 
 ### Следующие задачи
 
-**В процессе:**
-- Проверить Vercel Preview для PR #2 (design/audit-report-v2) → мержить в master
-
-**UX (после мержа дизайна):**
-- Предупреждение пользователю когда сайт вернул 403 (заблокировал сканер)
+**Возможные улучшения:**
 - Telegram webhook для новых лидов
+- Улучшить check152FZ паттерны для rbc.ru (Qrator блокирует subpages, политика найдена но неполная)
+- rbc.ru 149: ИНН/ОГРН недоступны через plain fetch (Qrator JS-challenge) — нужен Playwright для subpages
+- Удалить `/api/debug/links` перед публичным релизом
 
 ### Известные ограничения / false positives
 
 - **Cloudflare/DDoS-Guard** (wildberries.ru): fallback на plain fetch, результаты неполные.
+- **Qrator anti-bot** (rbc.ru): все subpages (about, privacy details) возвращают JS-challenge (265 байт) на plain fetch. 149-ФЗ и часть 152-ФЗ могут быть неточны.
 - **403 на главной** (1cbit.ru): false positives по 149-ФЗ и 152-ФЗ (~5% SMB сайтов).
 - **Реквизиты только в PDF** (callibri.ru): читаем через pdf-parse; если PDF недоступен — риск.
 - **Политика скрыта в JS-виджете** (artlebedev.ru): fallback на /terms/, /legal/.
 
-### Smoke test baseline (2026-05-21)
+### Smoke test baseline (2026-05-24) ← АКТУАЛЬНЫЙ
 
 ```
-shop     wildberries.ru  → ❌ ❌ ✅ ✅ ✅  (fallback ⚡, Cloudflare)
-media    rbc.ru          → ❌ ⚠️ ✅ ✅ ✅
-services hh.ru           → ⚠️ ✅ ⚠️ ✅ ✅
-saas     bitrix24.ru     → ✅ ✅ ❌ ✅ ✅
-large    vc.ru           → ⚠️ ✅ ✅ ⚠️ ✅
-saas     callibri.ru     → ✅ ✅ ❌ ✅ ✅
-ip       sleza.media     → ⚠️ ⚠️ ❌ ⚠️ ⚠️
+shop     www.wildberries.ru  → ⚠️ ❌ ✅ ✅ ✅  (fallback ⚡, Cloudflare)
+media    www.rbc.ru          → ⚠️ ⚠️ ✅ ✅ ✅  (Qrator блокирует subpages)
+services www.hh.ru           → ⚠️ ✅ ⚠️ ✅ ✅  (реальные compliance gaps)
+saas     www.bitrix24.ru     → ✅ ✅ ✅ ✅ ✅
+large    vc.ru               → ✅ ✅ ✅ ✅ ✅
+saas     callibri.ru         → ✅ ✅ ⚠️ ✅ ✅
+ip       sleza.media         → ✅ ⚠️ ✅ ⚠️ ⚠️
+Итого: 25✅ 9⚠️ 1❌
 Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Куки
 ```
+
+Прогресс за 2 сессии: 23✅ 11⚠️ 1❌ → 25✅ 9⚠️ 1❌
