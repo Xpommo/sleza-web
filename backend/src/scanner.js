@@ -108,7 +108,12 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
       }
     }
   }
-  if (combined.length > 200) return { text: combined, found: true };
+  // Only use combined text if it looks like an actual privacy policy (≥4/7 152-FZ sections).
+  // Prevents community «Правила» / conduct-rules pages (which land in offerLinks) from
+  // being used as policy when a proper /privacy page exists.
+  if (combined.length > 200 && engine.check152FZ(combined).found >= 4) {
+    return { text: combined, found: true };
+  }
 
   // Fallback 1: probe common URL patterns via script's built-in discovery
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
@@ -138,8 +143,13 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     '/terms-of-service', '/cookie-policy', '/cookies',
     '/data-protection', '/personal-information',
     '/legal/privacy', '/legal/terms', '/legal/cookies',
-    '/info/privacy', '/info/terms',
+    '/info/privacy', '/info/terms', '/info/personal-data',
     '/документы', '/docs',
+    '/help/privacy', '/help/terms', '/help/personal-data',
+    '/support/privacy', '/support/terms',
+    '/pages/privacy', '/pages/terms',
+    '/faq/privacy', '/faq/personal-data',
+    '/article/personal_data', '/v10/privacy',
   ];
   for (const path of EXTRA_PATHS) {
     const url = origin + path;
@@ -218,7 +228,9 @@ async function fetchExtraText(engine, pageContext, origin) {
     // Fallback HTML paths — try when no links found at all
     if (!extra.trim()) {
       const REKVIZITY_PATHS = ['/contacts', '/contact', '/about', '/о-компании',
-        '/rekvizity', '/реквизиты', '/company', '/terms', '/legal'];
+        '/rekvizity', '/реквизиты', '/company', '/terms', '/legal',
+        '/rbc_about', '/about-us', '/company/about', '/info/about', '/help/about',
+        '/о-компании/реквизиты', '/legal/about'];
       for (const path of REKVIZITY_PATHS) {
         const url = origin + path;
         if (visited.has(url)) continue;
@@ -283,9 +295,14 @@ function detectSiteType(pageContext) {
       (inn12Re.test(text) && ipTextRe.test(text)))
     return 'ip';
 
-  // Media/news signals
-  if (/новост|обзор|статьи|журнал|\bсми\b|медиа|редакци|публикац|пресс-релиз/.test(titleHeader))
-    return 'media';
+  // Media/news/community signals — check title+header first, then body
+  const mediaRe = /новост|обзор|статьи|журнал|\bсми\b|медиа|редакци|публикац|пресс-релиз|\bблог\b|сообществ|контент.платформ|издани|колонк/;
+  if (mediaRe.test(titleHeader)) return 'media';
+  // Community platforms (vc.ru, dtf.ru, habr.com): body shows user UX patterns + topic taxonomy
+  const communityRe = /моя\s+лента|написать[\s\S]{0,30}войти|ваша\s+лента|новая\s+публикаци/;
+  if (communityRe.test(body2k)) return 'media';
+  // Body-level media signals (page title may omit them but body/nav contains them)
+  if (mediaRe.test(body2k) && !(/магазин|купить|каталог товар/.test(titleHeader))) return 'media';
 
   // Services/corporate/edu signals
   const servicesDomainRe = /institut|clinic|hospital|academy|school|university|edu\.|\.edu|медцентр|клиник|больниц/;
@@ -445,6 +462,8 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     // Promote to 'ip' if ИП detected in extraText/PDF (not visible in main page HTML)
     if (siteType !== 'ip' && /\bип\s+[а-яёa-z]|огрнип|индивидуальн[а-яё]+\s+предприниматель/i.test(extraText + homepageText))
       siteType = 'ip';
+    applyMediaOverride(aiData, siteType);
+    applyServicesOverride(aiData, siteType);
     if (siteType === 'ip') applyIPOverride(aiData);
   }
 
@@ -643,6 +662,8 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     // Promote to 'ip' if ИП detected in extraText/PDF even if not visible in main page HTML
     if (siteType !== 'ip' && /\bип\s+[а-яёa-z]|огрнип|индивидуальн[а-яё]+\s+предприниматель/i.test(extraText))
       siteType = 'ip';
+    applyMediaOverride(aiData, siteType);
+    applyServicesOverride(aiData, siteType);
     if (siteType === 'ip') applyIPOverride(aiData);
   }
 

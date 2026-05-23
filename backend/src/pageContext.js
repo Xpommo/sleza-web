@@ -20,6 +20,7 @@ const KW = {
   policy: [
     'политик','конфиденц','персональн','privacy','cookie','gdpr','согласие','persdata','personal-data','/policy','/policies',
     'privacy policy','data protection','data privacy','personal data','cookie policy','cookie notice','privacy notice',
+    'personal_data','privacy_policy','personaldata',
     'обработка данных','защита данных','условия использования','пользовательское',
   ],
   offer: [
@@ -223,7 +224,10 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
 
       // Exclude content/article paths from compliance link categories
       // to avoid news headlines with «персональн» being classified as policy pages
-      const isContentPath = p => /\/\d{4}\/\d{2}[/\-]|\/(news|article|review|blog|post|video|forum)\//i.test(p);
+      const COMPLIANCE_IN_PATH = /privac|polic|personal.?data|personal_data|privacy_pol|конфиденц|персональн|gdpr|ofert|terms|legal|cookie|protect|privacypol|persdat/i;
+      const isContentPath = p =>
+        !COMPLIANCE_IN_PATH.test(p) &&
+        /\/\d{4}\/\d{2}[/\-]|\/(news|article|review|blog|post|video|forum)\//i.test(p);
 
       // A1: for compliance pages give more body text; cap at 25k instead of 10k
       const isCompliancePage = /polic|privacy|personal|ofert|конфиденц|персон|оферт|cookie|gdpr/i.test(location.pathname + location.href);
@@ -234,9 +238,10 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         return t.slice(0, cap - 2000) + '\n' + t.slice(-2000);
       })();
 
-      // A4: РКН требует ссылку на политику в footer на каждой странице с формой
+      // A4: РКН требует ссылку на политику в footer на каждой странице с формой.
+      // null = нет footer-элемента (неизвестно); false = footer есть, ссылки нет; true = ссылка есть.
       const hasPolicyFooterLink = (() => {
-        if (!footerEl) return false;
+        if (!footerEl) return null;
         const html = footerEl.innerHTML || '';
         return /пол[ие]тик|конфиденц|privacy|personal.?data|персональн/i.test(html);
       })();
