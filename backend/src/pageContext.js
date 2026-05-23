@@ -17,10 +17,21 @@
 import { chromium } from 'playwright';
 
 const KW = {
-  policy: ['политик','конфиденц','персональн','privacy','cookie','gdpr','согласие','persdata','personal-data','/policy','/policies'],
-  offer:  ['оферт','договор','правила','усло','public-offer','соглашен','agreement','terms'],
-  ret:    ['возврат','обмен','отказ'],
-  about:  ['о компани','о нас','контакт','about','contact','реквизит'],
+  policy: [
+    'политик','конфиденц','персональн','privacy','cookie','gdpr','согласие','persdata','personal-data','/policy','/policies',
+    'privacy policy','data protection','data privacy','personal data','cookie policy','cookie notice','privacy notice',
+    'обработка данных','защита данных','условия использования','пользовательское',
+  ],
+  offer: [
+    'оферт','договор','правила','усло','public-offer','соглашен','agreement','terms',
+    'terms of service','terms of use','terms and conditions','license agreement','service agreement','eula',
+    'лицензионное','лицензия',
+  ],
+  ret:   ['возврат','обмен','отказ'],
+  about: [
+    'о компани','о нас','контакт','about','contact','реквизит',
+    'legal notice','imprint','юридическ','юрлицо',
+  ],
 };
 
 let _browser = null;
@@ -74,12 +85,23 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
     try {
       await page.evaluate(() => {
         const ACCEPT = [
+          // Named consent managers (most specific — try first)
+          '#onetrust-accept-btn-handler',
+          'button.onetrust-close-btn-ui',
+          '#CybotCookiebotDialogBodyButtonAccept',
+          'a#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll',
+          '.axeptio_btn_acceptAll',
+          'button[data-testid="uc-accept-all-button"]',
+          // Generic patterns
           '[class*="cookie"] button[class*="accept"]',
           '[id*="cookie"] button[class*="accept"]',
           '[class*="cookie-banner"] button', '[class*="cookie-notice"] button',
+          '[class*="gdpr"] button[class*="accept"]',
+          '[class*="consent"] button[class*="accept"]',
           'button[aria-label*="Accept"], button[aria-label*="Принять"]',
           '#cookie-accept, .cookie-accept, .js-cookie-accept',
           '[data-testid*="cookie"] button',
+          'button[id*="accept"]', 'button[id*="agree"]',
         ];
         for (const sel of ACCEPT) {
           const btn = document.querySelector(sel);
@@ -135,14 +157,25 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
       ].join(',');
 
       // Ad network scripts — actual advertising placement; ERIR marking required
+      // GTM is excluded: it's used by most sites for analytics only; tracked separately via hasGtm
       const adNetworkScriptSelectors = [
         'script[src*="an.yandex"]','script[src*="yandex-ads"]','script[src*="adfox"]',
-        'script[src*="googletagmanager"]',  // GTM often loads ad tags
-        'script[src*="facebook.net"]',       // FB Pixel used for paid retargeting ads
-        'script[src*="vk.com/js/api"]',      // VK ad pixel
+        'script[src*="facebook.net"]',
+        'script[src*="vk.com/js/api"]',
         'script[src*="soloway"]','script[src*="buzzoola"]',
         'script[src*="otm-r.com"]','script[src*="mail.ru/counter"]',
+        'script[src*="adriver.ru"]',
+        'script[src*="begun.ru"]',
+        'script[src*="smi2.ru"]',
+        'script[src*="relap.io"]',
+        'script[src*="recreativ.ru"]',
+        'script[src*="segmento.net"]',
+        'script[src*="criteo.net"]',
+        'script[src*="doubleclick.net"]',
+        'script[src*="adnxs.com"]',
       ].join(',');
+
+      const gtmSelector = 'script[src*="googletagmanager"]';
 
       const adScriptSelectors = adNetworkScriptSelectors; // keep variable name for compatibility
 
@@ -236,6 +269,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         returnLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.ret)).slice(0, 3),
         aboutLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.about)).slice(0, 4),
         hasAdScripts:       document.querySelectorAll(adNetworkScriptSelectors).length > 0,
+        hasGtm:             document.querySelectorAll(gtmSelector).length > 0,
         hasAnalytics:       document.querySelectorAll(analyticsScriptSelectors).length > 0,
         hasCookieBanner:    document.querySelectorAll(cookieBannerSelectors).length > 0 || hasCookieBannerByText,
         hasPolicyFooterLink,

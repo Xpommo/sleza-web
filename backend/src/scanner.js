@@ -36,11 +36,35 @@ function isPdfUrl(url, contentType = '') {
   return url.toLowerCase().includes('.pdf') || (contentType || '').includes('pdf');
 }
 
+const SITEMAP_KW = /privacy|polic|ofert|legal|terms|cookie|\.pdf|реквизит|конфиденц|соглаш|персональн|protect/i;
+
+async function tryDiscoverFromSitemap(origin) {
+  const candidates = [`${origin}/sitemap.xml`, `${origin}/sitemap_index.xml`];
+  const found = [];
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, {
+        signal: AbortSignal.timeout(5000),
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      });
+      if (!res.ok || !res.headers.get('content-type')?.includes('xml')) continue;
+      const xml = await res.text();
+      const matches = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)];
+      for (const m of matches) {
+        const loc = m[1].trim();
+        if (SITEMAP_KW.test(loc)) found.push(loc);
+      }
+      if (found.length > 0) break;
+    } catch { /* sitemap not found or timeout — skip */ }
+  }
+  return found.slice(0, 10);
+}
+
 // Extract hrefs from raw HTML that look like personal-data policy pages (1-level follow).
 // Handles sites like ixbt.com where rules:persdatapolicy is only linked from rules:cookie.
 function extractPolicyHrefs(html, baseUrl) {
   const re = /href=["']([^"'#]+)["']/g;
-  const kw = /конфиденц|персональн|persdatapol|privacy|personal.?data/i;
+  const kw = /конфиденц|персональн|persdatapol|privacy|personal.?data|data.?protect|cookie.?polic|privacy.?notice|terms.?of|пользователь|обработка.?дан/i;
   const out = new Set();
   let m;
   while ((m = re.exec(html)) !== null) {
@@ -90,10 +114,33 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
   if (policyPages[0]?.text) return { text: htmlToText(policyPages[0].text), found: true };
 
+  // Fallback 1.5: sitemap-discovered pages (catches policies not linked from nav)
+  if (origin) {
+    const sitemapUrls = await tryDiscoverFromSitemap(origin);
+    for (const url of sitemapUrls) {
+      if (visited.has(url)) continue;
+      visited.add(url);
+      if (isPdfUrl(url)) {
+        const text = await fetchPdfText(url);
+        if (text.length > 500) return { text, found: true };
+      } else {
+        const r = await engine.fetchUrl(url);
+        if (r.ok && r.text.length > 500) return { text: htmlToText(r.text), found: true };
+      }
+    }
+  }
+
   // Fallback 2: try additional paths not covered by discoverPolicyByCommonPaths
   // (e.g. artlebedev.ru uses /terms/, some sites use /legal/, /rules/)
-  const EXTRA_PATHS = ['/terms', '/terms/', '/legal', '/legal/', '/rules', '/rules/',
-    '/user-agreement', '/agreement', '/tos', '/privacypolicy'];
+  const EXTRA_PATHS = [
+    '/terms', '/terms/', '/legal', '/legal/', '/rules', '/rules/',
+    '/user-agreement', '/agreement', '/tos', '/privacypolicy',
+    '/terms-of-service', '/cookie-policy', '/cookies',
+    '/data-protection', '/personal-information',
+    '/legal/privacy', '/legal/terms', '/legal/cookies',
+    '/info/privacy', '/info/terms',
+    '/документы', '/docs',
+  ];
   for (const path of EXTRA_PATHS) {
     const url = origin + path;
     if (visited.has(url)) continue;
@@ -154,6 +201,11 @@ async function fetchExtraText(engine, pageContext, origin) {
       '/agreement.pdf', '/contract.pdf', '/оферта.pdf',
       '/privacy_policy.pdf', '/privacy.pdf', '/personal_data.pdf',
       '/политика.pdf', '/соглашение.pdf',
+      '/Dogovor.pdf', '/dogovor.pdf',
+      '/license.pdf', '/licence.pdf',
+      '/sla.pdf', '/public-offer.pdf',
+      '/reglament.pdf', '/регламент.pdf',
+      '/политика-конфиденциальности.pdf',
     ];
     for (const path of PDF_PATHS) {
       const url = origin + path;
@@ -373,13 +425,15 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       if (homeR.ok) homepageText = '\n' + htmlToText(homeR.text).slice(0, 4000);
     }
     const result149  = engine.check149FZ(fullText + extraText + homepageText);
-    const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''), { hasAdScripts: pageContext.hasAdScripts });
+    const adTextMarker = /на правах реклам|рекламный материал|партнёрский материал|спонсорский материал|рекламодатель|sponsored content/i;
+    const effectiveHasAdScripts = pageContext.hasAdScripts || (pageContext.hasGtm && adTextMarker.test(fullText));
+    const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''), { hasAdScripts: effectiveHasAdScripts });
     // Include extraText so PDF offer documents are checked for seller info / return conditions
     const resultOffer = engine.checkOffer(fullText + '\n' + extraText, pageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(fullText);
     const policyHasCookies = /cookie|куки|файл[ыа]\s+cookie/i.test(policyText);
     const resultCookie = engine.checkCookieCompliance({
-      hasTracking: pageContext.hasAdScripts,
+      hasTracking: effectiveHasAdScripts,
       hasCookieBanner: pageContext.hasCookieBanner,
       policyHasCookies,
       hasConsentCheckbox: pageContext.hasConsentCheckbox,
@@ -449,9 +503,17 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   //
   // Layer 1 — mandatory (always included): homepage + common compliance paths.
   //   These are guaranteed regardless of score — they hold policy/contacts/legal info.
-  const COMPLIANCE_PATHS = ['/privacy', '/personal-data', '/policy', '/cookies', '/gdpr',
+  const COMPLIANCE_PATHS = [
+    '/privacy', '/personal-data', '/policy', '/cookies', '/gdpr',
     '/about', '/contacts', '/contact', '/oferta', '/offer', '/terms', '/rules',
-    '/rekvizity', '/реквизиты', '/политика', '/конфиденциальность', '/о-компании'];
+    '/rekvizity', '/реквизиты', '/политика', '/конфиденциальность', '/о-компании',
+    '/cookie-policy', '/cookies-policy', '/cookie-notice',
+    '/terms-of-service', '/tos',
+    '/advertising', '/advertising-policy',
+    '/legal', '/legal/privacy', '/legal/terms',
+    '/data-protection', '/защита-данных',
+    '/user-agreement', '/пользовательское-соглашение',
+  ];
   const layer1 = new Set([origin, origin + '/']);
   for (const p of COMPLIANCE_PATHS) {
     const candidate = origin + p;
@@ -561,13 +623,15 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     // ERIR: check main page only — allPagesText includes blog/articles about advertising
     // which cause false positives on marketing platforms (callibri, roistat, etc.)
     const mainPageText = `${mainPageContext.title}\n${mainPageContext.header}\n${mainPageContext.bodyText}\n${mainPageContext.footer}`;
-    const resultERIR = engine.checkERIR(mainPageText + '\n' + (mainPageContext.eridAttrs || ''), { hasAdScripts: mainPageContext.hasAdScripts });
+    const adTextMarkerFull = /на правах реклам|рекламный материал|партнёрский материал|спонсорский материал|рекламодатель|sponsored content/i;
+    const effectiveHasAdScriptsFull = mainPageContext.hasAdScripts || (mainPageContext.hasGtm && adTextMarkerFull.test(mainPageText));
+    const resultERIR = engine.checkERIR(mainPageText + '\n' + (mainPageContext.eridAttrs || ''), { hasAdScripts: effectiveHasAdScriptsFull });
     // checkOffer: include extraText so PDF offer documents (e.g. /Offer.pdf) are checked
     const resultOffer = engine.checkOffer(mainPageText + '\n' + extraText, mainPageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(allPagesText);
     const policyHasCookies = /cookie|куки|файл[ыа]\s+cookie/i.test(policyText);
     const resultCookie = engine.checkCookieCompliance({
-      hasTracking: mainPageContext.hasAdScripts,
+      hasTracking: effectiveHasAdScriptsFull,
       hasCookieBanner: mainPageContext.hasCookieBanner,
       policyHasCookies,
       hasConsentCheckbox: mainPageContext.hasConsentCheckbox,
