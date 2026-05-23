@@ -61,7 +61,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
     // domcontentloaded is much more reliable than 'load' — avoids timeouts on
     // sites with heavy third-party resources (ads, analytics, large images).
     // JS hydration wait below compensates for React/Vue late rendering.
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+    const gotoResponse = await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
 
     // Wait for JS hydration (React/Vue), and for any post-load redirects to settle
     await page.waitForTimeout(2000);
@@ -243,6 +243,9 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
       };
     }, KW);
 
+    const httpStatus = gotoResponse?.status?.() ?? 200;
+    if (httpStatus === 403) context._http403 = true;
+
     // Detect anti-bot challenge pages (Cloudflare, DDoS-Guard, etc.)
     // They render a short JS challenge that never gives us real content.
     const isChallenge = context.bodyText.length < 300 && (
@@ -286,6 +289,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         hasPolicyFooterLink: false, hasConsentCheckbox: false,
         _fallback: true,
         _blocked: /^challenge:/.test(String(err?.message)),
+        _http403: res.status === 403,
       };
     } catch {
       throw err; // rethrow original Playwright error

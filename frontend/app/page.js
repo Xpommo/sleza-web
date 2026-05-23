@@ -19,6 +19,7 @@ export default function Home() {
   const [showForm,   setShowForm]   = useState(true);
   const cancelRef = useRef(null);
   const formRef = useRef(null);
+  const resultsRef = useRef(null);
 
   // Open a shared report when ?report=<uuid> is present
   useEffect(() => {
@@ -36,6 +37,12 @@ export default function Home() {
       .catch(e => { setError(e.message); setShowForm(true); })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (result) {
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+  }, [result]);
 
   const newScan = () => {
     setResult(null); setUuid(null); setError(null); setShowForm(true);
@@ -170,12 +177,14 @@ export default function Home() {
 
         {/* Results */}
         {result && (
-          <Results
-            data={result}
-            uuid={uuid}
-            onShare={mode => setShareModal(mode)}
-            onNewScan={newScan}
-          />
+          <div ref={resultsRef}>
+            <Results
+              data={result}
+              uuid={uuid}
+              onShare={mode => setShareModal(mode)}
+              onNewScan={newScan}
+            />
+          </div>
         )}
 
         {/* Landing */}

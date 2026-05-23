@@ -54,12 +54,20 @@ function fmtMoney(n) {
   return n.toLocaleString('ru-RU').replace(/,/g, ' ');
 }
 
+const CONFIDENCE_HINT = 'Показывает, сколько данных сканер смог получить со страницы. Низкая оценка означает, что часть контента была недоступна (JS-рендеринг, блокировка). Это не оценка сайта.';
+
 function ConfidenceBadge({ confidence }) {
   if (!confidence) return null;
   const style = CONFIDENCE_STYLE[confidence.label] || CONFIDENCE_STYLE.medium;
   return (
-    <span className={`font-mono text-[10.5px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded-[4px] ${style}`}>
-      {CONFIDENCE_LABEL[confidence.label] || 'достоверность'} · {confidence.score}/100
+    <span className="relative group inline-flex items-center gap-1.5">
+      <span className={`font-mono text-[10.5px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded-[4px] ${style}`}>
+        {CONFIDENCE_LABEL[confidence.label] || 'достоверность'} · {confidence.score}/100
+      </span>
+      <span className="text-ink/30 text-[11px] cursor-help select-none">ⓘ</span>
+      <span className="pointer-events-none absolute bottom-full left-0 mb-2 w-64 rounded-md bg-ink text-paper text-[11px] leading-snug px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg">
+        {CONFIDENCE_HINT}
+      </span>
     </span>
   );
 }
@@ -267,8 +275,15 @@ export default function Results({ data, uuid, onShare, onNewScan }) {
   return (
     <div className="mt-7 space-y-3" data-results>
 
+      {/* 403 blocked warning */}
+      {data.blocked403 && (
+        <div className="border border-danger/40 bg-danger/[0.06] rounded-lg px-4 py-3 text-danger text-[13px]">
+          ⛔ сайт вернул 403 Forbidden — сервер заблокировал доступ сканеру. результаты могут содержать ложные нарушения из-за недоступности контента.
+        </div>
+      )}
+
       {/* Fallback warning */}
-      {data.fallback && (
+      {data.fallback && !data.blocked403 && (
         <div className="border border-warn/40 bg-warn/[0.06] rounded-lg px-4 py-3 text-warn text-[13px]">
           ⚠ страница загружена без JS-рендеринга — сайт ограничил доступ автоматическому браузеру. часть данных может отсутствовать.
         </div>
@@ -295,7 +310,7 @@ export default function Results({ data, uuid, onShare, onNewScan }) {
         <div className="px-5 sm:px-7 pt-6 pb-4 border-b border-line flex flex-wrap items-end justify-between gap-3">
           <div>
             <div className="label-micro mb-1.5">сайт</div>
-            <div className="font-bold text-[20px] tracking-tight">{data.aiData?.site_name || hostname}</div>
+            <div className="font-bold text-[20px] tracking-tight line-clamp-2 max-w-[48ch]">{data.aiData?.site_name || hostname}</div>
           </div>
           <div className="flex flex-wrap gap-2 items-center">
             {data.confidence && <ConfidenceBadge confidence={data.confidence} />}
@@ -425,7 +440,7 @@ export default function Results({ data, uuid, onShare, onNewScan }) {
 
       <button
         onClick={onNewScan}
-        className="w-full text-[13px] text-ink/50 hover:text-ink border border-line-2 hover:border-ink/30 bg-paper rounded-lg py-3 transition-colors font-mono uppercase tracking-wider"
+        className="w-full text-[14px] font-semibold text-ink bg-white border-2 border-ink/15 hover:border-ink/40 hover:bg-warm rounded-lg py-3.5 transition-colors tracking-tight"
       >
         ← проверить другой сайт
       </button>
