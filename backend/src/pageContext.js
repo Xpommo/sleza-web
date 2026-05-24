@@ -162,7 +162,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
       const adNetworkScriptSelectors = [
         'script[src*="an.yandex"]','script[src*="yandex-ads"]','script[src*="adfox"]',
         'script[src*="facebook.net"]',
-        'script[src*="vk.com/js/api"]',
+
         'script[src*="soloway"]','script[src*="buzzoola"]',
         'script[src*="otm-r.com"]','script[src*="mail.ru/counter"]',
         'script[src*="adriver.ru"]',
@@ -295,6 +295,60 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
       throw new Error(`challenge:${context.title}`);
     }
 
+    // If no policy links found, try clicking policy-text buttons (modal popups, SPAs).
+    // Some sites (e.g. Nuxt.js застройщики) place privacy policy behind a <BUTTON>
+    // with no href — standard link extraction misses it entirely.
+    context.inlineModalPolicyText = '';
+    if (!context.policyLinks?.length) {
+      try {
+        const marked = await page.evaluate(() => {
+          const policyRe = /политик|конфиденц|персональн|privacy|personal.?data/i;
+          const sel = 'button, a[href="#"], a[href="javascript:void(0)"], a[href="javascript:;"], a:not([href])';
+          for (const el of document.querySelectorAll(sel)) {
+            const text = (el.innerText || el.textContent || '').trim();
+            if (policyRe.test(text) && text.length > 3 && text.length < 80) {
+              el.setAttribute('data-sleza-policy-click', '1');
+              return true;
+            }
+          }
+          return false;
+        });
+        if (marked) {
+          await page.click('[data-sleza-policy-click]', { timeout: 3000 });
+          await page.waitForTimeout(1500);
+          context.inlineModalPolicyText = await page.evaluate(() => {
+            const sels = [
+              '[role="dialog"]', '[role="alertdialog"]',
+              '[class*="modal"]', '[class*="overlay"]', '[class*="popup"]',
+              '[class*="dialog"]', '[class*="sheet"]', '[class*="drawer"]',
+            ];
+            for (const sel of sels) {
+              try {
+                const el = document.querySelector(sel);
+                const text = (el?.innerText || '').trim();
+                if (text.length > 200) return text.slice(0, 20000);
+              } catch (_) {}
+            }
+            // Fallback: position:fixed/absolute element with high z-index and substantial text
+            const candidates = Array.from(document.querySelectorAll('div,section,article'))
+              .filter(el => {
+                try {
+                  const s = window.getComputedStyle(el);
+                  return (s.position === 'fixed' || s.position === 'absolute') &&
+                    parseInt(s.zIndex || '0') > 50 && el.offsetHeight > 100 &&
+                    (el.innerText || '').length > 200;
+                } catch { return false; }
+              });
+            if (candidates.length) {
+              candidates.sort((a, b) => (b.innerText || '').length - (a.innerText || '').length);
+              return (candidates[0].innerText || '').slice(0, 20000);
+            }
+            return '';
+          });
+        }
+      } catch (_) {}
+    }
+
     return context;
   } catch (err) {
     // Playwright failed (timeout, network block, SSL, challenge) — fall back to plain fetch.
@@ -325,7 +379,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         bodyText: text.slice(0, 10000), jsonLdText: '', eridAttrs: '',
         links: [], policyLinks: [], offerLinks: [], returnLinks: [], aboutLinks: [],
         hasAdScripts: false, hasAnalytics: false, hasCookieBanner: false,
-        hasPolicyFooterLink: false, hasConsentCheckbox: false,
+        hasPolicyFooterLink: false, hasConsentCheckbox: false, inlineModalPolicyText: '',
         _fallback: true,
         _blocked: /^challenge:/.test(String(err?.message)),
         _http403: res.status === 403,

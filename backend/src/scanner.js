@@ -115,6 +115,13 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     return { text: combined, found: true };
   }
 
+  // Inline modal text: extracted by clicking a policy button in Playwright.
+  // Already plain text (innerText) — no htmlToText() needed.
+  const modalText = pageContext.inlineModalPolicyText || '';
+  if (modalText.length > 200 && engine.check152FZ(modalText).found >= 2) {
+    return { text: modalText, found: true };
+  }
+
   // Fallback 1: probe common URL patterns via script's built-in discovery
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
   if (policyPages[0]?.text) return { text: htmlToText(policyPages[0].text), found: true };
