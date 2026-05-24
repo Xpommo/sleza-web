@@ -300,14 +300,18 @@ function applyServicesOverride(aiData, siteType) {
   if (siteType !== 'services' || !aiData?.checks) return;
   const offer = aiData.checks.find(c => c.id === 'offer');
   if (offer && offer.status !== 'ok' && offer.issue) {
-    // "Return of goods" rules (ЗоЗПП ст.26.1) apply only to physical goods —
-    // remove it from the issue for service/institutional sites
+    // "Return of goods" rules (ЗоЗПП ст.26.1) apply only to physical goods
     offer.issue = offer.issue
       .replace(/условия?\s+возврата\s+товара[;,]?\s*/gi, '')
       .replace(/\(торговая\s+площадка\)/gi, '(платные услуги / договор оказания услуг)')
       .trim().replace(/^[;,\s]+/, '');
+    // Downgrade violation → risk: services work on individual contracts, not public offer
+    if (offer.status === 'violation') {
+      offer.status = 'risk';
+      offer.fine = '';
+    }
     if (offer.action) {
-      offer.action = 'Опубликовать договор оказания услуг с реквизитами исполнителя (ИНН/ОГРН, полное название, адрес, email) и порядком расторжения';
+      offer.action = 'Рекомендуется опубликовать шаблон договора оказания услуг с реквизитами (ИНН/ОГРН, адрес, email) и порядком расторжения';
     }
   }
 }
@@ -351,6 +355,10 @@ function detectSiteType(pageContext) {
   const servicesDomainRe = /institut|clinic|hospital|academy|school|university|edu\.|\.edu|медцентр|клиник|больниц/;
   const servicesTextRe   = /институт|клиника|больниц|академия|университет|факультет|кафедр|АНО\b|НКО\b|ДПО\b|ЧОУ\b|ФГБУ|ФГБОУ|кабинет\s+врач|медицинск|стоматолог|поликлиник|образовательн|учебн[ыйое]+\s+центр|курсы\s+повышени|профессиональн[ао]+\s+переподготовк/;
   if (servicesDomainRe.test(hostname) || servicesTextRe.test(titleHeader)) return 'services';
+  // Installation/repair/construction services — individual contracts after on-site measurement.
+  // Public offer not required: final price determined after measurement, not fixed online.
+  const installServiceRe = /бесплатн[ыйое]+\s+замер|выезд\s+(на\s+)?замер|замер\s+бесплатн|натяжн[а-яё]+\s+потол|монтаж\s+[а-яё]|установк[ауи]\s+[а-яё]|ремонт\s+[а-яё]|отделочн|под\s+ключ|выезд\s+мастер|бригад[аы]\s+мастер/i;
+  if (installServiceRe.test(titleHeader) || installServiceRe.test(body2k)) return 'services';
 
   // E-commerce signals
   if (/магазин|интернет.магазин|купить|каталог товар/.test(titleHeader)) return 'ecommerce';
