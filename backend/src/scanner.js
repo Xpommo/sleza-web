@@ -476,6 +476,36 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     applyMediaOverride(aiData, siteType);
     applyServicesOverride(aiData, siteType);
     if (siteType === 'ip') applyIPOverride(aiData);
+
+    // Ground-truth overrides: local binary signals are more reliable than AI for these two checks.
+    // Run targeted local verification only when AI returned a violation — avoids double-fetching otherwise.
+    // NOTE: AI returns checks with field "law" (human name), local path uses "id" (short code).
+    //       findAICheck matches both formats.
+    const findAICheck = (checks, id, lawSnippet) =>
+      checks?.find(c => c.id === id || (c.law || '').includes(lawSnippet));
+
+    const check149AI = findAICheck(aiData.checks, 'law149', '149');
+    if (check149AI && check149AI.status !== 'ok') {
+      // INN/OGRN regex is unambiguous — if local finds it in extraText (no length cap), trust local over AI
+      const extraText149 = await fetchExtraText(engine, pageContext, origin);
+      const result149local = engine.check149FZ(fullText + extraText149);
+      if (result149local.status === 'ok') {
+        check149AI.status = 'ok';
+        check149AI.issue = result149local.issue || 'Обязательные реквизиты владельца на сайте указаны';
+      }
+    }
+    const checkERIRAI = findAICheck(aiData.checks, 'erir', 'ЕРИР');
+    if (checkERIRAI && checkERIRAI.status !== 'ok') {
+      // No ad-network scripts detected → no third-party ad content → ЕРИР not required.
+      // Overrides AI hallucination when it confuses self-promotion or «Партнёрам» nav links with advertising.
+      const adTextMarker = /на правах реклам|рекламный материал|партнёрский материал|спонсорский материал|рекламодатель|sponsored content/i;
+      const effectiveHasAds = pageContext.hasAdScripts || (pageContext.hasGtm && adTextMarker.test(fullText));
+      if (!effectiveHasAds) {
+        checkERIRAI.status = 'ok';
+        checkERIRAI.issue = 'Рекламного контента не обнаружено (рекламные скрипты не найдены)';
+        checkERIRAI.fine = '';
+      }
+    }
   } else {
     // Discover privacy policy page for accurate 152-FZ check
     // (homepage rarely has the full policy text)
@@ -679,6 +709,31 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     applyMediaOverride(aiData, siteType);
     applyServicesOverride(aiData, siteType);
     if (siteType === 'ip') applyIPOverride(aiData);
+
+    // Ground-truth overrides (same logic as single-page scan — see comment there)
+    const findAICheckFull = (checks, id, lawSnippet) =>
+      checks?.find(c => c.id === id || (c.law || '').includes(lawSnippet));
+
+    const check149AIFull = findAICheckFull(aiData.checks, 'law149', '149');
+    if (check149AIFull && check149AIFull.status !== 'ok') {
+      const extraText149 = await fetchExtraText(engine, mainPageContext, origin);
+      const result149local = engine.check149FZ(allPagesText + extraText149);
+      if (result149local.status === 'ok') {
+        check149AIFull.status = 'ok';
+        check149AIFull.issue = result149local.issue || 'Обязательные реквизиты владельца на сайте указаны';
+      }
+    }
+    const checkERIRAIFull = findAICheckFull(aiData.checks, 'erir', 'ЕРИР');
+    if (checkERIRAIFull && checkERIRAIFull.status !== 'ok') {
+      const adTextMarker = /на правах реклам|рекламный материал|партнёрский материал|спонсорский материал|рекламодатель|sponsored content/i;
+      const mainPageText = `${mainPageContext.title}\n${mainPageContext.header}\n${mainPageContext.bodyText}\n${mainPageContext.footer}`;
+      const effectiveHasAds = mainPageContext.hasAdScripts || (mainPageContext.hasGtm && adTextMarker.test(mainPageText));
+      if (!effectiveHasAds) {
+        checkERIRAIFull.status = 'ok';
+        checkERIRAIFull.issue = 'Рекламного контента не обнаружено (рекламные скрипты не найдены)';
+        checkERIRAIFull.fine = '';
+      }
+    }
   } else {
     // Discover privacy policy page — critical for accurate 152-FZ check.
     // runAIAnalysis does this internally; we replicate it for local-only mode.
