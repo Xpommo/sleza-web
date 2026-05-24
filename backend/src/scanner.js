@@ -341,7 +341,11 @@ function detectSiteType(pageContext) {
   const communityRe = /моя\s+лента|написать[\s\S]{0,30}войти|ваша\s+лента|новая\s+публикаци/;
   if (communityRe.test(body2k)) return 'media';
   // Body-level media signals (page title may omit them but body/nav contains them)
-  if (mediaRe.test(body2k) && !(/магазин|купить|каталог товар/.test(titleHeader))) return 'media';
+  // Real estate / developer sites often have a news section — don't classify them as media.
+  const realEstateRe = /квартир|недвижим|новостройк|застройщ|жилой.комплекс|девелоп|жк\s|дом[еа]\s|планировк/;
+  if (mediaRe.test(body2k) &&
+      !(/магазин|купить|каталог товар/.test(titleHeader)) &&
+      !realEstateRe.test(text)) return 'media';
 
   // Services/corporate/edu signals
   const servicesDomainRe = /institut|clinic|hospital|academy|school|university|edu\.|\.edu|медцентр|клиник|больниц/;

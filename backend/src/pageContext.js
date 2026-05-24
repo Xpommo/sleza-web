@@ -269,7 +269,11 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         jsonLdText,
         eridAttrs,
         links: uniqueLinks.slice(0, 40),
-        policyLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.policy)).slice(0, 5),
+        policyLinks: uniqueLinks.filter(l =>
+          !isContentPath(l.path) &&
+          m(l, kw.policy) &&
+          !/антикоррупцион|политика.качеств|охран[аы].труда|экологичес|информацион[нг].+безопасн/i.test(l.text)
+        ).slice(0, 5),
         offerLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.offer)).slice(0, 4),
         returnLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.ret)).slice(0, 3),
         aboutLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.about)).slice(0, 4),
