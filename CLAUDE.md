@@ -215,6 +215,15 @@ _scanner.js:_
 - `REKVIZITY_PATHS` расширен: `/rbc_about`, `/about-us`, `/company/about` и др.
 - `blocked403` поле в результатах → frontend показывает предупреждение
 
+**Раунд 6 — modal policy + VK false positive** ✅ (2026-05-24)
+
+_pageContext.js:_
+- `vk.com/js/api` удалён из adNetworkScriptSelectors — openapi.js это социальный виджет (шаринг/логин через VK), НЕ рекламная сеть → устранён false positive ERIR для сайтов с VK OAuth/Share
+- Modal detection: если `policyLinks: []`, Playwright пробует кликнуть `<BUTTON>` / `<a>` без href с текстом "политика/конфиденц/privacy", ждёт 1.5с, захватывает текст из `[role="dialog"]`, `[class*="modal"]`, или `position:fixed` элемента с высоким z-index → поле `inlineModalPolicyText`
+
+_scanner.js:_
+- `fetchPolicyText` проверяет `inlineModalPolicyText` (≥2 152-FZ секций) как источник политики (до HTTP-фоллбэков); уже plain text — htmlToText() не нужен
+
 _frontend:_
 - 403 warning banner в Results.js
 - Auto-scroll к результатам при завершении сканирования
@@ -254,13 +263,13 @@ _frontend:_
 ```
 shop     www.wildberries.ru  → ⚠️ ❌ ✅ ✅ ✅  (fallback ⚡, Cloudflare)
 media    www.rbc.ru          → ⚠️ ⚠️ ✅ ✅ ✅  (Qrator блокирует subpages)
-services www.hh.ru           → ⚠️ ✅ ⚠️ ✅ ✅  (реальные compliance gaps)
+services www.hh.ru           → ✅ ✅ ✅ ✅ ✅  (modal detection нашла политику!)
 saas     www.bitrix24.ru     → ✅ ✅ ✅ ✅ ✅
 large    vc.ru               → ✅ ✅ ✅ ✅ ✅
-saas     callibri.ru         → ✅ ✅ ⚠️ ✅ ✅
+saas     callibri.ru         → ✅ ✅ ✅ ✅ ✅
 ip       sleza.media         → ✅ ⚠️ ✅ ⚠️ ⚠️
-Итого: 25✅ 9⚠️ 1❌
+Итого: 28✅ 6⚠️ 1❌
 Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Куки
 ```
 
-Прогресс за 2 сессии: 23✅ 11⚠️ 1❌ → 25✅ 9⚠️ 1❌
+Прогресс: 23✅ 11⚠️ 1❌ → 25✅ 9⚠️ 1❌ → 28✅ 6⚠️ 1❌
