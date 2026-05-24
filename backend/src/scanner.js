@@ -36,7 +36,31 @@ function isPdfUrl(url, contentType = '') {
   return url.toLowerCase().includes('.pdf') || (contentType || '').includes('pdf');
 }
 
-const SITEMAP_KW = /privacy|polic|ofert|legal|terms|cookie|\.pdf|реквизит|конфиденц|соглаш|персональн|protect/i;
+// Extract text from a DOCX URL via mammoth (Word documents used by Russian B2B/застройщики).
+async function fetchDocxText(url) {
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(15000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+    });
+    if (!res.ok) return '';
+    const buf = Buffer.from(await res.arrayBuffer());
+    const mammoth = _require('mammoth');
+    const { value } = await mammoth.extractRawText({ buffer: buf });
+    return value.slice(0, 15000);
+  } catch {
+    return '';
+  }
+}
+
+function isDocxUrl(url, contentType = '') {
+  const u = url.toLowerCase();
+  return u.includes('.docx') || u.includes('.doc') ||
+    (contentType || '').includes('wordprocessingml') ||
+    (contentType || '').includes('msword');
+}
+
+const SITEMAP_KW = /privacy|polic|ofert|legal|terms|cookie|\.pdf|\.docx|реквизит|конфиденц|соглаш|персональн|положени|protect/i;
 
 async function tryDiscoverFromSitemap(origin) {
   const candidates = [`${origin}/sitemap.xml`, `${origin}/sitemap_index.xml`];
@@ -86,9 +110,13 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
   const visited = new Set(candidates);
 
   for (const href of candidates) {
-    // PDF policy documents (e.g. /Offer.pdf containing privacy section)
     if (isPdfUrl(href)) {
       const text = await fetchPdfText(href);
+      if (text.length > 200) combined += '\n' + text;
+      continue;
+    }
+    if (isDocxUrl(href)) {
+      const text = await fetchDocxText(href);
       if (text.length > 200) combined += '\n' + text;
       continue;
     }
@@ -101,6 +129,9 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
       visited.add(sub);
       if (isPdfUrl(sub)) {
         const t = await fetchPdfText(sub);
+        if (t.length > 200) combined += '\n' + t;
+      } else if (isDocxUrl(sub)) {
+        const t = await fetchDocxText(sub);
         if (t.length > 200) combined += '\n' + t;
       } else {
         const sp = await engine.fetchUrl(sub);
@@ -201,8 +232,9 @@ async function fetchExtraText(engine, pageContext, origin) {
 
   for (const href of hrefs) {
     if (isPdfUrl(href)) {
-      // PDF offer/terms documents often contain INN/OGRN (e.g. callibri.ru/Offer.pdf)
       extra += '\n' + await fetchPdfText(href);
+    } else if (isDocxUrl(href)) {
+      extra += '\n' + await fetchDocxText(href);
     } else {
       const r = await engine.fetchUrl(href);
       if (r.ok) extra += '\n' + htmlToText(r.text);

@@ -18,7 +18,7 @@ import { chromium } from 'playwright';
 
 const KW = {
   policy: [
-    'политик','конфиденц','персональн','privacy','cookie','gdpr','согласие','persdata','personal-data','/policy','/policies',
+    'политик','конфиденц','персональн','положени','согласие на обработку','privacy','cookie','gdpr','согласие','persdata','personal-data','/policy','/policies',
     'privacy policy','data protection','data privacy','personal data','cookie policy','cookie notice','privacy notice',
     'personal_data','privacy_policy','personaldata',
     'обработка данных','защита данных','условия использования','пользовательское',
