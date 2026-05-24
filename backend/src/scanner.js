@@ -297,21 +297,50 @@ function applyMediaOverride(aiData, siteType) {
 }
 
 function applyServicesOverride(aiData, siteType) {
-  if (siteType !== 'services' || !aiData?.checks) return;
-  const offer = aiData.checks.find(c => c.id === 'offer');
+  if (!aiData?.checks) return;
+  // Also apply for 'auto' when AI itself misclassified site as «торговая площадка»
+  const offerCheck = aiData.checks.find(c => c.id === 'offer' || (c.law || '').includes('офер') || (c.law || '').includes('Оферт'));
+  const aiMisclassified = siteType === 'auto' && (offerCheck?.issue || '').includes('торговая площадка');
+  if (!['services', 'saas'].includes(siteType) && !aiMisclassified) return;
+  const effectiveSiteType = ['services', 'saas'].includes(siteType) ? siteType : 'saas';
+  const offer = aiData.checks.find(c => c.id === 'offer' || (c.law || '').includes('офер') || (c.law || '').includes('Оферт') || (c.law || '').toLowerCase().includes('offer'));
   if (offer && offer.status !== 'ok' && offer.issue) {
-    // "Return of goods" rules (ЗоЗПП ст.26.1) apply only to physical goods
-    offer.issue = offer.issue
+    // Check if the ONLY complaint is "условия возврата товара" (not applicable for SaaS/services).
+    // Strip all non-substantive parts: prefixes, the classifier, the return-goods clause itself.
+    const coreRemains = offer.issue
+      .replace(/отсутствует[:\s]*/gi, '')
       .replace(/условия?\s+возврата\s+товара[;,]?\s*/gi, '')
-      .replace(/\(торговая\s+площадка\)/gi, '(платные услуги / договор оказания услуг)')
+      .replace(/\(торговая\s+площадка\)/gi, '')
+      .replace(/\(лицензионный\s+договор[^)]*\)/gi, '')
+      .replace(/[;,]\s*/g, ' ')
+      .trim();
+
+    if (!coreRemains || coreRemains.length < 5) {
+      // The only issue was "возврат товара" — not applicable for SaaS/services
+      offer.status = 'ok';
+      offer.issue = effectiveSiteType === 'saas'
+        ? 'Лицензионный договор и условия расторжения на месте (SaaS — возврат товара не применяется)'
+        : 'Договор оказания услуг и условия расторжения на месте (возврат товара не применяется)';
+      offer.fine = '';
+      return;
+    }
+
+    // Partial cleanup: remove "возврат товара" and fix classifier label
+    const cleanedIssue = offer.issue
+      .replace(/условия?\s+возврата\s+товара[;,]?\s*/gi, '')
+      .replace(/\(торговая\s+площадка\)/gi, effectiveSiteType === 'saas' ? '(лицензионный договор / SaaS)' : '(платные услуги / договор оказания услуг)')
       .trim().replace(/^[;,\s]+/, '');
-    // Downgrade violation → risk: services work on individual contracts, not public offer
+
+    offer.issue = cleanedIssue;
+    // Downgrade violation → risk: services/saas use license/service contracts, not retail offer
     if (offer.status === 'violation') {
       offer.status = 'risk';
       offer.fine = '';
     }
     if (offer.action) {
-      offer.action = 'Рекомендуется опубликовать шаблон договора оказания услуг с реквизитами (ИНН/ОГРН, адрес, email) и порядком расторжения';
+      offer.action = effectiveSiteType === 'saas'
+        ? 'Рекомендуется убедиться что лицензионный договор (оферта) содержит порядок расторжения и реквизиты (ИНН/ОГРН)'
+        : 'Рекомендуется опубликовать шаблон договора оказания услуг с реквизитами (ИНН/ОГРН, адрес, email) и порядком расторжения';
     }
   }
 }
@@ -360,20 +389,23 @@ function detectSiteType(pageContext) {
   const installServiceRe = /бесплатн[ыйое]+\s+замер|выезд\s+(на\s+)?замер|замер\s+бесплатн|натяжн[а-яё]+\s+потол|монтаж\s+[а-яё]|установк[ауи]\s+[а-яё]|ремонт\s+[а-яё]|отделочн|под\s+ключ|выезд\s+мастер|бригад[аы]\s+мастер/i;
   if (installServiceRe.test(titleHeader) || installServiceRe.test(body2k)) return 'services';
 
+  // SaaS signals — checked BEFORE ecommerce because SaaS sites often have /product/ URLs
+  // Note: \b does not work for Cyrillic in JS — use substring or lookahead patterns
+  const saasTextHits = [
+    /тариф/.test(text),
+    /подписк/.test(text) && !/новостная|email.подписк|рассылк/.test(text),
+    /pricing|per.month/.test(text),
+    /корпоративн[а-яё]+\s+(?:план|тариф|лицензи|решени)/.test(text),
+    /платформ/.test(text) && !/строительн|девелоп|недвижим/.test(text),
+    /сервис(?!н)/.test(titleHeader) && !/автосервис/.test(titleHeader),
+    /\bapi\b/.test(text) && /интеграц/.test(text),
+  ].filter(Boolean).length;
+  if (saasTextHits >= 2) return 'saas';
+  if (allLinks.some(l => /\/(pricing|plans|tariff|цены|tarify)\b/.test(l))) return 'saas';
+
   // E-commerce signals
   if (/магазин|интернет.магазин|купить|каталог товар/.test(titleHeader)) return 'ecommerce';
   if (allLinks.some(l => /\/(cart|basket|checkout|product|catalog)\b/.test(l))) return 'ecommerce';
-
-  // SaaS signals — require at least 2 signals
-  const saasTextHits = [
-    /\bтариф[ыа]?\b/.test(text),
-    /\bподписк[аи]\b/.test(text) && !/новостная|email.подписк|рассылк/.test(text),
-    /pricing|per.month/.test(text),
-    /корпоративн[а-яё]+\s+(?:план|тариф|лицензи|решени)/.test(text),
-    /\bплатформ[ауы]\b/.test(titleHeader),
-  ].filter(Boolean).length;
-  if (saasTextHits >= 2) return 'saas';
-  if (allLinks.some(l => /\/(pricing|plans|tariff)\b/.test(l))) return 'saas';
 
   return 'auto';
 }
