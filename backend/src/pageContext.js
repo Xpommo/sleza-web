@@ -269,11 +269,15 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         jsonLdText,
         eridAttrs,
         links: uniqueLinks.slice(0, 40),
-        policyLinks: uniqueLinks.filter(l =>
-          !isContentPath(l.path) &&
-          m(l, kw.policy) &&
-          !/антикоррупцион|политика.качеств|охран[аы].труда|экологичес|информацион[нг].+безопасн/i.test(l.text)
-        ).slice(0, 5),
+        policyLinks: uniqueLinks.filter(l => {
+          if (isContentPath(l.path)) return false;
+          if (!m(l, kw.policy)) return false;
+          if (/антикоррупцион|политика.качеств|охран[аы].труда|экологичес|информацион[нг].+безопасн/i.test(l.text)) return false;
+          // "персональн" alone is too broad — only allow if paired with data/privacy context
+          // (filters out "Персональная доработка", "Персональный менеджер" etc.)
+          if (/персональн/i.test(l.text) && !/данн|обработк|конфиденц|privacy|personal.?data/i.test(l.text + l.href)) return false;
+          return true;
+        }).slice(0, 5),
         offerLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.offer)).slice(0, 4),
         returnLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.ret)).slice(0, 3),
         aboutLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.about)).slice(0, 4),
