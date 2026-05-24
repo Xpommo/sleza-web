@@ -217,18 +217,37 @@ _scanner.js:_
 
 **Раунд 6 — modal policy + VK false positive** ✅ (2026-05-24)
 
-_pageContext.js:_
-- `vk.com/js/api` удалён из adNetworkScriptSelectors — openapi.js это социальный виджет (шаринг/логин через VK), НЕ рекламная сеть → устранён false positive ERIR для сайтов с VK OAuth/Share
-- Modal detection: если `policyLinks: []`, Playwright пробует кликнуть `<BUTTON>` / `<a>` без href с текстом "политика/конфиденц/privacy", ждёт 1.5с, захватывает текст из `[role="dialog"]`, `[class*="modal"]`, или `position:fixed` элемента с высоким z-index → поле `inlineModalPolicyText`
-
-_scanner.js:_
-- `fetchPolicyText` проверяет `inlineModalPolicyText` (≥2 152-FZ секций) как источник политики (до HTTP-фоллбэков); уже plain text — htmlToText() не нужен
-
 _frontend:_
 - 403 warning banner в Results.js
 - Auto-scroll к результатам при завершении сканирования
 - ConfidenceBadge с tooltip-объяснением
 - Кнопка «← проверить другой сайт»
+
+_pageContext.js:_
+- `vk.com/js/api` удалён из adNetworkScriptSelectors — VK openapi.js это социальный виджет, НЕ реклама
+- Modal detection: если `policyLinks: []`, Playwright кликает кнопку с текстом "политика/конфиденц/privacy", захватывает текст из modal/dialog → поле `inlineModalPolicyText`
+
+_scanner.js:_
+- `fetchPolicyText` проверяет `inlineModalPolicyText` (≥2 152-FZ секций) как источник политики
+
+**Раунд 7 — DOCX-политики + точность типа сайта** ✅ (2026-05-24)
+
+_scanner.js:_
+- `fetchDocxText()` + `isDocxUrl()` — парсинг Word-документов через mammoth (политики в .docx у Russian B2B/застройщиков)
+- `fetchPolicyText` и `fetchExtraText` обрабатывают .docx наравне с .pdf
+- `SITEMAP_KW` расширен: `.docx`, `положени`
+- `detectSiteType`: `realEstateRe` — застройщики/девелоперы не классифицируются как media
+- `detectSiteType`: `installServiceRe` — монтаж/ремонт/натяжные потолки → 'services'
+- `applyServicesOverride`: offer violation → risk для services (индивидуальные договоры, не публичная оферта); обновлен action text
+
+_pageContext.js (Р7):_
+- KW.policy расширен: `положени`, `согласие на обработку`
+- policyLinks исключает антикоррупционные и технические "политики" (антикоррупцион, политика.качества, охрана.труда)
+
+_sleza_tets_js/script + backend/sleza_script (Р7):_
+- ИНН/ОГРН regex: добавлен `(` в character class → поддержка формата `(ИНН 3000001232)` (brackets в DOCX)
+
+**mammoth dependency:** `npm install mammoth` уже добавлен в `backend/package.json`
 
 ### Деплой
 
