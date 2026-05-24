@@ -80,7 +80,7 @@ export function calcConfidence(result, pageCtxs = [], aiUsed = false) {
     factors.ai_local_agreement = false;
   }
 
-  const score = Math.min(100, Math.max(0,
+  const rawScore = Math.min(100, Math.max(0,
     (factors.egrul_found       ? 20 : 0) +
     (factors.ai_used           ? 20 : 0) +
     (factors.pages_not_blocked ? 20 : 0) +
@@ -89,7 +89,14 @@ export function calcConfidence(result, pageCtxs = [], aiUsed = false) {
     (factors.ai_local_agreement ? 15 : 0),
   ));
 
+  // Normalize to the achievable maximum for this scan type so that a perfectly
+  // compliant site doesn't get a misleading "low" label just because no API key was used.
+  // Without AI:  max = 20(egrul) + 20(no-block) + 15(no-fallback) + 10(policy) = 65
+  // With AI:     max = 65 + 20(ai) + 15(agreement)                             = 100
+  const maxAchievable = aiUsed ? 100 : 65;
+  const score = Math.round((rawScore / maxAchievable) * 100);
+
   const label = score >= 80 ? 'high' : score >= 50 ? 'medium' : 'low';
 
-  return { score, label, factors };
+  return { score, label, factors, rawScore, maxAchievable };
 }
