@@ -261,12 +261,32 @@ _sleza_tets_js/script + backend/sleza_script (Р7):_
 - Актуальная версия: `"v":"r4-supabase"` + `"db":true`
 - После security-фикса нужен Redeploy (коммит `e8cff6b` в master, `ADMIN_TOKEN` нужен в Railway Variables)
 
+**Раунд 8 — Точность AI-сканов + SaaS offer fix** ✅ (2026-05-25)
+
+_scanner.js:_
+- Ground-truth overrides в AI-режиме: 149-ФЗ и ЕРИР проверяются локальными проверками после AI и перебивают ложные срабатывания AI
+- `findAICheck(checks, id, lawSnippet)` — хелпер для поиска по `id` или `law` (AI использует human-readable `law`, локальный путь использует короткий `id`)
+- `detectSiteType`: SaaS-детект переставлен ПЕРЕД e-commerce (calltouch.ru с `/product/` URL больше не классифицируется как ecommerce)
+- `applyServicesOverride`: расширен на `siteType=saas` и `siteType=auto+aiMisclassified`; единственная жалоба "условия возврата товара" → `ok` для SaaS/services
+- Убраны `\b` перед кириллицей в regex (JS `\b` = ASCII-only, не работает с русскими словами)
+- `effectiveHasAds`: GTM считается рекламой только при наличии рекламного текста на странице
+- `policyLinks` фильтр: исключает "Персональная доработка" и аналогичные ложные ссылки
+
+_scanDiff.js:_
+- Нормализация confidence к achievable max: без AI-ключей max=65 (не 100); score нормируется → "medium" вместо ложного "low"
+
 ### Следующие задачи
 
-**Возможные улучшения:**
+**В работе — Feedback Loop (Option A):**
+- Новая таблица `domain_exceptions`: при ≥2 `false_positive` на (hostname, check_id) → auto-override
+- `law152`/`law149`: максимум `violation→risk`, не `ok` (серьёзные законы)
+- Frontend: бейдж `(оспорено N раз)` когда `check._override` заполнен
+- Admin endpoint `GET /api/admin/exceptions`
+- В резерве: B (сигнальные паттерны), D (issue-pattern clustering), E (memory injection), F (shadow mode), G (авто ре-валидация)
+
+**Прочие улучшения:**
 - Telegram webhook для новых лидов
-- Улучшить check152FZ паттерны для rbc.ru (Qrator блокирует subpages, политика найдена но неполная)
-- rbc.ru 149: ИНН/ОГРН недоступны через plain fetch (Qrator JS-challenge) — нужен Playwright для subpages
+- check152FZ улучшение паттернов для rbc.ru (Qrator блокирует subpages)
 - Удалить `/api/debug/links` перед публичным релизом
 
 ### Известные ограничения / false positives
