@@ -9,6 +9,7 @@
  */
 import { createRequire } from 'module';
 import { createEngine } from './engine.js';
+import { isSafeUrl } from './utils.js';
 import { buildPageContext } from './pageContext.js';
 import {
   getLastScanForDomain,
@@ -111,7 +112,7 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
   const candidates = [
     ...(pageContext.policyLinks || []).map(l => l.href),
     ...(pageContext.offerLinks  || []).map(l => l.href),
-  ].filter((h, i, a) => h && a.indexOf(h) === i);
+  ].filter((h, i, a) => h && a.indexOf(h) === i && isSafeUrl(h));
 
   let combined = '';
   const visited = new Set(candidates);
@@ -132,7 +133,7 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     combined += '\n' + htmlToText(p.text);
     // Follow 1 level: find personal-data policy links inside this page
     for (const sub of extractPolicyHrefs(p.text, href)) {
-      if (visited.has(sub)) continue;
+      if (visited.has(sub) || !isSafeUrl(sub)) continue;
       visited.add(sub);
       if (isPdfUrl(sub)) {
         const t = await fetchPdfText(sub);
@@ -168,7 +169,7 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
   if (origin) {
     const sitemapUrls = await tryDiscoverFromSitemap(origin);
     for (const url of sitemapUrls) {
-      if (visited.has(url)) continue;
+      if (visited.has(url) || !isSafeUrl(url)) continue;
       visited.add(url);
       if (isPdfUrl(url)) {
         const text = await fetchPdfText(url);
@@ -232,7 +233,7 @@ async function fetchExtraText(engine, pageContext, origin) {
     ...(pageContext.offerLinks  || []).map(l => l.href),
     ...(pageContext.aboutLinks  || []).map(l => l.href),
     ...(pageContext.policyLinks || []).map(l => l.href),
-  ].filter((h, i, a) => h && a.indexOf(h) === i);
+  ].filter((h, i, a) => h && a.indexOf(h) === i && isSafeUrl(h));
 
   let extra = '';
   const visited = new Set(hrefs);

@@ -21,6 +21,7 @@ import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScan
 import { tgEnabled, sendLeadNotification, registerWebhook, getWebhookSecret, handleUpdate } from './tg.js';
 import { verifyException } from './scanner.js';
 import { validateEmail, validateCompany, validateEmailMX } from './validateLead.js';
+import { isSafeUrl } from './utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const UUID_RE  = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -65,16 +66,6 @@ function extractKeys(request) {
   };
 }
 
-// Block SSRF: only allow public http/https URLs
-function isSafeUrl(raw) {
-  let parsed;
-  try { parsed = new URL(raw); } catch { return false; }
-  if (!['http:', 'https:'].includes(parsed.protocol)) return false;
-  const host = parsed.hostname;
-  if (host === 'localhost') return false;
-  if (/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.)/.test(host)) return false;
-  return true;
-}
 
 // Input validation schema
 const scanBodySchema = {
@@ -208,19 +199,6 @@ app.get('/api/debug/links', async (request, reply) => {
 });
 
 // ── Results storage ──────────────────────────────────────────────────────────
-
-// Explicit save endpoint (for backward compat — scan endpoints now auto-save)
-app.post('/api/results', async (request, reply) => {
-  const { result } = request.body || {};
-  if (!result || typeof result !== 'object') return reply.status(400).send({ error: 'result required' });
-  // If result already has a uuid (from scan endpoint), reuse it
-  const uuid = result.uuid || randomUUID();
-  if (!result.uuid) {
-    const url = result.url || result.hostname || 'unknown';
-    await saveScan({ uuid, url, mode: result.mode || 'single', result });
-  }
-  return reply.send({ uuid });
-});
 
 app.get('/api/results/:uuid', async (request, reply) => {
   const { uuid } = request.params;

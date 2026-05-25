@@ -50,16 +50,10 @@ export default function Home() {
     setTimeout(() => formRef.current?.querySelector('input')?.focus(), 50);
   };
 
-  const saveResult = async (data) => {
-    try {
-      const r = await fetch(`${BASE}/api/results`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ result: data }),
-      });
-      const { uuid: id } = await r.json();
-      setUuid(id);
-      window.history.replaceState(null, '', `?report=${id}`);
-    } catch (_) {}
+  const applyUuid = (id) => {
+    if (!id) return;
+    setUuid(id);
+    window.history.replaceState(null, '', `?report=${id}`);
   };
 
   const stopScan = () => {
@@ -82,7 +76,7 @@ export default function Home() {
         const res = await fetch(`${BASE}/api/scan/single`, { method: 'POST', headers, body });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
-        setResult(data); saveResult(data);
+        setResult(data); applyUuid(data.uuid);
       } else {
         const res = await fetch(`${BASE}/api/scan/full/stream`, { method: 'POST', headers, body });
         if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || 'Ошибка сервера'); }
@@ -99,7 +93,7 @@ export default function Home() {
             if (!part.startsWith('data: ')) continue;
             const data = JSON.parse(part.slice(6));
             if (data.error) throw new Error(data.error);
-            if (data.done) { setResult(data.result); saveResult(data.result); finished = true; break; }
+            if (data.done) { setResult(data.result); applyUuid(data.result?.uuid); finished = true; break; }
             setProgress({ phase: data.phase || '', current: data.current || 0, total: data.total || 0 });
           }
         }
