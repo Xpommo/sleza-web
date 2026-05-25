@@ -44,7 +44,7 @@ export async function sendMessage(text) {
 }
 
 export async function sendLeadNotification({ email, company, scanUuid }) {
-  const reportUrl = scanUuid ? `${FRONTEND}/results/${scanUuid}` : null;
+  const reportUrl = scanUuid ? `${FRONTEND}/?report=${scanUuid}` : null;
   const lines = [
     '🔔 <b>Новый лид!</b>',
     '',
