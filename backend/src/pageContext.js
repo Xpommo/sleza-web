@@ -31,7 +31,7 @@ const KW = {
   ret:   ['возврат','обмен','отказ'],
   about: [
     'о компани','о нас','контакт','about','contact','реквизит',
-    'legal notice','imprint','юридическ','юрлицо',
+    'legal notice','imprint','юридическ','юрлицо','props','rekviz',
   ],
 };
 

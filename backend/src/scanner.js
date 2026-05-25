@@ -277,7 +277,7 @@ async function fetchExtraText(engine, pageContext, origin) {
       const REKVIZITY_PATHS = ['/contacts', '/contact', '/about', '/о-компании',
         '/rekvizity', '/реквизиты', '/company', '/terms', '/legal',
         '/rbc_about', '/about-us', '/company/about', '/info/about', '/help/about',
-        '/о-компании/реквизиты', '/legal/about'];
+        '/о-компании/реквизиты', '/legal/about', '/props', '/rekviz'];
       for (const path of REKVIZITY_PATHS) {
         const url = origin + path;
         if (visited.has(url)) continue;
