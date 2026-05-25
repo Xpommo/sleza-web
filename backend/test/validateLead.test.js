@@ -6,7 +6,7 @@ import { validateEmail, validateCompany } from '../src/validateLead.js';
 describe('validateEmail', () => {
   // Valid emails
   it('accepts standard email', () => assert.equal(validateEmail('user@company.ru'), null));
-  it('accepts gmail',          () => assert.equal(validateEmail('test.user+tag@gmail.com'), null));
+  it('accepts gmail',          () => assert.equal(validateEmail('real.user+tag@gmail.com'), null));
   it('accepts subdomain',      () => assert.equal(validateEmail('me@mail.example.co.uk'), null));
   it('accepts yandex',         () => assert.equal(validateEmail('ivan@yandex.ru'), null));
 
@@ -23,6 +23,23 @@ describe('validateEmail', () => {
   it('rejects dot at start',   () => assert.ok(validateEmail('.user@domain.ru')));
   it('rejects dot at end local', () => assert.ok(validateEmail('user.@domain.ru')));
   it('rejects consecutive dots', () => assert.ok(validateEmail('user..name@domain.ru')));
+
+  // Junk local-parts — only blocks clearly fake, not legitimate business addresses
+  it('rejects test@mail.ru',   () => assert.ok(validateEmail('test@mail.ru')));
+  it('rejects Test@mail.ru (case insensitive)', () => assert.ok(validateEmail('Test@mail.ru')));
+  it('rejects noreply@...',    () => assert.ok(validateEmail('noreply@company.ru')));
+  it('rejects no-reply@...',   () => assert.ok(validateEmail('no-reply@company.ru')));
+  it('accepts info@ (legitimate business)', () => assert.equal(validateEmail('info@company.ru'), null));
+  it('accepts admin@ (legitimate business)', () => assert.equal(validateEmail('admin@company.ru'), null));
+
+  // Disposable email domains
+  it('rejects mailinator',     () => assert.ok(validateEmail('foo@mailinator.com')));
+  it('rejects guerrillamail',  () => assert.ok(validateEmail('foo@guerrillamail.com')));
+  it('rejects yopmail',        () => assert.ok(validateEmail('foo@yopmail.com')));
+  it('rejects 10minutemail',   () => assert.ok(validateEmail('foo@10minutemail.com')));
+  it('rejects trashmail',      () => assert.ok(validateEmail('foo@trashmail.com')));
+  it('rejects temp-mail',      () => assert.ok(validateEmail('foo@temp-mail.org')));
+  it('rejects maildrop',       () => assert.ok(validateEmail('foo@maildrop.cc')));
 });
 
 describe('validateCompany', () => {
