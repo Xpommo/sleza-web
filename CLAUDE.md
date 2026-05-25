@@ -275,14 +275,39 @@ _scanner.js:_
 _scanDiff.js:_
 - Нормализация confidence к achievable max: без AI-ключей max=65 (не 100); score нормируется → "medium" вместо ложного "low"
 
+**Раунд 9 — Feedback Loop: автообучение на фидбэке (Option A + D)** ✅ (2026-05-25)
+
+_db.js:_
+- Новая таблица `domain_exceptions`: lifecycle `pending → verifying → active/disputed/expired`
+- `issue_text` добавлен в таблицу `feedback` (денормализация для D-аналитики)
+- CRUD: `upsertDomainException`, `activateDomainException`, `disputeDomainException`, `handleConfirmFeedback`, `getActiveDomainExceptions`, `expireExceptionsByCheckId`
+- `invalidateCacheForHostname` — инвалидирует 20-мин кэш при активации exception (К5)
+
+_scanner.js:_
+- `applyFeedbackOverrides(hostname, checks)` — применяет active exceptions; сохраняет `_original` (К1, К6)
+- `verifyException(hostname, checkId, originUrl)` — check-specific re-scan стратегии (ЕРИР, 149-ФЗ, 152-ФЗ, оферта, cookie/drugs); max 3 retry → disputed (К7)
+- Безопасность: law152/law149 max override = `risk`, никогда `ok`
+
+_server.js:_
+- `POST /api/feedback` расширен: сохраняет `issue_text` + upsert exception + `setImmediate(verifyException)` при 2-м голосе (К8 идемпотентность)
+- `GET /api/admin/exceptions` — все domain exceptions
+- `POST /api/admin/exceptions/expire {check_id}` — bulk-expire (К3)
+- `GET /api/admin/patterns` — D-аналитика: кластеризация issue_text по check_id
+
+_scanDiff.js:_
+- diff сравнивает `_original.status` а не текущий статус (К6 — исключает ложные «улучшения»)
+
+_Results.js:_
+- Бейдж «оспорено N раз» рядом со статусом когда `check._override` присутствует
+
+_test/feedback.js:_
+- lifecycle suite: pending→verifying→active; applyFeedbackOverrides; confirm×2→disputed
+- safety cap проверка: law152 override_status = 'risk' не 'ok'
+- retry exhaustion: 3 failed re-scans → disputed
+
 ### Следующие задачи
 
-**В работе — Feedback Loop (Option A):**
-- Новая таблица `domain_exceptions`: при ≥2 `false_positive` на (hostname, check_id) → auto-override
-- `law152`/`law149`: максимум `violation→risk`, не `ok` (серьёзные законы)
-- Frontend: бейдж `(оспорено N раз)` когда `check._override` заполнен
-- Admin endpoint `GET /api/admin/exceptions`
-- В резерве: B (сигнальные паттерны), D (issue-pattern clustering), E (memory injection), F (shadow mode), G (авто ре-валидация)
+**В резерве (Feedback Loop):** B (ML сигнальные паттерны), E (memory injection в промпт), F (shadow mode A/B), G (авто ре-валидация всего домена)
 
 **Прочие улучшения:**
 - Telegram webhook для новых лидов
