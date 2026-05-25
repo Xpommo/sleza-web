@@ -347,6 +347,23 @@ _pageContext.js:_
 
 _Результат:_ rbc.ru: 152-ФЗ и 149-ФЗ ⚠️→✅ (Qrator перестал блокировать политику через Playwright); sleza.media: оферта и куки ⚠️→✅
 
+**Раунд 12 — Bitrix EXTRA_PATHS + alutech.ru диагностика** ✅ (2026-05-25)
+
+_scanner.js:_
+- `EXTRA_PATHS` в `fetchPolicyText` расширен Bitrix/транслит-путями:
+  `/politika-konfidencialnosti`, `/politika-konfidencialnosti/`, `/politika-obrabotki-personalnyh-dannyh`, `/politika-obrabotki-personalnyh-dannyh/`, `/politika`, `/politika/`, `/konfidencialnost`, `/konfidencialnost/`, `/personalnie-dannie`, `/personal-data-policy`
+
+_test/test-urls.txt:_
+- Расширен с 7 до 140+ URL по 18 категориям: shop, marketplace, media, services, saas, finance, telecom, travel, food, realestate, health, education, gov, entertainment, legal, industrial, auto, charity, tech, extra
+- Используется для полного regression-прогона (вечерний, ~70 мин): `node test/smoke.js 2>/dev/null` из `backend/`
+- Для быстрого baseline (7 сайтов, ~5 мин) временно заменить test-urls.txt на 7-строчный файл или использовать `--baseline` флаг
+
+_Диагностика alutech.ru (false positive разобран):_
+- **alutech.ru 152-ФЗ РИСК** — Playwright подтвердил: policyLinks ×5 → `/politika-konfidencialnosti/`, check152FZ = 7/7 разделов → должен быть ✅
+- **alutech.ru ЕРИР РИСК** — `hasAdScripts: false`, `hasGtm: true`, `adTextMarker: false` → effectiveHasAdScripts = false → должен быть ✅
+- **Root cause:** 20-минутный Supabase-кэш (`findCachedScan`, `maxAgeMinutes=20`). Кэш хранится в БД, не в памяти Railway — пережил Redeploy. После 20 мин новый скан вернёт корректный результат.
+- **Важно:** Railway Redeploy НЕ инвалидирует кэш сканов в Supabase. Нужно ждать 20 мин после последнего скана URL.
+
 ### Следующие задачи
 
 **В резерве (Feedback Loop):** B (ML сигнальные паттерны), E (memory injection в промпт), F (shadow mode A/B), G (авто ре-валидация всего домена)
@@ -362,6 +379,7 @@ _Результат:_ rbc.ru: 152-ФЗ и 149-ФЗ ⚠️→✅ (Qrator пере
 - **403 на главной** (1cbit.ru): false positives по 149-ФЗ и 152-ФЗ (~5% SMB сайтов).
 - **Реквизиты только в PDF** (callibri.ru): читаем через pdf-parse; если PDF недоступен — риск.
 - **Политика скрыта в JS-виджете** (artlebedev.ru): fallback на /terms/, /legal/.
+- **20-мин Supabase-кэш**: `findCachedScan` хранит результат в БД, не в памяти. Railway Redeploy НЕ сбрасывает кэш. Если после Redeploy результат кажется устаревшим — подождать 20 мин и пересканировать.
 
 ### Smoke test baseline (2026-05-25) ← АКТУАЛЬНЫЙ
 
