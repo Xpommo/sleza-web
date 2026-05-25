@@ -337,36 +337,44 @@ _Исправленные false positives:_
 - **sdvor.com/ekb**: 149-ФЗ false positive — реквизиты находились на `/ekb/props`, теперь захватываются через `kw.about: 'props'`
 - **sostav.ru**: 152-ФЗ false positive — политика находится на `/page/policy`, теперь проверяется в EXTRA_PATHS
 
+**Раунд 11 — Tilda lazy-load fix** ✅ (2026-05-25)
+
+_Root cause:_ Tilda-сайты (thepike.ru и др.) используют `data-tilda-lazy="yes"` + IntersectionObserver для ленивой загрузки блоков. Без прокрутки Playwright захватывал пустой footer → ИНН/ОГРНИП не видны → 149-ФЗ false RISK.
+
+_pageContext.js:_
+- `buildPageContext()`: после закрытия cookie-баннера добавлен `scrollTo(0, scrollHeight)` + 800ms wait → lazy секции Tilda и других конструкторов рендерятся до захвата текста
+- `fetchPageText()`: аналогичный scroll добавлен в fallback Playwright-функцию
+
+_Результат:_ rbc.ru: 152-ФЗ и 149-ФЗ ⚠️→✅ (Qrator перестал блокировать политику через Playwright); sleza.media: оферта и куки ⚠️→✅
+
 ### Следующие задачи
 
 **В резерве (Feedback Loop):** B (ML сигнальные паттерны), E (memory injection в промпт), F (shadow mode A/B), G (авто ре-валидация всего домена)
 
 **Прочие улучшения:**
-- check152FZ улучшение паттернов для rbc.ru (Qrator блокирует subpages)
 - Удалить `/api/debug/links` перед публичным релизом
 - Настройка Telegram бота в Railway (TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID + Redeploy)
 
 ### Известные ограничения / false positives
 
-- **Cloudflare/DDoS-Guard** (wildberries.ru): fallback на plain fetch, результаты неполные.
-- **Qrator anti-bot** (rbc.ru): все subpages (about, privacy details) возвращают JS-challenge (265 байт) на plain fetch. 149-ФЗ и часть 152-ФЗ могут быть неточны.
-- **SmartCaptcha / Яндекс anti-bot** (sdvor.com): Railway IP блокируется, subpage-запросы через `engine.fetchUrl()` → редирект на капчу. 152-ФЗ показывает RISK несмотря на наличие `/ekb/personal-data`. Политика существует, но недоступна для plain fetch из дата-центра. Решение: кнопка «неверно?» → feedback loop активирует permanent exception.
+- **Cloudflare/DDoS-Guard** (wildberries.ru): fallback на plain fetch, результаты неполные (149-ФЗ ❌).
+- **SmartCaptcha / Яндекс anti-bot** (sdvor.com): Railway IP блокируется, subpage-запросы через `engine.fetchUrl()` → редирект на капчу. 152-ФЗ показывает RISK несмотря на наличие `/ekb/personal-data`. Решение: кнопка «неверно?» → feedback loop активирует permanent exception.
 - **403 на главной** (1cbit.ru): false positives по 149-ФЗ и 152-ФЗ (~5% SMB сайтов).
 - **Реквизиты только в PDF** (callibri.ru): читаем через pdf-parse; если PDF недоступен — риск.
 - **Политика скрыта в JS-виджете** (artlebedev.ru): fallback на /terms/, /legal/.
 
-### Smoke test baseline (2026-05-24) ← АКТУАЛЬНЫЙ
+### Smoke test baseline (2026-05-25) ← АКТУАЛЬНЫЙ
 
 ```
-shop     www.wildberries.ru  → ⚠️ ❌ ✅ ✅ ✅  (fallback ⚡, Cloudflare)
-media    www.rbc.ru          → ⚠️ ⚠️ ✅ ✅ ✅  (Qrator блокирует subpages)
-services www.hh.ru           → ✅ ✅ ✅ ✅ ✅  (modal detection нашла политику!)
+shop     www.wildberries.ru  → ⚠️ ❌ ✅ ✅ ✅  (Cloudflare, 149 недоступен)
+media    www.rbc.ru          → ✅ ✅ ✅ ✅ ✅
+services hh.ru               → ✅ ✅ ✅ ✅ ✅
 saas     www.bitrix24.ru     → ✅ ✅ ✅ ✅ ✅
-large    vc.ru               → ✅ ✅ ✅ ✅ ✅
-saas     callibri.ru         → ✅ ✅ ✅ ✅ ✅
-ip       sleza.media         → ✅ ⚠️ ✅ ⚠️ ⚠️
-Итого: 28✅ 6⚠️ 1❌
+media    vc.ru               → ✅ ✅ ✅ ✅ ✅
+extra    callibri.ru         → ✅ ✅ ✅ ✅ ✅
+extra    sleza.media         → ✅ ⚠️ ✅ ✅ ✅
+Итого: 32✅ 2⚠️ 1❌
 Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Куки
 ```
 
-Прогресс: 23✅ 11⚠️ 1❌ → 25✅ 9⚠️ 1❌ → 28✅ 6⚠️ 1❌
+Прогресс: 23✅ 11⚠️ 1❌ → 25✅ 9⚠️ 1❌ → 28✅ 6⚠️ 1❌ → 32✅ 2⚠️ 1❌
