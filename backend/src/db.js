@@ -387,4 +387,38 @@ export async function saveLead({ email, company, scanUuid = null }) {
   `;
 }
 
+export async function getRecentLeads(limit = 5) {
+  if (!enabled) return [];
+  return sql`
+    SELECT id, email, company, scan_uuid, created_at
+    FROM leads
+    ORDER BY created_at DESC
+    LIMIT ${Math.min(limit, 20)}
+  `;
+}
+
+export async function getLeadStats() {
+  if (!enabled) return null;
+  const rows = await sql`
+    SELECT
+      COUNT(*)::int                                                               AS total,
+      COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '7 days')::int        AS last_7_days,
+      COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours')::int      AS last_24h
+    FROM leads
+  `;
+  return rows[0] || null;
+}
+
+export async function getScanStats() {
+  if (!enabled) return null;
+  const rows = await sql`
+    SELECT
+      COUNT(*)::int                                                               AS total,
+      COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '7 days')::int        AS last_7_days,
+      COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours')::int      AS last_24h
+    FROM scans
+  `;
+  return rows[0] || null;
+}
+
 export { enabled as dbEnabled };

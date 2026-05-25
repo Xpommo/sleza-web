@@ -17,7 +17,8 @@ import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
-import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled, getCheckStats, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus } from './db.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled, getCheckStats, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats } from './db.js';
+import { tgEnabled, sendLeadNotification, registerWebhook, getWebhookSecret, handleUpdate } from './tg.js';
 import { verifyException } from './scanner.js';
 import { validateEmail, validateCompany, validateEmailMX } from './validateLead.js';
 
@@ -256,6 +257,8 @@ app.post('/api/leads', {
   if (mxErr) return reply.status(400).send({ error: mxErr });
 
   await saveLead({ email, company, scanUuid: uuid });
+  // Fire-and-forget — don't block response if Telegram is slow
+  sendLeadNotification({ email, company, scanUuid: uuid }).catch(() => {});
   return reply.send({ ok: true });
 });
 
@@ -456,7 +459,22 @@ app.get('/api/admin/cases', async (request, reply) => {
   return reply.send({ check, status, rows });
 });
 
-app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString(), v: 'r5-improvements', db: dbEnabled }));
+// ── Telegram webhook ──────────────────────────────────────────────────────────
+
+app.post('/api/tg/webhook', async (request, reply) => {
+  // Validate Telegram's secret token header
+  const secret = getWebhookSecret();
+  if (request.headers['x-telegram-bot-api-secret-token'] !== secret) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  // Process asynchronously — Telegram expects fast 200 response
+  setImmediate(() => handleUpdate(request.body, { getRecentLeads, getLeadStats, getScanStats }).catch(e => {
+    process.stderr.write(`[tg] handleUpdate error: ${e.message}\n`);
+  }));
+  return reply.status(200).send({ ok: true });
+});
+
+app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString(), v: 'r9-feedback', db: dbEnabled, tg: tgEnabled() }));
 
 const shutdown = async () => {
   await closeBrowser();
@@ -478,6 +496,15 @@ try {
     .then(() => cleanupOldScans(7))
     .then(n => { if (n > 0) console.log(`[db] cleaned up ${n} old scans`); })
     .catch(err => console.error('[db] init error:', err.message));
+  // Register Telegram webhook if configured
+  const backendUrl = process.env.RAILWAY_PUBLIC_DOMAIN
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+    : process.env.BACKEND_URL || '';
+  if (backendUrl && tgEnabled()) {
+    registerWebhook(backendUrl).catch(err => console.warn('[tg] webhook setup error:', err.message));
+  } else if (tgEnabled()) {
+    console.warn('[tg] Bot token set but RAILWAY_PUBLIC_DOMAIN / BACKEND_URL not configured — webhook not registered');
+  }
 } catch (err) {
   app.log.error(err);
   process.exit(1);
