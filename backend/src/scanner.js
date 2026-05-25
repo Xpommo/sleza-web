@@ -218,6 +218,11 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     '/page/agreement', '/page/legal', '/page/confidentiality',
     '/page/конфиденциальность', '/page/персональные-данные',
     '/pub/policy', '/pub/privacy', '/pub/terms',
+    // Bitrix / transliterated Russian paths
+    '/politika-konfidencialnosti', '/politika-konfidencialnosti/',
+    '/politika-obrabotki-personalnyh-dannyh', '/politika-obrabotki-personalnyh-dannyh/',
+    '/politika', '/politika/', '/konfidencialnost', '/konfidencialnost/',
+    '/personalnie-dannie', '/personal-data-policy',
   ];
   for (const path of EXTRA_PATHS) {
     const url = origin + path;
