@@ -189,6 +189,25 @@ _server.js:_
 
 **Переменная окружения:** `ADMIN_TOKEN` — обязательно выставить в Railway Variables. Без неё все `/api/admin/*` и `/api/debug/*` возвращают 401. `/api/debug/links` оставлен намеренно на период разработки — удалить перед публичным релизом.
 
+**S2 — Security audit fixes** ✅ (2026-05-25)
+
+_Выявлено `/security-review`, два подтверждённых High severity:_
+
+_utils.js (новый файл):_
+- `isSafeUrl()` вынесена из server.js в `backend/src/utils.js` — shared между server и scanner
+
+_scanner.js:_
+- SSRF fix: `isSafeUrl()` теперь применяется ко всем URL из сторонних HTML-страниц:
+  `policyLinks`, `offerLinks`, `aboutLinks` кандидаты; `extractPolicyHrefs()` sub-ссылки; `fetchExtraText` hrefs; sitemap URL
+- До фикса: атакующий мог передать `evil.com` с ссылкой `href="http://169.254.169.254/..."` → сканер запрашивал внутреннюю инфраструктуру Railway
+
+_server.js:_
+- `POST /api/results` удалён — позволял записать произвольный JSON в БД без аутентификации → создать поддельный «зелёный» отчёт с чужим доменом
+- Scan-роуты уже возвращают `uuid` в ответе — frontend теперь читает его напрямую
+
+_frontend/app/page.js:_
+- `saveResult()` убрана; заменена на `applyUuid(data.uuid)` — uuid берётся из ответа скана
+
 **UI v2 — audit-report дизайн** ✅ (2026-05-24, в master)
 
 Смержено в master. Новый дизайн задеплоен на Vercel.
@@ -305,14 +324,27 @@ _test/feedback.js:_
 - safety cap проверка: law152 override_status = 'risk' не 'ok'
 - retry exhaustion: 3 failed re-scans → disputed
 
+**Раунд 10 — Scanner accuracy hotfixes** ✅ (2026-05-25)
+
+_pageContext.js:_
+- `kw.about` расширен: `'props'`, `'rekviz'` — захватывает ссылки типа `/ekb/props` (sdvor.com региональная структура)
+
+_scanner.js:_
+- `REKVIZITY_PATHS` расширен: `/props`, `/rekviz` — прямой fallback для нестандартных путей реквизитов
+- `EXTRA_PATHS` расширен: `/page/policy`, `/page/privacy`, `/page/terms`, `/page/personal-data`, `/page/agreement`, `/page/legal`, `/pub/policy`, `/pub/privacy`, `/pub/terms` — покрывает CMS-сайты на Bitrix и custom CMS (sostav.ru и подобные)
+
+_Исправленные false positives:_
+- **sdvor.com/ekb**: 149-ФЗ false positive — реквизиты находились на `/ekb/props`, теперь захватываются через `kw.about: 'props'`
+- **sostav.ru**: 152-ФЗ false positive — политика находится на `/page/policy`, теперь проверяется в EXTRA_PATHS
+
 ### Следующие задачи
 
 **В резерве (Feedback Loop):** B (ML сигнальные паттерны), E (memory injection в промпт), F (shadow mode A/B), G (авто ре-валидация всего домена)
 
 **Прочие улучшения:**
-- Telegram webhook для новых лидов
 - check152FZ улучшение паттернов для rbc.ru (Qrator блокирует subpages)
 - Удалить `/api/debug/links` перед публичным релизом
+- Настройка Telegram бота в Railway (TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID + Redeploy)
 
 ### Известные ограничения / false positives
 
