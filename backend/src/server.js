@@ -17,7 +17,8 @@ import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
-import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled, getCheckStats, findScansWithStatus, saveFeedback, getFeedbackStats } from './db.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled, getCheckStats, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus } from './db.js';
+import { verifyException } from './scanner.js';
 import { validateEmail, validateCompany, validateEmailMX } from './validateLead.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -357,8 +358,39 @@ app.post('/api/feedback', {
   if (!VALID_VERDICTS.has(verdict))   return reply.status(400).send({ error: 'Invalid verdict' });
   const record = await getScan(scan_uuid);
   if (!record) return reply.status(404).send({ error: 'Скан не найден' });
-  const id = await saveFeedback({ scanUuid: scan_uuid, checkId: check_id, verdict });
-  return reply.status(201).send({ ok: true, id });
+
+  // Extract original issue text from scan result for D-analytics (К1 денормализация)
+  const checks = record.result_json?.aiData?.checks ?? [];
+  const checkData = checks.find(c => c.id === check_id);
+  const issueText = checkData?._original?.issue ?? checkData?.issue ?? null;
+
+  await saveFeedback({ scanUuid: scan_uuid, checkId: check_id, verdict, issueText });
+
+  const hostname = record.hostname;
+  if (hostname) {
+    if (verdict === 'false_positive') {
+      // Extract signals for verifyException
+      const signals = {
+        hasAdScripts: record.result_json?.aiData?.hasAdScripts ?? null,
+        hasGtm:       record.result_json?.aiData?.hasGtm ?? null,
+        siteType:     record.site_type ?? null,
+      };
+      const originalStatus = checkData?._original?.status ?? checkData?.status ?? 'violation';
+      const exc = await upsertDomainException(hostname, check_id, originalStatus, signals);
+
+      // Trigger async re-verify when threshold reached and not already verifying (К8)
+      if (exc?.shouldVerify) {
+        const originUrl = record.url;
+        setImmediate(() => verifyException(hostname, check_id, originUrl).catch(e => {
+          process.stderr.write(`[feedback] verifyException failed: ${e.message}\n`);
+        }));
+      }
+    } else if (verdict === 'confirm') {
+      await handleConfirmFeedback(hostname, check_id);
+    }
+  }
+
+  return reply.status(201).send({ ok: true });
 });
 
 app.get('/api/admin/feedback-stats', async (request, reply) => {
@@ -367,6 +399,37 @@ app.get('/api/admin/feedback-stats', async (request, reply) => {
     return reply.status(401).send({ error: 'unauthorized' });
   }
   const rows = await getFeedbackStats();
+  return reply.send(rows);
+});
+
+app.get('/api/admin/exceptions', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const rows = await getAllExceptions();
+  return reply.send(rows);
+});
+
+app.post('/api/admin/exceptions/expire', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const { check_id } = request.body || {};
+  if (!check_id || !VALID_CHECK_IDS.has(check_id)) {
+    return reply.status(400).send({ error: 'Invalid check_id' });
+  }
+  const count = await expireExceptionsByCheckId(check_id);
+  return reply.send({ ok: true, expired: count });
+});
+
+app.get('/api/admin/patterns', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const rows = await getFeedbackPatterns();
   return reply.send(rows);
 });
 

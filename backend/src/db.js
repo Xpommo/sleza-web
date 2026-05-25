@@ -2,9 +2,10 @@
  * Database layer — Supabase PostgreSQL via postgres.js
  *
  * Tables:
- *   scans    — scan results stored by UUID (replaces backend/results/*.json files)
- *   leads    — email captures (replaces backend/leads.jsonl)
- *   feedback — operator verdicts on check results (confirm / false_positive)
+ *   scans             — scan results stored by UUID
+ *   leads             — email captures
+ *   feedback          — operator verdicts on check results (confirm / false_positive)
+ *   domain_exceptions — auto-learned overrides from accumulated feedback (lifecycle: pending→verifying→active/disputed/expired)
  *
  * If DATABASE_URL is not set the module exports no-op stubs so the app
  * still works without a DB (local dev, smoke tests).
@@ -63,7 +64,27 @@ export async function initSchema() {
       scan_uuid   TEXT        NOT NULL REFERENCES scans(uuid) ON DELETE CASCADE,
       check_id    TEXT        NOT NULL,
       verdict     TEXT        NOT NULL CHECK (verdict IN ('confirm', 'false_positive')),
+      issue_text  TEXT,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  // Add issue_text to existing feedback rows (no-op if already present)
+  await sql`ALTER TABLE feedback ADD COLUMN IF NOT EXISTS issue_text TEXT`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS domain_exceptions (
+      id                   BIGSERIAL   PRIMARY KEY,
+      hostname             TEXT        NOT NULL,
+      check_id             TEXT        NOT NULL,
+      override_status      TEXT        NOT NULL,
+      status               TEXT        NOT NULL DEFAULT 'pending',
+      false_positive_count INT         NOT NULL DEFAULT 1,
+      confirm_count        INT         NOT NULL DEFAULT 0,
+      verify_retries       INT         NOT NULL DEFAULT 0,
+      verified_at          TIMESTAMPTZ,
+      last_feedback        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      reason               TEXT,
+      signals              JSONB,
+      UNIQUE(hostname, check_id)
     )
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_scans_url_created ON scans(url, created_at DESC)`;
@@ -71,6 +92,8 @@ export async function initSchema() {
   await sql`CREATE INDEX IF NOT EXISTS idx_scans_hostname_created ON scans(hostname, created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_feedback_scan_uuid ON feedback(scan_uuid)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_feedback_check_id ON feedback(check_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_domain_exc_hostname ON domain_exceptions(hostname)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_domain_exc_status ON domain_exceptions(status)`;
   console.log('[db] schema ready');
 }
 
@@ -174,11 +197,11 @@ export async function findScansWithStatus(checkId, status, days = 30) {
 
 // ── Feedback ─────────────────────────────────────────────────────────────────
 
-export async function saveFeedback({ scanUuid, checkId, verdict }) {
+export async function saveFeedback({ scanUuid, checkId, verdict, issueText = null }) {
   if (!enabled) return null;
   const rows = await sql`
-    INSERT INTO feedback (scan_uuid, check_id, verdict)
-    VALUES (${scanUuid}, ${checkId}, ${verdict})
+    INSERT INTO feedback (scan_uuid, check_id, verdict, issue_text)
+    VALUES (${scanUuid}, ${checkId}, ${verdict}, ${issueText})
     RETURNING id
   `;
   return rows[0]?.id ?? null;
@@ -191,6 +214,166 @@ export async function getFeedbackStats() {
     FROM feedback
     GROUP BY check_id, verdict
     ORDER BY check_id, verdict
+  `;
+}
+
+// D — issue-pattern clustering for admin analytics
+export async function getFeedbackPatterns() {
+  if (!enabled) return [];
+  // For local scans (use_ai=false): cluster by issue_text; for AI scans: cluster by status only
+  return sql`
+    SELECT
+      f.check_id,
+      COALESCE(f.issue_text, '(AI mode — issue text variable)') AS issue_pattern,
+      COUNT(*) FILTER (WHERE f.verdict = 'false_positive')::int AS false_positive_count,
+      COUNT(*) FILTER (WHERE f.verdict = 'confirm')::int         AS confirm_count,
+      COUNT(DISTINCT s.hostname)::int                            AS unique_domains,
+      MAX(f.created_at)                                          AS last_seen
+    FROM feedback f
+    JOIN scans s ON f.scan_uuid = s.uuid
+    WHERE f.verdict = 'false_positive'
+      AND f.issue_text IS NOT NULL
+    GROUP BY f.check_id, f.issue_text
+    HAVING COUNT(*) >= 2
+    ORDER BY false_positive_count DESC
+    LIMIT 50
+  `;
+}
+
+// ── Domain Exceptions ────────────────────────────────────────────────────────
+
+// Calculate safe override_status: law152/law149 max=risk, others can be ok
+function calcOverrideStatus(checkId, originalStatus) {
+  if (originalStatus === 'ok') return null; // nothing to override
+  if (['law152', 'law149'].includes(checkId)) return 'risk';
+  return 'ok';
+}
+
+// Upsert exception on false_positive feedback. Returns {count, status, shouldVerify}.
+export async function upsertDomainException(hostname, checkId, originalStatus, signals = null) {
+  if (!enabled) return null;
+  const overrideStatus = calcOverrideStatus(checkId, originalStatus);
+  if (!overrideStatus) return null; // already ok, nothing to do
+
+  const rows = await sql`
+    INSERT INTO domain_exceptions (hostname, check_id, override_status, signals, last_feedback)
+    VALUES (${hostname}, ${checkId}, ${overrideStatus}, ${signals ? sql.json(signals) : null}, NOW())
+    ON CONFLICT (hostname, check_id) DO UPDATE SET
+      false_positive_count = domain_exceptions.false_positive_count + 1,
+      last_feedback        = NOW(),
+      signals              = COALESCE(${signals ? sql.json(signals) : null}, domain_exceptions.signals),
+      status               = CASE
+        WHEN domain_exceptions.status = 'expired' THEN 'pending'
+        ELSE domain_exceptions.status
+      END
+    RETURNING false_positive_count, status
+  `;
+  const row = rows[0];
+  if (!row) return null;
+  const shouldVerify = row.false_positive_count >= 2 && row.status === 'pending';
+  if (shouldVerify) {
+    await sql`
+      UPDATE domain_exceptions SET status = 'verifying'
+      WHERE hostname = ${hostname} AND check_id = ${checkId} AND status = 'pending'
+    `;
+  }
+  return { count: row.false_positive_count, status: shouldVerify ? 'verifying' : row.status, shouldVerify };
+}
+
+export async function activateDomainException(hostname, checkId, reason, signals = null) {
+  if (!enabled) return;
+  await sql`
+    UPDATE domain_exceptions SET
+      status      = 'active',
+      verified_at = NOW(),
+      reason      = ${reason},
+      signals     = COALESCE(${signals ? sql.json(signals) : null}, signals)
+    WHERE hostname = ${hostname} AND check_id = ${checkId}
+  `;
+  // Invalidate 20-min cache for this hostname (К5)
+  await invalidateCacheForHostname(hostname);
+}
+
+export async function disputeDomainException(hostname, checkId) {
+  if (!enabled) return;
+  await sql`
+    UPDATE domain_exceptions SET status = 'disputed'
+    WHERE hostname = ${hostname} AND check_id = ${checkId}
+  `;
+}
+
+export async function incrementVerifyRetry(hostname, checkId) {
+  if (!enabled) return 0;
+  const rows = await sql`
+    UPDATE domain_exceptions SET
+      verify_retries = verify_retries + 1,
+      status = CASE WHEN verify_retries + 1 >= 3 THEN 'disputed' ELSE 'pending' END
+    WHERE hostname = ${hostname} AND check_id = ${checkId}
+    RETURNING verify_retries, status
+  `;
+  return rows[0] || null;
+}
+
+// Called on 'confirm' verdict when an active exception exists
+export async function handleConfirmFeedback(hostname, checkId) {
+  if (!enabled) return;
+  const rows = await sql`
+    UPDATE domain_exceptions SET
+      confirm_count = confirm_count + 1,
+      status = CASE WHEN confirm_count + 1 >= 2 THEN 'disputed' ELSE status END
+    WHERE hostname = ${hostname} AND check_id = ${checkId} AND status = 'active'
+    RETURNING confirm_count, status
+  `;
+  return rows[0] || null;
+}
+
+export async function getActiveDomainExceptions(hostname) {
+  if (!enabled) return [];
+  return sql`
+    SELECT check_id, override_status, false_positive_count, reason
+    FROM domain_exceptions
+    WHERE hostname = ${hostname}
+      AND status   = 'active'
+      AND last_feedback > NOW() - INTERVAL '30 days'
+  `;
+}
+
+export async function getDomainExceptionStatus(hostname, checkId) {
+  if (!enabled) return null;
+  const rows = await sql`
+    SELECT status, false_positive_count, verify_retries
+    FROM domain_exceptions WHERE hostname = ${hostname} AND check_id = ${checkId}
+  `;
+  return rows[0] || null;
+}
+
+export async function getAllExceptions() {
+  if (!enabled) return [];
+  return sql`
+    SELECT hostname, check_id, override_status, status,
+           false_positive_count, confirm_count, verify_retries,
+           verified_at, last_feedback, reason, signals
+    FROM domain_exceptions
+    ORDER BY last_feedback DESC
+  `;
+}
+
+export async function expireExceptionsByCheckId(checkId) {
+  if (!enabled) return 0;
+  const result = await sql`
+    UPDATE domain_exceptions SET status = 'expired'
+    WHERE check_id = ${checkId} AND status = 'active'
+  `;
+  return result.count;
+}
+
+// Invalidate 20-min cache for a hostname so next scan picks up new exceptions (К5)
+async function invalidateCacheForHostname(hostname) {
+  if (!enabled) return;
+  await sql`
+    DELETE FROM scans
+    WHERE hostname   = ${hostname}
+      AND created_at > NOW() - INTERVAL '20 minutes'
   `;
 }
 

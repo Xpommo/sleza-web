@@ -50,11 +50,13 @@ describe('calcConfidence', () => {
     assert.ok(withoutEgrul.score < withEgrul.score);
   });
 
-  it('penalizes no AI', () => {
+  it('penalizes no AI in rawScore (normalized score reflects achievable max)', () => {
     const result = { egrul: fullEgrul, aiData: { checks: checks('ok', 'ok') } };
     const withAI    = calcConfidence(result, [okCtx], true);
     const withoutAI = calcConfidence(result, [okCtx], false);
-    assert.ok(withoutAI.score < withAI.score);
+    // rawScore is lower without AI (65 vs 100), but normalized score may be equal (both 100%)
+    assert.ok(withoutAI.rawScore < withAI.rawScore, 'rawScore should be lower without AI');
+    assert.ok(withoutAI.maxAchievable < withAI.maxAchievable, 'maxAchievable should be lower without AI');
   });
 
   it('returns medium label for middle scores', () => {

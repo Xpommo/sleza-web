@@ -12,8 +12,12 @@ export function computeScanDiff(prevResult, currResult) {
   const prevChecks = prevResult.aiData?.checks ?? [];
   const currChecks = currResult.aiData?.checks ?? [];
 
-  const prevMap = new Map(prevChecks.map(c => [c.id, c.status]));
-  const currMap = new Map(currChecks.map(c => [c.id, c.status]));
+  // Use _original.status if present (К6: override shouldn't look like a real improvement)
+  const statusOf = c => c._original?.status ?? c.status;
+
+  const prevMap = new Map(prevChecks.map(c => [c.id, statusOf(c)]));
+  const currMap = new Map(currChecks.map(c => [c.id, statusOf(c)]));
+  const overrideMap = new Map(currChecks.filter(c => c._override).map(c => [c.id, true]));
 
   const allIds = new Set([...prevMap.keys(), ...currMap.keys()]);
   const checks = [];
@@ -33,7 +37,9 @@ export function computeScanDiff(prevResult, currResult) {
       direction = 'regressed';
       newViolations.push(id);
     }
-    checks.push({ id, prev, curr, direction });
+    const entry = { id, prev, curr, direction };
+    if (overrideMap.has(id)) entry.overridden = true;
+    checks.push(entry);
   }
 
   return { scannedAt: prevResult.scannedAt, checks, resolved, newViolations };

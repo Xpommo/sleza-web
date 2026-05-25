@@ -10,7 +10,14 @@
 import { createRequire } from 'module';
 import { createEngine } from './engine.js';
 import { buildPageContext } from './pageContext.js';
-import { getLastScanForDomain } from './db.js';
+import {
+  getLastScanForDomain,
+  getActiveDomainExceptions,
+  activateDomainException,
+  disputeDomainException,
+  incrementVerifyRetry,
+  getDomainExceptionStatus,
+} from './db.js';
 import { computeScanDiff, calcConfidence } from './scanDiff.js';
 
 const _require = createRequire(import.meta.url);
@@ -466,6 +473,156 @@ function applyIPOverride(aiData) {
   }
 }
 
+// ── Feedback overrides ───────────────────────────────────────────────────────
+
+/**
+ * Apply active domain exceptions to check results.
+ * Called AFTER all other overrides, BEFORE building the result object.
+ * Stores _original so D-analytics and diff can use the pre-override values (К1, К6).
+ */
+export async function applyFeedbackOverrides(hostname, checks) {
+  const exceptions = await getActiveDomainExceptions(hostname);
+  if (!exceptions.length) return;
+  for (const exc of exceptions) {
+    const check = checks.find(c => c.id === exc.check_id);
+    if (!check || check.status === 'ok' || check.status === exc.override_status) continue;
+    check._original = { status: check.status, issue: check.issue };
+    check._override = { source: 'domain_exception', count: exc.false_positive_count, reason: exc.reason };
+    check.status = exc.override_status;
+    check.issue  = `${check.issue} (оспорено пользователями ${exc.false_positive_count} раз)`;
+  }
+}
+
+const adTextMarkerRe = /на правах реклам|рекламодател|рекламный материал|sponsored content/i;
+
+/**
+ * Targeted re-verification for a single check_id on a domain.
+ * Goes deeper than the original scan. Plain-fetch only (no Playwright), no AI.
+ * Returns { ok: boolean, reason: string, signals: object }.
+ */
+export async function verifyException(hostname, checkId, originUrl) {
+  const exc = await getDomainExceptionStatus(hostname, checkId);
+  if (!exc || exc.status !== 'verifying') return; // idempotent guard (К8)
+
+  const origin = (() => { try { return new URL(originUrl).origin; } catch { return `https://${hostname}`; } })();
+  const engine = await createEngine({});
+
+  try {
+    if (checkId === 'erir') {
+      // Re-check: GTM without ad text markers should not trigger ЕРИР
+      const r = await engine.fetchUrl(origin);
+      const text = r.ok ? htmlToText(r.text) : '';
+      const hasAdScripts = /googlesyndication|adsbygoogle|yandex_rtb|begun\.ru|adriver\.ru|smi2\.ru|relap\.io/i.test(r.text || '');
+      const hasGtm       = /googletagmanager\.com\/gtm\.js/i.test(r.text || '');
+      const effectiveAds = hasAdScripts || (hasGtm && adTextMarkerRe.test(text));
+      const signals      = { hasAdScripts, hasGtm, effectiveAds };
+      if (!effectiveAds) {
+        await activateDomainException(hostname, checkId,
+          `GTM без рекламного текста — re-scan подтвердил ok (${new Date().toISOString().slice(0,10)})`, signals);
+      } else {
+        await disputeDomainException(hostname, checkId);
+      }
+
+    } else if (checkId === 'law149') {
+      // Re-check with expanded sub-page list
+      const tempEngine = await createEngine({});
+      const EXTENDED_PATHS = [
+        '/contacts', '/contact', '/about', '/о-компании', '/rekvizity', '/реквизиты',
+        '/company', '/terms', '/legal', '/rbc_about', '/about-us', '/company/about',
+        '/info/about', '/help/about', '/о-компании/реквизиты', '/legal/about',
+        '/requisites', '/requisity', '/dogovor', '/details',
+      ];
+      let combined = '';
+      for (const path of EXTENDED_PATHS) {
+        const r = await tempEngine.fetchUrl(origin + path);
+        if (r.ok && r.text.length > 200) combined += '\n' + htmlToText(r.text);
+      }
+      // Also try footer of main page
+      const main = await tempEngine.fetchUrl(origin);
+      if (main.ok) combined += '\n' + htmlToText(main.text);
+      const result = tempEngine.check149FZ(combined);
+      const signals = { innFound: result.status === 'ok', pathsChecked: EXTENDED_PATHS.length };
+      if (result.status === 'ok') {
+        await activateDomainException(hostname, checkId,
+          `ИНН/ОГРН найден в субстраницах — re-scan подтвердил ok (${new Date().toISOString().slice(0,10)})`, signals);
+      } else {
+        await disputeDomainException(hostname, checkId);
+      }
+
+    } else if (checkId === 'offer') {
+      // Re-check siteType + PDF/DOCX hunt
+      const r = await engine.fetchUrl(origin);
+      const pageText = r.ok ? htmlToText(r.text) : '';
+      const mockContext = { bodyText: pageText, title: '', header: '', allLinks: [], policyLinks: [], offerLinks: [], aboutLinks: [] };
+      const reSiteType = detectSiteType(mockContext);
+      let foundOffer = false;
+      const PDF_OFFER = ['/Offer.pdf', '/offer.pdf', '/Oferta.pdf', '/oferta.pdf',
+        '/dogovor.pdf', '/dogovor', '/license.pdf', '/licence.pdf', '/sla.pdf',
+        '/public-offer.pdf', '/agreement.pdf', '/user_agreement.pdf'];
+      for (const path of PDF_OFFER) {
+        const txt = await fetchPdfText(origin + path);
+        if (txt.length > 100) { foundOffer = true; break; }
+        const rdoc = await engine.fetchUrl(origin + path.replace('.pdf', '.docx'));
+        if (rdoc.ok && rdoc.text?.length > 100) { foundOffer = true; break; }
+      }
+      const signals = { siteType: reSiteType, foundOffer };
+      const isSaasOrServices = ['saas', 'services', 'ip'].includes(reSiteType);
+      if (foundOffer || isSaasOrServices) {
+        const reason = foundOffer
+          ? `Оферта/договор найдены при повторной проверке (${new Date().toISOString().slice(0,10)})`
+          : `siteType=${reSiteType} — возврат товара не применяется (${new Date().toISOString().slice(0,10)})`;
+        await activateDomainException(hostname, checkId, reason, signals);
+      } else {
+        await disputeDomainException(hostname, checkId);
+      }
+
+    } else if (checkId === 'law152') {
+      // Re-check with all EXTRA_PATHS + check152FZ
+      const tempEngine = await createEngine({});
+      const EXTRA = [
+        '/privacy', '/privacy-policy', '/personal-data', '/policy', '/legal',
+        '/terms', '/rules', '/agreement', '/cookie', '/gdpr', '/data-protection',
+        '/help/privacy', '/help/terms', '/article/personal_data', '/v10/privacy',
+        '/info/privacy', '/info/personal-data', '/pages/privacy',
+      ];
+      let combined = '';
+      for (const path of EXTRA) {
+        const r = await tempEngine.fetchUrl(origin + path);
+        if (r.ok && r.text.length > 200) combined += '\n' + htmlToText(r.text);
+        if (combined.length > 30000) break;
+      }
+      const result = tempEngine.check152FZ(combined);
+      const signals = { sectionsFound: result.found, threshold: 4 };
+      if (result.found >= 4) {
+        await activateDomainException(hostname, checkId,
+          `Политика конфиденциальности найдена (${result.found}/7 секций) — re-scan ok (${new Date().toISOString().slice(0,10)})`, signals);
+      } else {
+        await disputeDomainException(hostname, checkId);
+      }
+
+    } else {
+      // cookie / drugs — simple re-fetch
+      const r = await engine.fetchUrl(origin);
+      const text = r.ok ? htmlToText(r.text) : '';
+      const result = checkId === 'cookie'
+        ? engine.checkCookie(text)
+        : engine.checkDrugs(text);
+      if (result.status === 'ok') {
+        await activateDomainException(hostname, checkId,
+          `Re-scan подтвердил ok (${new Date().toISOString().slice(0,10)})`, {});
+      } else {
+        await disputeDomainException(hostname, checkId);
+      }
+    }
+  } catch (err) {
+    // Network error or site down — back to pending, increment retry counter (К7)
+    const updated = await incrementVerifyRetry(hostname, checkId);
+    if (updated) {
+      process.stderr.write(`[verifyException] ${hostname}/${checkId} retry ${updated.verify_retries}/3: ${err.message}\n`);
+    }
+  }
+}
+
 /**
  * Scan a single page and return compliance results.
  *
@@ -581,6 +738,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   }
 
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
+  await applyFeedbackOverrides(hostname, aiData.checks || []);
   const prevScan = await getLastScanForDomain(hostname);
   const result = {
     mode: 'single',
@@ -806,6 +964,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   }
 
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
+  await applyFeedbackOverrides(hostname, aiData.checks || []);
   const prevScan = await getLastScanForDomain(hostname);
   const result = {
     mode: 'full',

@@ -164,12 +164,24 @@ function FindingRow({ check, idx, diffEntry, scanUuid }) {
         {isIssue ? (
           <>
             <span>требует устранения · подробности и рекомендации в PDF-отчёте.</span>
+            {check._override && (
+              <span className="ml-2 inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-[3px]"
+                title={check._override.reason || 'Скорректировано на основе фидбэка пользователей'}>
+                оспорено {check._override.count} раз
+              </span>
+            )}
             <DiffBadge diffEntry={diffEntry} />
             <FeedbackButton checkId={check.id} scanUuid={scanUuid} />
           </>
         ) : (
           <>
             <span>параметр соответствует требованию.</span>
+            {check._override && (
+              <span className="ml-2 inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-[3px]"
+                title={check._override.reason || 'Скорректировано на основе фидбэка пользователей'}>
+                оспорено {check._override.count} раз
+              </span>
+            )}
             <DiffBadge diffEntry={diffEntry} />
           </>
         )}
