@@ -350,6 +350,7 @@ _Исправленные false positives:_
 
 - **Cloudflare/DDoS-Guard** (wildberries.ru): fallback на plain fetch, результаты неполные.
 - **Qrator anti-bot** (rbc.ru): все subpages (about, privacy details) возвращают JS-challenge (265 байт) на plain fetch. 149-ФЗ и часть 152-ФЗ могут быть неточны.
+- **SmartCaptcha / Яндекс anti-bot** (sdvor.com): Railway IP блокируется, subpage-запросы через `engine.fetchUrl()` → редирект на капчу. 152-ФЗ показывает RISK несмотря на наличие `/ekb/personal-data`. Политика существует, но недоступна для plain fetch из дата-центра. Решение: кнопка «неверно?» → feedback loop активирует permanent exception.
 - **403 на главной** (1cbit.ru): false positives по 149-ФЗ и 152-ФЗ (~5% SMB сайтов).
 - **Реквизиты только в PDF** (callibri.ru): читаем через pdf-parse; если PDF недоступен — риск.
 - **Политика скрыта в JS-виджете** (artlebedev.ru): fallback на /terms/, /legal/.
