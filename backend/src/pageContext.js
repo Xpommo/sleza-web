@@ -52,6 +52,34 @@ export async function closeBrowser() {
 }
 
 /**
+ * Fetch a URL using a real Playwright browser page.
+ * Used as fallback when plain fetch returns an anti-bot challenge
+ * (SmartCaptcha, Cloudflare, DDoS-Guard, etc.).
+ * Returns the page's innerText, or '' on any error.
+ */
+export async function fetchPageText(url) {
+  let ctx;
+  try {
+    const browser = await getBrowser();
+    ctx = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      locale: 'ru-RU',
+      extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
+    });
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    // Wait briefly for JS-driven captcha auto-pass or redirects to settle
+    await page.waitForTimeout(2000).catch(() => {});
+    const text = await page.evaluate(() => document.body?.innerText || '').catch(() => '');
+    return text;
+  } catch {
+    return '';
+  } finally {
+    await ctx?.close().catch(() => {});
+  }
+}
+
+/**
  * Navigates to the URL in a fresh browser context and extracts the same
  * fields that getCurrentPageContent() reads from the live DOM in Tampermonkey.
  *

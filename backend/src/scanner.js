@@ -10,6 +10,7 @@
 import { createRequire } from 'module';
 import { createEngine } from './engine.js';
 import { isSafeUrl } from './utils.js';
+import { fetchPageText } from './pageContext.js';
 import { buildPageContext } from './pageContext.js';
 import {
   getLastScanForDomain,
@@ -22,6 +23,23 @@ import {
 import { computeScanDiff, calcConfidence } from './scanDiff.js';
 
 const _require = createRequire(import.meta.url);
+
+// Detect anti-bot challenge responses (SmartCaptcha, Cloudflare, DDoS-Guard, Qrator…)
+function isChallengeResponse(text) {
+  if (!text || text.length > 8000) return false;
+  return /showcaptcha|smartcaptcha|captcha|cloudflare|just a moment|checking your browser|ddos.?guard|cf-turnstile|enable.?javascript.*protect/i.test(text);
+}
+
+// Fetch URL text with automatic Playwright fallback for anti-bot protected pages.
+// Use for URLs that are KNOWN to exist (from policyLinks, offerLinks, etc.)
+// — not for blind path probing (too slow if every speculative path triggers a browser).
+async function fetchKnownUrl(engine, url) {
+  const r = await engine.fetchUrl(url);
+  if (r.ok && r.text.length > 300 && !isChallengeResponse(r.text)) return r.text;
+  // Plain fetch failed or returned a challenge page — retry with real browser
+  const text = await fetchPageText(url);
+  return text;
+}
 
 // Extract text from a PDF URL. Returns empty string on any error.
 async function fetchPdfText(url) {
@@ -128,11 +146,11 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
       if (text.length > 200) combined += '\n' + text;
       continue;
     }
-    const p = await engine.fetchUrl(href);
-    if (!p.ok || p.text.length < 200) continue;
-    combined += '\n' + htmlToText(p.text);
+    const pText = await fetchKnownUrl(engine, href);
+    if (pText.length < 200) continue;
+    combined += '\n' + htmlToText(pText);
     // Follow 1 level: find personal-data policy links inside this page
-    for (const sub of extractPolicyHrefs(p.text, href)) {
+    for (const sub of extractPolicyHrefs(pText, href)) {
       if (visited.has(sub) || !isSafeUrl(sub)) continue;
       visited.add(sub);
       if (isPdfUrl(sub)) {
@@ -142,8 +160,8 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
         const t = await fetchDocxText(sub);
         if (t.length > 200) combined += '\n' + t;
       } else {
-        const sp = await engine.fetchUrl(sub);
-        if (sp.ok && sp.text.length > 200) combined += '\n' + htmlToText(sp.text);
+        const subText = await fetchKnownUrl(engine, sub);
+        if (subText.length > 200) combined += '\n' + htmlToText(subText);
       }
     }
   }
@@ -175,8 +193,8 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
         const text = await fetchPdfText(url);
         if (text.length > 500) return { text, found: true };
       } else {
-        const r = await engine.fetchUrl(url);
-        if (r.ok && r.text.length > 500) return { text: htmlToText(r.text), found: true };
+        const sText = await fetchKnownUrl(engine, url);
+        if (sText.length > 500) return { text: htmlToText(sText), found: true };
       }
     }
   }
@@ -248,8 +266,8 @@ async function fetchExtraText(engine, pageContext, origin) {
     } else if (isDocxUrl(href)) {
       extra += '\n' + await fetchDocxText(href);
     } else {
-      const r = await engine.fetchUrl(href);
-      if (r.ok) extra += '\n' + htmlToText(r.text);
+      const eText = await fetchKnownUrl(engine, href);
+      if (eText) extra += '\n' + htmlToText(eText);
     }
   }
 
