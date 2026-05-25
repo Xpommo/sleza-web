@@ -70,6 +70,9 @@ export async function fetchPageText(url) {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
     // Wait briefly for JS-driven captcha auto-pass or redirects to settle
     await page.waitForTimeout(2000).catch(() => {});
+    // Scroll to bottom to trigger lazy-loaded sections (e.g. Tilda IntersectionObserver)
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
+    await page.waitForTimeout(800).catch(() => {});
     const text = await page.evaluate(() => document.body?.innerText || '').catch(() => '');
     return text;
   } catch {
@@ -146,6 +149,11 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
       });
       await page.waitForTimeout(400);
     } catch (_) {}
+
+    // Scroll to bottom to trigger lazy-loaded footer content (e.g. Tilda sites use
+    // IntersectionObserver — footer INN/OGRN won't render until scrolled into view)
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(800);
 
     // Run the same extraction logic as getCurrentPageContent() — inside the real browser
     const context = await page.evaluate((kw) => {
