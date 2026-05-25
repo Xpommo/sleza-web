@@ -196,6 +196,10 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     '/pages/privacy', '/pages/terms',
     '/faq/privacy', '/faq/personal-data',
     '/article/personal_data', '/v10/privacy',
+    '/page/policy', '/page/privacy', '/page/terms', '/page/personal-data',
+    '/page/agreement', '/page/legal', '/page/confidentiality',
+    '/page/конфиденциальность', '/page/персональные-данные',
+    '/pub/policy', '/pub/privacy', '/pub/terms',
   ];
   for (const path of EXTRA_PATHS) {
     const url = origin + path;
