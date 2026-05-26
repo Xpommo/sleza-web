@@ -203,7 +203,7 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
   if (policyPages[0]?.text) {
     const discText = htmlToText(policyPages[0].text);
-    if (discText.length > 200 && engine.check152FZ(discText).found >= 1) {
+    if (discText.length > 200 && engine.check152FZ(discText).found >= 2) {
       return { text: discText, found: true };
     }
   }
@@ -764,7 +764,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
 
     const check149AI = findAICheck(aiData.checks, 'law149', '149');
     if (check149AI && check149AI.status !== 'ok') {
-      if (pageContext._firewalled) {
+      if (pageContext._firewalled || pageContext._blocked) {
         // IP-blocked site — can't verify rekvizity, cap at risk
         if (check149AI.status === 'violation') check149AI.status = 'risk';
       } else {
@@ -807,7 +807,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     }
     let result149  = engine.check149FZ(fullText + extraText + homepageText);
     // If page is IP-blocked/firewalled, we can't verify rekvizity → cap at risk (same as 152-FZ when policy inaccessible)
-    if (result149.status === 'violation' && pageContext._firewalled) result149 = { ...result149, status: 'risk' };
+    if (result149.status === 'violation' && (pageContext._firewalled || pageContext._blocked)) result149 = { ...result149, status: 'risk' };
     const adTextMarker = /на правах реклам|рекламный материал|партнёрский материал|спонсорский материал|рекламодатель|sponsored content/i;
     const effectiveHasAdScripts = pageContext.hasAdScripts || (pageContext.hasGtm && adTextMarker.test(fullText));
     const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''), { hasAdScripts: effectiveHasAdScripts });
@@ -1020,7 +1020,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
 
     const check149AIFull = findAICheckFull(aiData.checks, 'law149', '149');
     if (check149AIFull && check149AIFull.status !== 'ok') {
-      if (mainPageContext._firewalled) {
+      if (mainPageContext._firewalled || mainPageContext._blocked) {
         if (check149AIFull.status === 'violation') check149AIFull.status = 'risk';
       } else {
         const extraText149 = await fetchExtraText(engine, mainPageContext, origin);
@@ -1053,7 +1053,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     let result152 = engine.check152FZ(policyText);
     if (!policyFound && result152.status === 'violation') result152 = { ...result152, status: 'risk' };
     let result149  = engine.check149FZ(allPagesText + extraText);
-    if (result149.status === 'violation' && mainPageContext._firewalled) result149 = { ...result149, status: 'risk' };
+    if (result149.status === 'violation' && (mainPageContext._firewalled || mainPageContext._blocked)) result149 = { ...result149, status: 'risk' };
     // ERIR: check main page only — allPagesText includes blog/articles about advertising
     // which cause false positives on marketing platforms (callibri, roistat, etc.)
     const mainPageText = `${mainPageContext.title}\n${mainPageContext.header}\n${mainPageContext.bodyText}\n${mainPageContext.footer}`;
