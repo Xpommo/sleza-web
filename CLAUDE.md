@@ -384,6 +384,22 @@ _Исправленные false positives:_
 - **netology.ru 152-ФЗ**: `violation` → `risk` (SPA fallback находит политику через `/legal` via Playwright, `check152FZ.found=6/7`)
 - Root cause: sitemap возвращал skeleton (1393 chars) без quality check → `found:true` с пустым текстом
 
+**Раунд 15 — HTTP 4xx false positive fix (2026-05-27)** ✅ (коммит `06f9a8e`)
+
+_pageContext.js:_
+- `_http403` расширен: `httpStatus >= 400` (было только `=== 403`) — 404-страницы (Яндекс anti-bot redirect) теперь тоже получают флаг
+
+_scanner.js:_
+- 149-ФЗ override: добавлен `_http403` к условию `_firewalled || _blocked` — sites с 4xx ответом больше не получают violation
+- `EXTRA_PATHS` расширен: `/privacy-policy` и `/privacy-policy/` — наиболее распространённый URL для политик конфиденциальности
+
+_Исправленные false positives:_
+- **dns-shop.ru 149-ФЗ**: ❌ → ⚠️ (403 при загрузке, реквизиты есть но недоступны)
+- **eldorado.ru 149-ФЗ**: ❌ → ⚠️ (аналогично)
+- **ikea.com 149-ФЗ**: ❌ → ⚠️ (аналогично)
+
+---
+
 **Раунд 14 — IP-block firewall detection (2026-05-26)** ✅ (коммит `14700dd`)
 
 _pageContext.js:_
@@ -410,7 +426,8 @@ _Исправленные false positives:_
 - ~~Удалить `/api/debug/links`~~ ✅ удалён
 - ~~Настройка Telegram бота~~ ✅ настроен
 - ~~149-ФЗ false positives на маркетплейсах~~ ✅ R14 fixed (avito, Яндекс)
-- Запустить полный 140-URL smoke test → обновить baseline по всем 140 URL
+- ~~149-ФЗ false positives на сайтах с 4xx~~ ✅ R15 fixed (dns-shop, eldorado, ikea)
+- Полный 140-URL smoke test завершён (26.05): ✅ 296 ⚠️ 76 ❌ 50 💥 69 (сеть падала в середине)
 
 ### Известные ограничения / false positives
 
