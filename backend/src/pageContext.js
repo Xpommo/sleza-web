@@ -385,7 +385,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
     }, KW);
 
     const httpStatus = gotoResponse?.status?.() ?? 200;
-    if (httpStatus === 403) context._http403 = true;
+    if (httpStatus >= 400) context._http403 = true;
 
     // Detect anti-bot challenge pages (Cloudflare, DDoS-Guard, etc.)
     // They render a short JS challenge that never gives us real content.
