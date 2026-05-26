@@ -1,34 +1,90 @@
 {
-  "generated": "2026-05-22",
-  "note": "Golden baseline. Update intentionally with --update-baseline after a verified fix. Never auto-overwrite.",
+  "generated": "2026-05-26",
+  "note": "Golden baseline. Update intentionally with --update-baseline after a verified fix.",
   "urls": [
     {
-      "hostname": "www.wildberries.ru", "type": "shop",
-      "checks": { "law152": "risk", "law149": "violation", "erir": "ok", "offer": "ok", "drugs": "ok" }
+      "hostname": "www.wildberries.ru",
+      "type": "shop",
+      "checks": {
+        "law152": "risk",
+        "law149": "violation",
+        "erir": "ok",
+        "offer": "ok",
+        "drugs": "ok",
+        "ga": "ok"
+      }
     },
     {
-      "hostname": "www.rbc.ru", "type": "media",
-      "checks": { "law152": "risk", "law149": "risk", "erir": "ok", "offer": "ok", "drugs": "ok" }
+      "hostname": "www.rbc.ru",
+      "type": "media",
+      "checks": {
+        "law152": "ok",
+        "law149": "ok",
+        "erir": "ok",
+        "offer": "ok",
+        "drugs": "ok",
+        "ga": "ok"
+      }
     },
     {
-      "hostname": "www.hh.ru", "type": "services",
-      "checks": { "law152": "risk", "law149": "ok", "erir": "risk", "offer": "ok", "drugs": "ok" }
+      "hostname": "hh.ru",
+      "type": "services",
+      "checks": {
+        "law152": "ok",
+        "law149": "ok",
+        "erir": "ok",
+        "offer": "ok",
+        "drugs": "ok",
+        "ga": "ok"
+      }
     },
     {
-      "hostname": "www.bitrix24.ru", "type": "saas",
-      "checks": { "law152": "ok", "law149": "ok", "erir": "risk", "offer": "ok", "drugs": "ok" }
+      "hostname": "www.bitrix24.ru",
+      "type": "saas",
+      "checks": {
+        "law152": "ok",
+        "law149": "ok",
+        "erir": "ok",
+        "offer": "ok",
+        "drugs": "ok",
+        "ga": "ok"
+      }
     },
     {
-      "hostname": "vc.ru", "type": "large",
-      "checks": { "law152": "risk", "law149": "ok", "erir": "ok", "offer": "risk", "drugs": "ok" }
+      "hostname": "vc.ru",
+      "type": "media",
+      "checks": {
+        "law152": "ok",
+        "law149": "ok",
+        "erir": "ok",
+        "offer": "ok",
+        "drugs": "ok",
+        "ga": "ok"
+      }
     },
     {
-      "hostname": "callibri.ru", "type": "saas",
-      "checks": { "law152": "ok", "law149": "ok", "erir": "risk", "offer": "ok", "drugs": "ok" }
+      "hostname": "callibri.ru",
+      "type": "extra",
+      "checks": {
+        "law152": "ok",
+        "law149": "ok",
+        "erir": "ok",
+        "offer": "ok",
+        "drugs": "ok",
+        "ga": "ok"
+      }
     },
     {
-      "hostname": "sleza.media", "type": "ip",
-      "checks": { "law152": "risk", "law149": "risk", "erir": "risk", "offer": "risk", "drugs": "risk" }
+      "hostname": "sleza.media",
+      "type": "extra",
+      "checks": {
+        "law152": "ok",
+        "law149": "risk",
+        "erir": "ok",
+        "offer": "ok",
+        "drugs": "ok",
+        "ga": "ok"
+      }
     }
   ]
 }

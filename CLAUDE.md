@@ -363,13 +363,36 @@ _Диагностика alutech.ru (false positive разобран):_
 - **Root cause:** 20-минутный Supabase-кэш (`findCachedScan`, `maxAgeMinutes=20`). Кэш хранится в БД, не в памяти Railway — пережил Redeploy. После 20 мин новый скан вернёт корректный результат.
 - **Важно:** Railway Redeploy НЕ инвалидирует кэш сканов в Supabase. Нужно ждать 20 мин после последнего скана URL.
 
+**Раунд 13 — SPA fallback + pre-checked consent + GA check** ✅ (2026-05-26)
+
+_scanner.js:_
+- EXTRA_PATHS loop: `found >= 2` quality gate — предотвращает возврат React/Next.js скелетов (1393 символа nav-текста) как политик
+- `discoverPolicyByCommonPaths` и sitemap fallback: добавлен quality check (`found >= 1/2`)
+- **Fallback 3 (SPA Playwright)**: если `policyLinks: []`, пробует `/legal`, `/privacy`, `/policy`, `/terms`, `/terms-of-service` через Playwright + следует policy-ссылкам на один уровень (для TOC-страниц). Использует отдельный `spaVisited` Set чтобы не пропускать пути, уже проверенные через plain fetch.
+- `hasPreCheckedConsent` (из pageContext) → добавляет violation-note к `law152` check
+- `checkGoogleAnalytics(pageContext)` — определяет GA Universal + GA4 через gtag/js + inline gtag config; GTM ≠ GA (GTM нейтральный)
+
+_pageContext.js:_
+- `fetchPageTextAndLinks(url)` — новая функция: Playwright-рендер + возвращает `{ text, hrefs }`; используется в SPA fallback для TOC-страниц
+- `hasPreCheckedConsent` — детект предустановленных галочек (`input[type=checkbox]` с `checked`/`hasAttribute('checked')`) рядом с consent-текстом в label/parent
+
+_frontend/:_
+- `ScanForm.js`, `Landing.js`: `12 параметров` → `6 проверок`
+- `Results.js`: отображает `check.issue` как тизер (action скрыт, отображается только в PDF)
+
+_Исправленные false positives:_
+- **netology.ru 152-ФЗ**: `violation` → `risk` (SPA fallback находит политику через `/legal` via Playwright, `check152FZ.found=6/7`)
+- Root cause: sitemap возвращал skeleton (1393 chars) без quality check → `found:true` с пустым текстом
+
 ### Следующие задачи
 
 **В резерве (Feedback Loop):** B (ML сигнальные паттерны), E (memory injection в промпт), F (shadow mode A/B), G (авто ре-валидация всего домена)
 
 **Прочие улучшения:**
-- ~~Удалить `/api/debug/links`~~ ✅ удалён (коммит `...`)
+- ~~Удалить `/api/debug/links`~~ ✅ удалён
 - ~~Настройка Telegram бота~~ ✅ настроен
+- Запустить полный 140-URL smoke test → обновить baseline по всем 140 URL
+- Анализировать 149-ФЗ false positives: маркетплейсы (avito, youla, Я.Market) — ИНН не найден на главной
 
 ### Известные ограничения / false positives
 
@@ -380,18 +403,18 @@ _Диагностика alutech.ru (false positive разобран):_
 - **Политика скрыта в JS-виджете** (artlebedev.ru): fallback на /terms/, /legal/.
 - **20-мин Supabase-кэш**: `findCachedScan` хранит результат в БД, не в памяти. Railway Redeploy НЕ сбрасывает кэш. Если после Redeploy результат кажется устаревшим — подождать 20 мин и пересканировать.
 
-### Smoke test baseline (2026-05-25) ← АКТУАЛЬНЫЙ
+### Smoke test baseline (2026-05-26) ← АКТУАЛЬНЫЙ
 
 ```
-shop     www.wildberries.ru  → ⚠️ ❌ ✅ ✅ ✅  (Cloudflare, 149 недоступен)
-media    www.rbc.ru          → ✅ ✅ ✅ ✅ ✅
-services hh.ru               → ✅ ✅ ✅ ✅ ✅
-saas     www.bitrix24.ru     → ✅ ✅ ✅ ✅ ✅
-media    vc.ru               → ✅ ✅ ✅ ✅ ✅
-extra    callibri.ru         → ✅ ✅ ✅ ✅ ✅
-extra    sleza.media         → ✅ ⚠️ ✅ ✅ ✅
-Итого: 32✅ 2⚠️ 1❌
-Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Куки
+shop     www.wildberries.ru  → ⚠️ ❌ ✅ ✅ ✅ ✅  (Cloudflare, 149 недоступен)
+media    www.rbc.ru          → ✅ ✅ ✅ ✅ ✅ ✅
+services hh.ru               → ✅ ✅ ✅ ✅ ✅ ✅
+saas     www.bitrix24.ru     → ✅ ✅ ✅ ✅ ✅ ✅
+media    vc.ru               → ✅ ✅ ✅ ✅ ✅ ✅
+extra    callibri.ru         → ✅ ✅ ✅ ✅ ✅ ✅
+extra    sleza.media         → ✅ ⚠️ ✅ ✅ ✅ ✅
+Итого: 39✅ 2⚠️ 1❌  (6 колонок × 7 сайтов = 42 проверки)
+Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Куки | GA
 ```
 
-Прогресс: 23✅ 11⚠️ 1❌ → 25✅ 9⚠️ 1❌ → 28✅ 6⚠️ 1❌ → 32✅ 2⚠️ 1❌
+Прогресс: 23✅ 11⚠️ 1❌ → 25✅ 9⚠️ 1❌ → 28✅ 6⚠️ 1❌ → 32✅ 2⚠️ 1❌ → 39✅ 2⚠️ 1❌ (+ GA колонка)
