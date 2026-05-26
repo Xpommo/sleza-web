@@ -273,8 +273,7 @@ _sleza_tets_js/script + backend/sleza_script (Р7):_
 - **Frontend:** https://sleza-web.vercel.app (Vercel, auto-deploy от master) ✅
 - **Backend:** https://sleza-web-production.up.railway.app (Railway) ⚠️
 
-**ПРОБЛЕМА Railway (не решена):** Railway не применяет новые коммиты автоматически.
-Нужно: Railway → Deployments → **Redeploy** вручную после каждого push.
+Railway деплоит автоматически при каждом push в master (как и Vercel). ✅
 
 Проверка версии: `curl https://sleza-web-production.up.railway.app/health`
 - Актуальная версия: `"v":"r4-supabase"` + `"db":true`
