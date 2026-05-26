@@ -384,6 +384,20 @@ _Исправленные false positives:_
 - **netology.ru 152-ФЗ**: `violation` → `risk` (SPA fallback находит политику через `/legal` via Playwright, `check152FZ.found=6/7`)
 - Root cause: sitemap возвращал skeleton (1393 chars) без quality check → `found:true` с пустым текстом
 
+**Раунд 14 — IP-block firewall detection (2026-05-26)** ✅ (коммит `14700dd`)
+
+_pageContext.js:_
+- `_firewalled = true` — детектирует страницы IP-блокировки avito/Яндекс: `"доступ ограничен.*проблема с ip"` в title/bodyText
+- Отличается от Cloudflare challenge (< 300 chars): firewall-страницы полноразмерные (735+ chars)
+
+_scanner.js:_
+- Когда `_firewalled = true`, 149-ФЗ violation → risk (аналогично 152-ФЗ когда политика недоступна)
+- Применяется в оба пути: local-checks (non-AI) + AI-override (single + full scan)
+
+_Исправленные false positives:_
+- **avito.ru 149-ФЗ**: ❌ → ⚠️ (Railway IP заблокирован avito; реквизиты реально есть, но недоступны)
+- **market.yandex.ru 149-ФЗ**: ❌ → ⚠️ (аналогично, Яндекс firewall)
+
 ### Следующие задачи
 
 **В резерве (Feedback Loop):** B (ML сигнальные паттерны), E (memory injection в промпт), F (shadow mode A/B), G (авто ре-валидация всего домена)
@@ -391,8 +405,8 @@ _Исправленные false positives:_
 **Прочие улучшения:**
 - ~~Удалить `/api/debug/links`~~ ✅ удалён
 - ~~Настройка Telegram бота~~ ✅ настроен
+- ~~149-ФЗ false positives на маркетплейсах~~ ✅ R14 fixed (avito, Яндекс)
 - Запустить полный 140-URL smoke test → обновить baseline по всем 140 URL
-- Анализировать 149-ФЗ false positives: маркетплейсы (avito, youla, Я.Market) — ИНН не найден на главной
 
 ### Известные ограничения / false positives
 
