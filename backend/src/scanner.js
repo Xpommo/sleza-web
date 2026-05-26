@@ -764,12 +764,17 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
 
     const check149AI = findAICheck(aiData.checks, 'law149', '149');
     if (check149AI && check149AI.status !== 'ok') {
-      // INN/OGRN regex is unambiguous — if local finds it in extraText (no length cap), trust local over AI
-      const extraText149 = await fetchExtraText(engine, pageContext, origin);
-      const result149local = engine.check149FZ(fullText + extraText149);
-      if (result149local.status === 'ok') {
-        check149AI.status = 'ok';
-        check149AI.issue = result149local.issue || 'Обязательные реквизиты владельца на сайте указаны';
+      if (pageContext._firewalled) {
+        // IP-blocked site — can't verify rekvizity, cap at risk
+        if (check149AI.status === 'violation') check149AI.status = 'risk';
+      } else {
+        // INN/OGRN regex is unambiguous — if local finds it in extraText (no length cap), trust local over AI
+        const extraText149 = await fetchExtraText(engine, pageContext, origin);
+        const result149local = engine.check149FZ(fullText + extraText149);
+        if (result149local.status === 'ok') {
+          check149AI.status = 'ok';
+          check149AI.issue = result149local.issue || 'Обязательные реквизиты владельца на сайте указаны';
+        }
       }
     }
     const checkERIRAI = findAICheck(aiData.checks, 'erir', 'ЕРИР');
@@ -800,7 +805,9 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       const homeR = await engine.fetchUrl(origin);
       if (homeR.ok) homepageText = '\n' + htmlToText(homeR.text).slice(0, 4000);
     }
-    const result149  = engine.check149FZ(fullText + extraText + homepageText);
+    let result149  = engine.check149FZ(fullText + extraText + homepageText);
+    // If page is IP-blocked/firewalled, we can't verify rekvizity → cap at risk (same as 152-FZ when policy inaccessible)
+    if (result149.status === 'violation' && pageContext._firewalled) result149 = { ...result149, status: 'risk' };
     const adTextMarker = /на правах реклам|рекламный материал|партнёрский материал|спонсорский материал|рекламодатель|sponsored content/i;
     const effectiveHasAdScripts = pageContext.hasAdScripts || (pageContext.hasGtm && adTextMarker.test(fullText));
     const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''), { hasAdScripts: effectiveHasAdScripts });
@@ -851,6 +858,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     scannedAt: new Date().toISOString(),
     fallback: pageContext._fallback || false,
     blocked403: pageContext._http403 || false,
+    firewalled: pageContext._firewalled || false,
     url,
     hostname,
     pages: [{ url, title: pageContext.title, items: checked, isCurrent: true }],
@@ -1012,11 +1020,15 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
 
     const check149AIFull = findAICheckFull(aiData.checks, 'law149', '149');
     if (check149AIFull && check149AIFull.status !== 'ok') {
-      const extraText149 = await fetchExtraText(engine, mainPageContext, origin);
-      const result149local = engine.check149FZ(allPagesText + extraText149);
-      if (result149local.status === 'ok') {
-        check149AIFull.status = 'ok';
-        check149AIFull.issue = result149local.issue || 'Обязательные реквизиты владельца на сайте указаны';
+      if (mainPageContext._firewalled) {
+        if (check149AIFull.status === 'violation') check149AIFull.status = 'risk';
+      } else {
+        const extraText149 = await fetchExtraText(engine, mainPageContext, origin);
+        const result149local = engine.check149FZ(allPagesText + extraText149);
+        if (result149local.status === 'ok') {
+          check149AIFull.status = 'ok';
+          check149AIFull.issue = result149local.issue || 'Обязательные реквизиты владельца на сайте указаны';
+        }
       }
     }
     const checkERIRAIFull = findAICheckFull(aiData.checks, 'erir', 'ЕРИР');
@@ -1040,7 +1052,8 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
 
     let result152 = engine.check152FZ(policyText);
     if (!policyFound && result152.status === 'violation') result152 = { ...result152, status: 'risk' };
-    const result149  = engine.check149FZ(allPagesText + extraText);
+    let result149  = engine.check149FZ(allPagesText + extraText);
+    if (result149.status === 'violation' && mainPageContext._firewalled) result149 = { ...result149, status: 'risk' };
     // ERIR: check main page only — allPagesText includes blog/articles about advertising
     // which cause false positives on marketing platforms (callibri, roistat, etc.)
     const mainPageText = `${mainPageContext.title}\n${mainPageContext.header}\n${mainPageContext.bodyText}\n${mainPageContext.footer}`;

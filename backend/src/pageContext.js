@@ -451,6 +451,13 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
       } catch (_) {}
     }
 
+    // Detect IP-block firewall pages (avito.ru and similar Russian platform anti-bot).
+    // These render full pages (400-1000 chars), unlike JS challenges (< 300 chars).
+    const IPBLOCK_RE = /доступ ограничен.{0,80}проблема с ip|проблема с ip|ваш.*ip.*заблокирован/is;
+    if (IPBLOCK_RE.test(context.title + ' ' + context.bodyText.slice(0, 300))) {
+      context._firewalled = true;
+    }
+
     return context;
   } catch (err) {
     // Playwright failed (timeout, network block, SSL, challenge) — fall back to plain fetch.
