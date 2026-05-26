@@ -7,7 +7,7 @@
       "type": "shop",
       "checks": {
         "law152": "risk",
-        "law149": "violation",
+        "law149": "risk",
         "erir": "ok",
         "offer": "ok",
         "drugs": "ok",
