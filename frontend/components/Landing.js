@@ -86,7 +86,7 @@ function SampleReport() {
         <SmpMeta k="домен"      v="media-***.ru" />
         <SmpMeta k="тип сайта"  v="СМИ / редакция" />
         <SmpMeta k="отчёт от"   v="22.05.2026 · 14:08" />
-        <SmpMeta k="параметров" v="12 / 12" />
+        <SmpMeta k="параметров" v="6 / 6" />
         <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.16em] font-bold border rounded-[4px] px-2.5 py-1 border-danger text-danger bg-danger/[0.04]">
           требует действий
         </span>
@@ -169,7 +169,7 @@ function SampleReport() {
             это образец отчёта · остальные <span className="text-brand">6 пунктов</span> — по вашему домену
           </div>
           <div className="text-[13.5px] text-ink/60 leading-snug max-w-[52ch] mx-auto mb-4">
-            впишите свой сайт в сканер выше — проверим по 12 параметрам и соберём такой же отчёт за 30 секунд. бесплатно.
+            впишите свой сайт в сканер выше — проверим по 6 параметрам и соберём такой же отчёт за 30 секунд. бесплатно.
           </div>
           <a
             href="#scan"
@@ -343,7 +343,7 @@ export default function Landing() {
       <section>
         <SectionHead
           kicker="// что проверяем"
-          title={<>четыре блока законов, <span className="text-brand">12 параметров</span></>}
+          title={<>четыре блока законов, <span className="text-brand">6 проверок</span></>}
           sub="под каждым нарушением — конкретная статья закона, цитата и сценарий, как починить. результат — в PDF-отчёте."
         />
         <LawTable />

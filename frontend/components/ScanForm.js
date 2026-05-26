@@ -109,7 +109,7 @@ export default function ScanForm({ onScan, loading }) {
       <div className="flex flex-wrap gap-x-5 gap-y-1 mt-4 font-mono text-[11px] text-ink/40">
         <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> бесплатно</span>
         <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> 30 секунд</span>
-        <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> 12 параметров</span>
+        <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> 6 проверок</span>
         <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> без регистрации</span>
         <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> PDF-отчёт</span>
       </div>

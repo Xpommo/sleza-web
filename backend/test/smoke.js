@@ -80,7 +80,7 @@ const { closeBrowser }   = await import('../src/pageContext.js');
 
 // --- Helpers ---
 const ICON = { ok: '✅', risk: '⚠️ ', violation: '❌', unknown: '❓', error: '💥' };
-const CHECK_IDS = ['law152', 'law149', 'erir', 'offer', 'drugs'];
+const CHECK_IDS = ['law152', 'law149', 'erir', 'offer', 'drugs', 'ga'];
 
 function getStatus(aiData, id) {
   if (!aiData?.checks) return 'unknown';

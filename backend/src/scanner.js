@@ -30,6 +30,25 @@ function isChallengeResponse(text) {
   return /showcaptcha|smartcaptcha|captcha|cloudflare|just a moment|checking your browser|ddos.?guard|cf-turnstile|enable.?javascript.*protect/i.test(text);
 }
 
+// Google Analytics (GA4 / Universal) detection — cross-border data transfer violation (152-ФЗ ст.12 + 242-ФЗ)
+function checkGoogleAnalytics(pageContext) {
+  const detected = !!pageContext.hasGoogleAnalytics;
+  return {
+    id: 'ga',
+    law: 'Google Analytics',
+    law_code: '152-ФЗ ст.12 + 242-ФЗ',
+    status: detected ? 'violation' : 'ok',
+    issue: detected
+      ? 'Обнаружен Google Analytics — трансграничная передача персональных данных посетителей на серверы Google (США) без надлежащего правового основания.'
+      : '',
+    action: detected
+      ? 'Замените на Яндекс.Метрику или другой российский счётчик. При сохранении GA — уведомите РКН о трансграничной передаче (ст.12 152-ФЗ) и отразите это в политике конфиденциальности.'
+      : '',
+    fine: detected ? '300 000 руб.' : '0 руб.',
+    found_text: detected ? 'Google Analytics обнаружен на странице' : 'Google Analytics не найден',
+  };
+}
+
 // Fetch URL text with automatic Playwright fallback for anti-bot protected pages.
 // Use for URLs that are KNOWN to exist (from policyLinks, offerLinks, etc.)
 // — not for blind path probing (too slow if every speculative path triggers a browser).
@@ -765,6 +784,11 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     if (siteType === 'ip') applyIPOverride(aiData);
   }
 
+  // Inject Google Analytics check — local detection, always reliable regardless of AI mode
+  if (aiData?.checks && !aiData.checks.find(c => c.id === 'ga')) {
+    aiData.checks.push(checkGoogleAnalytics(pageContext));
+  }
+
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
   await applyFeedbackOverrides(hostname, aiData.checks || []);
   const prevScan = await getLastScanForDomain(hostname);
@@ -989,6 +1013,11 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     applyMediaOverride(aiData, siteType);
     applyServicesOverride(aiData, siteType);
     if (siteType === 'ip') applyIPOverride(aiData);
+  }
+
+  // Inject Google Analytics check — local detection, always reliable regardless of AI mode
+  if (aiData?.checks && !aiData.checks.find(c => c.id === 'ga')) {
+    aiData.checks.push(checkGoogleAnalytics(mainPageContext));
   }
 
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();

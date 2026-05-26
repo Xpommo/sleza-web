@@ -320,6 +320,16 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         hasAdScripts:       document.querySelectorAll(adNetworkScriptSelectors).length > 0,
         hasGtm:             document.querySelectorAll(gtmSelector).length > 0,
         hasAnalytics:       document.querySelectorAll(analyticsScriptSelectors).length > 0,
+        hasGoogleAnalytics: (() => {
+          // GA Universal Analytics (legacy)
+          if (document.querySelector('script[src*="google-analytics.com"]')) return true;
+          // GA4 loaded directly via gtag/js (distinct from gtm.js container)
+          if (document.querySelector('script[src*="googletagmanager.com/gtag/js"]')) return true;
+          // GA4 injected inline by GTM or manually: gtag('config', 'G-XXXXXXXX')
+          return Array.from(document.querySelectorAll('script:not([src])')).some(s =>
+            /gtag\s*\(\s*['"]config['"]\s*,\s*['"]G-/i.test(s.textContent || '')
+          );
+        })(),
         hasCookieBanner:    document.querySelectorAll(cookieBannerSelectors).length > 0 || hasCookieBannerByText,
         hasPolicyFooterLink,
         hasConsentCheckbox,
