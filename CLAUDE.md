@@ -394,9 +394,13 @@ _scanner.js:_
 - Когда `_firewalled = true`, 149-ФЗ violation → risk (аналогично 152-ФЗ когда политика недоступна)
 - Применяется в оба пути: local-checks (non-AI) + AI-override (single + full scan)
 
+_Также — Cloudflare challenge detection (коммит `6df78c1`):_
+- `_firewalled` расширен: `title` содержит `"почти готово" / "just a moment"` → теперь wildberries.ru тоже детектируется (Cloudflare рендерит interstitial > 300 chars, минуя старый `< 300` порог)
+
 _Исправленные false positives:_
 - **avito.ru 149-ФЗ**: ❌ → ⚠️ (Railway IP заблокирован avito; реквизиты реально есть, но недоступны)
 - **market.yandex.ru 149-ФЗ**: ❌ → ⚠️ (аналогично, Яндекс firewall)
+- **wildberries.ru 149-ФЗ**: ❌ → ⚠️ (Cloudflare "Почти готово..." — interstitial страница)
 
 ### Следующие задачи
 
@@ -420,15 +424,15 @@ _Исправленные false positives:_
 ### Smoke test baseline (2026-05-26) ← АКТУАЛЬНЫЙ
 
 ```
-shop     www.wildberries.ru  → ⚠️ ❌ ✅ ✅ ✅ ✅  (Cloudflare, 149 недоступен)
+shop     www.wildberries.ru  → ⚠️ ⚠️ ✅ ✅ ✅ ✅  (Cloudflare firewalled, 149 не проверить)
 media    www.rbc.ru          → ✅ ✅ ✅ ✅ ✅ ✅
 services hh.ru               → ✅ ✅ ✅ ✅ ✅ ✅
 saas     www.bitrix24.ru     → ✅ ✅ ✅ ✅ ✅ ✅
 media    vc.ru               → ✅ ✅ ✅ ✅ ✅ ✅
 extra    callibri.ru         → ✅ ✅ ✅ ✅ ✅ ✅
 extra    sleza.media         → ✅ ⚠️ ✅ ✅ ✅ ✅
-Итого: 39✅ 2⚠️ 1❌  (6 колонок × 7 сайтов = 42 проверки)
+Итого: 39✅ 3⚠️ 0❌  (6 колонок × 7 сайтов = 42 проверки)
 Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Куки | GA
 ```
 
-Прогресс: 23✅ 11⚠️ 1❌ → 25✅ 9⚠️ 1❌ → 28✅ 6⚠️ 1❌ → 32✅ 2⚠️ 1❌ → 39✅ 2⚠️ 1❌ (+ GA колонка)
+Прогресс: 23✅ 11⚠️ 1❌ → 32✅ 2⚠️ 1❌ → 39✅ 2⚠️ 1❌ → **39✅ 3⚠️ 0❌** (R14: 0 violations в baseline)
