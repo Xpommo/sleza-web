@@ -176,28 +176,6 @@ app.post('/api/scan/full/stream', { schema: { body: scanBodySchema } }, async (r
   }
 });
 
-// ── Debug: show what links Playwright finds on a page ────────────────────────
-app.get('/api/debug/links', async (request, reply) => {
-  const adminToken = process.env.ADMIN_TOKEN;
-  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
-    return reply.status(401).send({ error: 'unauthorized' });
-  }
-  const { url } = request.query;
-  if (!url) return reply.status(400).send({ error: 'url required' });
-  if (!isSafeUrl(url)) return reply.status(400).send({ error: 'Недопустимый URL. Разрешены только публичные http/https адреса.' });
-  const { buildPageContext } = await import('./pageContext.js');
-  const ctx = await buildPageContext(url);
-  return reply.send({
-    policyLinks: ctx.policyLinks,
-    offerLinks:  ctx.offerLinks,
-    aboutLinks:  ctx.aboutLinks,
-    returnLinks: ctx.returnLinks,
-    totalLinks:  ctx.links?.length,
-    hasCookieBanner: ctx.hasCookieBanner,
-    hasAdScripts:    ctx.hasAdScripts,
-  });
-});
-
 // ── Results storage ──────────────────────────────────────────────────────────
 
 app.get('/api/results/:uuid', async (request, reply) => {

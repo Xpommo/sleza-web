@@ -369,8 +369,8 @@ _Диагностика alutech.ru (false positive разобран):_
 **В резерве (Feedback Loop):** B (ML сигнальные паттерны), E (memory injection в промпт), F (shadow mode A/B), G (авто ре-валидация всего домена)
 
 **Прочие улучшения:**
-- Удалить `/api/debug/links` перед публичным релизом
-- Настройка Telegram бота в Railway (TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID + Redeploy)
+- ~~Удалить `/api/debug/links`~~ ✅ удалён (коммит `...`)
+- ~~Настройка Telegram бота~~ ✅ настроен
 
 ### Известные ограничения / false positives
 
