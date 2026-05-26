@@ -10,7 +10,7 @@
 import { createRequire } from 'module';
 import { createEngine } from './engine.js';
 import { isSafeUrl } from './utils.js';
-import { fetchPageText } from './pageContext.js';
+import { fetchPageText, fetchPageTextAndLinks } from './pageContext.js';
 import { buildPageContext } from './pageContext.js';
 import {
   getLastScanForDomain,
@@ -199,8 +199,14 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
   }
 
   // Fallback 1: probe common URL patterns via script's built-in discovery
+  // Apply quality check to avoid returning SPA skeletons (short pages with no policy content)
   const policyPages = await engine.discoverPolicyByCommonPaths(origin);
-  if (policyPages[0]?.text) return { text: htmlToText(policyPages[0].text), found: true };
+  if (policyPages[0]?.text) {
+    const discText = htmlToText(policyPages[0].text);
+    if (discText.length > 200 && engine.check152FZ(discText).found >= 1) {
+      return { text: discText, found: true };
+    }
+  }
 
   // Fallback 1.5: sitemap-discovered pages (catches policies not linked from nav)
   if (origin) {
@@ -213,7 +219,8 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
         if (text.length > 500) return { text, found: true };
       } else {
         const sText = await fetchKnownUrl(engine, url);
-        if (sText.length > 500) return { text: htmlToText(sText), found: true };
+        const sClean = htmlToText(sText);
+        if (sClean.length > 500 && engine.check152FZ(sClean).found >= 2) return { text: sClean, found: true };
       }
     }
   }
@@ -248,7 +255,42 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     if (visited.has(url)) continue;
     visited.add(url);
     const r = await engine.fetchUrl(url);
-    if (r.ok && r.text.length > 500) return { text: htmlToText(r.text), found: true };
+    if (!r.ok) continue;
+    const text = htmlToText(r.text);
+    // Require actual policy content (≥1 section) to avoid returning SPA skeletons
+    if (text.length >= 500 && engine.check152FZ(text).found >= 2) {
+      return { text, found: true };
+    }
+  }
+
+  // Fallback 3: Playwright-based SPA fallback for React/Next.js sites where plain fetch
+  // returns a JS skeleton for all routes (policyLinks will be empty on such sites).
+  // Try key paths, and follow one level of links for index/TOC pages.
+  if (!pageContext.policyLinks?.length) {
+    const SPA_POLICY_RE = /legal|privacy|personal|policy|konfid|обработк|персональн|конфиденц/i;
+    const spaVisited = new Set(); // separate set — SPA re-visits paths already tried via plain fetch
+    const spaPaths = ['/legal', '/privacy', '/policy', '/terms', '/terms-of-service'];
+    for (const path of spaPaths) {
+      const url = origin + path;
+      if (spaVisited.has(url)) continue;
+      spaVisited.add(url);
+      const { text: pwText, hrefs } = await fetchPageTextAndLinks(url);
+      if (!pwText.length) continue;
+      if (pwText.length > 500 && engine.check152FZ(pwText).found >= 1) {
+        return { text: pwText, found: true };
+      }
+      // This page may be a legal index/TOC — follow links that look like policy docs
+      for (const href of hrefs) {
+        if (!isSafeUrl(href) || spaVisited.has(href)) continue;
+        if (!SPA_POLICY_RE.test(href)) continue;
+        try { if (new URL(href).origin !== origin) continue; } catch { continue; }
+        spaVisited.add(href);
+        const subText = await fetchPageText(href);
+        if (subText.length > 500 && engine.check152FZ(subText).found >= 1) {
+          return { text: subText, found: true };
+        }
+      }
+    }
   }
 
   // Policy not found/accessible — return fallback text with found=false so callers
@@ -789,6 +831,18 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     aiData.checks.push(checkGoogleAnalytics(pageContext));
   }
 
+  // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1 (consent must be active, not pre-set)
+  if (aiData?.checks && pageContext.hasPreCheckedConsent) {
+    const check152 = aiData.checks.find(c => c.id === 'law152');
+    if (check152 && check152.status === 'ok') {
+      check152.status = 'risk';
+    }
+    const preCheckedNote = ' Форма обратной связи содержит предустановленную галочку согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
+    if (check152) {
+      check152.issue = (check152.issue || '') + preCheckedNote;
+    }
+  }
+
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
   await applyFeedbackOverrides(hostname, aiData.checks || []);
   const prevScan = await getLastScanForDomain(hostname);
@@ -1018,6 +1072,14 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   // Inject Google Analytics check — local detection, always reliable regardless of AI mode
   if (aiData?.checks && !aiData.checks.find(c => c.id === 'ga')) {
     aiData.checks.push(checkGoogleAnalytics(mainPageContext));
+  }
+
+  // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1
+  if (aiData?.checks && mainPageContext.hasPreCheckedConsent) {
+    const check152 = aiData.checks.find(c => c.id === 'law152');
+    if (check152 && check152.status === 'ok') check152.status = 'risk';
+    const preCheckedNote = ' Форма обратной связи содержит предустановленную галочку согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
+    if (check152) check152.issue = (check152.issue || '') + preCheckedNote;
   }
 
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();

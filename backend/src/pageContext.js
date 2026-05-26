@@ -83,6 +83,37 @@ export async function fetchPageText(url) {
 }
 
 /**
+ * Renders a page with Playwright and returns both its text content and
+ * all <a href> links. Used for SPA legal index pages (e.g. /terms TOCs)
+ * where the actual policy documents are linked sub-routes.
+ */
+export async function fetchPageTextAndLinks(url) {
+  let ctx;
+  try {
+    const browser = await getBrowser();
+    ctx = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      locale: 'ru-RU',
+      extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
+    });
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await page.waitForTimeout(2000).catch(() => {});
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
+    await page.waitForTimeout(800).catch(() => {});
+    const result = await page.evaluate(() => ({
+      text: document.body?.innerText || '',
+      hrefs: [...document.querySelectorAll('a[href]')].map(a => a.href).filter(Boolean),
+    })).catch(() => ({ text: '', hrefs: [] }));
+    return result;
+  } catch {
+    return { text: '', hrefs: [] };
+  } finally {
+    await ctx?.close().catch(() => {});
+  }
+}
+
+/**
  * Navigates to the URL in a fresh browser context and extracts the same
  * fields that getCurrentPageContent() reads from the live DOM in Tampermonkey.
  *
@@ -296,6 +327,22 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         return /соглас[еёаюяшь]|персональн|обработ[еёаку]/i.test(labels);
       })();
 
+      // A6: заранее проставленная галочка согласия — нарушение ч.1 ст.9 152-ФЗ
+      // (согласие должно быть активным, а не предустановленным)
+      const hasPreCheckedConsent = (() => {
+        const consentRe = /соглас|персональн|обработ[еёаку]|конфиденц|privacy|personal.?data/i;
+        const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+        for (const cb of checkboxes) {
+          if (!cb.checked && !cb.hasAttribute('checked')) continue;
+          // Look for consent-related text in nearby label or parent form
+          const label = document.querySelector(`label[for="${cb.id}"]`);
+          const labelText = label?.textContent || '';
+          const parentText = (cb.closest('form,div,p,li') || cb.parentElement)?.textContent || '';
+          if (consentRe.test(labelText) || consentRe.test(parentText)) return true;
+        }
+        return false;
+      })();
+
       return {
         url: location.href,
         title: (document.title || '').replace(/<[^>]+>/g, '').trim(),
@@ -330,9 +377,10 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
             /gtag\s*\(\s*['"]config['"]\s*,\s*['"]G-/i.test(s.textContent || '')
           );
         })(),
-        hasCookieBanner:    document.querySelectorAll(cookieBannerSelectors).length > 0 || hasCookieBannerByText,
+        hasCookieBanner:      document.querySelectorAll(cookieBannerSelectors).length > 0 || hasCookieBannerByText,
         hasPolicyFooterLink,
         hasConsentCheckbox,
+        hasPreCheckedConsent,
       };
     }, KW);
 
