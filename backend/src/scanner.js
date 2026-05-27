@@ -566,6 +566,30 @@ function applyIPOverride(aiData) {
 // ── Feedback overrides ───────────────────────────────────────────────────────
 
 /**
+ * When 149-FZ check fires on a site operated by a физлицо (no ИП/ООО registered),
+ * replace the generic "отсутствует ИНН/ОГРН" text with an explanation that ИНН/ОГРН
+ * are not applicable for unregistered individuals, and clarify what IS missing.
+ * Detects fizlitso by: (a) "физическое лицо" / "самозанятый" in page text, AND
+ * (b) name check passed but inn_ogrn check failed in result149.
+ */
+function applyFizlitsoNote(aiData, result149, combinedText) {
+  if (!aiData?.checks || !result149?.items) return;
+  const nameItem = result149.items.find(i => i.id === 'name');
+  const innItem  = result149.items.find(i => i.id === 'inn_ogrn');
+  const isFizlitso = /физическ[ое]+\s+лиц[оа]?/i.test(combinedText) || /самозанят/i.test(combinedText);
+  if (!nameItem?.present || innItem?.present || !isFizlitso) return;
+  const law149 = aiData.checks.find(c => c.id === 'law149');
+  if (!law149 || law149.status === 'ok') return;
+  const missingItems = result149.items
+    .filter(i => !i.present && i.id !== 'inn_ogrn' && i.id !== 'name')
+    .map(i => i.label.toLowerCase());
+  law149.issue = 'Оператор — физическое лицо (ИП не зарегистрировано). ИНН/ОГРН организации не применимы.'
+    + (missingItems.length ? ` Отсутствует: ${missingItems.join('; ')}` : '');
+  law149.action = 'Для снижения риска: добавьте телефон и адрес. '
+    + 'Для ✅: зарегистрируйте ИП или самозанятость и укажите ИНН (12 цифр) в footer сайта.';
+}
+
+/**
  * Apply active domain exceptions to check results.
  * Called AFTER all other overrides, BEFORE building the result object.
  * Stores _original so D-analytics and diff can use the pre-override values (К1, К6).
@@ -775,6 +799,8 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
         if (result149local.status === 'ok') {
           check149AI.status = 'ok';
           check149AI.issue = result149local.issue || 'Обязательные реквизиты владельца на сайте указаны';
+        } else {
+          applyFizlitsoNote(aiData, result149local, fullText + extraText149);
         }
       }
     }
@@ -832,6 +858,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType, hasPolicyFooterLink: pageContext.hasPolicyFooterLink }),
       site_name: pageContext.title,
     };
+    applyFizlitsoNote(aiData, result149, fullText + extraText + homepageText);
     // Promote to 'ip' if ИП detected in extraText/PDF (not visible in main page HTML)
     if (siteType !== 'ip' && /\bип\s+[а-яёa-z]|огрнип|индивидуальн[а-яё]+\s+предприниматель/i.test(extraText + homepageText))
       siteType = 'ip';
@@ -1065,6 +1092,8 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
         if (result149local.status === 'ok') {
           check149AIFull.status = 'ok';
           check149AIFull.issue = result149local.issue || 'Обязательные реквизиты владельца на сайте указаны';
+        } else {
+          applyFizlitsoNote(aiData, result149local, allPagesText + extraText149);
         }
       }
     }
@@ -1116,6 +1145,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       checks: engine.buildLocalChecks({ result152, result149, resultERIR, resultOffer, resultDrugs, resultCookie, egrul, siteType, hasPolicyFooterLink: mainPageContext.hasPolicyFooterLink }),
       site_name: mainPageContext.title,
     };
+    applyFizlitsoNote(aiData, result149, allPagesText + extraText);
     // Promote to 'ip' if ИП detected in extraText/PDF even if not visible in main page HTML
     if (siteType !== 'ip' && /\bип\s+[а-яёa-z]|огрнип|индивидуальн[а-яё]+\s+предприниматель/i.test(extraText))
       siteType = 'ip';
