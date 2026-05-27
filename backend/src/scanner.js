@@ -908,8 +908,8 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   }
 
   // Cap 3: government .gov.ru and known state portals — no commercial requisite obligation
-  const isGovSite = hostname.endsWith('.gov.ru') ||
-    /^(?:www\.)?(?:fss|pfr|gosuslugi|rkn|cbr|minjust|rosreestr)\.ru$/.test(hostname);
+  const isGovSite = hostname.endsWith('.gov.ru') || hostname.endsWith('.nalog.ru') ||
+    /^(?:www\.)?(?:fss|pfr|gosuslugi|rkn|cbr|minjust|rosreestr|nalog)\.ru$/.test(hostname);
   if (isGovSite) {
     const law149c = (aiData?.checks || []).find(c => c.id === 'law149');
     if (law149c?.status === 'violation') law149c.status = 'risk';
@@ -1184,8 +1184,8 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       if ((c.id === 'law149' || c.id === 'ga') && c.status === 'violation') c.status = 'risk';
     }
   }
-  const isGovSiteFull = hostname.endsWith('.gov.ru') ||
-    /^(?:www\.)?(?:fss|pfr|gosuslugi|rkn|cbr|minjust|rosreestr)\.ru$/.test(hostname);
+  const isGovSiteFull = hostname.endsWith('.gov.ru') || hostname.endsWith('.nalog.ru') ||
+    /^(?:www\.)?(?:fss|pfr|gosuslugi|rkn|cbr|minjust|rosreestr|nalog)\.ru$/.test(hostname);
   if (isGovSiteFull) {
     const law149c = (aiData?.checks || []).find(c => c.id === 'law149');
     if (law149c?.status === 'violation') law149c.status = 'risk';

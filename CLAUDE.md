@@ -384,6 +384,26 @@ _Исправленные false positives:_
 - **netology.ru 152-ФЗ**: `violation` → `risk` (SPA fallback находит политику через `/legal` via Playwright, `check152FZ.found=6/7`)
 - Root cause: sitemap возвращал skeleton (1393 chars) без quality check → `found:true` с пустым текстом
 
+**Раунд 16 — Structural false-positive caps (2026-05-27)**
+
+_scanner.js:_
+- **Post-processing caps** после `buildLocalChecks` в обоих путях (single + full scan):
+  - Cap 1 (blocked pages): `check149FZ`/`check152FZ` возвращают `'unknown'`/`'no_policy'` при пустой странице (< 50 chars) → `buildLocalChecks` ошибочно делал violation. Теперь: `_http403 || _firewalled || _blocked` → law152/law149 unknown/violation → risk
+  - Cap 2 (иностранные компании): non-.ru/.рф TLD + EGRUL null → law149 violation + GA violation → risk (apple.com, microsoft.com, coursera.org, edx.org, meduza.io)
+  - Cap 3 (госорганы): `*.gov.ru`, `*.nalog.ru`, `fss.ru`, `pfr.ru`, `gosuslugi.ru` и др. → law149 violation → risk
+
+_Исправленные false positives (❌ 71 → ❌ 38, −46%):_
+- **magnit.ru / tripadvisor.ru / vseinstrumenti.ru 152-ФЗ**: ❌ → ⚠️ (root cause: `no_policy` статус не перехватывался старым cap)
+- **yandex.ru 152-ФЗ**: ❌ → ⚠️ (blocked403 теперь действует и для 152-ФЗ)
+- **apple.com / microsoft.com / coursera.org / edx.org 149-ФЗ**: ❌ → ⚠️ (иностранные компании)
+- **microsoft.com / coursera.org / edx.org GA**: ❌ → ⚠️ (аналогично)
+- **nalog.gov.ru / pfr.gov.ru / fss.ru / service.nalog.ru 149-ФЗ**: ❌ → ⚠️ (госорганы)
+- **meduza.io 149-ФЗ / GA**: ❌ → ⚠️ (иностранная регистрация)
+
+_Smoke test (27.05):_ ✅ 472  ⚠️ 171  ❌ 38  💥 24 | baseline: 0 регрессий, 1 улучшение
+
+---
+
 **Раунд 15 — HTTP 4xx false positive fix (2026-05-27)** ✅ (коммит `06f9a8e`)
 
 _pageContext.js:_
@@ -427,21 +447,26 @@ _Исправленные false positives:_
 - ~~Настройка Telegram бота~~ ✅ настроен
 - ~~149-ФЗ false positives на маркетплейсах~~ ✅ R14 fixed (avito, Яндекс)
 - ~~149-ФЗ false positives на сайтах с 4xx~~ ✅ R15 fixed (dns-shop, eldorado, ikea)
-- Полный 140-URL smoke test завершён (26.05): ✅ 296 ⚠️ 76 ❌ 50 💥 69 (сеть падала в середине)
+- ~~Structural false positive caps~~ ✅ R16 fixed (blocked, foreign, gov) — ❌ 71→38
+
+**Оставшиеся неточности (❌ 38 после R16):**
+- **GA violations (~11)** — ivi.ru, amocrm.ru, cian.ru, skyeng.ru, vkusvill.ru и др.: скорее всего **реальные** (компании используют GA4 в нарушение 152-ФЗ)
+- **ERIR violations (4)** — mk.ru, rt.com, meduza.io, onetwotrip.com: **реальные**
+- **law149/152 при Playwright fallback (~12)** — sberbank.ru, rosatom.ru, afisha.ru, netology.ru, apteka.ru: Playwright падает → plain fetch не видит ИНН в JS-рендеренном footer
+- **mail.ru law149/GA** — suspicious, нужна ручная проверка
 
 ### Известные ограничения / false positives
 
-- **Cloudflare/DDoS-Guard** (wildberries.ru): fallback на plain fetch, результаты неполные (149-ФЗ ❌).
-- **SmartCaptcha / Яндекс anti-bot** (sdvor.com): Railway IP блокируется, subpage-запросы через `engine.fetchUrl()` → редирект на капчу. 152-ФЗ показывает RISK несмотря на наличие `/ekb/personal-data`. Решение: кнопка «неверно?» → feedback loop активирует permanent exception.
-- **403 на главной** (1cbit.ru): false positives по 149-ФЗ и 152-ФЗ (~5% SMB сайтов).
+- **Cloudflare/DDoS-Guard** (wildberries.ru): fallback на plain fetch, результаты неполные.
+- **SmartCaptcha / Яндекс anti-bot** (sdvor.com): Railway IP блокируется → 152-ФЗ RISK. Решение: feedback loop.
+- **Playwright fallback (⚡)**: sberbank.ru, rosatom.ru, afisha.ru и др. — ИНН в JS-footer не виден при plain fetch.
 - **Реквизиты только в PDF** (callibri.ru): читаем через pdf-parse; если PDF недоступен — риск.
-- **Политика скрыта в JS-виджете** (artlebedev.ru): fallback на /terms/, /legal/.
-- **20-мин Supabase-кэш**: `findCachedScan` хранит результат в БД, не в памяти. Railway Redeploy НЕ сбрасывает кэш. Если после Redeploy результат кажется устаревшим — подождать 20 мин и пересканировать.
+- **20-мин Supabase-кэш**: Railway Redeploy НЕ сбрасывает кэш. Ждать 20 мин после Redeploy.
 
-### Smoke test baseline (2026-05-26) ← АКТУАЛЬНЫЙ
+### Smoke test baseline (2026-05-27) ← АКТУАЛЬНЫЙ
 
 ```
-shop     www.wildberries.ru  → ⚠️ ⚠️ ✅ ✅ ✅ ✅  (Cloudflare firewalled, 149 не проверить)
+shop     www.wildberries.ru  → ⚠️ ⚠️ ✅ ✅ ✅ ✅  (Cloudflare firewalled)
 media    www.rbc.ru          → ✅ ✅ ✅ ✅ ✅ ✅
 services hh.ru               → ✅ ✅ ✅ ✅ ✅ ✅
 saas     www.bitrix24.ru     → ✅ ✅ ✅ ✅ ✅ ✅
@@ -452,4 +477,5 @@ extra    sleza.media         → ✅ ⚠️ ✅ ✅ ✅ ✅
 Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Куки | GA
 ```
 
-Прогресс: 23✅ 11⚠️ 1❌ → 32✅ 2⚠️ 1❌ → 39✅ 2⚠️ 1❌ → **39✅ 3⚠️ 0❌** (R14: 0 violations в baseline)
+Прогресс: ... → **39✅ 3⚠️ 0❌** (R14–R16: 0 violations в baseline)
+140-URL прогон (27.05): ✅ 472  ⚠️ 171  ❌ 38  💥 24
