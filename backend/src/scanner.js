@@ -24,6 +24,9 @@ import { computeScanDiff, calcConfidence } from './scanDiff.js';
 
 const _require = createRequire(import.meta.url);
 
+// Document hosting services where small sites upload policy PDFs/DOCX instead of hosting on their own domain
+const EXT_DOC_HOST_RE = /disk\.yandex\.ru|disk\.360\.yandex\.ru|drive\.google\.com|docs\.google\.com|dropbox\.com|onedrive\.live\.com/i;
+
 // Detect anti-bot challenge responses (SmartCaptcha, Cloudflare, DDoS-Guard, Qrator…)
 function isChallengeResponse(text) {
   if (!text || text.length > 8000) return false;
@@ -154,6 +157,8 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
   let combined = '';
   const visited = new Set(candidates);
 
+  const isDocHostUrl = href => EXT_DOC_HOST_RE.test(href);
+
   for (const href of candidates) {
     if (isPdfUrl(href)) {
       const text = await fetchPdfText(href);
@@ -162,6 +167,12 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     }
     if (isDocxUrl(href)) {
       const text = await fetchDocxText(href);
+      if (text.length > 200) combined += '\n' + text;
+      continue;
+    }
+    if (isDocHostUrl(href)) {
+      // Policy hosted on Yandex.Disk / Google Drive — use Playwright to render the document viewer
+      const text = await fetchPageText(href);
       if (text.length > 200) combined += '\n' + text;
       continue;
     }
@@ -920,6 +931,18 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     if (law149c?.status === 'violation') law149c.status = 'risk';
   }
 
+  // Cap 4: policy on external document host (Yandex.Disk, Google Drive, Dropbox, etc.)
+  // Site explicitly links to a policy document — it exists, but we can't read it automatically.
+  // Can't call this a "violation" (policy not found) when we can see a link to it.
+  const hasExtDocPolicy = (pageContext.policyLinks || []).some(l => EXT_DOC_HOST_RE.test(l.href));
+  if (hasExtDocPolicy) {
+    const check152 = (aiData?.checks || []).find(c => c.id === 'law152');
+    if (check152 && (check152.status === 'violation' || check152.status === 'no_policy' || check152.status === 'risk')) {
+      if (check152.status !== 'ok') check152.status = 'risk';
+      check152.issue = 'Политика конфиденциальности размещена на внешнем хостинге (Яндекс.Диск / Google Drive). Автоматически проверить содержание невозможно — рекомендуем проверить разделы вручную.';
+    }
+  }
+
   await applyFeedbackOverrides(hostname, aiData.checks || []);
   const prevScan = await getLastScanForDomain(hostname);
   const result = {
@@ -1194,6 +1217,16 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   if (isGovSiteFull) {
     const law149c = (aiData?.checks || []).find(c => c.id === 'law149');
     if (law149c?.status === 'violation') law149c.status = 'risk';
+  }
+
+  // Cap 4 (full scan): policy on external document host
+  const hasExtDocPolicyFull = (mainPageContext.policyLinks || []).some(l => EXT_DOC_HOST_RE.test(l.href));
+  if (hasExtDocPolicyFull) {
+    const check152f = (aiData?.checks || []).find(c => c.id === 'law152');
+    if (check152f && check152f.status !== 'ok') {
+      check152f.status = 'risk';
+      check152f.issue = 'Политика конфиденциальности размещена на внешнем хостинге (Яндекс.Диск / Google Drive). Автоматически проверить содержание невозможно — рекомендуем проверить разделы вручную.';
+    }
   }
 
   await applyFeedbackOverrides(hostname, aiData.checks || []);

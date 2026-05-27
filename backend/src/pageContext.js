@@ -228,7 +228,9 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
       // GTM is excluded: it's used by most sites for analytics only; tracked separately via hasGtm
       const adNetworkScriptSelectors = [
         'script[src*="an.yandex"]','script[src*="yandex-ads"]','script[src*="adfox"]',
-        'script[src*="facebook.net"]',
+        // facebook.net excluded: Meta Pixel (fbevents.js) is a conversion-tracking pixel
+        // used by sites to measure their OWN Facebook ad campaigns — not ad display.
+        // ERIR applies only to ads displayed on the site, not outbound tracking pixels.
 
         'script[src*="soloway"]','script[src*="buzzoola"]',
         'script[src*="otm-r.com"]','script[src*="mail.ru/counter"]',
@@ -343,6 +345,21 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         return false;
       })();
 
+      // Policy links hosted on external document services (Yandex.Disk, Google Drive, etc.)
+      // Filtered out by sameDomain() but valid — small sites upload policy as DOCX/PDF there.
+      const extDocHostRe = /disk\.yandex\.ru|disk\.360\.yandex\.ru|drive\.google\.com|docs\.google\.com|dropbox\.com|onedrive\.live\.com/i;
+      const extDocPolicyLinks = Array.from(document.querySelectorAll('a[href]'))
+        .map(a => ({
+          text: (a.innerText || a.textContent || '').trim().slice(0, 80),
+          href: a.href,
+          path: (() => { try { return new URL(a.href).pathname.toLowerCase(); } catch { return ''; } })(),
+        }))
+        .filter(l => {
+          if (!l.text) return false;
+          try { return extDocHostRe.test(new URL(l.href).hostname); } catch { return false; }
+        })
+        .filter(l => matchesKw(l.text, kw.policy));
+
       return {
         url: location.href,
         title: (document.title || '').replace(/<[^>]+>/g, '').trim(),
@@ -352,15 +369,18 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         jsonLdText,
         eridAttrs,
         links: uniqueLinks.slice(0, 40),
-        policyLinks: uniqueLinks.filter(l => {
-          if (isContentPath(l.path)) return false;
-          if (!m(l, kw.policy)) return false;
-          if (/антикоррупцион|политика.качеств|охран[аы].труда|экологичес|информацион[нг].+безопасн/i.test(l.text)) return false;
-          // "персональн" alone is too broad — only allow if paired with data/privacy context
-          // (filters out "Персональная доработка", "Персональный менеджер" etc.)
-          if (/персональн/i.test(l.text) && !/данн|обработк|конфиденц|privacy|personal.?data/i.test(l.text + l.href)) return false;
-          return true;
-        }).slice(0, 5),
+        policyLinks: [
+          ...uniqueLinks.filter(l => {
+            if (isContentPath(l.path)) return false;
+            if (!m(l, kw.policy)) return false;
+            if (/антикоррупцион|политика.качеств|охран[аы].труда|экологичес|информацион[нг].+безопасн/i.test(l.text)) return false;
+            // "персональн" alone is too broad — only allow if paired with data/privacy context
+            // (filters out "Персональная доработка", "Персональный менеджер" etc.)
+            if (/персональн/i.test(l.text) && !/данн|обработк|конфиденц|privacy|personal.?data/i.test(l.text + l.href)) return false;
+            return true;
+          }).slice(0, 4),
+          ...extDocPolicyLinks.slice(0, 1),
+        ].slice(0, 5),
         offerLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.offer)).slice(0, 4),
         returnLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.ret)).slice(0, 3),
         aboutLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.about)).slice(0, 4),
