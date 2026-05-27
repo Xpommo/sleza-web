@@ -812,6 +812,12 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     const adTextMarker = /на правах реклам|рекламный материал|партнёрский материал|спонсорский материал|рекламодатель|sponsored content/i;
     const effectiveHasAdScripts = pageContext.hasAdScripts || (pageContext.hasGtm && adTextMarker.test(fullText));
     const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''), { hasAdScripts: effectiveHasAdScripts });
+    // Mirror AI-path logic: if no actual ad-serving scripts detected, text-based ad markers
+    // (e.g. the word "рекламодатель" in informational content) must not produce a violation.
+    if (!effectiveHasAdScripts && resultERIR.status !== 'ok') {
+      resultERIR.status = 'ok';
+      resultERIR.issue = 'Рекламных скриптов не обнаружено — ЕРИР не применяется';
+    }
     // Include extraText so PDF offer documents are checked for seller info / return conditions
     const resultOffer = engine.checkOffer(fullText + '\n' + extraText, pageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(fullText);
@@ -852,6 +858,36 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   }
 
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
+
+  // ── Structural caps (before feedback overrides so user-confirmed exceptions win) ──
+
+  // Cap 1: blocked/empty page — check149FZ/check152FZ return 'unknown'/'no_policy' (not 'violation')
+  // when bodyText < 50 chars; buildLocalChecks maps 'no_policy' → 'violation'. Cap both to risk.
+  if (pageContext._http403 || pageContext._firewalled || pageContext._blocked) {
+    for (const c of (aiData?.checks || [])) {
+      if (c.id === 'law152' || c.id === 'law149') {
+        if (c.status === 'violation' || c.status === 'unknown') c.status = 'risk';
+      }
+    }
+  }
+
+  // Cap 2: foreign entities (non-.ru/.рф TLD + no EGRUL INN/OGRN) — 149-FZ inapplicable
+  const isForeignEntity = !hostname.endsWith('.ru') && !hostname.endsWith('.рф') &&
+                          !egrul?.ids?.inn && !egrul?.ids?.ogrn;
+  if (isForeignEntity) {
+    for (const c of (aiData?.checks || [])) {
+      if ((c.id === 'law149' || c.id === 'ga') && c.status === 'violation') c.status = 'risk';
+    }
+  }
+
+  // Cap 3: government .gov.ru and known state portals — no commercial requisite obligation
+  const isGovSite = hostname.endsWith('.gov.ru') ||
+    /^(?:www\.)?(?:fss|pfr|gosuslugi|rkn|cbr|minjust|rosreestr)\.ru$/.test(hostname);
+  if (isGovSite) {
+    const law149c = (aiData?.checks || []).find(c => c.id === 'law149');
+    if (law149c?.status === 'violation') law149c.status = 'risk';
+  }
+
   await applyFeedbackOverrides(hostname, aiData.checks || []);
   const prevScan = await getLastScanForDomain(hostname);
   const result = {
@@ -1061,6 +1097,11 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     const adTextMarkerFull = /на правах реклам|рекламный материал|партнёрский материал|спонсорский материал|рекламодатель|sponsored content/i;
     const effectiveHasAdScriptsFull = mainPageContext.hasAdScripts || (mainPageContext.hasGtm && adTextMarkerFull.test(mainPageText));
     const resultERIR = engine.checkERIR(mainPageText + '\n' + (mainPageContext.eridAttrs || ''), { hasAdScripts: effectiveHasAdScriptsFull });
+    // Mirror AI-path logic: no ad-serving scripts → text markers alone must not fire.
+    if (!effectiveHasAdScriptsFull && resultERIR.status !== 'ok') {
+      resultERIR.status = 'ok';
+      resultERIR.issue = 'Рекламных скриптов не обнаружено — ЕРИР не применяется';
+    }
     // checkOffer: include extraText so PDF offer documents (e.g. /Offer.pdf) are checked
     const resultOffer = engine.checkOffer(mainPageText + '\n' + extraText, mainPageContext.offerLinks);
     const resultDrugs = engine.checkDrugs(allPagesText);
@@ -1097,6 +1138,29 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   }
 
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
+
+  // ── Structural caps (mirrors single-scan logic) ──
+  if (mainPageContext._http403 || mainPageContext._firewalled || mainPageContext._blocked) {
+    for (const c of (aiData?.checks || [])) {
+      if (c.id === 'law152' || c.id === 'law149') {
+        if (c.status === 'violation' || c.status === 'unknown') c.status = 'risk';
+      }
+    }
+  }
+  const isForeignEntityFull = !hostname.endsWith('.ru') && !hostname.endsWith('.рф') &&
+                              !egrul?.ids?.inn && !egrul?.ids?.ogrn;
+  if (isForeignEntityFull) {
+    for (const c of (aiData?.checks || [])) {
+      if ((c.id === 'law149' || c.id === 'ga') && c.status === 'violation') c.status = 'risk';
+    }
+  }
+  const isGovSiteFull = hostname.endsWith('.gov.ru') ||
+    /^(?:www\.)?(?:fss|pfr|gosuslugi|rkn|cbr|minjust|rosreestr)\.ru$/.test(hostname);
+  if (isGovSiteFull) {
+    const law149c = (aiData?.checks || []).find(c => c.id === 'law149');
+    if (law149c?.status === 'violation') law149c.status = 'risk';
+  }
+
   await applyFeedbackOverrides(hostname, aiData.checks || []);
   const prevScan = await getLastScanForDomain(hostname);
   const result = {
