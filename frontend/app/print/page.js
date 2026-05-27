@@ -26,10 +26,25 @@ function CheckRow({ check }) {
         </span>
       </div>
       {!isOk && check.issue && (
-        <div style={{ fontSize: 12, color: '#374151', marginBottom: 6 }}>{check.issue}</div>
+        <div style={{ fontSize: 12, color: '#374151', marginBottom: check.found_text || check.location || (check.action && check.action !== '—') ? 8 : 0 }}>
+          {check.issue}
+        </div>
+      )}
+      {!isOk && check.found_text && (
+        <div style={{ fontSize: 11, color: '#374151', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 10px', marginBottom: 6, fontFamily: 'monospace', lineHeight: 1.5 }}>
+          <span style={{ color: '#9ca3af', fontSize: 10, display: 'block', marginBottom: 2 }}>найдено на странице:</span>
+          {check.found_text}
+        </div>
+      )}
+      {!isOk && check.location && (
+        <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6 }}>
+          📍 {check.location}
+        </div>
       )}
       {!isOk && check.action && check.action !== '—' && (
-        <div style={{ fontSize: 11, color: '#6b7280', fontStyle: 'italic' }}>→ {check.action}</div>
+        <div style={{ fontSize: 11, color: '#1d4ed8', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '6px 10px', marginTop: 4 }}>
+          <span style={{ fontWeight: 600 }}>Как исправить:</span> {check.action}
+        </div>
       )}
     </div>
   );

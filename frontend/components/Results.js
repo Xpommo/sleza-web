@@ -141,6 +141,25 @@ function FeedbackButton({ checkId, scanUuid }) {
   );
 }
 
+// Returns the first sentence / first list item + count of hidden items for the teaser view.
+function teaserIssue(issue) {
+  if (!issue) return { text: '', hidden: 0 };
+  if (issue.length <= 95) return { text: issue, hidden: 0 };
+
+  // "Отсутствует: A; B; C" → show "Отсутствует: A" + count
+  const listMatch = issue.match(/^([^;]{10,}?)((?:;\s*[^;]+){1,})$/);
+  if (listMatch) {
+    const hidden = (listMatch[2].match(/;/g) || []).length;
+    return { text: listMatch[1].trim(), hidden };
+  }
+
+  // Multi-sentence: show first sentence
+  const dotIdx = issue.search(/\.\s+[А-ЯЁA-Z«"]/);
+  if (dotIdx > 20) return { text: issue.slice(0, dotIdx + 1), hidden: -1 };
+
+  return { text: issue.slice(0, 90).trimEnd() + '…', hidden: -1 };
+}
+
 function FindingRow({ check, idx, diffEntry, scanUuid }) {
   const isIssue = check.status === 'violation' || check.status === 'risk';
   return (
@@ -163,11 +182,23 @@ function FindingRow({ check, idx, diffEntry, scanUuid }) {
       <div className="text-[13px] text-ink/60 leading-snug pt-0.5">
         {isIssue ? (
           <>
-            {check.issue
-              ? <span className="text-ink/80">{check.issue}</span>
-              : <span>требует устранения.</span>
-            }
-            <span className="block mt-1 text-[12px] text-ink/40">рекомендации по устранению — в PDF-отчёте</span>
+            {check.issue ? (() => {
+              const { text, hidden } = teaserIssue(check.issue);
+              return (
+                <span className="text-ink/80">
+                  {text}
+                  {hidden > 0 && (
+                    <span className="text-ink/35 font-mono text-[11px]"> + ещё {hidden} пункта — в PDF</span>
+                  )}
+                </span>
+              );
+            })() : <span>требует устранения.</span>}
+            <span className="block mt-1 text-[12px] text-ink/40">
+              {check.status === 'violation'
+                ? <>рекомендации, цитаты со страниц — в <span className="text-danger/50 font-medium">PDF-отчёте</span></>
+                : <>рекомендации по устранению — в PDF-отчёте</>
+              }
+            </span>
             {check._override && (
               <span className="ml-2 inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-[3px]"
                 title={check._override.reason || 'Скорректировано на основе фидбэка пользователей'}>
