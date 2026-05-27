@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useCallback } from 'react';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
@@ -44,9 +45,10 @@ export default function ShareModal({ open, onClose, uuid, mode }) {
   const [companyErr,   setCompanyErr]   = useState('');
   const [emailTouched, setEmailTouched] = useState(false);
   const [compTouched,  setCompTouched]  = useState(false);
-  const [loading,      setLoading]      = useState(false);
-  const [done,         setDone]         = useState(false);
-  const [submitError,  setSubmitError]  = useState('');
+  const [loading,         setLoading]         = useState(false);
+  const [done,            setDone]            = useState(false);
+  const [submitError,     setSubmitError]     = useState('');
+  const [consentChecked,  setConsentChecked]  = useState(false);
 
   if (!open) return null;
 
@@ -54,7 +56,7 @@ export default function ShareModal({ open, onClose, uuid, mode }) {
     setEmail(''); setCompany('');
     setEmailErr(''); setCompanyErr('');
     setEmailTouched(false); setCompTouched(false);
-    setDone(false); setSubmitError('');
+    setDone(false); setSubmitError(''); setConsentChecked(false);
   };
   const close = () => { reset(); onClose(); };
 
@@ -70,7 +72,7 @@ export default function ShareModal({ open, onClose, uuid, mode }) {
 
   const emailOk   = !checkEmail(email);
   const companyOk = !checkCompany(company);
-  const canSubmit = emailOk && companyOk && !loading;
+  const canSubmit = emailOk && companyOk && consentChecked && !loading;
 
   const submit = async () => {
     // Show all errors on submit
@@ -186,6 +188,23 @@ export default function ShareModal({ open, onClose, uuid, mode }) {
                   <p className="text-xs text-red-500 mt-1">{companyErr}</p>
                 )}
               </div>
+
+              {/* Consent checkbox */}
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={consentChecked}
+                  onChange={e => setConsentChecked(e.target.checked)}
+                  className="mt-0.5 shrink-0 accent-blue-600"
+                />
+                <span className="text-xs text-gray-500 leading-relaxed">
+                  Я даю согласие на{' '}
+                  <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline">
+                    обработку персональных данных
+                  </Link>{' '}
+                  в соответствии с политикой конфиденциальности
+                </span>
+              </label>
 
               {submitError && <p className="text-xs text-red-500">{submitError}</p>}
 

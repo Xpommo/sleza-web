@@ -1,4 +1,5 @@
 import './globals.css';
+import CookieBanner from '../components/CookieBanner';
 
 export const metadata = {
   title: 'СЛЕЗА // СКАНЕР — Аудит сайта по 152-ФЗ, 149-ФЗ, ЕРИР',
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="bg-warm text-ink min-h-screen antialiased">
         {children}
+        <CookieBanner />
       </body>
     </html>
   );

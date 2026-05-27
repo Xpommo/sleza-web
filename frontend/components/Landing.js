@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 function useCountUp(target, duration = 1400) {
@@ -412,6 +413,7 @@ export default function Landing() {
         <div className="flex flex-col gap-1">
           <span><b className="text-ink/65 font-semibold">© 2024–2026</b></span>
           <a href="mailto:kirillmash99@gmail.com" className="hover:text-ink transition-colors">kirillmash99@gmail.com</a>
+          <Link href="/privacy" className="hover:text-ink transition-colors underline underline-offset-2">Политика конфиденциальности</Link>
           <span>не является юридической консультацией</span>
         </div>
         <div className="font-sans text-[13px] text-ink/55 sm:text-right">
