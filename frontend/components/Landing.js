@@ -411,7 +411,7 @@ export default function Landing() {
           <b className="text-ink/70 font-semibold">СЛЕЗА // СКАНЕР</b>
         </span>
         <div className="flex flex-col gap-1">
-          <span><b className="text-ink/65 font-semibold">© 2024–2026</b></span>
+          <span><b className="text-ink/65 font-semibold">© 2024–2026</b> · Кирилл Мащенко</span>
           <a href="mailto:kirillmash99@gmail.com" className="hover:text-ink transition-colors">kirillmash99@gmail.com</a>
           <Link href="/privacy" className="hover:text-ink transition-colors underline underline-offset-2">Политика конфиденциальности</Link>
           <span>не является юридической консультацией</span>
