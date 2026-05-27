@@ -250,6 +250,11 @@ async function fetchPolicyText(engine, pageContext, origin, fallback) {
     '/politika-obrabotki-personalnyh-dannyh', '/politika-obrabotki-personalnyh-dannyh/',
     '/politika', '/politika/', '/konfidencialnost', '/konfidencialnost/',
     '/personalnie-dannie', '/personal-data-policy',
+    // Large Russian companies / banks
+    '/privacy_policy', '/privacy_policy/',
+    '/personal-data-protection', '/personal-data-protection/',
+    '/privacy-notice', '/privacy-notice/',
+    '/company/privacy', '/about/privacy-policy',
   ];
   for (const path of EXTRA_PATHS) {
     const url = origin + path;
