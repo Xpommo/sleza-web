@@ -384,6 +384,25 @@ _Исправленные false positives:_
 - **netology.ru 152-ФЗ**: `violation` → `risk` (SPA fallback находит политику через `/legal` via Playwright, `check152FZ.found=6/7`)
 - Root cause: sitemap возвращал skeleton (1393 chars) без quality check → `found:true` с пустым текстом
 
+**Раунд 18 — Meta Pixel ERIR fix + Yandex.Disk policy detection (2026-05-27)** ✅ (коммит `e99dd40`)
+
+_pageContext.js:_
+- `facebook.net` убран из `adNetworkScriptSelectors` — Meta Pixel (`fbevents.js`) это tracking pixel рекламодателя, НЕ рекламная сеть. ЕРИР применяется к рекламе на сайте, не к исходящим пикселям конверсий.
+- `extDocPolicyLinks` — дополнительная экстракция ссылок на политику с внешних doc-хостингов (Яндекс.Диск / Google Drive / Dropbox / OneDrive). Ранее все внешние ссылки фильтровались через `sameDomain()`.
+
+_scanner.js:_
+- `EXT_DOC_HOST_RE` — модульная константа для doc-hosting сервисов
+- `isDocHostUrl` в `fetchPolicyText` — пробует Playwright для рендера просмотрщика документов
+- **Cap 4** (single + full scan): если `policyLinks` содержит doc-host ссылку → 152-ФЗ violation/no_policy → risk с сообщением "Политика на внешнем хостинге — проверить вручную"
+
+_Исправленные false positives:_
+- **saltsalt.ru/msc ЕРИР**: ❌ → ✅ (только Meta Pixel, не реклама на сайте)
+- **saltsalt.ru/msc 152-ФЗ**: ❌ → ⚠️ (политика на Яндекс.Диске, теперь обнаруживается)
+
+_Baseline (27.05.2026):_ 39✅ 3⚠️ 0❌ — без изменений (0 регрессий)
+
+---
+
 **Раунд 16 — Structural false-positive caps (2026-05-27)**
 
 _scanner.js:_
@@ -448,8 +467,10 @@ _Исправленные false positives:_
 - ~~149-ФЗ false positives на маркетплейсах~~ ✅ R14 fixed (avito, Яндекс)
 - ~~149-ФЗ false positives на сайтах с 4xx~~ ✅ R15 fixed (dns-shop, eldorado, ikea)
 - ~~Structural false positive caps~~ ✅ R16 fixed (blocked, foreign, gov) — ❌ 71→38
+- ~~Meta Pixel ERIR false positive~~ ✅ R18 fixed (saltsalt.ru и подобные)
+- ~~Политика на Яндекс.Диске не обнаруживалась~~ ✅ R18 fixed (extDocPolicyLinks + Cap 4)
 
-**Оставшиеся неточности (❌ 38 после R16):**
+**Оставшиеся неточности (❌ 38 после R16/R18):**
 - **GA violations (~11)** — ivi.ru, amocrm.ru, cian.ru, skyeng.ru, vkusvill.ru и др.: скорее всего **реальные** (компании используют GA4 в нарушение 152-ФЗ)
 - **ERIR violations (4)** — mk.ru, rt.com, meduza.io, onetwotrip.com: **реальные**
 - **law149/152 при Playwright fallback (~12)** — sberbank.ru, rosatom.ru, afisha.ru, netology.ru, apteka.ru: Playwright падает → plain fetch не видит ИНН в JS-рендеренном footer
@@ -463,7 +484,7 @@ _Исправленные false positives:_
 - **Реквизиты только в PDF** (callibri.ru): читаем через pdf-parse; если PDF недоступен — риск.
 - **20-мин Supabase-кэш**: Railway Redeploy НЕ сбрасывает кэш. Ждать 20 мин после Redeploy.
 
-### Smoke test baseline (2026-05-27) ← АКТУАЛЬНЫЙ
+### Smoke test baseline (2026-05-27, R18) ← АКТУАЛЬНЫЙ
 
 ```
 shop     www.wildberries.ru  → ⚠️ ⚠️ ✅ ✅ ✅ ✅  (Cloudflare firewalled)
