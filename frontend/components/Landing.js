@@ -55,13 +55,23 @@ const HOW = [
   { n: '03', title: 'отчёт готов',              desc: 'видите результат на этой же странице. PDF скачивается по кнопке, ссылка сохраняется по UUID (7 дней).', time: '~5 секунд' },
 ];
 
-const STATS = [
-  // Пока бэкенд не отдаёт агрегированную статистику — placeholder. Замените на fetch к /api/admin/stats когда будет публичный endpoint.
-  { k: '// сайтов проверено', v: 1248, d: 'с запуска беты' },
-  { k: '// нарушений найдено', v: 5612, d: '4.5 в среднем на сайт' },
-  { k: '// видов проверок',    v: 6,    d: '152ФЗ · 149ФЗ · ЕРИР · зозпп · реестры · наркотики' },
-  { k: '// время сканера',     v: 28,   u: 'сек', d: 'для одной страницы' },
+const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
+const STATS_STATIC = [
+  { k: '// видов проверок', v: 6,  d: '152ФЗ · 149ФЗ · ЕРИР · зозпп · реестры · наркотики' },
+  { k: '// время сканера',  v: 28, u: 'сек', d: 'для одной страницы' },
 ];
+
+const CHECK_LABELS = {
+  law152: { name: '152-ФЗ · персональные данные',  fine: 'до 300 000 ₽' },
+  law149: { name: '149-ФЗ · реквизиты компании',   fine: 'до 100 000 ₽' },
+  erir:   { name: 'ЕРИР · маркировка рекламы',      fine: 'до 500 000 ₽' },
+  offer:  { name: 'ЗоЗПП · публичная оферта',       fine: 'до 500 000 ₽' },
+  cookie: { name: '152-ФЗ · cookie-согласие',       fine: 'до 300 000 ₽' },
+  ga:     { name: 'Google Analytics · 152-ФЗ',      fine: 'до 300 000 ₽' },
+  drugs:  { name: 'ФЗ № 3 · наркотики',             fine: 'до 1 500 000 ₽' },
+  sleza:  { name: 'Иноагенты без маркировки',        fine: 'до 5 000 000 ₽' },
+};
 
 const SAMPLE_FINDINGS = [
   { law: 'cookies без отказа',           code: '152-ФЗ · ст. 9 · ч. 4',     desc: 'баннер cookie не предлагает опции «отказаться», метрики Я.Метрика и top-mailru загружаются до получения согласия. 3 трекера.', fine: '300 000 ₽' },
@@ -74,7 +84,7 @@ const FAQ = [
   { q: 'Это бесплатно?', a: 'Да, проверка полностью бесплатна. AI-анализ и сверка с реестрами иноагентов sleza.media входят в стандартный аудит.' },
   { q: 'Насколько точны результаты?', a: 'Мы используем детерминированные алгоритмы по актуальным требованиям законодательства + AI-арбитр (Groq Llama 3.3 70B) для спорных случаев. Точность ~85–90%. Инструмент не заменяет юридическую консультацию.' },
   { q: 'Как часто нужно проверять сайт?', a: 'Рекомендуем раз в квартал и при каждом обновлении политики конфиденциальности или добавлении форм сбора данных.' },
-  { q: 'Что делать если нашли нарушения?', a: 'Каждый пункт отчёта содержит конкретное действие по устранению. Вы можете скачать PDF и передать разработчику или юристу, либо запросить разбор с нашей командой.' },
+  { q: 'Что делать если нашли нарушения?', a: 'Каждый пункт отчёта содержит конкретное действие по устранению и ссылку на статью закона. Скачайте PDF и передайте разработчику или юристу — там всё структурировано. Если нужен разбор отчёта вместе с нами — пишите на kirillmash99@gmail.com, поможем.' },
   { q: 'Проверяет ли сервис весь сайт?', a: 'Да, режим «Весь сайт» сканирует до 150 страниц через sitemap или краулинг. Занимает 2–5 минут.' },
   { q: 'Сохраняете ли вы данные сайта?', a: 'Хранится только итоговый отчёт (по UUID, 7 дней) — для возможности поделиться ссылкой. Контент страниц не сохраняем.' },
 ];
@@ -273,24 +283,90 @@ function HowItWorks() {
   );
 }
 
-function StatsBlock() {
+function usePublicStats() {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    fetch(`${BASE}/api/stats`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setData(d); })
+      .catch(() => {});
+  }, []);
+  return data;
+}
+
+function StatsBlock({ scanCount }) {
+  const stats = [
+    { k: '// сайтов проверено', v: scanCount, d: 'с запуска сервиса' },
+    ...STATS_STATIC,
+  ];
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-line border border-line-2 rounded-[10px] overflow-hidden">
-      {STATS.map((s) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-line border border-line-2 rounded-[10px] overflow-hidden">
+      {stats.map((s) => (
         <StatCell key={s.k} s={s} />
       ))}
     </div>
   );
 }
 
+function TopViolations({ violations, totalScans }) {
+  if (!violations?.length) return null;
+
+  const known = violations
+    .map(v => ({ ...v, meta: CHECK_LABELS[v.check_id] }))
+    .filter(v => v.meta);
+
+  if (!known.length) return null;
+
+  const maxCnt = Math.max(...known.map(v => v.cnt));
+
+  return (
+    <div className="bg-white border border-line-2 rounded-[10px] overflow-hidden">
+      {known.map((v, i) => {
+        const pct = totalScans > 0 ? Math.round((v.cnt / totalScans) * 100) : null;
+        const barW = Math.round((v.cnt / maxCnt) * 100);
+        return (
+          <div key={v.check_id} className="px-5 sm:px-6 py-4 border-b border-line last:border-b-0 grid sm:grid-cols-[minmax(0,1fr)_80px_120px] gap-3 sm:gap-5 items-center">
+            <div>
+              <div className="font-bold text-[14px] tracking-tight leading-snug">{v.meta.name}</div>
+              <div className="mt-1.5 h-1.5 bg-warm rounded-full overflow-hidden w-full max-w-[320px]">
+                <div className="h-full bg-danger/60 rounded-full transition-all" style={{ width: `${barW}%` }} />
+              </div>
+            </div>
+            <div className="text-right">
+              {pct != null ? (
+                <>
+                  <div className="font-extrabold text-[22px] tracking-tight text-danger tabular-nums">{pct}%</div>
+                  <div className="font-mono text-[10px] text-ink/30 uppercase tracking-wider">сайтов</div>
+                </>
+              ) : (
+                <div className="font-extrabold text-[22px] tracking-tight text-danger tabular-nums">{v.cnt}</div>
+              )}
+            </div>
+            <div className="text-right hidden sm:block">
+              <div className="font-mono text-[10px] text-ink/25 uppercase tracking-wider mb-0.5">штраф</div>
+              <div className="font-bold text-[13px] text-danger">{v.meta.fine}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function StatCell({ s }) {
-  const [ref, n] = useCountUp(s.v);
+  const [ref, n] = useCountUp(s.v ?? 0);
+  const isLoading = s.v == null;
   return (
     <div className="bg-paper p-5 flex flex-col gap-2">
       <div className="label-micro">{s.k}</div>
       <div ref={ref} className="font-extrabold text-[34px] sm:text-[44px] leading-[0.95] tracking-[-0.04em] tabular-nums">
-        {fmt(n)}
-        {s.u && <span className="text-[0.46em] text-ink/40 ml-1 font-extrabold align-baseline">{s.u}</span>}
+        {isLoading ? <span className="text-ink/20">—</span> : (
+          <>
+            {fmt(n)}
+            {s.u && <span className="text-[0.46em] text-ink/40 ml-1 font-extrabold align-baseline">{s.u}</span>}
+          </>
+        )}
       </div>
       <div className="text-[12px] text-ink/55 leading-snug max-w-[22ch]">{s.d}</div>
     </div>
@@ -339,6 +415,8 @@ function FaqList() {
 }
 
 export default function Landing() {
+  const stats = usePublicStats();
+
   return (
     <div className="space-y-14 mt-10">
       <section>
@@ -383,8 +461,19 @@ export default function Landing() {
           title="статистика по всем проверкам."
           sub="всё обезличено. храним только итоговый отчёт, не содержимое сайта."
         />
-        <StatsBlock />
+        <StatsBlock scanCount={stats?.scans} />
       </section>
+
+      {stats?.violations?.length > 0 && (
+        <section>
+          <SectionHead
+            kicker="// типичные ошибки"
+            title={<>что находим чаще всего.</>}
+            sub="реальная статистика по всем проверенным сайтам. данные обновляются при каждом новом скане."
+          />
+          <TopViolations violations={stats.violations} totalScans={stats.scans} />
+        </section>
+      )}
 
       <section>
         <SectionHead

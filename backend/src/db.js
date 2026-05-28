@@ -94,6 +94,20 @@ export async function initSchema() {
   await sql`CREATE INDEX IF NOT EXISTS idx_feedback_check_id ON feedback(check_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_domain_exc_hostname ON domain_exceptions(hostname)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_domain_exc_status ON domain_exceptions(status)`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS monitoring_subscriptions (
+      id           BIGSERIAL    PRIMARY KEY,
+      email        TEXT         NOT NULL,
+      hostname     TEXT         NOT NULL,
+      scan_uuid    TEXT,
+      active       BOOLEAN      DEFAULT true,
+      created_at   TIMESTAMPTZ  DEFAULT NOW(),
+      last_scan_at TIMESTAMPTZ,
+      UNIQUE(email, hostname)
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_mon_sub_hostname ON monitoring_subscriptions(hostname)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_mon_sub_active ON monitoring_subscriptions(active)`;
   console.log('[db] schema ready');
 }
 
@@ -161,6 +175,24 @@ export async function getLastScanForDomain(hostname) {
 }
 
 // ── Analytics ───────────────────────────────────────────────────────────────
+
+// Top violations across all scans — for public landing page stats.
+export async function getTopViolations(limitDays = 90) {
+  if (!enabled) return [];
+  return sql`
+    SELECT
+      elem->>'id'   AS check_id,
+      COUNT(*)::int AS cnt
+    FROM scans s,
+      jsonb_array_elements(s.result_json->'aiData'->'checks') AS elem
+    WHERE s.result_json->'aiData'->'checks' IS NOT NULL
+      AND elem->>'status' IN ('violation', 'risk')
+      AND s.created_at > NOW() - MAKE_INTERVAL(days => ${limitDays})
+    GROUP BY check_id
+    ORDER BY cnt DESC
+    LIMIT 6
+  `;
+}
 
 // Aggregate check statuses across all scans — used for diagnosing false positives.
 export async function getCheckStats(days = 30) {
@@ -407,6 +439,38 @@ export async function getLeadStats() {
     FROM leads
   `;
   return rows[0] || null;
+}
+
+// ── Monitoring Subscriptions ─────────────────────────────────────────────────
+
+export async function saveSubscription(email, hostname, scanUuid = null) {
+  if (!enabled) return;
+  await sql`
+    INSERT INTO monitoring_subscriptions (email, hostname, scan_uuid)
+    VALUES (${email}, ${hostname}, ${scanUuid})
+    ON CONFLICT (email, hostname) DO UPDATE SET
+      active       = true,
+      scan_uuid    = COALESCE(${scanUuid}, monitoring_subscriptions.scan_uuid),
+      created_at   = NOW()
+  `;
+}
+
+export async function getActiveSubscriptions() {
+  if (!enabled) return [];
+  return sql`
+    SELECT id, email, hostname, scan_uuid, created_at, last_scan_at
+    FROM monitoring_subscriptions
+    WHERE active = true
+    ORDER BY created_at DESC
+  `;
+}
+
+export async function deactivateSubscription(email, hostname) {
+  if (!enabled) return;
+  await sql`
+    UPDATE monitoring_subscriptions SET active = false
+    WHERE email = ${email} AND hostname = ${hostname}
+  `;
 }
 
 export async function getScanStats() {

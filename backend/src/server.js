@@ -17,7 +17,7 @@ import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
-import { initSchema, saveScan, getScan, findCachedScan, saveLead, cleanupOldScans, dbEnabled, getCheckStats, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats } from './db.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats } from './db.js';
 import { tgEnabled, sendLeadNotification, registerWebhook, getWebhookSecret, handleUpdate } from './tg.js';
 import { verifyException } from './scanner.js';
 import { validateEmail, validateCompany, validateEmailMX } from './validateLead.js';
@@ -218,6 +218,28 @@ app.post('/api/leads', {
   return reply.send({ ok: true });
 });
 
+// ── Monitoring subscriptions ──────────────────────────────────────────────────
+
+app.post('/api/subscribe', {
+  schema: {
+    body: {
+      type: 'object',
+      required: ['email', 'hostname'],
+      properties: {
+        email:     { type: 'string', maxLength: 254 },
+        hostname:  { type: 'string', maxLength: 253 },
+        scan_uuid: { type: 'string' },
+      },
+    },
+  },
+}, async (request, reply) => {
+  const { email, hostname, scan_uuid } = request.body;
+  const emailErr = validateEmail(email);
+  if (emailErr) return reply.status(400).send({ error: emailErr });
+  await saveSubscription(email, hostname, scan_uuid || null);
+  return reply.send({ ok: true });
+});
+
 // ── PDF generation ───────────────────────────────────────────────────────────
 
 // PDF is generated on-demand from Supabase data — no disk cache (safe on Railway restarts).
@@ -393,6 +415,12 @@ app.get('/api/admin/patterns', async (request, reply) => {
 });
 
 // ── Admin analytics ──────────────────────────────────────────────────────────
+
+// Public aggregate — scan count + top violations, no sensitive data
+app.get('/api/stats', async (request, reply) => {
+  const [s, violations] = await Promise.all([getScanStats(), getTopViolations()]);
+  return reply.send({ scans: s?.total ?? 0, violations });
+});
 
 app.get('/api/admin/stats', async (request, reply) => {
   const adminToken = process.env.ADMIN_TOKEN;

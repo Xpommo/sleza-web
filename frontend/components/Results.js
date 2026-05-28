@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import MonitoringSignup from './MonitoringSignup';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
@@ -284,7 +285,7 @@ function SlezaBlock({ pages }) {
   );
 }
 
-export default function Results({ data, uuid, onShare, onNewScan }) {
+export default function Results({ data, uuid, onShare, onNewScan, onEmailCaptured }) {
   const hostname = data.hostname || data.url;
   const checks   = data.aiData?.checks || [];
   const violations = checks.filter(c => c.status === 'violation');
@@ -436,38 +437,74 @@ export default function Results({ data, uuid, onShare, onNewScan }) {
       )}
 
       {/* CTA */}
-      <div className={`rounded-[10px] border px-5 sm:px-6 py-6 sm:py-7 ${violations.length > 0 ? 'border-line-2 bg-paper' : 'border-line-2 bg-paper'}`}>
-        <div className="grid md:grid-cols-[1fr_auto] gap-5 items-start md:items-center">
-          <div>
-            <div className="label-micro mb-1.5">полный отчёт</div>
-            <div className="text-[18px] font-bold tracking-tight mb-1.5 leading-snug">
-              {violations.length > 0
-                ? <>скачайте PDF · в нём <span className="text-danger">конкретные нарушения, цитаты статей и приоритеты</span></>
-                : <>скачайте PDF — там полная сводка для юриста или подрядчика</>
-              }
+      <div className="rounded-[10px] border border-line-2 bg-paper px-5 sm:px-6 py-6 sm:py-7">
+        {violations.length > 0 ? (
+          <>
+            <div className="label-micro mb-1.5">что делать дальше</div>
+            <div className="text-[18px] font-bold tracking-tight mb-1 leading-snug">
+              Скачайте PDF — там <span className="text-danger">инструкции как исправить каждое нарушение</span>
             </div>
-            <div className="text-[13px] text-ink/55 leading-snug">
-              отчёт сохраняется по UUID · ссылкой можно поделиться. срок хранения — 7 дней.
+            <div className="text-[13px] text-ink/55 leading-snug mb-4">
+              Готовые шаблоны документов и пошаговый план — в отчёте. Срок хранения — 7 дней.
             </div>
-          </div>
-          <div className="flex gap-2 shrink-0 w-full md:w-auto">
-            <button
-              onClick={() => onShare?.('pdf')}
-              disabled={!uuid}
-              className="flex-1 md:flex-none bg-ink hover:bg-brand disabled:opacity-40 disabled:cursor-wait text-white rounded-lg px-5 py-3 text-[14px] font-bold transition-colors inline-flex items-center justify-center gap-2"
-            >
-              {uuid ? '📄 Скачать PDF' : '⏳ Подготовка…'}
-            </button>
-            <button
-              onClick={() => onShare?.('share')}
-              disabled={!uuid}
-              className="bg-white hover:bg-warm disabled:opacity-40 disabled:cursor-wait text-ink border border-line-2 rounded-lg px-4 py-3 text-[14px] font-medium transition-colors"
-              title="поделиться ссылкой"
-            >
-              🔗
-            </button>
-          </div>
-        </div>
+            <div className="flex gap-2 w-full">
+              <button
+                onClick={() => onShare?.('pdf')}
+                disabled={!uuid}
+                className="flex-1 bg-ink hover:bg-brand disabled:opacity-40 disabled:cursor-wait text-white rounded-lg px-5 py-3 text-[14px] font-bold transition-colors inline-flex items-center justify-center gap-2"
+              >
+                {uuid ? '📄 Скачать PDF' : '⏳ Подготовка…'}
+              </button>
+              <button
+                onClick={() => onShare?.('share')}
+                disabled={!uuid}
+                className="bg-white hover:bg-warm disabled:opacity-40 disabled:cursor-wait text-ink border border-line-2 rounded-lg px-4 py-3 text-[14px] font-medium transition-colors"
+                title="поделиться ссылкой"
+              >
+                🔗
+              </button>
+            </div>
+            <MonitoringSignup
+              hostname={hostname}
+              uuid={uuid}
+              hasViolations={true}
+              onEmailCaptured={onEmailCaptured}
+            />
+          </>
+        ) : (
+          <>
+            <div className="label-micro mb-1.5">всё в порядке</div>
+            <div className="text-[18px] font-bold tracking-tight mb-1 leading-snug">
+              Сохраните результат и проверьтесь снова через квартал
+            </div>
+            <div className="text-[13px] text-ink/55 leading-snug mb-4">
+              Законы меняются. Мы напомним.
+            </div>
+            <MonitoringSignup
+              hostname={hostname}
+              uuid={uuid}
+              hasViolations={false}
+              onEmailCaptured={onEmailCaptured}
+            />
+            <div className="flex gap-2 mt-4 pt-4 border-t border-line w-full">
+              <button
+                onClick={() => onShare?.('pdf')}
+                disabled={!uuid}
+                className="flex-1 bg-white hover:bg-warm disabled:opacity-40 disabled:cursor-wait text-ink border border-line-2 rounded-lg px-5 py-3 text-[14px] font-medium transition-colors inline-flex items-center justify-center gap-2"
+              >
+                {uuid ? '📄 Скачать PDF' : '⏳ Подготовка…'}
+              </button>
+              <button
+                onClick={() => onShare?.('share')}
+                disabled={!uuid}
+                className="bg-white hover:bg-warm disabled:opacity-40 disabled:cursor-wait text-ink border border-line-2 rounded-lg px-4 py-3 text-[14px] font-medium transition-colors"
+                title="поделиться ссылкой"
+              >
+                🔗
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <button

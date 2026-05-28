@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
@@ -38,8 +38,8 @@ function checkCompany(company) {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export default function ShareModal({ open, onClose, uuid, mode }) {
-  const [email,        setEmail]        = useState('');
+export default function ShareModal({ open, onClose, uuid, mode, defaultEmail = '' }) {
+  const [email,        setEmail]        = useState(defaultEmail);
   const [company,      setCompany]      = useState('');
   const [emailErr,     setEmailErr]     = useState('');
   const [companyErr,   setCompanyErr]   = useState('');
@@ -49,6 +49,10 @@ export default function ShareModal({ open, onClose, uuid, mode }) {
   const [done,            setDone]            = useState(false);
   const [submitError,     setSubmitError]     = useState('');
   const [consentChecked,  setConsentChecked]  = useState(false);
+
+  useEffect(() => {
+    if (defaultEmail) setEmail(defaultEmail);
+  }, [defaultEmail]);
 
   if (!open) return null;
 

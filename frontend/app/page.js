@@ -14,9 +14,10 @@ export default function Home() {
   const [loading,    setLoading]    = useState(false);
   const [error,      setError]      = useState(null);
   const [progress,   setProgress]   = useState({ phase: '', current: 0, total: 0 });
-  const [uuid,       setUuid]       = useState(null);
-  const [shareModal, setShareModal] = useState(null);
-  const [showForm,   setShowForm]   = useState(true);
+  const [uuid,          setUuid]          = useState(null);
+  const [shareModal,    setShareModal]    = useState(null);
+  const [showForm,      setShowForm]      = useState(true);
+  const [capturedEmail, setCapturedEmail] = useState('');
   const cancelRef = useRef(null);
   const formRef = useRef(null);
   const resultsRef = useRef(null);
@@ -109,7 +110,7 @@ export default function Home() {
 
   return (
     <>
-      <ShareModal open={!!shareModal} onClose={() => setShareModal(null)} uuid={uuid} mode={shareModal} />
+      <ShareModal open={!!shareModal} onClose={() => setShareModal(null)} uuid={uuid} mode={shareModal} defaultEmail={capturedEmail} />
 
       {/* sticky top nav */}
       <nav className="sticky top-0 z-50 bg-warm/85 backdrop-blur-md border-b border-line">
@@ -125,7 +126,7 @@ export default function Home() {
               <span className="w-1.5 h-1.5 rounded-full bg-ok animate-pulseDot" />
               сервис активен
             </span>
-            <span className="text-ink/30">v 2.0 · бета</span>
+            <span className="text-ink/30">обновлено 28.05.2026</span>
           </div>
         </div>
       </nav>
@@ -135,7 +136,7 @@ export default function Home() {
         {/* Doc header */}
         {showLanding && (
           <header className="mb-7 pb-7 border-b border-line">
-            <div className="label-micro mb-5">отчёт · бесплатно · бета</div>
+            <div className="label-micro mb-5">отчёт · бесплатно</div>
             <h1 className="text-[32px] sm:text-[48px] lg:text-[52px] font-extrabold tracking-[-0.045em] leading-[0.96] mb-5 text-balance break-words">
               сколько штрафов прячется на <span className="text-brand">вашем</span> сайте?
             </h1>
@@ -177,6 +178,7 @@ export default function Home() {
               uuid={uuid}
               onShare={mode => setShareModal(mode)}
               onNewScan={newScan}
+              onEmailCaptured={setCapturedEmail}
             />
           </div>
         )}

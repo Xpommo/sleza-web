@@ -14,6 +14,7 @@ const SITE_TYPES = [
 export default function ScanForm({ onScan, loading }) {
   const [url, setUrl] = useState('');
   const [siteType, setSiteType] = useState('auto');
+  const [showTypes, setShowTypes] = useState(false);
 
   const normalise = (val) => {
     val = val.trim();
@@ -62,47 +63,57 @@ export default function ScanForm({ onScan, loading }) {
         />
       </div>
 
-      {/* site type chips */}
-      <div className="mt-4">
-        <div className="label-micro mb-2">тип сайта</div>
-        <div className="flex flex-wrap gap-1.5">
-          {SITE_TYPES.map(({ value, label }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setSiteType(value)}
-              disabled={loading}
-              className={`px-3 py-1.5 rounded-[5px] text-[12px] font-medium font-mono uppercase tracking-wider transition-colors border ${
-                siteType === value
-                  ? 'bg-ink text-white border-ink'
-                  : 'bg-white text-ink/60 border-line-2 hover:border-ink/30 hover:text-ink'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      {/* site type chips — hidden by default */}
+      <div className="mt-3">
+        <button
+          type="button"
+          onClick={() => setShowTypes(v => !v)}
+          disabled={loading}
+          className="font-mono text-[11px] text-ink/35 hover:text-ink/60 transition-colors"
+        >
+          уточнить тип сайта {showTypes ? '↑' : '↓'}
+        </button>
+        {showTypes && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {SITE_TYPES.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setSiteType(value)}
+                disabled={loading}
+                className={`px-3 py-1.5 rounded-[5px] text-[12px] font-medium font-mono uppercase tracking-wider transition-colors border ${
+                  siteType === value
+                    ? 'bg-ink text-white border-ink'
+                    : 'bg-white text-ink/60 border-line-2 hover:border-ink/30 hover:text-ink'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* CTA buttons */}
-      <div className="flex gap-2 mt-5">
+      {/* CTA — one primary button */}
+      <div className="mt-5">
         <button
           onClick={() => submit('single')}
           disabled={loading}
-          className="flex-1 bg-ink hover:bg-brand disabled:opacity-60 disabled:cursor-progress text-white rounded-lg py-4 text-[14px] font-bold transition-colors inline-flex items-center justify-center gap-2 group"
+          className="w-full bg-ink hover:bg-brand disabled:opacity-60 disabled:cursor-progress text-white rounded-lg py-4 text-[14px] font-bold transition-colors inline-flex items-center justify-center gap-2 group"
         >
-          <span>Текущая страница</span>
+          <span>Проверить сайт</span>
           <span className="font-mono text-[11px] opacity-70">~30 сек</span>
           <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </button>
-        <button
-          onClick={() => submit('full')}
-          disabled={loading}
-          className="flex-1 bg-white hover:bg-warm disabled:opacity-60 disabled:cursor-progress text-ink border border-ink rounded-lg py-4 text-[14px] font-bold transition-colors inline-flex items-center justify-center gap-2"
-        >
-          <span>Весь сайт</span>
-          <span className="font-mono text-[11px] opacity-60">2–5 мин</span>
-        </button>
+        <div className="text-center mt-2">
+          <button
+            onClick={() => submit('full')}
+            disabled={loading}
+            className="font-mono text-[12px] text-ink/35 hover:text-ink/60 disabled:opacity-40 transition-colors"
+          >
+            или сканировать весь сайт (2–5 мин)
+          </button>
+        </div>
       </div>
 
       {/* trust meta */}
