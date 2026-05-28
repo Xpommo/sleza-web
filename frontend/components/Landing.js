@@ -38,7 +38,7 @@ const LAWS = [
   { code: '149-ФЗ',   tag: 'юр',     name: 'Информация о владельце',     desc: 'ИНН, ОГРН, юридический адрес, email и телефон на сайте · сверка с ЕГРЮЛ.',                       fine: 'до 100 000 ₽' },
   { code: 'ЕРИР',     tag: 'рк',     name: 'Маркировка рекламы',          desc: 'ERID-токен, пометка «реклама», корректность данных рекламодателя.',                              fine: 'до 500 000 ₽' },
   { code: 'ЗоЗПП',    tag: 'оф',     name: 'Публичная оферта',           desc: 'Условия продажи, возврата и обмена товаров и услуг.',                                            fine: 'до 500 000 ₽' },
-  { code: 'Реестры',  tag: 'сл',     name: 'Иноагенты и экстремисты',    desc: 'Упоминания без обязательной маркировки по реестрам sleza.media (1175+ субъектов).',             fine: 'до 5 000 000 ₽' },
+  { code: 'Реестры',  tag: 'сл',     name: 'Иноагенты и экстремисты',    desc: 'Упоминания без обязательной маркировки по реестрам иноагентов, экстремистов и нежелательных организаций (1175+ субъектов).',             fine: 'до 5 000 000 ₽' },
   { code: 'ФЗ № 3',   tag: 'нк',     name: 'Упоминание наркотиков',      desc: 'Пропаганда или незаконный оборот запрещённых веществ.',                                          fine: 'до 1 500 000 ₽' },
 ];
 
@@ -81,7 +81,7 @@ const SAMPLE_FINDINGS = [
 ];
 
 const FAQ = [
-  { q: 'Это бесплатно?', a: 'Да, проверка полностью бесплатна. AI-анализ и сверка с реестрами иноагентов sleza.media входят в стандартный аудит.' },
+  { q: 'Это бесплатно?', a: 'Да, проверка полностью бесплатна. AI-анализ и сверка с реестрами иноагентов входят в стандартный аудит.' },
   { q: 'Насколько точны результаты?', a: 'Мы используем детерминированные алгоритмы по актуальным требованиям законодательства + AI-арбитр (Groq Llama 3.3 70B) для спорных случаев. Точность ~85–90%. Инструмент не заменяет юридическую консультацию.' },
   { q: 'Как часто нужно проверять сайт?', a: 'Рекомендуем раз в квартал и при каждом обновлении политики конфиденциальности или добавлении форм сбора данных.' },
   { q: 'Что делать если нашли нарушения?', a: 'Каждый пункт отчёта содержит конкретное действие по устранению и ссылку на статью закона. Скачайте PDF и передайте разработчику или юристу — там всё структурировано. Если нужен разбор отчёта вместе с нами — пишите на kirillmash99@gmail.com, поможем.' },
@@ -483,31 +483,17 @@ export default function Landing() {
         <FaqList />
       </section>
 
-      <section>
-        <FoundersNote />
-      </section>
-
-      {/* Powered by */}
-      <div className="text-center font-mono text-[11px] text-ink/40 tracking-wide">
-        реестры иноагентов и экстремистов — данные{' '}
-        <a href="https://sleza.media" target="_blank" rel="noopener" className="text-brand hover:underline">sleza.media</a>
-      </div>
-
       {/* Footer */}
-      <footer className="border-t border-line pt-7 pb-3 grid sm:grid-cols-[auto_minmax(0,1fr)_auto] gap-5 sm:gap-8 items-start text-[11px] font-mono text-ink/45 tracking-wide">
+      <footer className="border-t border-line pt-7 pb-3 grid sm:grid-cols-[auto_minmax(0,1fr)] gap-5 sm:gap-8 items-start text-[11px] font-mono text-ink/45 tracking-wide">
         <span className="inline-flex items-center gap-2">
           <span className="w-3 h-3 bg-brand inline-block" style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }} />
-          <b className="text-ink/70 font-semibold">СЛЕЗА // СКАНЕР</b>
+          <b className="text-ink/70 font-semibold">ФОНАРИК // СКАНЕР</b>
         </span>
         <div className="flex flex-col gap-1">
-          <span><b className="text-ink/65 font-semibold">© 2024–2026</b> · физическое лицо Кирилл Мащенко</span>
+          <span><b className="text-ink/65 font-semibold">© 2026</b> · Подсвечиваем нарушения на российских сайтах</span>
           <a href="mailto:kirillmash99@gmail.com" className="hover:text-ink transition-colors">kirillmash99@gmail.com</a>
           <Link href="/privacy" className="hover:text-ink transition-colors underline underline-offset-2">Политика конфиденциальности</Link>
           <span>не является юридической консультацией</span>
-        </div>
-        <div className="font-sans text-[13px] text-ink/55 sm:text-right">
-          <span className="italic">«следи за собой,<br/>будь осторожен»</span><br/>
-          <b className="font-bold text-ink">— В. Цой</b>
         </div>
       </footer>
     </div>

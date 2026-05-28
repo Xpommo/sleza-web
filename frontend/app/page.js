@@ -118,7 +118,7 @@ export default function Home() {
           <a href="/" className="flex items-center gap-2.5">
             <span className="w-3.5 h-3.5 bg-brand inline-block" style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }} />
             <span className="font-extrabold text-[19px] tracking-[-0.04em] leading-none">
-              слеза<span className="text-ink/35 font-medium ml-1.5">// сканер</span>
+              фонарик<span className="text-ink/35 font-medium ml-1.5">// сканер</span>
             </span>
           </a>
           <div className="ml-auto hidden sm:flex items-center gap-4 font-mono text-[11px] text-ink/60">
@@ -136,12 +136,12 @@ export default function Home() {
         {/* Doc header */}
         {showLanding && (
           <header className="mb-7 pb-7 border-b border-line">
-            <div className="label-micro mb-5">отчёт · бесплатно</div>
+            <div className="label-micro mb-5">бесплатно · без регистрации</div>
             <h1 className="text-[32px] sm:text-[48px] lg:text-[52px] font-extrabold tracking-[-0.045em] leading-[0.96] mb-5 text-balance break-words">
-              сколько штрафов прячется на <span className="text-brand">вашем</span> сайте?
+              Узнайте про штраф <span className="text-brand">первыми</span> — до РКН.
             </h1>
             <p className="text-[15px] sm:text-[16px] text-ink/65 leading-relaxed max-w-[58ch]">
-              Бесплатная проверка на соответствие <b className="text-ink font-semibold">152-ФЗ, 149-ФЗ, ЕРИР</b> и реестрам иноагентов. Результат — за 30 секунд. PDF-отчёт со ссылками на статьи закона и приоритетами.
+              Бесплатная проверка на соответствие <b className="text-ink font-semibold">152-ФЗ, 149-ФЗ, ЕРИР</b> и реестрам иноагентов. Результат — за 30 секунд. Получите PDF-отчёт со ссылками на статьи закона и рекомендацией, что починить первым.
             </p>
           </header>
         )}
