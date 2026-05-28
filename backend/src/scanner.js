@@ -850,7 +850,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     }
     let result149  = engine.check149FZ(fullText + extraText + homepageText);
     // If page is IP-blocked/firewalled, we can't verify rekvizity → cap at risk (same as 152-FZ when policy inaccessible)
-    if (result149.status === 'violation' && (pageContext._firewalled || pageContext._blocked || pageContext._http403)) result149 = { ...result149, status: 'risk' };
+    if (result149.status === 'violation' && (pageContext._firewalled || pageContext._blocked || pageContext._http403 || (pageContext._fallback && (pageContext.bodyText || '').length < 600))) result149 = { ...result149, status: 'risk' };
     const adTextMarker = /на правах реклам|рекламный материал|партнёрский материал|спонсорский материал|рекламодатель|sponsored content/i;
     const effectiveHasAdScripts = pageContext.hasAdScripts || (pageContext.hasGtm && adTextMarker.test(fullText));
     const resultERIR = engine.checkERIR(fullText + '\n' + (pageContext.eridAttrs || ''), { hasAdScripts: effectiveHasAdScripts });
@@ -906,7 +906,10 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
 
   // Cap 1: blocked/empty page — check149FZ/check152FZ return 'unknown'/'no_policy' (not 'violation')
   // when bodyText < 50 chars; buildLocalChecks maps 'no_policy' → 'violation'. Cap both to risk.
-  if (pageContext._http403 || pageContext._firewalled || pageContext._blocked) {
+  // Also covers: Playwright fallback to plain fetch + tiny body (<600 chars) — JS-heavy sites like
+  // sberbank.ru that block headless browsers; plain fetch returns a skeleton, not real content.
+  const isEmptyFallback = pageContext._fallback && (pageContext.bodyText || '').length < 600;
+  if (pageContext._http403 || pageContext._firewalled || pageContext._blocked || isEmptyFallback) {
     for (const c of (aiData?.checks || [])) {
       if (c.id === 'law152' || c.id === 'law149') {
         if (c.status === 'violation' || c.status === 'unknown') c.status = 'risk';
@@ -1147,7 +1150,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     let result152 = engine.check152FZ(policyText);
     if (!policyFound && result152.status === 'violation') result152 = { ...result152, status: 'risk' };
     let result149  = engine.check149FZ(allPagesText + extraText);
-    if (result149.status === 'violation' && (mainPageContext._firewalled || mainPageContext._blocked || mainPageContext._http403)) result149 = { ...result149, status: 'risk' };
+    if (result149.status === 'violation' && (mainPageContext._firewalled || mainPageContext._blocked || mainPageContext._http403 || (mainPageContext._fallback && (mainPageContext.bodyText || '').length < 600))) result149 = { ...result149, status: 'risk' };
     // ERIR: check main page only — allPagesText includes blog/articles about advertising
     // which cause false positives on marketing platforms (callibri, roistat, etc.)
     const mainPageText = `${mainPageContext.title}\n${mainPageContext.header}\n${mainPageContext.bodyText}\n${mainPageContext.footer}`;
@@ -1198,7 +1201,8 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
 
   // ── Structural caps (mirrors single-scan logic) ──
-  if (mainPageContext._http403 || mainPageContext._firewalled || mainPageContext._blocked) {
+  const isEmptyFallbackFull = mainPageContext._fallback && (mainPageContext.bodyText || '').length < 600;
+  if (mainPageContext._http403 || mainPageContext._firewalled || mainPageContext._blocked || isEmptyFallbackFull) {
     for (const c of (aiData?.checks || [])) {
       if (c.id === 'law152' || c.id === 'law149') {
         if (c.status === 'violation' || c.status === 'unknown') c.status = 'risk';

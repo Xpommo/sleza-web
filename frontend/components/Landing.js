@@ -486,7 +486,18 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-line pt-7 pb-3 grid sm:grid-cols-[auto_minmax(0,1fr)] gap-5 sm:gap-8 items-start text-[11px] font-mono text-ink/45 tracking-wide">
         <span className="inline-flex items-center gap-2">
-          <span className="w-3 h-3 bg-brand inline-block" style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }} />
+          <span className="inline-flex items-center gap-2">
+  <svg width="20" height="14" viewBox="0 0 24 16" fill="none" aria-hidden="true" className="text-brand shrink-0">
+    <rect x="2" y="5" width="8" height="6" rx="1.4" fill="currentColor"/>
+    <rect x="10" y="4" width="3" height="8" rx="0.6" fill="currentColor"/>
+    <g stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <line className="beam beam-top"    x1="14" y1="7" x2="20.4" y2="3.4"  />
+      <line className="beam beam-center" x1="14" y1="8" x2="22"   y2="8"    />
+      <line className="beam beam-bottom" x1="14" y1="9" x2="20.4" y2="12.6" />
+    </g>
+  </svg>
+  <b className="text-ink/70 font-semibold">ФОНАРИК // СКАНЕР</b>
+</span>
           <b className="text-ink/70 font-semibold">ФОНАРИК // СКАНЕР</b>
         </span>
         <div className="flex flex-col gap-1">

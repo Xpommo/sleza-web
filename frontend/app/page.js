@@ -9,11 +9,32 @@ import ShareModal from '../components/ShareModal';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
+function FlashlightIcon({ width = 24, height = 16, className = '' }) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 16"
+      fill="none"
+      aria-hidden="true"
+      className={`text-brand shrink-0 ${className}`}
+    >
+      <rect x="2" y="5" width="8" height="6" rx="1.4" fill="currentColor" />
+      <rect x="10" y="4" width="3" height="8" rx="0.6" fill="currentColor" />
+      <g stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+        <line className="beam beam-top"    x1="14" y1="7" x2="20.4" y2="3.4"  />
+        <line className="beam beam-center" x1="14" y1="8" x2="22"   y2="8"    />
+        <line className="beam beam-bottom" x1="14" y1="9" x2="20.4" y2="12.6" />
+      </g>
+    </svg>
+  );
+}
+
 export default function Home() {
-  const [result,     setResult]     = useState(null);
-  const [loading,    setLoading]    = useState(false);
-  const [error,      setError]      = useState(null);
-  const [progress,   setProgress]   = useState({ phase: '', current: 0, total: 0 });
+  const [result,        setResult]        = useState(null);
+  const [loading,       setLoading]       = useState(false);
+  const [error,         setError]         = useState(null);
+  const [progress,      setProgress]      = useState({ phase: '', current: 0, total: 0 });
   const [uuid,          setUuid]          = useState(null);
   const [shareModal,    setShareModal]    = useState(null);
   const [showForm,      setShowForm]      = useState(true);
@@ -116,7 +137,7 @@ export default function Home() {
       <nav className="sticky top-0 z-50 bg-warm/85 backdrop-blur-md border-b border-line">
         <div className="max-w-3xl mx-auto px-5 py-3.5 flex items-center gap-7">
           <a href="/" className="flex items-center gap-2.5">
-            <span className="w-3.5 h-3.5 bg-brand inline-block" style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }} />
+            <FlashlightIcon width={26} height={17} />
             <span className="font-extrabold text-[19px] tracking-[-0.04em] leading-none">
               фонарик<span className="text-ink/35 font-medium ml-1.5">// сканер</span>
             </span>
@@ -126,7 +147,7 @@ export default function Home() {
               <span className="w-1.5 h-1.5 rounded-full bg-ok animate-pulseDot" />
               сервис активен
             </span>
-            <span className="text-ink/30">обновлено 28.05.2026</span>
+            <span className="text-ink/30">бета · v 1.0</span>
           </div>
         </div>
       </nav>

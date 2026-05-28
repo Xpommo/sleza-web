@@ -38,6 +38,20 @@
   80% { transform: translateX(2px); }
 }
 
+/* flashlight icon: swaying beams */
+.beam {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+}
+.beam-top    { animation: beam-sway 3.2s ease-in-out infinite;        }
+.beam-center { animation: beam-sway 3.2s ease-in-out infinite -0.5s;  }
+.beam-bottom { animation: beam-sway 3.2s ease-in-out infinite -1s;    }
+
+@keyframes beam-sway {
+  0%, 100% { transform: rotate(0deg);   opacity: 1;   }
+  50%      { transform: rotate(-3deg);  opacity: 0.7; }
+}
+
 /* respect motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
