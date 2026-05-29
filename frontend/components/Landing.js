@@ -35,12 +35,12 @@ function useCountUp(target, duration = 1400) {
 function fmt(n) { return n.toLocaleString('ru-RU').replace(/,/g, ' '); }
 
 const LAWS = [
-  { code: '152-ФЗ',   tag: 'данные',    name: 'Персональные данные',        desc: 'Политика конфиденциальности, явное согласие на обработку, cookie-баннер.',                       fine: 'до 300 000 ₽' },
-  { code: '149-ФЗ',   tag: 'реквизиты', name: 'Информация о владельце',     desc: 'ИНН, ОГРН, юридический адрес, email и телефон на сайте · сверка с ЕГРЮЛ.',                       fine: 'до 100 000 ₽' },
-  { code: 'ЕРИР',     tag: 'реклама',   name: 'Маркировка рекламы',          desc: 'Метка «реклама», токен ERID, корректность данных рекламодателя.',                                 fine: 'до 500 000 ₽' },
-  { code: 'ЗоЗПП',    tag: 'оферта',    name: 'Условия продажи и возврата', desc: 'Условия продажи, возврата и обмена товаров и услуг.',                                            fine: 'до 500 000 ₽' },
-  { code: 'Реестры',  tag: 'иноагенты', name: 'Иноагенты и экстремисты',    desc: 'Упоминания без обязательной маркировки по реестрам иноагентов, экстремистов и нежелательных организаций (1175+ субъектов).',             fine: 'до 5 000 000 ₽' },
-  { code: 'ФЗ № 3',   tag: 'запрет',    name: 'Запрещённые вещества',       desc: 'Пропаганда или незаконный оборот запрещённых веществ.',                                          fine: 'до 1 500 000 ₽' },
+  { code: '152-ФЗ',   tag: 'данные',    name: 'Персональные данные',        desc: 'Политика конфиденциальности, явное согласие на обработку, cookie-баннер.',                                                                  fine: 'до 300 000 ₽',  tooltip: 'Защита данных пользователей: политика конфиденциальности, согласие на обработку, cookie-баннер с кнопкой «отказаться».' },
+  { code: '149-ФЗ',   tag: 'реквизиты', name: 'Информация о владельце',     desc: 'ИНН, ОГРН, юридический адрес, email и телефон на сайте · сверка с ЕГРЮЛ.',                                                                  fine: 'до 100 000 ₽',  tooltip: 'На сайте должны быть ИНН, ОГРН, юр. адрес и телефон. Сверяем с данными ЕГРЮЛ — несовпадение считается нарушением.' },
+  { code: 'ЕРИР',     tag: 'реклама',   name: 'Маркировка рекламы',          desc: 'Метка «реклама», токен ERID, корректность данных рекламодателя.',                                                                           fine: 'до 500 000 ₽',  tooltip: 'Каждый рекламный блок должен иметь пометку «реклама» и токен ERID, зарегистрированный в реестре интернет-рекламы (Роскомнадзор).' },
+  { code: 'ЗоЗПП',    tag: 'оферта',    name: 'Условия продажи и возврата', desc: 'Условия продажи, возврата и обмена товаров и услуг.',                                                                                        fine: 'до 500 000 ₽',  tooltip: 'Интернет-магазины обязаны публиковать условия возврата и обмена. Проверяем наличие оферты или раздела с правилами покупки.' },
+  { code: 'Реестры',  tag: 'иноагенты', name: 'Иноагенты и экстремисты',    desc: 'Упоминания без обязательной маркировки по реестрам иноагентов, экстремистов и нежелательных организаций (1175+ субъектов).',              fine: 'до 5 000 000 ₽', tooltip: 'Упоминание лиц из реестра иноагентов без плашки «выполняет функции иностранного агента» — нарушение даже в комментариях.' },
+  { code: 'ФЗ № 3',   tag: 'запрет',    name: 'Запрещённые вещества',       desc: 'Пропаганда или незаконный оборот запрещённых веществ.',                                                                                     fine: 'до 1 500 000 ₽', tooltip: 'Контент, пропагандирующий или рекламирующий запрещённые вещества без предупреждений о последствиях.' },
 ];
 
 const AUDIENCE = [
@@ -224,8 +224,19 @@ function LawTable() {
           className="px-4 sm:px-5 py-4 border-b border-line last:border-b-0 hover:bg-warm/40 transition-colors grid sm:grid-cols-[64px_minmax(0,1.3fr)_minmax(0,2fr)_auto] gap-3 sm:gap-4 sm:items-center"
         >
           <div className="flex items-center gap-3 sm:contents">
-            <div className="px-2.5 py-1.5 rounded-md bg-warm flex items-center justify-center font-extrabold text-[11px] sm:text-[12px] text-brand tracking-wide uppercase shrink-0 whitespace-nowrap">
-              {l.tag}
+            {/* Tag pill + tooltip */}
+            <div className="relative group shrink-0">
+              <div className="px-2.5 py-1.5 rounded-md bg-warm flex items-center gap-1.5 font-extrabold text-[11px] sm:text-[12px] text-brand tracking-wide uppercase whitespace-nowrap">
+                {l.tag}
+                <span
+                  className="w-3.5 h-3.5 rounded-full border border-brand/30 text-brand/50 text-[8px] flex items-center justify-center cursor-help font-bold leading-none"
+                  tabIndex={0}
+                  aria-label={l.tooltip}
+                >?</span>
+              </div>
+              <div className="absolute z-20 left-0 top-full mt-1.5 hidden group-hover:block group-focus-within:block bg-ink text-white text-[11px] leading-snug px-3 py-2 rounded-md w-56 shadow-xl pointer-events-none">
+                {l.tooltip}
+              </div>
             </div>
             <div className="sm:hidden flex-1 min-w-0">
               <div className="font-mono text-[11px] text-brand font-semibold tracking-wide mb-0.5">{l.code}</div>
