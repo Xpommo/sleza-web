@@ -479,7 +479,8 @@ export async function getScanStats() {
     SELECT
       COUNT(*)::int                                                               AS total,
       COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '7 days')::int        AS last_7_days,
-      COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours')::int      AS last_24h
+      COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours')::int      AS last_24h,
+      MAX(created_at)                                                             AS last_scan_at
     FROM scans
   `;
   return rows[0] || null;

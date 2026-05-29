@@ -9,6 +9,26 @@ import ShareModal from '../components/ShareModal';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
+function LiveStatsBar({ stats }) {
+  if (!stats?.scans) return null;
+  const fmt = n => new Intl.NumberFormat('ru-RU').format(n);
+  const minutesAgo = stats.lastScanAt
+    ? Math.max(1, Math.floor((Date.now() - new Date(stats.lastScanAt)) / 60000))
+    : null;
+  const timeLabel = minutesAgo == null ? null
+    : minutesAgo < 60 ? `${minutesAgo} мин назад`
+    : `${Math.floor(minutesAgo / 60)} ч назад`;
+  return (
+    <div className="font-mono text-[11px] text-ink/50 tracking-wide mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+      <span className="inline-flex items-center gap-1.5">
+        <span className="w-1.5 h-1.5 rounded-full bg-ok animate-pulseDot" />
+        проверено {fmt(stats.scans)} сайтов
+      </span>
+      {timeLabel && <span>· последний скан {timeLabel}</span>}
+    </div>
+  );
+}
+
 function FlashlightIcon({ width = 24, height = 16, className = '' }) {
   return (
     <svg
@@ -39,9 +59,18 @@ export default function Home() {
   const [shareModal,    setShareModal]    = useState(null);
   const [showForm,      setShowForm]      = useState(true);
   const [capturedEmail, setCapturedEmail] = useState('');
+  const [stats,         setStats]         = useState(null);
   const cancelRef = useRef(null);
   const formRef = useRef(null);
   const resultsRef = useRef(null);
+
+  // Fetch public aggregate stats for the LiveStatsBar
+  useEffect(() => {
+    fetch(`${BASE}/api/stats`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setStats(data); })
+      .catch(() => {});
+  }, []);
 
   // Open a shared report when ?report=<uuid> is present
   useEffect(() => {
@@ -164,6 +193,7 @@ export default function Home() {
             <p className="text-[15px] sm:text-[16px] text-ink/65 leading-relaxed max-w-[58ch]">
               Бесплатный аудит за 5 минут. Сверка с реестрами иноагентов, ЕГРЮЛ и государственными базами. PDF-отчёт со ссылками на статьи закона и понятными рекомендациями, что починить первым.
             </p>
+            <LiveStatsBar stats={stats} />
           </header>
         )}
 

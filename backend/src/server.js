@@ -419,7 +419,7 @@ app.get('/api/admin/patterns', async (request, reply) => {
 // Public aggregate — scan count + top violations, no sensitive data
 app.get('/api/stats', async (request, reply) => {
   const [s, violations] = await Promise.all([getScanStats(), getTopViolations()]);
-  return reply.send({ scans: s?.total ?? 0, violations });
+  return reply.send({ scans: s?.total ?? 0, lastScanAt: s?.last_scan_at ?? null, violations });
 });
 
 app.get('/api/admin/stats', async (request, reply) => {
