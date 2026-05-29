@@ -482,7 +482,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
     // Detect bot-protection / IP-block pages — real content is unavailable.
     // Covers avito IP-block ("доступ ограничен: проблема с IP") and Cloudflare interstitial
     // ("почти готово" / "just a moment") that renders too many chars to hit the < 300 threshold.
-    const IPBLOCK_RE = /доступ ограничен.{0,80}проблема с ip|проблема с ip|ваш.*ip.*заблокирован/is;
+    const IPBLOCK_RE = /доступ ограничен.{0,80}проблема с ip|проблема с ip|ваш.*ip.*заблокирован|vpn мешает работе|отключите.*vpn|vpn.{0,30}мешает/is;
     const CHALLENGE_TITLE_RE = /почти готово|just a moment|checking your browser|проверка браузера/i;
     if (IPBLOCK_RE.test(context.title + ' ' + context.bodyText.slice(0, 300)) || CHALLENGE_TITLE_RE.test(context.title)) {
       context._firewalled = true;
