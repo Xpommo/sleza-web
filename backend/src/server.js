@@ -192,10 +192,10 @@ app.post('/api/leads', {
   schema: {
     body: {
       type: 'object',
-      required: ['email', 'company', 'uuid'],
+      required: ['email', 'uuid'],
       properties: {
         email:   { type: 'string', maxLength: 254 },
-        company: { type: 'string', maxLength: 200 },
+        company: { type: ['string', 'null'], maxLength: 200 },
         uuid:    { type: 'string', pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' },
       },
     },
@@ -419,7 +419,7 @@ app.get('/api/admin/patterns', async (request, reply) => {
 // Public aggregate — scan count + top violations, no sensitive data
 app.get('/api/stats', async (request, reply) => {
   const [s, violations] = await Promise.all([getScanStats(), getTopViolations()]);
-  return reply.send({ scans: s?.total ?? 0, violations });
+  return reply.send({ scans: s?.total ?? 0, lastScanAt: s?.last_scan_at ?? null, violations });
 });
 
 app.get('/api/admin/stats', async (request, reply) => {

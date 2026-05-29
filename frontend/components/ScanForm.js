@@ -97,29 +97,20 @@ export default function ScanForm({ onScan, loading }) {
       {/* CTA — one primary button */}
       <div className="mt-5">
         <button
-          onClick={() => submit('single')}
+          onClick={() => submit('full')}
           disabled={loading}
           className="w-full bg-ink hover:bg-brand disabled:opacity-60 disabled:cursor-progress text-white rounded-lg py-4 text-[14px] font-bold transition-colors inline-flex items-center justify-center gap-2 group"
         >
           <span>Проверить сайт</span>
-          <span className="font-mono text-[11px] opacity-70">~30 сек</span>
+          <span className="font-mono text-[11px] opacity-70">2–5 мин</span>
           <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </button>
-        <div className="text-center mt-2">
-          <button
-            onClick={() => submit('full')}
-            disabled={loading}
-            className="font-mono text-[12px] text-ink/35 hover:text-ink/60 disabled:opacity-40 transition-colors"
-          >
-            или сканировать весь сайт (2–5 мин)
-          </button>
-        </div>
       </div>
 
       {/* trust meta */}
       <div className="flex flex-wrap gap-x-5 gap-y-1 mt-4 font-mono text-[11px] text-ink/40">
         <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> бесплатно</span>
-        <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> 30 секунд</span>
+        <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> до 5 минут</span>
         <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> 6 проверок</span>
         <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> без регистрации</span>
         <span className="inline-flex items-center gap-1.5"><span className="text-ok">✓</span> PDF-отчёт</span>

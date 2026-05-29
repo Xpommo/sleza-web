@@ -121,7 +121,7 @@ export function validateEmail(email) {
  */
 export function validateCompany(company) {
   const v = (company || '').trim();
-  if (!v) return 'Введите название компании';
+  if (!v) return null; // optional field
   if (v.length < 2) return 'Название слишком короткое';
 
   // Must contain at least 2 letters (Cyrillic or Latin)

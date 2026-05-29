@@ -359,7 +359,7 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
         {/* VERDICT */}
         <div className="px-5 sm:px-7 py-7 sm:py-8 border-b border-line grid md:grid-cols-[1fr_auto] gap-7 md:gap-8 items-start md:items-center">
           <div>
-            <div className="label-micro mb-2">потенциальные штрафы · 13.15 коап рф</div>
+            <div className="label-micro mb-2">потенциальные штрафы · КоАП РФ</div>
             <div className={`font-extrabold tracking-[-0.05em] leading-[0.92] tabular-nums ${
               totalFine > 0 ? 'text-danger' : 'text-ok'
             }`} style={{ fontSize: 'clamp(48px, 6vw, 84px)' }}>
@@ -446,6 +446,7 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
             </div>
             <div className="text-[13px] text-ink/55 leading-snug mb-4">
               Готовые шаблоны документов и пошаговый план — в отчёте. Срок хранения — 7 дней.
+              <span className="block mt-1 text-[11px] text-ink/35">результат носит информационный характер и не является юридической консультацией.</span>
             </div>
             <div className="flex gap-2 w-full">
               <button
@@ -505,6 +506,16 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
             </div>
           </>
         )}
+      </div>
+
+      {/* Tertiary CTA: разобрать отчёт с автором */}
+      <div className="text-center py-1">
+        <a
+          href={`mailto:kirillmash99@gmail.com?subject=${encodeURIComponent(`Разбор отчёта по ${hostname}`)}&body=${encodeURIComponent('Привет! Хочу разобрать отчёт по своему сайту.')}`}
+          className="text-[12px] text-ink/40 hover:text-ink/70 transition-colors font-mono"
+        >
+          разобрать отчёт вместе с автором →
+        </a>
       </div>
 
       <button

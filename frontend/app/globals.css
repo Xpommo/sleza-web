@@ -6,7 +6,7 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
-    font-family: 'Onest', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-onest), system-ui, -apple-system, sans-serif;
     background: #f4f1ec; /* warm */
     color: #111110;
     -webkit-font-smoothing: antialiased;
@@ -21,7 +21,7 @@
 
 /* tiny utility for the micro mono labels we use everywhere */
 .label-micro {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-jetbrains-mono), monospace;
   font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -36,6 +36,20 @@
   40% { transform: translateX(4px); }
   60% { transform: translateX(-3px); }
   80% { transform: translateX(2px); }
+}
+
+/* flashlight icon: swaying beams */
+.beam {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+}
+.beam-top    { animation: beam-sway 3.2s ease-in-out infinite;        }
+.beam-center { animation: beam-sway 3.2s ease-in-out infinite -0.5s;  }
+.beam-bottom { animation: beam-sway 3.2s ease-in-out infinite -1s;    }
+
+@keyframes beam-sway {
+  0%, 100% { transform: rotate(0deg);   opacity: 1;   }
+  50%      { transform: rotate(-3deg);  opacity: 0.7; }
 }
 
 /* respect motion preferences */

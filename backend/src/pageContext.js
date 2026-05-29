@@ -360,6 +360,13 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         })
         .filter(l => matchesKw(l.text, kw.policy));
 
+      // DOCX/DOC links from the same domain — collected regardless of anchor text.
+      // Sites like vse42.ru link to compliance docs as "Подробная информация" which matches
+      // no keyword, so we pass all binary doc hrefs to scanner for content-based qualification.
+      const rawDocLinks = uniqueLinks
+        .filter(l => /\.(docx?|pdf)(\?|#|$)/i.test(l.href))
+        .slice(0, 5);
+
       return {
         url: location.href,
         title: (document.title || '').replace(/<[^>]+>/g, '').trim(),
@@ -381,6 +388,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
           }).slice(0, 4),
           ...extDocPolicyLinks.slice(0, 1),
         ].slice(0, 5),
+        rawDocLinks,
         offerLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.offer)).slice(0, 4),
         returnLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.ret)).slice(0, 3),
         aboutLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.about)).slice(0, 4),

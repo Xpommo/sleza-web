@@ -9,18 +9,68 @@ import ShareModal from '../components/ShareModal';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
+function LiveStatsBar({ stats }) {
+  if (!stats?.scans) return null;
+  const fmt = n => new Intl.NumberFormat('ru-RU').format(n);
+  const minutesAgo = stats.lastScanAt
+    ? Math.max(1, Math.floor((Date.now() - new Date(stats.lastScanAt)) / 60000))
+    : null;
+  const timeLabel = minutesAgo == null ? null
+    : minutesAgo < 60 ? `${minutesAgo} мин назад`
+    : `${Math.floor(minutesAgo / 60)} ч назад`;
+  return (
+    <div className="font-mono text-[11px] text-ink/50 tracking-wide mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+      <span className="inline-flex items-center gap-1.5">
+        <span className="w-1.5 h-1.5 rounded-full bg-ok animate-pulseDot" />
+        проверено {fmt(stats.scans)} сайтов
+      </span>
+      {timeLabel && <span>· последний скан {timeLabel}</span>}
+    </div>
+  );
+}
+
+function FlashlightIcon({ width = 24, height = 16, className = '' }) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 16"
+      fill="none"
+      aria-hidden="true"
+      className={`text-brand shrink-0 ${className}`}
+    >
+      <rect x="2" y="5" width="8" height="6" rx="1.4" fill="currentColor" />
+      <rect x="10" y="4" width="3" height="8" rx="0.6" fill="currentColor" />
+      <g stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+        <line className="beam beam-top"    x1="14" y1="7" x2="20.4" y2="3.4"  />
+        <line className="beam beam-center" x1="14" y1="8" x2="22"   y2="8"    />
+        <line className="beam beam-bottom" x1="14" y1="9" x2="20.4" y2="12.6" />
+      </g>
+    </svg>
+  );
+}
+
 export default function Home() {
-  const [result,     setResult]     = useState(null);
-  const [loading,    setLoading]    = useState(false);
-  const [error,      setError]      = useState(null);
-  const [progress,   setProgress]   = useState({ phase: '', current: 0, total: 0 });
+  const [result,        setResult]        = useState(null);
+  const [loading,       setLoading]       = useState(false);
+  const [error,         setError]         = useState(null);
+  const [progress,      setProgress]      = useState({ phase: '', current: 0, total: 0 });
   const [uuid,          setUuid]          = useState(null);
   const [shareModal,    setShareModal]    = useState(null);
   const [showForm,      setShowForm]      = useState(true);
   const [capturedEmail, setCapturedEmail] = useState('');
+  const [stats,         setStats]         = useState(null);
   const cancelRef = useRef(null);
   const formRef = useRef(null);
   const resultsRef = useRef(null);
+
+  // Fetch public aggregate stats for the LiveStatsBar
+  useEffect(() => {
+    fetch(`${BASE}/api/stats`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setStats(data); })
+      .catch(() => {});
+  }, []);
 
   // Open a shared report when ?report=<uuid> is present
   useEffect(() => {
@@ -116,7 +166,7 @@ export default function Home() {
       <nav className="sticky top-0 z-50 bg-warm/85 backdrop-blur-md border-b border-line">
         <div className="max-w-3xl mx-auto px-5 py-3.5 flex items-center gap-7">
           <a href="/" className="flex items-center gap-2.5">
-            <span className="w-3.5 h-3.5 bg-brand inline-block" style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }} />
+            <FlashlightIcon width={26} height={17} />
             <span className="font-extrabold text-[19px] tracking-[-0.04em] leading-none">
               фонарик<span className="text-ink/35 font-medium ml-1.5">// сканер</span>
             </span>
@@ -126,7 +176,7 @@ export default function Home() {
               <span className="w-1.5 h-1.5 rounded-full bg-ok animate-pulseDot" />
               сервис активен
             </span>
-            <span className="text-ink/30">обновлено 28.05.2026</span>
+            <span className="text-ink/30">бета · v 1.0</span>
           </div>
         </div>
       </nav>
@@ -138,11 +188,12 @@ export default function Home() {
           <header className="mb-7 pb-7 border-b border-line">
             <div className="label-micro mb-5">бесплатно · без регистрации</div>
             <h1 className="text-[32px] sm:text-[48px] lg:text-[52px] font-extrabold tracking-[-0.045em] leading-[0.96] mb-5 text-balance break-words">
-              Узнайте про штраф <span className="text-brand">первыми</span> — до РКН.
+              Проверка сайта на <span className="text-brand">152-ФЗ, 149-ФЗ и ЕРИР</span> — узнайте про штраф раньше регулятора
             </h1>
             <p className="text-[15px] sm:text-[16px] text-ink/65 leading-relaxed max-w-[58ch]">
-              Бесплатная проверка на соответствие <b className="text-ink font-semibold">152-ФЗ, 149-ФЗ, ЕРИР</b> и реестрам иноагентов. Результат — за 30 секунд. Получите PDF-отчёт со ссылками на статьи закона и рекомендацией, что починить первым.
+              Бесплатный аудит за 5 минут. Сверка с реестрами иноагентов, ЕГРЮЛ и государственными базами. PDF-отчёт со ссылками на статьи закона и понятными рекомендациями, что починить первым.
             </p>
+            <LiveStatsBar stats={stats} />
           </header>
         )}
 

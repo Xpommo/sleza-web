@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { FAQ } from '../lib/faq';
 
 function useCountUp(target, duration = 1400) {
   const [n, setN] = useState(0);
@@ -34,32 +35,32 @@ function useCountUp(target, duration = 1400) {
 function fmt(n) { return n.toLocaleString('ru-RU').replace(/,/g, ' '); }
 
 const LAWS = [
-  { code: '152-ФЗ',   tag: 'пд',     name: 'Персональные данные',        desc: 'Политика конфиденциальности, явное согласие на обработку, cookie-баннер.',                       fine: 'до 300 000 ₽' },
-  { code: '149-ФЗ',   tag: 'юр',     name: 'Информация о владельце',     desc: 'ИНН, ОГРН, юридический адрес, email и телефон на сайте · сверка с ЕГРЮЛ.',                       fine: 'до 100 000 ₽' },
-  { code: 'ЕРИР',     tag: 'рк',     name: 'Маркировка рекламы',          desc: 'ERID-токен, пометка «реклама», корректность данных рекламодателя.',                              fine: 'до 500 000 ₽' },
-  { code: 'ЗоЗПП',    tag: 'оф',     name: 'Публичная оферта',           desc: 'Условия продажи, возврата и обмена товаров и услуг.',                                            fine: 'до 500 000 ₽' },
-  { code: 'Реестры',  tag: 'сл',     name: 'Иноагенты и экстремисты',    desc: 'Упоминания без обязательной маркировки по реестрам иноагентов, экстремистов и нежелательных организаций (1175+ субъектов).',             fine: 'до 5 000 000 ₽' },
-  { code: 'ФЗ № 3',   tag: 'нк',     name: 'Упоминание наркотиков',      desc: 'Пропаганда или незаконный оборот запрещённых веществ.',                                          fine: 'до 1 500 000 ₽' },
+  { code: '152-ФЗ',   tag: 'данные',    name: 'Персональные данные',        desc: 'Политика конфиденциальности, явное согласие на обработку, cookie-баннер.',                                                                  fine: 'до 300 000 ₽',  tooltip: 'Защита данных пользователей: политика конфиденциальности, согласие на обработку, cookie-баннер с кнопкой «отказаться».' },
+  { code: '149-ФЗ',   tag: 'реквизиты', name: 'Информация о владельце',     desc: 'ИНН, ОГРН, юридический адрес, email и телефон на сайте · сверка с ЕГРЮЛ.',                                                                  fine: 'до 100 000 ₽',  tooltip: 'На сайте должны быть ИНН, ОГРН, юр. адрес и телефон. Сверяем с данными ЕГРЮЛ — несовпадение считается нарушением.' },
+  { code: 'ЕРИР',     tag: 'реклама',   name: 'Маркировка рекламы',          desc: 'Метка «реклама», токен ERID, корректность данных рекламодателя.',                                                                           fine: 'до 500 000 ₽',  tooltip: 'Каждый рекламный блок должен иметь пометку «реклама» и токен ERID, зарегистрированный в реестре интернет-рекламы (Роскомнадзор).' },
+  { code: 'ЗоЗПП',    tag: 'оферта',    name: 'Условия продажи и возврата', desc: 'Условия продажи, возврата и обмена товаров и услуг.',                                                                                        fine: 'до 500 000 ₽',  tooltip: 'Интернет-магазины обязаны публиковать условия возврата и обмена. Проверяем наличие оферты или раздела с правилами покупки.' },
+  { code: 'Реестры',  tag: 'иноагенты', name: 'Иноагенты и экстремисты',    desc: 'Упоминания без обязательной маркировки по реестрам иноагентов, экстремистов и нежелательных организаций (1175+ субъектов).',              fine: 'до 5 000 000 ₽', tooltip: 'Упоминание лиц из реестра иноагентов без плашки «выполняет функции иностранного агента» — нарушение даже в комментариях.' },
+  { code: 'ФЗ № 3',   tag: 'запрет',    name: 'Запрещённые вещества',       desc: 'Пропаганда или незаконный оборот запрещённых веществ.',                                                                                     fine: 'до 1 500 000 ₽', tooltip: 'Контент, пропагандирующий или рекламирующий запрещённые вещества без предупреждений о последствиях.' },
 ];
 
 const AUDIENCE = [
-  ['владельцы сайтов', 'Проверьте сайт до проверки Роскомнадзора. Узнайте про штраф первыми.'],
-  ['юристы и комплаенс', 'Быстрый аудит клиентских сайтов с PDF-отчётом и цитатами статей.'],
-  ['маркетологи',       'Убедитесь, что рекламные материалы промаркированы по ЕРИР.'],
-  ['веб-студии',        'Сдавайте проекты с подтверждением соответствия требованиям регулятора.'],
+  ['владельцы бизнеса',   'У вас магазин, услуги или b2b-сервис. Compliance — не ваша работа, но штрафы от РКН вполне реальные. Узнаете о проблеме за 5 минут, пока письмо ещё не пришло.'],
+  ['веб-агентства',       'Сдаёте сайты клиентам. Включите проверку в чек-лист сдачи — клиент не получит штраф, вы не получите претензию.'],
+  ['маркетинг-команды',   'Ведёте рекламу и аналитику. ЕРИР и cookie-согласие — на вас. Проверьте сейчас, отдайте PDF директору.'],
+  ['юристы и комплаенс',  'Быстрый аудит клиентских сайтов с PDF-отчётом и цитатами статей законов.'],
 ];
 
 const HOW = [
-  { n: '01', title: 'вставляете адрес сайта', desc: 'главную или весь сайт целиком. для медиа и e-commerce — рекурсивный обход до 150 страниц.', time: '~5 секунд' },
-  { n: '02', title: 'сканер обходит код',      desc: 'headless Chromium парсит DOM, метатеги, сетевые запросы и cookies. сверяет с реестрами и судебной практикой.', time: '~25 секунд' },
-  { n: '03', title: 'отчёт готов',              desc: 'видите результат на этой же странице. PDF скачивается по кнопке, ссылка сохраняется по UUID (7 дней).', time: '~5 секунд' },
+  { n: '01', title: 'вставляете адрес сайта', desc: 'сканер автоматически найдёт страницы, где обычно живут нарушения: политика, оферта, формы, реклама, footer — до 150 за один проход.', time: 'ваше действие' },
+  { n: '02', title: 'проверяем по 6 законам', desc: 'сверяем содержимое с актуальными требованиями законодательства и государственными реестрами.',                       time: '2–5 минут' },
+  { n: '03', title: 'получаете отчёт',         desc: 'видите результат прямо на этой странице. PDF скачивается по кнопке, ссылку можно отправить коллеге или юристу (хранится 7 дней).', time: 'мгновенно' },
 ];
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 const STATS_STATIC = [
-  { k: '// видов проверок', v: 6,  d: '152ФЗ · 149ФЗ · ЕРИР · зозпп · реестры · наркотики' },
-  { k: '// время сканера',  v: 28, u: 'сек', d: 'для одной страницы' },
+  { k: 'видов проверок',  v: 6,   d: 'персональные данные · реквизиты · реклама · права потребителей · иноагенты · запрещённые товары' },
+  { k: 'страниц за скан', v: 150, d: 'отбираем те, где обычно живут нарушения compliance' },
 ];
 
 const CHECK_LABELS = {
@@ -73,20 +74,46 @@ const CHECK_LABELS = {
   sleza:  { name: 'Иноагенты без маркировки',        fine: 'до 5 000 000 ₽' },
 };
 
-const SAMPLE_FINDINGS = [
-  { law: 'cookies без отказа',           code: '152-ФЗ · ст. 9 · ч. 4',     desc: 'баннер cookie не предлагает опции «отказаться», метрики Я.Метрика и top-mailru загружаются до получения согласия. 3 трекера.', fine: '300 000 ₽' },
-  { law: 'политика ПД не найдена',       code: '152-ФЗ · ст. 18.1 · ч. 2',  desc: 'в подвале и в footer-меню нет ссылки на политику обработки. форма обратной связи собирает email и телефон.', fine: '300 000 ₽' },
-  { law: '3 баннера без ERID',             code: '38-ФЗ · ст. 18.1',          desc: 'рекламные блоки «партнёрский материал» и 2 промо-тизера на главной не содержат токена в HTML и не присутствуют в ЕРИР.', fine: '500 000 ₽' },
-  { law: 'упоминание иноагента без метки', code: '5-ФЗ · ст. 11 · по реестру minjust', desc: 'в 4 статьях упоминается лицо из реестра иноагентов без обязательной плашки «выполняет функции иностранного агента».', fine: '150 000 ₽' },
+// Real cases from scan database — anonymized (domain removed, site type kept).
+// All violations confirmed by local checks, not AI guesses.
+const CASES = [
+  {
+    type:  'SaaS / B2B сервис',
+    region: 'Москва',
+    found: 'Google Analytics 4 загружается на всех страницах — данные посетителей передаются на серверы Google LLC (США) без явного согласия.',
+    law:   '152-ФЗ · ст. 13.11 ч. 3 · трансграничная передача',
+    fine:  'до 500 000 ₽',
+    tag:   'ga',
+  },
+  {
+    type:  'Интернет-магазин',
+    region: 'Екатеринбург',
+    found: 'Принимают оплату и заказы, но нет публичной оферты и условий возврата — покупатель юридически не защищён.',
+    law:   'ЗоЗПП · ст. 26.1 + 149-ФЗ · реквизиты продавца',
+    fine:  'до 500 000 ₽',
+    tag:   'offer',
+  },
+  {
+    type:  'Новостной портал',
+    region: 'Регионы',
+    found: 'Политика конфиденциальности есть, но не содержит 4 из 7 обязательных разделов: нет целей обработки, сроков хранения, категорий субъектов, порядка отзыва согласия.',
+    law:   '152-ФЗ · ст. 18.1 · неполная политика ПД',
+    fine:  'до 300 000 ₽',
+    tag:   'law152',
+  },
 ];
 
-const FAQ = [
-  { q: 'Это бесплатно?', a: 'Да, проверка полностью бесплатна. AI-анализ и сверка с реестрами иноагентов входят в стандартный аудит.' },
-  { q: 'Насколько точны результаты?', a: 'Мы используем детерминированные алгоритмы по актуальным требованиям законодательства + AI-арбитр (Groq Llama 3.3 70B) для спорных случаев. Точность ~85–90%. Инструмент не заменяет юридическую консультацию.' },
-  { q: 'Как часто нужно проверять сайт?', a: 'Рекомендуем раз в квартал и при каждом обновлении политики конфиденциальности или добавлении форм сбора данных.' },
-  { q: 'Что делать если нашли нарушения?', a: 'Каждый пункт отчёта содержит конкретное действие по устранению и ссылку на статью закона. Скачайте PDF и передайте разработчику или юристу — там всё структурировано. Если нужен разбор отчёта вместе с нами — пишите на kirillmash99@gmail.com, поможем.' },
-  { q: 'Проверяет ли сервис весь сайт?', a: 'Да, режим «Весь сайт» сканирует до 150 страниц через sitemap или краулинг. Занимает 2–5 минут.' },
-  { q: 'Сохраняете ли вы данные сайта?', a: 'Хранится только итоговый отчёт (по UUID, 7 дней) — для возможности поделиться ссылкой. Контент страниц не сохраняем.' },
+const CASE_TAG_COLOR = {
+  ga:     'bg-danger/10 text-danger',
+  offer:  'bg-warn/15 text-warn',
+  law152: 'bg-danger/10 text-danger',
+};
+
+const SAMPLE_FINDINGS = [
+  { law: 'cookies без отказа',           code: '152-ФЗ · ст. 9 · ч. 4',     desc: 'баннер cookie не предлагает опции «отказаться», Яндекс.Метрика и другие счётчики загружаются до получения согласия пользователя.', fine: '300 000 ₽' },
+  { law: 'политика ПД не найдена',       code: '152-ФЗ · ст. 18.1 · ч. 2',  desc: 'в меню внизу сайта нет ссылки на политику обработки персональных данных. форма обратной связи собирает email и телефон.', fine: '300 000 ₽' },
+  { law: '3 баннера без маркировки',     code: '38-ФЗ · ст. 18.1',          desc: '2 рекламных блока на главной не имеют обязательной пометки «реклама» и не зарегистрированы в реестре интернет-рекламы (ЕРИР).', fine: '500 000 ₽' },
+  { law: 'упоминание иноагента без метки', code: '5-ФЗ · ст. 11 · по реестру minjust', desc: 'в 4 статьях упоминается лицо из реестра иноагентов без обязательной плашки «выполняет функции иностранного агента».', fine: '150 000 ₽' },
 ];
 
 function SampleReport() {
@@ -97,7 +124,7 @@ function SampleReport() {
         <SmpMeta k="домен"      v="media-***.ru" />
         <SmpMeta k="тип сайта"  v="СМИ / редакция" />
         <SmpMeta k="отчёт от"   v="22.05.2026 · 14:08" />
-        <SmpMeta k="параметров" v="6 / 6" />
+        <SmpMeta k="проверок" v="6 / 6" />
         <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.16em] font-bold border rounded-[4px] px-2.5 py-1 border-danger text-danger bg-danger/[0.04]">
           требует действий
         </span>
@@ -106,7 +133,7 @@ function SampleReport() {
       {/* verdict */}
       <div className="px-5 sm:px-6 py-7 sm:py-8 border-b border-line grid md:grid-cols-[1fr_auto] gap-7 md:gap-8 items-start md:items-center">
         <div>
-          <div className="label-micro mb-2">потенциальные штрафы · 13.15 коап рф</div>
+          <div className="label-micro mb-2">потенциальные штрафы по КоАП РФ</div>
           <div className="font-extrabold text-danger tracking-[-0.05em] leading-[0.92] tabular-nums" style={{ fontSize: 'clamp(44px, 6vw, 76px)' }}>
             1 250 000 ₽
           </div>
@@ -115,7 +142,7 @@ function SampleReport() {
           </div>
         </div>
         <div className="flex flex-col gap-2 items-start md:items-end w-full md:min-w-[240px] md:w-auto">
-          <div className="label-micro">риск-скор</div>
+          <div className="label-micro">уровень риска</div>
           <div className="w-full md:w-[240px] h-2 bg-warm border border-line rounded-full overflow-hidden">
             <div className="h-full rounded-full" style={{ width: '84%', background: 'linear-gradient(90deg, #b87900 0%, #d63816 100%)' }} />
           </div>
@@ -150,6 +177,9 @@ function SampleReport() {
         ))}
 
         {/* locked rows */}
+        <div className="px-5 sm:px-6 py-2.5 bg-paper border-b border-line font-mono text-[10.5px] uppercase tracking-wider text-ink/40 text-center">
+          ещё 2 проверки скрыты — введите свой сайт, чтобы увидеть полный отчёт
+        </div>
         {[0, 1].map(i => (
           <div key={`l${i}`} className="px-5 sm:px-6 py-4 border-b border-line last:border-b-0 grid sm:grid-cols-[40px_minmax(0,1.4fr)_minmax(0,2fr)_auto_28px] gap-3 sm:gap-4 items-start opacity-50 pointer-events-none select-none" style={{ filter: 'blur(4px)' }}>
             <div className="font-mono text-[11px] text-ink/25 tracking-wider hidden sm:block pt-1">0{5 + i}</div>
@@ -180,7 +210,7 @@ function SampleReport() {
             это образец отчёта · остальные <span className="text-brand">6 пунктов</span> — по вашему домену
           </div>
           <div className="text-[13.5px] text-ink/60 leading-snug max-w-[52ch] mx-auto mb-4">
-            впишите свой сайт в сканер выше — проверим по 6 параметрам и соберём такой же отчёт за 30 секунд. бесплатно.
+            впишите свой сайт в сканер выше — проверим по 6 параметрам и соберём такой же отчёт за 5 минут. бесплатно.
           </div>
           <a
             href="#scan"
@@ -229,8 +259,19 @@ function LawTable() {
           className="px-4 sm:px-5 py-4 border-b border-line last:border-b-0 hover:bg-warm/40 transition-colors grid sm:grid-cols-[64px_minmax(0,1.3fr)_minmax(0,2fr)_auto] gap-3 sm:gap-4 sm:items-center"
         >
           <div className="flex items-center gap-3 sm:contents">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-md bg-warm flex items-center justify-center font-extrabold text-[13px] text-brand tracking-tight uppercase shrink-0">
-              {l.tag}
+            {/* Tag pill + tooltip */}
+            <div className="relative group shrink-0">
+              <div className="px-2.5 py-1.5 rounded-md bg-warm flex items-center gap-1.5 font-extrabold text-[11px] sm:text-[12px] text-brand tracking-wide uppercase whitespace-nowrap">
+                {l.tag}
+                <span
+                  className="w-3.5 h-3.5 rounded-full border border-brand/30 text-brand/50 text-[8px] flex items-center justify-center cursor-help font-bold leading-none"
+                  tabIndex={0}
+                  aria-label={l.tooltip}
+                >?</span>
+              </div>
+              <div className="absolute z-20 left-0 top-full mt-1.5 hidden group-hover:block group-focus-within:block bg-ink text-white text-[11px] leading-snug px-3 py-2 rounded-md w-56 shadow-xl pointer-events-none">
+                {l.tooltip}
+              </div>
             </div>
             <div className="sm:hidden flex-1 min-w-0">
               <div className="font-mono text-[11px] text-brand font-semibold tracking-wide mb-0.5">{l.code}</div>
@@ -245,6 +286,29 @@ function LawTable() {
           <div className="flex sm:block items-center justify-between sm:text-right whitespace-nowrap">
             <div className="font-mono text-[9.5px] uppercase tracking-wider text-ink/25 sm:mb-0.5">штраф</div>
             <div className="font-bold text-[15px] tracking-tight text-danger">{l.fine}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CasesSection() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-line border border-line-2 rounded-[10px] overflow-hidden">
+      {CASES.map((c) => (
+        <div key={c.type} className="bg-white p-5 flex flex-col gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-0.5 rounded ${CASE_TAG_COLOR[c.tag] || 'bg-ink/8 text-ink/50'}`}>
+              нарушение
+            </span>
+            <span className="font-mono text-[10px] text-ink/35 tracking-wide">{c.region}</span>
+          </div>
+          <div className="font-bold text-[15px] tracking-tight leading-snug">{c.type}</div>
+          <p className="text-[13px] text-ink/65 leading-snug flex-1">{c.found}</p>
+          <div className="pt-3 border-t border-dashed border-line-2 flex flex-col gap-1">
+            <div className="font-mono text-[10px] text-ink/40 tracking-wide">{c.law}</div>
+            <div className="font-mono text-[12px] font-semibold text-danger">{c.fine}</div>
           </div>
         </div>
       ))}
@@ -296,7 +360,7 @@ function usePublicStats() {
 
 function StatsBlock({ scanCount }) {
   const stats = [
-    { k: '// сайтов проверено', v: scanCount, d: 'с запуска сервиса' },
+    { k: 'сайтов проверено', v: scanCount, d: 'с запуска сервиса' },
     ...STATS_STATIC,
   ];
 
@@ -377,13 +441,13 @@ function FoundersNote() {
   return (
     <div className="bg-white border border-line-2 rounded-[10px] p-7 sm:p-10 grid sm:grid-cols-[160px_minmax(0,1fr)] gap-7 sm:gap-10 items-start">
       <div className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-ink/45 leading-[1.7]">
-        <div>от <b className="text-ink font-semibold">команды<br/>слеза.media</b></div>
-        <div className="mt-3">23 мая 2026</div>
+        <div>от <b className="text-ink font-semibold">автора</b></div>
+        <div className="mt-3">29 мая 2026</div>
       </div>
       <div className="text-[16px] sm:text-[17px] leading-[1.55] text-ink-2 space-y-4">
-        <p>В 2024 мы запустили <b className="text-ink font-bold">sleza.media</b> — первый сервис маркировки иноагентов, экстремистов и террористов для СМИ. За полтора года к нам пришли редакции и корпоративные блоги с одним и тем же вопросом: <b className="text-ink font-bold">«а что ещё мы нарушаем?»</b></p>
-        <p>Поэтому теперь — <b className="text-ink font-bold">сканер.</b> Бесплатно проверяет соответствие 152-ФЗ, 149-ФЗ и ЕРИР. Не угадывает — считает по верхней границе санкции. Присылает PDF, который можно отдать юристу.</p>
-        <p>Цель простая: <b className="text-ink font-bold">увидеть штраф первым</b> — не от прокурора.</p>
+        <p>За последние полтора года я видел сотни предпринимателей, к которым приходили письма от Роскомнадзора. Сценарий повторяется: владелец узнаёт о штрафе постфактум — когда уже поздно что-то менять.</p>
+        <p>Поэтому — <b className="text-ink font-bold">сканер.</b> Проверяет соответствие 152-ФЗ, 149-ФЗ и реестру интернет-рекламы (ЕРИР). Бесплатно. PDF-отчёт, который можно отдать юристу или разработчику.</p>
+        <p>Цель: <b className="text-ink font-bold">увидеть штраф раньше регулятора.</b></p>
       </div>
     </div>
   );
@@ -421,35 +485,44 @@ export default function Landing() {
     <div className="space-y-14 mt-10">
       <section>
         <SectionHead
-          kicker="// что проверяем"
-          title={<>четыре блока законов, <span className="text-brand">6 проверок</span></>}
-          sub="под каждым нарушением — конкретная статья закона, цитата и сценарий, как починить. результат — в PDF-отчёте."
+          kicker="что проверяем"
+          title={<>Какие законы проверяем: <span className="text-brand">152-ФЗ, 149-ФЗ, ЕРИР</span> и реестры</>}
+          sub="6 проверок по российскому законодательству. под каждым нарушением — конкретная статья закона, цитата и понятный совет, как починить. результат — в PDF-отчёте."
         />
         <LawTable />
       </section>
 
       <section>
         <SectionHead
-          kicker="// образец отчёта"
-          title={<>так выглядит результат <span className="text-brand">сканирования.</span></>}
-          sub="реальный отчёт по обезличенному СМИ-порталу. 4 нарушения, 2 риска. структура — такая же для вашего сайта."
+          kicker="образец отчёта"
+          title={<>Пример отчёта по <span className="text-brand">проверке сайта</span></>}
+          sub="реальный отчёт по обезличенному сайту. 4 нарушения, 2 риска. структура — такая же для вашего сайта."
         />
         <SampleReport />
       </section>
 
       <section>
         <SectionHead
-          kicker="// для кого"
-          title="продукт сделан для четырёх ролей."
-          sub="каждая из них хочет одного и того же — узнать про штраф первой, не от регулятора."
+          kicker="реальные кейсы"
+          title="Типичные нарушения на российских сайтах"
+          sub="обезличенные примеры из базы проверок. домены скрыты — нарушения реальные."
+        />
+        <CasesSection />
+      </section>
+
+      <section>
+        <SectionHead
+          kicker="для кого"
+          title="Кому пригодится проверка сайта на 152-ФЗ"
+          sub="у каждой роли одна цель — увидеть штраф раньше регулятора."
         />
         <AudienceGrid />
       </section>
 
       <section>
         <SectionHead
-          kicker="// как это работает"
-          title={<>от URL до отчёта — <span className="text-brand">меньше минуты.</span></>}
+          kicker="как это работает"
+          title={<>Как работает <span className="text-brand">проверка сайта</span> — 5 минут</>}
           sub="никакой регистрации. вводите адрес, видите результат на той же странице, при желании — скачиваете PDF или передаёте ссылку."
         />
         <HowItWorks />
@@ -457,8 +530,8 @@ export default function Landing() {
 
       <section>
         <SectionHead
-          kicker="// что мы видим"
-          title="статистика по всем проверкам."
+          kicker="статистика"
+          title="Статистика проверок российских сайтов"
           sub="всё обезличено. храним только итоговый отчёт, не содержимое сайта."
         />
         <StatsBlock scanCount={stats?.scans} />
@@ -467,8 +540,8 @@ export default function Landing() {
       {stats?.violations?.length > 0 && (
         <section>
           <SectionHead
-            kicker="// типичные ошибки"
-            title={<>что находим чаще всего.</>}
+            kicker="типичные ошибки"
+            title="Типичные нарушения 152-ФЗ на российских сайтах"
             sub="реальная статистика по всем проверенным сайтам. данные обновляются при каждом новом скане."
           />
           <TopViolations violations={stats.violations} totalScans={stats.scans} />
@@ -477,8 +550,8 @@ export default function Landing() {
 
       <section>
         <SectionHead
-          kicker="// частые вопросы"
-          title="всё, что обычно спрашивают."
+          kicker="частые вопросы"
+          title="Частые вопросы о проверке сайтов"
         />
         <FaqList />
       </section>
@@ -486,7 +559,15 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-line pt-7 pb-3 grid sm:grid-cols-[auto_minmax(0,1fr)] gap-5 sm:gap-8 items-start text-[11px] font-mono text-ink/45 tracking-wide">
         <span className="inline-flex items-center gap-2">
-          <span className="w-3 h-3 bg-brand inline-block" style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }} />
+          <svg width="20" height="14" viewBox="0 0 24 16" fill="none" aria-hidden="true" className="text-brand shrink-0">
+            <rect x="2" y="5" width="8" height="6" rx="1.4" fill="currentColor"/>
+            <rect x="10" y="4" width="3" height="8" rx="0.6" fill="currentColor"/>
+            <g stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+              <line className="beam beam-top"    x1="14" y1="7" x2="20.4" y2="3.4"  />
+              <line className="beam beam-center" x1="14" y1="8" x2="22"   y2="8"    />
+              <line className="beam beam-bottom" x1="14" y1="9" x2="20.4" y2="12.6" />
+            </g>
+          </svg>
           <b className="text-ink/70 font-semibold">ФОНАРИК // СКАНЕР</b>
         </span>
         <div className="flex flex-col gap-1">
