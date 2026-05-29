@@ -27,7 +27,7 @@ function checkEmail(email) {
 
 function checkCompany(company) {
   const v = company.trim();
-  if (!v) return 'Введите название компании';
+  if (!v) return null; // optional field
   if (v.length < 2) return 'Слишком короткое';
   const letters = v.match(/[a-zA-Zа-яёА-ЯЁ]/g) || [];
   if (letters.length < 2) return 'Введите корректное название';
@@ -76,7 +76,7 @@ export default function ShareModal({ open, onClose, uuid, mode, defaultEmail = '
 
   const emailOk   = !checkEmail(email);
   const companyOk = !checkCompany(company);
-  const canSubmit = emailOk && companyOk && consentChecked && !loading;
+  const canSubmit = emailOk && consentChecked && !loading;
 
   const submit = async () => {
     // Show all errors on submit
@@ -94,7 +94,7 @@ export default function ShareModal({ open, onClose, uuid, mode, defaultEmail = '
       const res = await fetch(`${BASE}/api/leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), company: company.trim(), uuid }),
+        body: JSON.stringify({ email: email.trim(), company: company.trim() || null, uuid }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -172,13 +172,13 @@ export default function ShareModal({ open, onClose, uuid, mode, defaultEmail = '
 
               {/* Company field */}
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Компания *</label>
+                <label className="text-xs text-gray-400 block mb-1">Компания (если есть)</label>
                 <input
                   type="text"
                   className={`w-full border rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none transition-colors ${
                     compTouched && companyErr
                       ? 'border-red-400 focus:border-red-400 bg-red-50'
-                      : compTouched && companyOk
+                      : compTouched && companyOk && company.trim()
                         ? 'border-green-400 focus:border-green-400'
                         : 'border-gray-200 focus:border-blue-400'
                   }`}
@@ -220,9 +220,9 @@ export default function ShareModal({ open, onClose, uuid, mode, defaultEmail = '
                 {loading ? 'Проверка…' : mode === 'share' ? 'Получить ссылку' : 'Скачать PDF'}
               </button>
 
-              {(!emailOk || !companyOk) && (emailTouched || compTouched) && (
+              {!emailOk && emailTouched && (
                 <p className="text-xs text-center text-gray-400">
-                  Заполните все поля корректно чтобы продолжить
+                  Введите корректный email чтобы продолжить
                 </p>
               )}
             </div>

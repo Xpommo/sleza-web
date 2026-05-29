@@ -192,10 +192,10 @@ app.post('/api/leads', {
   schema: {
     body: {
       type: 'object',
-      required: ['email', 'company', 'uuid'],
+      required: ['email', 'uuid'],
       properties: {
         email:   { type: 'string', maxLength: 254 },
-        company: { type: 'string', maxLength: 200 },
+        company: { type: ['string', 'null'], maxLength: 200 },
         uuid:    { type: 'string', pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' },
       },
     },
