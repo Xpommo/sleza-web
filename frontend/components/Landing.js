@@ -74,6 +74,41 @@ const CHECK_LABELS = {
   sleza:  { name: 'Иноагенты без маркировки',        fine: 'до 5 000 000 ₽' },
 };
 
+// Real cases from scan database — anonymized (domain removed, site type kept).
+// All violations confirmed by local checks, not AI guesses.
+const CASES = [
+  {
+    type:  'SaaS / B2B сервис',
+    region: 'Москва',
+    found: 'Google Analytics 4 загружается на всех страницах — данные посетителей передаются на серверы Google LLC (США) без явного согласия.',
+    law:   '152-ФЗ · ст. 13.11 ч. 3 · трансграничная передача',
+    fine:  'до 500 000 ₽',
+    tag:   'ga',
+  },
+  {
+    type:  'Интернет-магазин',
+    region: 'Екатеринбург',
+    found: 'Принимают оплату и заказы, но нет публичной оферты и условий возврата — покупатель юридически не защищён.',
+    law:   'ЗоЗПП · ст. 26.1 + 149-ФЗ · реквизиты продавца',
+    fine:  'до 500 000 ₽',
+    tag:   'offer',
+  },
+  {
+    type:  'Новостной портал',
+    region: 'Регионы',
+    found: 'Политика конфиденциальности есть, но не содержит 4 из 7 обязательных разделов: нет целей обработки, сроков хранения, категорий субъектов, порядка отзыва согласия.',
+    law:   '152-ФЗ · ст. 18.1 · неполная политика ПД',
+    fine:  'до 300 000 ₽',
+    tag:   'law152',
+  },
+];
+
+const CASE_TAG_COLOR = {
+  ga:     'bg-danger/10 text-danger',
+  offer:  'bg-warn/15 text-warn',
+  law152: 'bg-danger/10 text-danger',
+};
+
 const SAMPLE_FINDINGS = [
   { law: 'cookies без отказа',           code: '152-ФЗ · ст. 9 · ч. 4',     desc: 'баннер cookie не предлагает опции «отказаться», Яндекс.Метрика и другие счётчики загружаются до получения согласия пользователя.', fine: '300 000 ₽' },
   { law: 'политика ПД не найдена',       code: '152-ФЗ · ст. 18.1 · ч. 2',  desc: 'в меню внизу сайта нет ссылки на политику обработки персональных данных. форма обратной связи собирает email и телефон.', fine: '300 000 ₽' },
@@ -251,6 +286,29 @@ function LawTable() {
           <div className="flex sm:block items-center justify-between sm:text-right whitespace-nowrap">
             <div className="font-mono text-[9.5px] uppercase tracking-wider text-ink/25 sm:mb-0.5">штраф</div>
             <div className="font-bold text-[15px] tracking-tight text-danger">{l.fine}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CasesSection() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-line border border-line-2 rounded-[10px] overflow-hidden">
+      {CASES.map((c) => (
+        <div key={c.type} className="bg-white p-5 flex flex-col gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-0.5 rounded ${CASE_TAG_COLOR[c.tag] || 'bg-ink/8 text-ink/50'}`}>
+              нарушение
+            </span>
+            <span className="font-mono text-[10px] text-ink/35 tracking-wide">{c.region}</span>
+          </div>
+          <div className="font-bold text-[15px] tracking-tight leading-snug">{c.type}</div>
+          <p className="text-[13px] text-ink/65 leading-snug flex-1">{c.found}</p>
+          <div className="pt-3 border-t border-dashed border-line-2 flex flex-col gap-1">
+            <div className="font-mono text-[10px] text-ink/40 tracking-wide">{c.law}</div>
+            <div className="font-mono text-[12px] font-semibold text-danger">{c.fine}</div>
           </div>
         </div>
       ))}
@@ -441,6 +499,15 @@ export default function Landing() {
           sub="реальный отчёт по обезличенному сайту. 4 нарушения, 2 риска. структура — такая же для вашего сайта."
         />
         <SampleReport />
+      </section>
+
+      <section>
+        <SectionHead
+          kicker="реальные кейсы"
+          title="Типичные нарушения на российских сайтах"
+          sub="обезличенные примеры из базы проверок. домены скрыты — нарушения реальные."
+        />
+        <CasesSection />
       </section>
 
       <section>
