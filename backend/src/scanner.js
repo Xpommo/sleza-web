@@ -160,9 +160,12 @@ function extractPolicyHrefs(html, baseUrl) {
 async function fetchPolicyText(engine, pageContext, origin, fallback) {
   // Try all policyLinks then all offerLinks — sites may label policy as «Правила»
   // which lands in offerLinks; also some combine policy+agreement in one document.
+  // rawDocLinks: DOCX/PDF links captured regardless of anchor text (fixes sites like vse42.ru
+  // where compliance docs are linked as "Подробная информация" — no keyword match possible).
   const candidates = [
     ...(pageContext.policyLinks || []).map(l => l.href),
     ...(pageContext.offerLinks  || []).map(l => l.href),
+    ...(pageContext.rawDocLinks || []).map(l => l.href),
   ].filter((h, i, a) => h && a.indexOf(h) === i && isSafeUrl(h));
 
   let combined = '';
@@ -349,6 +352,7 @@ async function fetchExtraText(engine, pageContext, origin) {
     ...(pageContext.offerLinks  || []).map(l => l.href),
     ...(pageContext.aboutLinks  || []).map(l => l.href),
     ...(pageContext.policyLinks || []).map(l => l.href),
+    ...(pageContext.rawDocLinks || []).map(l => l.href),
   ].filter((h, i, a) => h && a.indexOf(h) === i && isSafeUrl(h));
 
   let extra = '';
