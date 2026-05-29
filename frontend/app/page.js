@@ -168,15 +168,14 @@ export default function Home() {
           <a href="/" className="flex items-center gap-2.5">
             <FlashlightIcon width={26} height={17} />
             <span className="font-extrabold text-[19px] tracking-[-0.04em] leading-none">
-              фонарик<span className="text-ink/35 font-medium ml-1.5">// сканер</span>
+              фонарик
             </span>
           </a>
-          <div className="ml-auto hidden sm:flex items-center gap-4 font-mono text-[11px] text-ink/60">
+          <div className="ml-auto hidden sm:flex items-center gap-3 font-mono text-[11px] text-ink/60">
             <span className="inline-flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-ok animate-pulseDot" />
               сервис активен
             </span>
-            <span className="text-ink/30">бета · v 1.0</span>
           </div>
         </div>
       </nav>

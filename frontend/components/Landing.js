@@ -568,7 +568,7 @@ export default function Landing() {
               <line className="beam beam-bottom" x1="14" y1="9" x2="20.4" y2="12.6" />
             </g>
           </svg>
-          <b className="text-ink/70 font-semibold">ФОНАРИК // СКАНЕР</b>
+          <b className="text-ink/70 font-semibold">ФОНАРИК</b>
         </span>
         <div className="flex flex-col gap-1">
           <span><b className="text-ink/65 font-semibold">© 2026</b> · Подсвечиваем нарушения на российских сайтах</span>
