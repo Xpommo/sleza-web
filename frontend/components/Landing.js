@@ -252,11 +252,11 @@ function SectionHead({ kicker, title, sub }) {
 
 function LawTable() {
   return (
-    <div className="bg-white border border-line-2 rounded-[10px] overflow-hidden">
-      {LAWS.map((l) => (
+    <div className="bg-white border border-line-2 rounded-[10px]">
+      {LAWS.map((l, idx) => (
         <div
           key={l.code}
-          className="px-4 sm:px-5 py-4 border-b border-line last:border-b-0 hover:bg-warm/40 transition-colors grid sm:grid-cols-[auto_minmax(0,1.3fr)_minmax(0,2fr)_auto] gap-3 sm:gap-4 sm:items-center"
+          className="px-4 sm:px-5 py-4 border-b border-line last:border-b-0 hover:bg-warm/40 transition-colors grid sm:grid-cols-[auto_minmax(0,1.3fr)_minmax(0,2fr)_auto] gap-3 sm:gap-4 sm:items-center first:rounded-t-[9px] last:rounded-b-[9px]"
         >
           <div className="flex items-center gap-3 sm:contents">
             {/* Tag pill + tooltip */}
@@ -269,7 +269,7 @@ function LawTable() {
                   aria-label={l.tooltip}
                 >?</span>
               </div>
-              <div className="absolute z-20 left-0 top-full mt-1.5 hidden group-hover:block group-focus-within:block bg-ink text-white text-[11px] leading-snug px-3 py-2 rounded-md w-56 shadow-xl pointer-events-none">
+              <div className={`absolute z-30 left-0 hidden group-hover:block group-focus-within:block bg-ink text-white text-[11px] leading-snug px-3 py-2 rounded-md w-60 shadow-xl pointer-events-none ${idx === 0 ? 'top-full mt-1.5' : 'bottom-full mb-1.5'}`}>
                 {l.tooltip}
               </div>
             </div>
