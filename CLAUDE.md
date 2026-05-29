@@ -108,7 +108,7 @@ Result shape is identical to what the Tampermonkey script's `runFullSiteScan` / 
 - Backend is Node ESM (`"type": "module"`) — use `import`/`export`, not `require`.
 - Do not push to `master` without explicit user request.
 
-## Текущий статус (2026-05-24) — АКТУАЛЬНО
+## Текущий статус (2026-05-29) — АКТУАЛЬНО
 
 ### Что реализовано и задеплоено ✅
 
@@ -459,21 +459,32 @@ _Исправленные false positives:_
 
 ### Следующие задачи
 
+**Лендинг (все спринты закрыты) ✅**
+- ~~Sprint 1–9~~ ✅ слиты в master 2026-05-29
+
+**Продукт — следующий шаг:**
+- **Sprint 10 (монетизация)** — после регистрации ИП: оферта, реквизиты, ЮKassa/Tinkoff, цены
+- **Sprint 11 (SEO long-tail)** — статьи /articles/... после первого органического трафика
+- **Yandex.Webmaster + Google Search Console** — настраивает владелец вручную (verification files готовы)
+- **Привлечение пользователей** — outreach к 30 знакомым, Telegram-чаты предпринимателей
+
 **В резерве (Feedback Loop):** B (ML сигнальные паттерны), E (memory injection в промпт), F (shadow mode A/B), G (авто ре-валидация всего домена)
 
-**Прочие улучшения:**
+**Технические фиксы (scanner):**
+- ~~DOCX с нейтральным якорем (vse42.ru)~~ ✅ rawDocLinks fix (2026-05-29)
+- ~~SPA Playwright fallback для compliance-страниц~~ ✅ (2026-05-29)
 - ~~Удалить `/api/debug/links`~~ ✅ удалён
 - ~~Настройка Telegram бота~~ ✅ настроен
-- ~~149-ФЗ false positives на маркетплейсах~~ ✅ R14 fixed (avito, Яндекс)
-- ~~149-ФЗ false positives на сайтах с 4xx~~ ✅ R15 fixed (dns-shop, eldorado, ikea)
-- ~~Structural false positive caps~~ ✅ R16 fixed (blocked, foreign, gov) — ❌ 71→38
-- ~~Meta Pixel ERIR false positive~~ ✅ R18 fixed (saltsalt.ru и подобные)
-- ~~Политика на Яндекс.Диске не обнаруживалась~~ ✅ R18 fixed (extDocPolicyLinks + Cap 4)
+- ~~149-ФЗ false positives на маркетплейсах~~ ✅ R14
+- ~~149-ФЗ false positives на сайтах с 4xx~~ ✅ R15
+- ~~Structural false positive caps~~ ✅ R16 — ❌ 71→38
+- ~~Meta Pixel ERIR false positive~~ ✅ R18
+- ~~Политика на Яндекс.Диске~~ ✅ R18
 
 **Оставшиеся неточности (❌ 38 после R16/R18):**
-- **GA violations (~11)** — ivi.ru, amocrm.ru, cian.ru, skyeng.ru, vkusvill.ru и др.: скорее всего **реальные** (компании используют GA4 в нарушение 152-ФЗ)
+- **GA violations (~11)** — ivi.ru, amocrm.ru, cian.ru, skyeng.ru и др.: скорее всего **реальные**
 - **ERIR violations (4)** — mk.ru, rt.com, meduza.io, onetwotrip.com: **реальные**
-- **law149/152 при Playwright fallback (~12)** — sberbank.ru, rosatom.ru, afisha.ru, netology.ru, apteka.ru: Playwright падает → plain fetch не видит ИНН в JS-рендеренном footer
+- **law149/152 при Playwright fallback (~12)** — sberbank.ru, rosatom.ru и др.: ИНН в JS-footer
 - **mail.ru law149/GA** — suspicious, нужна ручная проверка
 
 ### Известные ограничения / false positives
