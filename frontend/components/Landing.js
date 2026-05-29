@@ -417,8 +417,8 @@ export default function Landing() {
       <section>
         <SectionHead
           kicker="что проверяем"
-          title={<><span className="text-brand">6 проверок</span> по российскому законодательству</>}
-          sub="под каждым нарушением — конкретная статья закона, цитата и понятный совет, как починить. результат — в PDF-отчёте."
+          title={<>Какие законы проверяем: <span className="text-brand">152-ФЗ, 149-ФЗ, ЕРИР</span> и реестры</>}
+          sub="6 проверок по российскому законодательству. под каждым нарушением — конкретная статья закона, цитата и понятный совет, как починить. результат — в PDF-отчёте."
         />
         <LawTable />
       </section>
@@ -426,7 +426,7 @@ export default function Landing() {
       <section>
         <SectionHead
           kicker="образец отчёта"
-          title={<>так выглядит <span className="text-brand">результат проверки</span></>}
+          title={<>Пример отчёта по <span className="text-brand">проверке сайта</span></>}
           sub="реальный отчёт по обезличенному сайту. 4 нарушения, 2 риска. структура — такая же для вашего сайта."
         />
         <SampleReport />
@@ -435,7 +435,7 @@ export default function Landing() {
       <section>
         <SectionHead
           kicker="для кого"
-          title="кому пригодится проверка сайта"
+          title="Кому пригодится проверка сайта на 152-ФЗ"
           sub="у каждой роли одна цель — увидеть штраф раньше регулятора."
         />
         <AudienceGrid />
@@ -444,7 +444,7 @@ export default function Landing() {
       <section>
         <SectionHead
           kicker="как это работает"
-          title={<>от адреса сайта до отчёта — <span className="text-brand">5 минут</span></>}
+          title={<>Как работает <span className="text-brand">проверка сайта</span> — 5 минут</>}
           sub="никакой регистрации. вводите адрес, видите результат на той же странице, при желании — скачиваете PDF или передаёте ссылку."
         />
         <HowItWorks />
@@ -453,7 +453,7 @@ export default function Landing() {
       <section>
         <SectionHead
           kicker="статистика"
-          title="что мы видим по всем проверкам"
+          title="Статистика проверок российских сайтов"
           sub="всё обезличено. храним только итоговый отчёт, не содержимое сайта."
         />
         <StatsBlock scanCount={stats?.scans} />
@@ -463,7 +463,7 @@ export default function Landing() {
         <section>
           <SectionHead
             kicker="типичные ошибки"
-            title="что находим чаще всего"
+            title="Типичные нарушения 152-ФЗ на российских сайтах"
             sub="реальная статистика по всем проверенным сайтам. данные обновляются при каждом новом скане."
           />
           <TopViolations violations={stats.violations} totalScans={stats.scans} />
@@ -473,7 +473,7 @@ export default function Landing() {
       <section>
         <SectionHead
           kicker="частые вопросы"
-          title="всё, что обычно спрашивают"
+          title="Частые вопросы о проверке сайтов"
         />
         <FaqList />
       </section>

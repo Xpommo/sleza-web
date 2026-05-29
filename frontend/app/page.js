@@ -159,10 +159,10 @@ export default function Home() {
           <header className="mb-7 pb-7 border-b border-line">
             <div className="label-micro mb-5">бесплатно · без регистрации</div>
             <h1 className="text-[32px] sm:text-[48px] lg:text-[52px] font-extrabold tracking-[-0.045em] leading-[0.96] mb-5 text-balance break-words">
-              Узнайте про штраф <span className="text-brand">первыми</span> — до РКН.
+              Проверка сайта на <span className="text-brand">152-ФЗ, 149-ФЗ и ЕРИР</span> — узнайте про штраф раньше регулятора
             </h1>
             <p className="text-[15px] sm:text-[16px] text-ink/65 leading-relaxed max-w-[58ch]">
-              Бесплатная проверка на соответствие <b className="text-ink font-semibold">152-ФЗ, 149-ФЗ, ЕРИР</b> и реестрам иноагентов. Результат — за 5 минут. Получите PDF-отчёт со ссылками на статьи закона и рекомендацией, что починить первым.
+              Бесплатный аудит за 5 минут. Сверка с реестрами иноагентов, ЕГРЮЛ и государственными базами. PDF-отчёт со ссылками на статьи закона и понятными рекомендациями, что починить первым.
             </p>
           </header>
         )}
