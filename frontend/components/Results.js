@@ -507,6 +507,16 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
         )}
       </div>
 
+      {/* Tertiary CTA: разобрать отчёт с автором */}
+      <div className="text-center py-1">
+        <a
+          href={`mailto:kirillmash99@gmail.com?subject=${encodeURIComponent(`Разбор отчёта по ${hostname}`)}&body=${encodeURIComponent('Привет! Хочу разобрать отчёт по своему сайту.')}`}
+          className="text-[12px] text-ink/40 hover:text-ink/70 transition-colors font-mono"
+        >
+          разобрать отчёт вместе с автором →
+        </a>
+      </div>
+
       <button
         onClick={onNewScan}
         className="w-full text-[13px] text-ink/50 hover:text-ink border border-line-2 hover:border-ink/30 bg-paper rounded-lg py-3 transition-colors font-mono uppercase tracking-wider"
