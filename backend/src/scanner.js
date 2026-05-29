@@ -33,6 +33,17 @@ function isChallengeResponse(text) {
   return /showcaptcha|smartcaptcha|captcha|cloudflare|just a moment|checking your browser|ddos.?guard|cf-turnstile|enable.?javascript.*protect/i.test(text);
 }
 
+// Detects React / Next.js SPA skeleton: page returned 200 OK with large HTML
+// but almost no extracted text — JS hasn't rendered the content yet.
+function isSpaResponse(html) {
+  if (!html || html.length < 800) return false;
+  const text = htmlToText(html);
+  if (text.length > 350) return false; // real content present
+  return /<div[^>]*id=["'](__next|root|app)["']/i.test(html)
+      || html.includes('__NEXT_DATA__')
+      || html.includes('data-reactroot');
+}
+
 // Google Analytics (GA4 / Universal) detection — cross-border data transfer violation (152-ФЗ ст.12 + 242-ФЗ)
 function checkGoogleAnalytics(pageContext) {
   const detected = !!pageContext.hasGoogleAnalytics;
@@ -52,13 +63,13 @@ function checkGoogleAnalytics(pageContext) {
   };
 }
 
-// Fetch URL text with automatic Playwright fallback for anti-bot protected pages.
+// Fetch URL text with automatic Playwright fallback for anti-bot and SPA pages.
 // Use for URLs that are KNOWN to exist (from policyLinks, offerLinks, etc.)
 // — not for blind path probing (too slow if every speculative path triggers a browser).
 async function fetchKnownUrl(engine, url) {
   const r = await engine.fetchUrl(url);
-  if (r.ok && r.text.length > 300 && !isChallengeResponse(r.text)) return r.text;
-  // Plain fetch failed or returned a challenge page — retry with real browser
+  if (r.ok && r.text.length > 300 && !isChallengeResponse(r.text) && !isSpaResponse(r.text)) return r.text;
+  // Plain fetch failed, returned a challenge, or a React/Next.js skeleton — retry with real browser
   const text = await fetchPageText(url);
   return text;
 }
@@ -383,11 +394,20 @@ async function fetchExtraText(engine, pageContext, origin) {
         '/rekvizity', '/реквизиты', '/company', '/terms', '/legal',
         '/rbc_about', '/about-us', '/company/about', '/info/about', '/help/about',
         '/о-компании/реквизиты', '/legal/about', '/props', '/rekviz'];
+      let rekvizitiSpaUsed = false;
       for (const path of REKVIZITY_PATHS) {
         const url = origin + path;
         if (visited.has(url)) continue;
         const r = await engine.fetchUrl(url);
-        if (r.ok && r.text.length > 200) { extra += '\n' + htmlToText(r.text); break; }
+        if (!r.ok) continue;
+        const text = htmlToText(r.text);
+        if (text.length > 200) { extra += '\n' + text; break; }
+        // SPA skeleton: page exists but JS hasn't rendered content — retry once with Playwright
+        if (!rekvizitiSpaUsed && isSpaResponse(r.text)) {
+          rekvizitiSpaUsed = true;
+          const pwText = await fetchPageText(url);
+          if (pwText.length > 200) { extra += '\n' + pwText; break; }
+        }
       }
     }
   }
