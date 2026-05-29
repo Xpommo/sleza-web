@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Политика конфиденциальности — СЛЕЗА // СКАНЕР',
-  description: 'Политика обработки персональных данных сервиса sleza-web.vercel.app',
+  title: 'Политика конфиденциальности — ФОНАРИК // СКАНЕР',
+  description: 'Политика обработки персональных данных сервиса проверки сайтов ФОНАРИК.',
 };
 
 export default function PrivacyPage() {
@@ -13,12 +13,17 @@ export default function PrivacyPage() {
       <header className="border-b border-line px-4 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-2 group">
-            <span
-              className="w-3 h-3 bg-brand inline-block shrink-0"
-              style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }}
-            />
+            <svg width="22" height="14" viewBox="0 0 24 16" fill="none" aria-hidden="true" className="text-brand shrink-0">
+              <rect x="2" y="5" width="8" height="6" rx="1.4" fill="currentColor"/>
+              <rect x="10" y="4" width="3" height="8" rx="0.6" fill="currentColor"/>
+              <g stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                <line className="beam beam-top"    x1="14" y1="7" x2="20.4" y2="3.4"  />
+                <line className="beam beam-center" x1="14" y1="8" x2="22"   y2="8"    />
+                <line className="beam beam-bottom" x1="14" y1="9" x2="20.4" y2="12.6" />
+              </g>
+            </svg>
             <span className="font-mono text-[13px] font-semibold text-ink/70 group-hover:text-ink transition-colors">
-              СЛЕЗА // СКАНЕР
+              ФОНАРИК // СКАНЕР
             </span>
           </Link>
           <Link href="/" className="text-xs text-ink/45 hover:text-ink font-mono transition-colors">
@@ -51,7 +56,7 @@ export default function PrivacyPage() {
                   kirillmash99@gmail.com
                 </a>
               </p>
-              <p><span className="text-ink/40">Сайт:</span> <span className="text-ink">sleza-web.vercel.app</span></p>
+              <p><span className="text-ink/40">Сайт:</span> <span className="text-ink">sleza-web.vercel.app</span> (ФОНАРИК // СКАНЕР)</p>
             </div>
           </Section>
 
@@ -138,7 +143,7 @@ export default function PrivacyPage() {
       {/* Footer */}
       <footer className="border-t border-line py-5 px-4">
         <div className="max-w-3xl mx-auto text-[11px] font-mono text-ink/35 text-center">
-          © 2024–2026 СЛЕЗА // СКАНЕР · не является юридической консультацией
+          © 2024–2026 ФОНАРИК // СКАНЕР · не является юридической консультацией
         </div>
       </footer>
 
