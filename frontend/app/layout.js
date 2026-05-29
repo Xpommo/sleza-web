@@ -1,6 +1,21 @@
 import './globals.css';
+import { Onest, JetBrains_Mono } from 'next/font/google';
 import CookieBanner from '../components/CookieBanner';
 import { FAQ } from '../lib/faq';
+
+const onest = Onest({
+  subsets: ['latin', 'cyrillic'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-onest',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin', 'cyrillic'],
+  weight: ['400', '500', '600'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+});
 
 const SITE_URL = 'https://sleza-web.vercel.app';
 const SITE_NAME = 'ФОНАРИК';
@@ -79,12 +94,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ru">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLdWebsite()) }}
@@ -98,7 +107,7 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLdFaq()) }}
         />
       </head>
-      <body className="bg-warm text-ink min-h-screen antialiased">
+      <body className={`${onest.variable} ${jetbrainsMono.variable} bg-warm text-ink min-h-screen antialiased`}>
         {children}
         <CookieBanner />
       </body>
