@@ -131,8 +131,8 @@ function SampleReport() {
       </div>
 
       {/* verdict */}
-      <div className="px-5 sm:px-6 py-7 sm:py-8 border-b border-line grid md:grid-cols-[1fr_auto] gap-7 md:gap-8 items-start md:items-center">
-        <div>
+      <div className="px-5 sm:px-6 py-7 sm:py-8 border-b border-line grid md:grid-cols-[1fr_200px] gap-7 md:gap-6 items-start md:items-center">
+        <div className="min-w-0">
           <div className="label-micro mb-2">потенциальные штрафы по КоАП РФ</div>
           <div className="font-extrabold text-danger tracking-[-0.05em] leading-[0.92] tabular-nums" style={{ fontSize: 'clamp(44px, 6vw, 76px)' }}>
             1 250 000 ₽
@@ -141,12 +141,12 @@ function SampleReport() {
             <b className="text-ink">суммарно по найденным нарушениям</b> · считаем по верхней границе санкции для юр. лиц. реальная сумма зависит от региона и количества эпизодов.
           </div>
         </div>
-        <div className="flex flex-col gap-2 items-start md:items-end w-full md:min-w-[240px] md:w-auto">
+        <div className="flex flex-col gap-2 items-start md:items-end w-full md:w-auto">
           <div className="label-micro">уровень риска</div>
-          <div className="w-full md:w-[240px] h-2 bg-warm border border-line rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-warm border border-line rounded-full overflow-hidden">
             <div className="h-full rounded-full" style={{ width: '84%', background: 'linear-gradient(90deg, #b87900 0%, #d63816 100%)' }} />
           </div>
-          <div className="w-full md:w-[240px] flex justify-between font-mono text-[10px] text-ink/25">
+          <div className="w-full flex justify-between font-mono text-[10px] text-ink/25">
             <span>0</span><span>5</span><span>10</span>
           </div>
           <div className="font-bold text-[14px] tracking-tight text-danger">8.4 / 10 · высокий</div>
@@ -256,7 +256,7 @@ function LawTable() {
       {LAWS.map((l) => (
         <div
           key={l.code}
-          className="px-4 sm:px-5 py-4 border-b border-line last:border-b-0 hover:bg-warm/40 transition-colors grid sm:grid-cols-[64px_minmax(0,1.3fr)_minmax(0,2fr)_auto] gap-3 sm:gap-4 sm:items-center"
+          className="px-4 sm:px-5 py-4 border-b border-line last:border-b-0 hover:bg-warm/40 transition-colors grid sm:grid-cols-[auto_minmax(0,1.3fr)_minmax(0,2fr)_auto] gap-3 sm:gap-4 sm:items-center"
         >
           <div className="flex items-center gap-3 sm:contents">
             {/* Tag pill + tooltip */}
