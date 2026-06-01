@@ -572,4 +572,16 @@ export async function getRecentDocRequests(limit = 20) {
   `;
 }
 
+// Raw recent scans (incl. result_json) — for the "скан дня" picker (Sprint A5).
+export async function getRecentScansRaw(days = 7, limit = 50) {
+  if (!enabled) return [];
+  return sql`
+    SELECT uuid, hostname, created_at, result_json
+    FROM scans
+    WHERE created_at > NOW() - MAKE_INTERVAL(days => ${days})
+    ORDER BY created_at DESC
+    LIMIT ${Math.min(limit, 200)}
+  `;
+}
+
 export { enabled as dbEnabled };

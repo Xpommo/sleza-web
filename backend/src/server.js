@@ -17,7 +17,7 @@ import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
-import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats, saveEvent, getFunnel, saveDocRequest, getRecentDocRequests } from './db.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats, saveEvent, getFunnel, saveDocRequest, getRecentDocRequests, getRecentScansRaw } from './db.js';
 import { tgEnabled, sendLeadNotification, registerWebhook, getWebhookSecret, handleUpdate } from './tg.js';
 import { verifyException } from './scanner.js';
 import { validateEmail, validateCompany, validateEmailMX } from './validateLead.js';
@@ -320,6 +320,31 @@ app.get('/api/admin/doc-requests', async (request, reply) => {
   }
   const rows = await getRecentDocRequests(Math.min(Number(request.query.limit || 20), 100));
   return reply.send(rows);
+});
+
+// "Скан дня" picker (Sprint A5) — surfaces the recent scan with the most violations
+// as post material. Admin-only; the owner decides what to anonymize before posting.
+app.get('/api/admin/scan-of-day', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const rows = await getRecentScansRaw(7, 50);
+  let best = null, bestCount = 0;
+  for (const r of rows) {
+    const checks = r.result_json?.aiData?.checks || [];
+    const viols = checks.filter(c => c.status === 'violation');
+    if (viols.length > bestCount) {
+      bestCount = viols.length;
+      best = {
+        hostname: r.hostname,
+        uuid: r.uuid,
+        scannedAt: r.created_at,
+        violations: viols.map(c => ({ law: c.law_code || c.law || c.id, fine: c.fine || null })),
+      };
+    }
+  }
+  return reply.send(best ? { found: true, ...best } : { found: false });
 });
 
 // ── PDF generation ───────────────────────────────────────────────────────────
