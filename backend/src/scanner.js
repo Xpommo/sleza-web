@@ -873,7 +873,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       if (homeR.ok) homepageText = '\n' + htmlToText(homeR.text).slice(0, 4000);
     }
     let result149  = engine.check149FZ(fullText + extraText + homepageText);
-    // If page is IP-blocked/firewalled, we can't verify rekvizity → cap at risk (same as 152-FZ when policy inaccessible)
+    // If page is IP-blocked/firewalled, we can't verify rekvizity → cap at risk
     if (result149.status === 'violation' && (pageContext._firewalled || pageContext._blocked || pageContext._http403 || (pageContext._fallback && (pageContext.bodyText || '').length < 600))) result149 = { ...result149, status: 'risk' };
     const adTextMarker = /на правах реклам|рекламный материал|партнёрский материал|спонсорский материал|рекламодатель|sponsored content/i;
     const effectiveHasAdScripts = pageContext.hasAdScripts || (pageContext.hasGtm && adTextMarker.test(fullText));
@@ -929,11 +929,12 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   // ── Structural caps (before feedback overrides so user-confirmed exceptions win) ──
 
   // Cap 1: blocked/empty page — check149FZ/check152FZ return 'unknown'/'no_policy' (not 'violation')
-  // when bodyText < 50 chars; buildLocalChecks maps 'no_policy' → 'violation'. Cap both to risk.
-  // Also covers: Playwright fallback to plain fetch + tiny body (<600 chars) — JS-heavy sites like
-  // sberbank.ru that block headless browsers; plain fetch returns a skeleton, not real content.
-  const isEmptyFallback = pageContext._fallback && (pageContext.bodyText || '').length < 600;
-  if (pageContext._http403 || pageContext._firewalled || pageContext._blocked || isEmptyFallback) {
+  // when the body is empty; buildLocalChecks maps 'no_policy' → 'violation'. Cap both to risk.
+  // Threshold <600 chars catches: explicit blocks (_http403/_firewalled/_blocked), Playwright
+  // fallback skeletons, AND JS-heavy sites like sberbank.ru that return a near-empty body to
+  // headless browsers — in all cases the real content (policy link, rekvizity) is unverifiable.
+  const isNearlyEmptyPage = (pageContext.bodyText || '').length < 600;
+  if (pageContext._http403 || pageContext._firewalled || pageContext._blocked || isNearlyEmptyPage) {
     for (const c of (aiData?.checks || [])) {
       if (c.id === 'law152' || c.id === 'law149') {
         if (c.status === 'violation' || c.status === 'unknown') c.status = 'risk';
@@ -1225,8 +1226,8 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
 
   // ── Structural caps (mirrors single-scan logic) ──
-  const isEmptyFallbackFull = mainPageContext._fallback && (mainPageContext.bodyText || '').length < 600;
-  if (mainPageContext._http403 || mainPageContext._firewalled || mainPageContext._blocked || isEmptyFallbackFull) {
+  const isNearlyEmptyPageFull = (mainPageContext.bodyText || '').length < 600;
+  if (mainPageContext._http403 || mainPageContext._firewalled || mainPageContext._blocked || isNearlyEmptyPageFull) {
     for (const c of (aiData?.checks || [])) {
       if (c.id === 'law152' || c.id === 'law149') {
         if (c.status === 'violation' || c.status === 'unknown') c.status = 'risk';
