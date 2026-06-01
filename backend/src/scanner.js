@@ -777,6 +777,26 @@ export async function verifyException(hostname, checkId, originUrl) {
   }
 }
 
+// Compact, persisted signals that pre-fill the document-intake form (Phase A).
+// Derived from the already-collected pageContext + EGRUL so the frontend can show
+// "вот что мы нашли — подтвердите и допишите" without re-scanning. Additive field
+// on the scan result; consumed by frontend/lib/intakePrefill.js.
+function buildIntakeSignals(pageContext = {}, egrul = null) {
+  const parsed = egrul?.result?.parsed || null;
+  return {
+    usesGoogleAnalytics:  pageContext.hasGoogleAnalytics === true,
+    usesAnalytics:        pageContext.hasAnalytics === true,       // Я.Метрика и прочие трекеры
+    usesAds:              pageContext.hasAdScripts === true,
+    hasCookieBanner:      pageContext.hasCookieBanner === true,
+    hasConsentCheckbox:   pageContext.hasConsentCheckbox === true,
+    hasPreCheckedConsent: pageContext.hasPreCheckedConsent === true,
+    hasPolicyLink:        (pageContext.policyLinks?.length || 0) > 0 || pageContext.hasPolicyFooterLink === true,
+    operatorName:         parsed?.name || null,
+    inn:                  egrul?.ids?.inn || null,
+    ogrn:                 egrul?.ids?.ogrn || null,
+  };
+}
+
 /**
  * Scan a single page and return compliance results.
  *
@@ -984,6 +1004,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     pages: [{ url, title: pageContext.title, items: checked, isCurrent: true }],
     aiData,
     egrul,
+    intakeSignals: buildIntakeSignals(pageContext, egrul),
     slezaError: slezaResult.errors || null,
   };
   result.confidence = calcConfidence(result, [pageContext], useAI && !!groqKey);
@@ -1270,6 +1291,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     pages,
     aiData,
     egrul,
+    intakeSignals: buildIntakeSignals(mainPageContext, egrul),
     slezaError: firstSlezaError,
     stats: { discovered: urls.length, total: finalUrls.length, scanned: pages.length, found: totalFound },
   };
