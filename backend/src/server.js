@@ -36,7 +36,9 @@ const PORT = Number(process.env.PORT) || 3001;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
   .split(',').map(o => o.trim()).filter(Boolean);
 
-const app = Fastify({ logger: true });
+// trustProxy: behind Railway's proxy, read the real client IP from X-Forwarded-For
+// so per-IP rate limits (and the `ip` stored on scans) are meaningful, not the proxy's.
+const app = Fastify({ logger: true, trustProxy: true });
 
 // Allow requests from the Next.js frontend
 await app.register(cors, {
@@ -57,6 +59,27 @@ function releaseRateLimit(ip) {
   if (count <= 1) activeScans.delete(ip);
   else activeScans.set(ip, count - 1);
 }
+
+// Fixed-window per-IP rate limiter for public POST endpoints (anti-spam on заявки /
+// events / leads). Returns true if the request is allowed, false if over the limit.
+const rateBuckets = new Map(); // `${bucket}:${ip}` → { count, resetAt }
+function hitRateLimit(ip, bucket, max, windowMs) {
+  const key = `${bucket}:${ip}`;
+  const now = Date.now();
+  const e = rateBuckets.get(key);
+  if (!e || now >= e.resetAt) {
+    rateBuckets.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (e.count >= max) return false;
+  e.count++;
+  return true;
+}
+// Sweep expired buckets so the Map can't grow unbounded with unique IPs.
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, e] of rateBuckets) if (now >= e.resetAt) rateBuckets.delete(k);
+}, 5 * 60_000).unref();
 
 // Extract keys from request headers — clients send their own API keys
 function extractKeys(request) {
@@ -201,6 +224,9 @@ app.post('/api/leads', {
     },
   },
 }, async (request, reply) => {
+  if (!hitRateLimit(request.ip, 'leads', 5, 60_000)) {
+    return reply.status(429).send({ error: 'Слишком много запросов. Попробуйте через минуту.' });
+  }
   const { email, company, uuid } = request.body;
 
   const emailErr   = validateEmail(email);
@@ -233,6 +259,9 @@ app.post('/api/subscribe', {
     },
   },
 }, async (request, reply) => {
+  if (!hitRateLimit(request.ip, 'subscribe', 5, 60_000)) {
+    return reply.status(429).send({ error: 'Слишком много запросов. Попробуйте через минуту.' });
+  }
   const { email, hostname, scan_uuid } = request.body;
   const emailErr = validateEmail(email);
   if (emailErr) return reply.status(400).send({ error: emailErr });
@@ -263,7 +292,8 @@ app.post('/api/events', {
   },
 }, async (request, reply) => {
   const { type, scan_uuid, hostname, utm } = request.body;
-  if (VALID_EVENT_TYPES.has(type)) {
+  // Drop over-limit events silently — analytics must never surface an error to the UI.
+  if (VALID_EVENT_TYPES.has(type) && hitRateLimit(request.ip, 'events', 60, 60_000)) {
     saveEvent({ type, scanUuid: scan_uuid || null, hostname: hostname || null, utm: utm || null }).catch(() => {});
   }
   return reply.send({ ok: true });
@@ -299,6 +329,9 @@ app.post('/api/doc-request', {
     },
   },
 }, async (request, reply) => {
+  if (!hitRateLimit(request.ip, 'docreq', 5, 60_000)) {
+    return reply.status(429).send({ error: 'Слишком много запросов. Попробуйте через минуту.' });
+  }
   const { email, hostname, scan_uuid, intent, price_shown, intake } = request.body;
   const emailErr = validateEmail(email);
   if (emailErr) return reply.status(400).send({ error: emailErr });
