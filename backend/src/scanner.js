@@ -832,6 +832,22 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   // Promote siteType to 'ip' if EGRUL confirms the owner is an individual entrepreneur
   if (siteType !== 'ip' && egrulResult?.parsed?.type === 'ip') siteType = 'ip';
 
+  // Backfill operator identifiers from offer/about pages (e.g. amoCRM keeps ИНН/ОГРН only
+  // on /agreement/). Main-page extraction above runs before extraText is fetched, so
+  // sub-page requisites are missed → empty operator in the intake prefill. Done before AI +
+  // caps so everything downstream (operator prefill, foreign-entity cap, EGRUL name) benefits.
+  // Cached so the local/AI branches reuse the text instead of re-fetching.
+  let extraTextCache = null;
+  if (!egrul.ids.inn && !egrul.ids.ogrn) {
+    extraTextCache = await fetchExtraText(engine, pageContext, origin);
+    const extraIds = engine.extractIdentifiers(extraTextCache);
+    if (extraIds.inn || extraIds.ogrn) {
+      egrul.ids = extraIds;
+      egrul.result = await engine.checkEgrul(extraIds.ogrn || extraIds.inn);
+      if (siteType !== 'ip' && egrul.result?.parsed?.type === 'ip') siteType = 'ip';
+    }
+  }
+
   // 4. AI analysis (152-FZ, ERIR, offer, drugs, cookie) — or local-only if useAI=false
   let aiData;
   if (useAI && groqKey) {
@@ -854,7 +870,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
         if (check149AI.status === 'violation') check149AI.status = 'risk';
       } else {
         // INN/OGRN regex is unambiguous — if local finds it in extraText (no length cap), trust local over AI
-        const extraText149 = await fetchExtraText(engine, pageContext, origin);
+        const extraText149 = extraTextCache ?? await fetchExtraText(engine, pageContext, origin);
         const result149local = engine.check149FZ(fullText + extraText149);
         if (result149local.status === 'ok') {
           check149AI.status = 'ok';
@@ -884,7 +900,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     // If policy was inaccessible (401/403/not found), cap at risk — can't prove violation
     if (!policyFound && result152.status === 'violation') result152 = { ...result152, status: 'risk' };
     // Fetch offer + about pages — rekvizity (INN, address, phone) often live in user-agreement
-    const extraText  = await fetchExtraText(engine, pageContext, origin);
+    const extraText  = extraTextCache ?? await fetchExtraText(engine, pageContext, origin);
     // C1: INN/OGRN are often only in the homepage footer — include it when scanning a subpage
     let homepageText = '';
     const isSubpage = url !== origin && url !== origin + '/';
@@ -1146,6 +1162,19 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   // Promote siteType to 'ip' if EGRUL confirms the owner is an individual entrepreneur
   if (siteType !== 'ip' && egrulResult?.parsed?.type === 'ip') siteType = 'ip';
 
+  // Backfill operator identifiers from offer/about pages (e.g. amoCRM keeps ИНН/ОГРН only
+  // on /agreement/) — mirrors single-scan. Runs before AI + caps; cached for branch reuse.
+  let extraTextCache = null;
+  if (!egrul.ids.inn && !egrul.ids.ogrn) {
+    extraTextCache = await fetchExtraText(engine, mainPageContext, origin);
+    const extraIds = engine.extractIdentifiers(extraTextCache);
+    if (extraIds.inn || extraIds.ogrn) {
+      egrul.ids = extraIds;
+      egrul.result = await engine.checkEgrul(extraIds.ogrn || extraIds.inn);
+      if (siteType !== 'ip' && egrul.result?.parsed?.type === 'ip') siteType = 'ip';
+    }
+  }
+
   // 5. AI analysis on main page context
   onProgress?.({ phase: 'ai', url });
   let aiData;
@@ -1164,7 +1193,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       if (mainPageContext._firewalled || mainPageContext._blocked) {
         if (check149AIFull.status === 'violation') check149AIFull.status = 'risk';
       } else {
-        const extraText149 = await fetchExtraText(engine, mainPageContext, origin);
+        const extraText149 = extraTextCache ?? await fetchExtraText(engine, mainPageContext, origin);
         const result149local = engine.check149FZ(allPagesText + extraText149);
         if (result149local.status === 'ok') {
           check149AIFull.status = 'ok';
@@ -1191,7 +1220,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     onProgress?.({ phase: 'policy', url: origin });
     const { text: policyText, found: policyFound } = await fetchPolicyText(engine, mainPageContext, origin, mainPageContext.bodyText + ' ' + mainPageContext.header);
     // Fetch offer + about pages explicitly — on large sites they're crowded out by articles
-    const extraText  = await fetchExtraText(engine, mainPageContext, origin);
+    const extraText  = extraTextCache ?? await fetchExtraText(engine, mainPageContext, origin);
 
     let result152 = engine.check152FZ(policyText);
     if (!policyFound && result152.status === 'violation') result152 = { ...result152, status: 'risk' };
