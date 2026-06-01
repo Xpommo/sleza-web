@@ -17,7 +17,7 @@ import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
-import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats } from './db.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats, saveEvent, getFunnel } from './db.js';
 import { tgEnabled, sendLeadNotification, registerWebhook, getWebhookSecret, handleUpdate } from './tg.js';
 import { verifyException } from './scanner.js';
 import { validateEmail, validateCompany, validateEmailMX } from './validateLead.js';
@@ -238,6 +238,45 @@ app.post('/api/subscribe', {
   if (emailErr) return reply.status(400).send({ error: emailErr });
   await saveSubscription(email, hostname, scan_uuid || null);
   return reply.send({ ok: true });
+});
+
+// ── Funnel analytics ───────────────────────────────────────────────────────────
+
+const VALID_EVENT_TYPES = new Set([
+  'scan_done', 'doc_offer_shown', 'doc_offer_clicked', 'intake_opened', 'intake_submitted',
+]);
+
+// Public — frontend fires funnel steps. Fire-and-forget, always 200 (analytics must
+// never break the UX). Unknown event types are silently ignored.
+app.post('/api/events', {
+  schema: {
+    body: {
+      type: 'object',
+      required: ['type'],
+      properties: {
+        type:      { type: 'string', maxLength: 40 },
+        scan_uuid: { type: ['string', 'null'], maxLength: 64 },
+        hostname:  { type: ['string', 'null'], maxLength: 253 },
+        utm:       { type: ['object', 'null'] },
+      },
+    },
+  },
+}, async (request, reply) => {
+  const { type, scan_uuid, hostname, utm } = request.body;
+  if (VALID_EVENT_TYPES.has(type)) {
+    saveEvent({ type, scanUuid: scan_uuid || null, hostname: hostname || null, utm: utm || null }).catch(() => {});
+  }
+  return reply.send({ ok: true });
+});
+
+app.get('/api/admin/funnel', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const days = Math.min(Number(request.query.days || 30), 90);
+  const data = await getFunnel(days);
+  return reply.send(data || { byType: [], bySource: [], days });
 });
 
 // ── PDF generation ───────────────────────────────────────────────────────────
