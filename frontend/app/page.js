@@ -6,6 +6,7 @@ import ScanProgress from '../components/ScanProgress';
 import Results from '../components/Results';
 import Landing from '../components/Landing';
 import ShareModal from '../components/ShareModal';
+import { captureUTM, fireEvent } from '../lib/analytics';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
@@ -63,6 +64,9 @@ export default function Home() {
   const cancelRef = useRef(null);
   const formRef = useRef(null);
   const resultsRef = useRef(null);
+
+  // Capture UTM params once on mount so funnel events can be attributed to source
+  useEffect(() => { captureUTM(); }, []);
 
   // Fetch public aggregate stats for the LiveStatsBar
   useEffect(() => {
@@ -128,6 +132,7 @@ export default function Home() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
         setResult(data); applyUuid(data.uuid);
+        fireEvent('scan_done', { scanUuid: data.uuid, hostname: data.hostname });
       } else {
         const res = await fetch(`${BASE}/api/scan/full/stream`, { method: 'POST', headers, body });
         if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || 'Ошибка сервера'); }
@@ -144,7 +149,7 @@ export default function Home() {
             if (!part.startsWith('data: ')) continue;
             const data = JSON.parse(part.slice(6));
             if (data.error) throw new Error(data.error);
-            if (data.done) { setResult(data.result); applyUuid(data.result?.uuid); finished = true; break; }
+            if (data.done) { setResult(data.result); applyUuid(data.result?.uuid); fireEvent('scan_done', { scanUuid: data.result?.uuid, hostname: data.result?.hostname }); finished = true; break; }
             setProgress({ phase: data.phase || '', current: data.current || 0, total: data.total || 0 });
           }
         }

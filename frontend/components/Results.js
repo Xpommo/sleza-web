@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import MonitoringSignup from './MonitoringSignup';
+import DocOfferCard from './DocOfferCard';
+import IntakeModal from './IntakeModal';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
@@ -286,6 +288,7 @@ function SlezaBlock({ pages }) {
 }
 
 export default function Results({ data, uuid, onShare, onNewScan, onEmailCaptured }) {
+  const [intakeOpen, setIntakeOpen] = useState(false);
   const hostname = data.hostname || data.url;
   const checks   = data.aiData?.checks || [];
   const violations = checks.filter(c => c.status === 'violation');
@@ -436,6 +439,11 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
         </div>
       )}
 
+      {/* Document package offer — primary action when there's something to fix */}
+      {(violations.length > 0 || risks.length > 0) && (
+        <DocOfferCard data={data} hostname={hostname} uuid={uuid} onOpenIntake={() => setIntakeOpen(true)} />
+      )}
+
       {/* CTA */}
       <div className="rounded-[10px] border border-line-2 bg-paper px-5 sm:px-6 py-6 sm:py-7">
         {violations.length > 0 ? (
@@ -524,8 +532,30 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
       >
         ← проверить другой сайт
       </button>
+
+      <IntakeModal
+        open={intakeOpen}
+        onClose={() => setIntakeOpen(false)}
+        data={data}
+        hostname={hostname}
+        uuid={uuid}
+        onSubmit={submitIntake}
+      />
     </div>
   );
+}
+
+// Sends the document-package заявка. Throws on failure so IntakeModal can surface it.
+async function submitIntake(payload) {
+  const res = await fetch(`${BASE}/api/doc-request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || 'Не удалось отправить заявку. Попробуйте ещё раз.');
+  }
 }
 
 function MetaCell({ k, v }) {

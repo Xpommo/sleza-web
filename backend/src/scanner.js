@@ -44,22 +44,40 @@ function isSpaResponse(html) {
       || html.includes('data-reactroot');
 }
 
-// Google Analytics (GA4 / Universal) detection — cross-border data transfer violation (152-ФЗ ст.12 + 242-ФЗ)
-function checkGoogleAnalytics(pageContext) {
-  const detected = !!pageContext.hasGoogleAnalytics;
+// Markers that the privacy policy acknowledges cross-border transfer / Google.
+// Broad on purpose: a false "discloses" only downgrades violation→risk (the safe
+// direction — we never want to falsely accuse a site that did disclose).
+const GA_DISCLOSURE_RE = /трансгранич|за пределы\s+(территории\s+)?р(оссийск|ф)|иностранн\w*\s+(государств|лиц|юрисдикц)|google analytics|\bgoogle\b|гугл/i;
+
+// Google Analytics detection — cross-border data transfer (152-ФЗ ст.12 + 242-ФЗ).
+// Presence alone is NOT a provable violation: lawful GA use requires a РКН cross-border-
+// transfer notification + consent + 242-ФЗ localization — none visible from the script.
+// So we grade by what we CAN see in the policy:
+//   GA + policy discloses cross-border/Google → risk (verify the РКН filing);
+//   GA + policy silent                        → violation (most likely no basis);
+//   no GA                                     → ok.
+export function checkGoogleAnalytics(pageContext, policyText = '') {
+  const base = { id: 'ga', law: 'Google Analytics', law_code: '152-ФЗ ст.12 + 242-ФЗ' };
+  if (!pageContext.hasGoogleAnalytics) {
+    return { ...base, status: 'ok', issue: '', action: '', fine: '0 руб.', found_text: 'Google Analytics не найден' };
+  }
+  if (GA_DISCLOSURE_RE.test(policyText || '')) {
+    return {
+      ...base,
+      status: 'risk',
+      issue: 'Обнаружен Google Analytics — трансграничная передача данных посетителей в Google (США). Политика её упоминает; убедитесь, что подано уведомление в РКН о трансграничной передаче, есть согласие и соблюдена локализация (242-ФЗ).',
+      action: 'Проверьте: уведомление РКН о трансграничной передаче, явное согласие субъекта на неё, первичное хранение ПД на серверах в РФ. Либо переведите аналитику на Яндекс.Метрику.',
+      fine: '',
+      found_text: 'Google Analytics обнаружен; трансграничная передача упомянута в политике',
+    };
+  }
   return {
-    id: 'ga',
-    law: 'Google Analytics',
-    law_code: '152-ФЗ ст.12 + 242-ФЗ',
-    status: detected ? 'violation' : 'ok',
-    issue: detected
-      ? 'Обнаружен Google Analytics — трансграничная передача персональных данных посетителей на серверы Google (США) без надлежащего правового основания.'
-      : '',
-    action: detected
-      ? 'Замените на Яндекс.Метрику или другой российский счётчик. При сохранении GA — уведомите РКН о трансграничной передаче (ст.12 152-ФЗ) и отразите это в политике конфиденциальности.'
-      : '',
-    fine: detected ? '300 000 руб.' : '0 руб.',
-    found_text: detected ? 'Google Analytics обнаружен на странице' : 'Google Analytics не найден',
+    ...base,
+    status: 'violation',
+    issue: 'Обнаружен Google Analytics — трансграничная передача персональных данных посетителей в Google (США), при этом политика конфиденциальности её не раскрывает.',
+    action: 'Раскройте трансграничную передачу в политике, подайте уведомление в РКН (ст.12 152-ФЗ), получите согласие и обеспечьте локализацию (242-ФЗ). Либо замените на Яндекс.Метрику.',
+    fine: '300 000 руб.',
+    found_text: 'Google Analytics обнаружен; политика не упоминает трансграничную передачу',
   };
 }
 
@@ -777,6 +795,26 @@ export async function verifyException(hostname, checkId, originUrl) {
   }
 }
 
+// Compact, persisted signals that pre-fill the document-intake form (Phase A).
+// Derived from the already-collected pageContext + EGRUL so the frontend can show
+// "вот что мы нашли — подтвердите и допишите" without re-scanning. Additive field
+// on the scan result; consumed by frontend/lib/intakePrefill.js.
+function buildIntakeSignals(pageContext = {}, egrul = null) {
+  const parsed = egrul?.result?.parsed || null;
+  return {
+    usesGoogleAnalytics:  pageContext.hasGoogleAnalytics === true,
+    usesAnalytics:        pageContext.hasAnalytics === true,       // Я.Метрика и прочие трекеры
+    usesAds:              pageContext.hasAdScripts === true,
+    hasCookieBanner:      pageContext.hasCookieBanner === true,
+    hasConsentCheckbox:   pageContext.hasConsentCheckbox === true,
+    hasPreCheckedConsent: pageContext.hasPreCheckedConsent === true,
+    hasPolicyLink:        (pageContext.policyLinks?.length || 0) > 0 || pageContext.hasPolicyFooterLink === true,
+    operatorName:         parsed?.name || null,
+    inn:                  egrul?.ids?.inn || null,
+    ogrn:                 egrul?.ids?.ogrn || null,
+  };
+}
+
 /**
  * Scan a single page and return compliance results.
  *
@@ -812,8 +850,25 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   // Promote siteType to 'ip' if EGRUL confirms the owner is an individual entrepreneur
   if (siteType !== 'ip' && egrulResult?.parsed?.type === 'ip') siteType = 'ip';
 
+  // Backfill operator identifiers from offer/about pages (e.g. amoCRM keeps ИНН/ОГРН only
+  // on /agreement/). Main-page extraction above runs before extraText is fetched, so
+  // sub-page requisites are missed → empty operator in the intake prefill. Done before AI +
+  // caps so everything downstream (operator prefill, foreign-entity cap, EGRUL name) benefits.
+  // Cached so the local/AI branches reuse the text instead of re-fetching.
+  let extraTextCache = null;
+  if (!egrul.ids.inn && !egrul.ids.ogrn) {
+    extraTextCache = await fetchExtraText(engine, pageContext, origin);
+    const extraIds = engine.extractIdentifiers(extraTextCache);
+    if (extraIds.inn || extraIds.ogrn) {
+      egrul.ids = extraIds;
+      egrul.result = await engine.checkEgrul(extraIds.ogrn || extraIds.inn);
+      if (siteType !== 'ip' && egrul.result?.parsed?.type === 'ip') siteType = 'ip';
+    }
+  }
+
   // 4. AI analysis (152-FZ, ERIR, offer, drugs, cookie) — or local-only if useAI=false
   let aiData;
+  let gaPolicyText = ''; // policy text for the GA cross-border-disclosure check (set in local branch)
   if (useAI && groqKey) {
     aiData = await engine.runAIAnalysis(pageContext, egrul, fullText, siteType);
     applyMediaOverride(aiData, siteType);
@@ -834,7 +889,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
         if (check149AI.status === 'violation') check149AI.status = 'risk';
       } else {
         // INN/OGRN regex is unambiguous — if local finds it in extraText (no length cap), trust local over AI
-        const extraText149 = await fetchExtraText(engine, pageContext, origin);
+        const extraText149 = extraTextCache ?? await fetchExtraText(engine, pageContext, origin);
         const result149local = engine.check149FZ(fullText + extraText149);
         if (result149local.status === 'ok') {
           check149AI.status = 'ok';
@@ -860,11 +915,12 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     // Discover privacy policy page for accurate 152-FZ check
     // (homepage rarely has the full policy text)
     const { text: policyText, found: policyFound } = await fetchPolicyText(engine, pageContext, origin, fullText);
+    gaPolicyText = policyText;
     let result152 = engine.check152FZ(policyText + ' ' + pageContext.header);
     // If policy was inaccessible (401/403/not found), cap at risk — can't prove violation
     if (!policyFound && result152.status === 'violation') result152 = { ...result152, status: 'risk' };
     // Fetch offer + about pages — rekvizity (INN, address, phone) often live in user-agreement
-    const extraText  = await fetchExtraText(engine, pageContext, origin);
+    const extraText  = extraTextCache ?? await fetchExtraText(engine, pageContext, origin);
     // C1: INN/OGRN are often only in the homepage footer — include it when scanning a subpage
     let homepageText = '';
     const isSubpage = url !== origin && url !== origin + '/';
@@ -909,7 +965,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
 
   // Inject Google Analytics check — local detection, always reliable regardless of AI mode
   if (aiData?.checks && !aiData.checks.find(c => c.id === 'ga')) {
-    aiData.checks.push(checkGoogleAnalytics(pageContext));
+    aiData.checks.push(checkGoogleAnalytics(pageContext, gaPolicyText));
   }
 
   // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1 (consent must be active, not pre-set)
@@ -984,6 +1040,7 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     pages: [{ url, title: pageContext.title, items: checked, isCurrent: true }],
     aiData,
     egrul,
+    intakeSignals: buildIntakeSignals(pageContext, egrul),
     slezaError: slezaResult.errors || null,
   };
   result.confidence = calcConfidence(result, [pageContext], useAI && !!groqKey);
@@ -1125,9 +1182,23 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   // Promote siteType to 'ip' if EGRUL confirms the owner is an individual entrepreneur
   if (siteType !== 'ip' && egrulResult?.parsed?.type === 'ip') siteType = 'ip';
 
+  // Backfill operator identifiers from offer/about pages (e.g. amoCRM keeps ИНН/ОГРН only
+  // on /agreement/) — mirrors single-scan. Runs before AI + caps; cached for branch reuse.
+  let extraTextCache = null;
+  if (!egrul.ids.inn && !egrul.ids.ogrn) {
+    extraTextCache = await fetchExtraText(engine, mainPageContext, origin);
+    const extraIds = engine.extractIdentifiers(extraTextCache);
+    if (extraIds.inn || extraIds.ogrn) {
+      egrul.ids = extraIds;
+      egrul.result = await engine.checkEgrul(extraIds.ogrn || extraIds.inn);
+      if (siteType !== 'ip' && egrul.result?.parsed?.type === 'ip') siteType = 'ip';
+    }
+  }
+
   // 5. AI analysis on main page context
   onProgress?.({ phase: 'ai', url });
   let aiData;
+  let gaPolicyText = ''; // policy text for the GA cross-border-disclosure check (set in local branch)
   if (useAI && groqKey) {
     aiData = await engine.runAIAnalysis(mainPageContext, egrul, allPagesText, siteType);
     applyMediaOverride(aiData, siteType);
@@ -1143,7 +1214,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       if (mainPageContext._firewalled || mainPageContext._blocked) {
         if (check149AIFull.status === 'violation') check149AIFull.status = 'risk';
       } else {
-        const extraText149 = await fetchExtraText(engine, mainPageContext, origin);
+        const extraText149 = extraTextCache ?? await fetchExtraText(engine, mainPageContext, origin);
         const result149local = engine.check149FZ(allPagesText + extraText149);
         if (result149local.status === 'ok') {
           check149AIFull.status = 'ok';
@@ -1169,8 +1240,9 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     // runAIAnalysis does this internally; we replicate it for local-only mode.
     onProgress?.({ phase: 'policy', url: origin });
     const { text: policyText, found: policyFound } = await fetchPolicyText(engine, mainPageContext, origin, mainPageContext.bodyText + ' ' + mainPageContext.header);
+    gaPolicyText = policyText;
     // Fetch offer + about pages explicitly — on large sites they're crowded out by articles
-    const extraText  = await fetchExtraText(engine, mainPageContext, origin);
+    const extraText  = extraTextCache ?? await fetchExtraText(engine, mainPageContext, origin);
 
     let result152 = engine.check152FZ(policyText);
     if (!policyFound && result152.status === 'violation') result152 = { ...result152, status: 'risk' };
@@ -1212,7 +1284,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
 
   // Inject Google Analytics check — local detection, always reliable regardless of AI mode
   if (aiData?.checks && !aiData.checks.find(c => c.id === 'ga')) {
-    aiData.checks.push(checkGoogleAnalytics(mainPageContext));
+    aiData.checks.push(checkGoogleAnalytics(mainPageContext, gaPolicyText));
   }
 
   // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1
@@ -1270,6 +1342,7 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     pages,
     aiData,
     egrul,
+    intakeSignals: buildIntakeSignals(mainPageContext, egrul),
     slezaError: firstSlezaError,
     stats: { discovered: urls.length, total: finalUrls.length, scanned: pages.length, found: totalFound },
   };

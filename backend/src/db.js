@@ -6,6 +6,8 @@
  *   leads             — email captures
  *   feedback          — operator verdicts on check results (confirm / false_positive)
  *   domain_exceptions — auto-learned overrides from accumulated feedback (lifecycle: pending→verifying→active/disputed/expired)
+ *   events            — funnel analytics (scan_done → doc_offer_shown → clicked → intake_submitted)
+ *   doc_requests      — document-package заявки (Phase A concierge intake)
  *
  * If DATABASE_URL is not set the module exports no-op stubs so the app
  * still works without a DB (local dev, smoke tests).
@@ -108,6 +110,31 @@ export async function initSchema() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_mon_sub_hostname ON monitoring_subscriptions(hostname)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_mon_sub_active ON monitoring_subscriptions(active)`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS events (
+      id          BIGSERIAL   PRIMARY KEY,
+      type        TEXT        NOT NULL,
+      scan_uuid   TEXT,
+      hostname    TEXT,
+      utm         JSONB,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_events_type_created ON events(type, created_at DESC)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at)`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS doc_requests (
+      id          BIGSERIAL   PRIMARY KEY,
+      email       TEXT        NOT NULL,
+      hostname    TEXT,
+      scan_uuid   TEXT,
+      intent      TEXT        NOT NULL,
+      price_shown TEXT,
+      intake      JSONB,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_doc_req_created ON doc_requests(created_at DESC)`;
   console.log('[db] schema ready');
 }
 
@@ -484,6 +511,77 @@ export async function getScanStats() {
     FROM scans
   `;
   return rows[0] || null;
+}
+
+// ── Funnel events ─────────────────────────────────────────────────────────────
+
+// Records a single funnel step (scan_done, doc_offer_shown, doc_offer_clicked,
+// intake_opened, intake_submitted). Fire-and-forget — never throws to the caller.
+export async function saveEvent({ type, scanUuid = null, hostname = null, utm = null }) {
+  if (!enabled || !type) return;
+  try {
+    await sql`
+      INSERT INTO events (type, scan_uuid, hostname, utm)
+      VALUES (${type}, ${scanUuid}, ${hostname}, ${utm ? sql.json(utm) : null})
+    `;
+  } catch (err) {
+    console.warn('[db] saveEvent failed:', err.message);
+  }
+}
+
+// Funnel counts per event type over the last N days, plus a UTM-source breakdown.
+export async function getFunnel(days = 30) {
+  if (!enabled) return null;
+  const byType = await sql`
+    SELECT type, COUNT(*)::int AS count
+    FROM events
+    WHERE created_at > NOW() - MAKE_INTERVAL(days => ${days})
+    GROUP BY type
+    ORDER BY count DESC
+  `;
+  const bySource = await sql`
+    SELECT COALESCE(utm->>'utm_source', 'direct') AS source,
+           COUNT(*) FILTER (WHERE type = 'scan_done')::int        AS scans,
+           COUNT(*) FILTER (WHERE type = 'doc_offer_clicked')::int AS clicks,
+           COUNT(*) FILTER (WHERE type = 'intake_submitted')::int  AS submits
+    FROM events
+    WHERE created_at > NOW() - MAKE_INTERVAL(days => ${days})
+    GROUP BY source
+    ORDER BY scans DESC
+  `;
+  return { byType, bySource, days };
+}
+
+// ── Document-package requests (Phase A concierge intake) ─────────────────────
+
+export async function saveDocRequest({ email, hostname = null, scanUuid = null, intent, priceShown = null, intake = null }) {
+  if (!enabled) return;
+  await sql`
+    INSERT INTO doc_requests (email, hostname, scan_uuid, intent, price_shown, intake)
+    VALUES (${email}, ${hostname}, ${scanUuid}, ${intent}, ${priceShown}, ${intake ? sql.json(intake) : null})
+  `;
+}
+
+export async function getRecentDocRequests(limit = 20) {
+  if (!enabled) return [];
+  return sql`
+    SELECT id, email, hostname, scan_uuid, intent, price_shown, created_at
+    FROM doc_requests
+    ORDER BY created_at DESC
+    LIMIT ${Math.min(limit, 100)}
+  `;
+}
+
+// Raw recent scans (incl. result_json) — for the "скан дня" picker (Sprint A5).
+export async function getRecentScansRaw(days = 7, limit = 50) {
+  if (!enabled) return [];
+  return sql`
+    SELECT uuid, hostname, created_at, result_json
+    FROM scans
+    WHERE created_at > NOW() - MAKE_INTERVAL(days => ${days})
+    ORDER BY created_at DESC
+    LIMIT ${Math.min(limit, 200)}
+  `;
 }
 
 export { enabled as dbEnabled };

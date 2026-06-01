@@ -17,7 +17,7 @@ import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
-import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats } from './db.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats, saveEvent, getFunnel, saveDocRequest, getRecentDocRequests, getRecentScansRaw } from './db.js';
 import { tgEnabled, sendLeadNotification, registerWebhook, getWebhookSecret, handleUpdate } from './tg.js';
 import { verifyException } from './scanner.js';
 import { validateEmail, validateCompany, validateEmailMX } from './validateLead.js';
@@ -238,6 +238,113 @@ app.post('/api/subscribe', {
   if (emailErr) return reply.status(400).send({ error: emailErr });
   await saveSubscription(email, hostname, scan_uuid || null);
   return reply.send({ ok: true });
+});
+
+// ── Funnel analytics ───────────────────────────────────────────────────────────
+
+const VALID_EVENT_TYPES = new Set([
+  'scan_done', 'doc_offer_shown', 'doc_offer_clicked', 'intake_opened', 'intake_submitted',
+]);
+
+// Public — frontend fires funnel steps. Fire-and-forget, always 200 (analytics must
+// never break the UX). Unknown event types are silently ignored.
+app.post('/api/events', {
+  schema: {
+    body: {
+      type: 'object',
+      required: ['type'],
+      properties: {
+        type:      { type: 'string', maxLength: 40 },
+        scan_uuid: { type: ['string', 'null'], maxLength: 64 },
+        hostname:  { type: ['string', 'null'], maxLength: 253 },
+        utm:       { type: ['object', 'null'] },
+      },
+    },
+  },
+}, async (request, reply) => {
+  const { type, scan_uuid, hostname, utm } = request.body;
+  if (VALID_EVENT_TYPES.has(type)) {
+    saveEvent({ type, scanUuid: scan_uuid || null, hostname: hostname || null, utm: utm || null }).catch(() => {});
+  }
+  return reply.send({ ok: true });
+});
+
+app.get('/api/admin/funnel', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const days = Math.min(Number(request.query.days || 30), 90);
+  const data = await getFunnel(days);
+  return reply.send(data || { byType: [], bySource: [], days });
+});
+
+// ── Document-package заявка (Phase A concierge intake) ───────────────────────
+
+const VALID_DOC_INTENTS = new Set(['doc_152_cookie']);
+
+app.post('/api/doc-request', {
+  schema: {
+    body: {
+      type: 'object',
+      required: ['email', 'intent'],
+      properties: {
+        email:       { type: 'string', maxLength: 254 },
+        hostname:    { type: ['string', 'null'], maxLength: 253 },
+        scan_uuid:   { type: ['string', 'null'], maxLength: 64 },
+        intent:      { type: 'string', maxLength: 40 },
+        price_shown: { type: ['string', 'null'], maxLength: 40 },
+        intake:      { type: ['object', 'null'] },
+      },
+    },
+  },
+}, async (request, reply) => {
+  const { email, hostname, scan_uuid, intent, price_shown, intake } = request.body;
+  const emailErr = validateEmail(email);
+  if (emailErr) return reply.status(400).send({ error: emailErr });
+  if (!VALID_DOC_INTENTS.has(intent)) return reply.status(400).send({ error: 'Invalid intent' });
+
+  await saveDocRequest({
+    email: email.trim(), hostname: hostname || null, scanUuid: scan_uuid || null,
+    intent, priceShown: price_shown || null, intake: intake || null,
+  });
+  // Notify the concierge — fire-and-forget so a slow Telegram never blocks the response.
+  sendTelegram(`📄 Заявка на пакет документов\nсайт: ${hostname || '—'}\nemail: ${email.trim()}\nпакет: ${intent} · ${price_shown || '—'}`).catch(() => {});
+  return reply.send({ ok: true });
+});
+
+app.get('/api/admin/doc-requests', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const rows = await getRecentDocRequests(Math.min(Number(request.query.limit || 20), 100));
+  return reply.send(rows);
+});
+
+// "Скан дня" picker (Sprint A5) — surfaces the recent scan with the most violations
+// as post material. Admin-only; the owner decides what to anonymize before posting.
+app.get('/api/admin/scan-of-day', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const rows = await getRecentScansRaw(7, 50);
+  let best = null, bestCount = 0;
+  for (const r of rows) {
+    const checks = r.result_json?.aiData?.checks || [];
+    const viols = checks.filter(c => c.status === 'violation');
+    if (viols.length > bestCount) {
+      bestCount = viols.length;
+      best = {
+        hostname: r.hostname,
+        uuid: r.uuid,
+        scannedAt: r.created_at,
+        violations: viols.map(c => ({ law: c.law_code || c.law || c.id, fine: c.fine || null })),
+      };
+    }
+  }
+  return reply.send(best ? { found: true, ...best } : { found: false });
 });
 
 // ── PDF generation ───────────────────────────────────────────────────────────
