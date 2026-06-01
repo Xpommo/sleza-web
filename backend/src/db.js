@@ -7,6 +7,7 @@
  *   feedback          — operator verdicts on check results (confirm / false_positive)
  *   domain_exceptions — auto-learned overrides from accumulated feedback (lifecycle: pending→verifying→active/disputed/expired)
  *   events            — funnel analytics (scan_done → doc_offer_shown → clicked → intake_submitted)
+ *   doc_requests      — document-package заявки (Phase A concierge intake)
  *
  * If DATABASE_URL is not set the module exports no-op stubs so the app
  * still works without a DB (local dev, smoke tests).
@@ -121,6 +122,19 @@ export async function initSchema() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_events_type_created ON events(type, created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at)`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS doc_requests (
+      id          BIGSERIAL   PRIMARY KEY,
+      email       TEXT        NOT NULL,
+      hostname    TEXT,
+      scan_uuid   TEXT,
+      intent      TEXT        NOT NULL,
+      price_shown TEXT,
+      intake      JSONB,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_doc_req_created ON doc_requests(created_at DESC)`;
   console.log('[db] schema ready');
 }
 
@@ -536,6 +550,26 @@ export async function getFunnel(days = 30) {
     ORDER BY scans DESC
   `;
   return { byType, bySource, days };
+}
+
+// ── Document-package requests (Phase A concierge intake) ─────────────────────
+
+export async function saveDocRequest({ email, hostname = null, scanUuid = null, intent, priceShown = null, intake = null }) {
+  if (!enabled) return;
+  await sql`
+    INSERT INTO doc_requests (email, hostname, scan_uuid, intent, price_shown, intake)
+    VALUES (${email}, ${hostname}, ${scanUuid}, ${intent}, ${priceShown}, ${intake ? sql.json(intake) : null})
+  `;
+}
+
+export async function getRecentDocRequests(limit = 20) {
+  if (!enabled) return [];
+  return sql`
+    SELECT id, email, hostname, scan_uuid, intent, price_shown, created_at
+    FROM doc_requests
+    ORDER BY created_at DESC
+    LIMIT ${Math.min(limit, 100)}
+  `;
 }
 
 export { enabled as dbEnabled };

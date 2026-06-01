@@ -17,7 +17,7 @@ import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
-import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats, saveEvent, getFunnel } from './db.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats, saveEvent, getFunnel, saveDocRequest, getRecentDocRequests } from './db.js';
 import { tgEnabled, sendLeadNotification, registerWebhook, getWebhookSecret, handleUpdate } from './tg.js';
 import { verifyException } from './scanner.js';
 import { validateEmail, validateCompany, validateEmailMX } from './validateLead.js';
@@ -277,6 +277,49 @@ app.get('/api/admin/funnel', async (request, reply) => {
   const days = Math.min(Number(request.query.days || 30), 90);
   const data = await getFunnel(days);
   return reply.send(data || { byType: [], bySource: [], days });
+});
+
+// ── Document-package заявка (Phase A concierge intake) ───────────────────────
+
+const VALID_DOC_INTENTS = new Set(['doc_152_cookie']);
+
+app.post('/api/doc-request', {
+  schema: {
+    body: {
+      type: 'object',
+      required: ['email', 'intent'],
+      properties: {
+        email:       { type: 'string', maxLength: 254 },
+        hostname:    { type: ['string', 'null'], maxLength: 253 },
+        scan_uuid:   { type: ['string', 'null'], maxLength: 64 },
+        intent:      { type: 'string', maxLength: 40 },
+        price_shown: { type: ['string', 'null'], maxLength: 40 },
+        intake:      { type: ['object', 'null'] },
+      },
+    },
+  },
+}, async (request, reply) => {
+  const { email, hostname, scan_uuid, intent, price_shown, intake } = request.body;
+  const emailErr = validateEmail(email);
+  if (emailErr) return reply.status(400).send({ error: emailErr });
+  if (!VALID_DOC_INTENTS.has(intent)) return reply.status(400).send({ error: 'Invalid intent' });
+
+  await saveDocRequest({
+    email: email.trim(), hostname: hostname || null, scanUuid: scan_uuid || null,
+    intent, priceShown: price_shown || null, intake: intake || null,
+  });
+  // Notify the concierge — fire-and-forget so a slow Telegram never blocks the response.
+  sendTelegram(`📄 Заявка на пакет документов\nсайт: ${hostname || '—'}\nemail: ${email.trim()}\nпакет: ${intent} · ${price_shown || '—'}`).catch(() => {});
+  return reply.send({ ok: true });
+});
+
+app.get('/api/admin/doc-requests', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const rows = await getRecentDocRequests(Math.min(Number(request.query.limit || 20), 100));
+  return reply.send(rows);
 });
 
 // ── PDF generation ───────────────────────────────────────────────────────────

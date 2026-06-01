@@ -545,10 +545,17 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
   );
 }
 
-// A3: submit is stubbed (no backend yet). Sprint A4 replaces this with a real
-// POST /api/doc-request. Resolves so the modal's success state can be tested locally.
-async function submitIntake(_payload) {
-  await new Promise(r => setTimeout(r, 300));
+// Sends the document-package заявка. Throws on failure so IntakeModal can surface it.
+async function submitIntake(payload) {
+  const res = await fetch(`${BASE}/api/doc-request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || 'Не удалось отправить заявку. Попробуйте ещё раз.');
+  }
 }
 
 function MetaCell({ k, v }) {
