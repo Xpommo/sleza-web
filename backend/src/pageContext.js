@@ -114,6 +114,88 @@ export async function fetchPageTextAndLinks(url) {
 }
 
 /**
+ * Detects a pre-checked consent checkbox on the current page (runs inside the browser).
+ * Mirrors the inline `hasPreCheckedConsent` logic in buildPageContext — keep them in sync.
+ * Catches native input[type=checkbox] AND custom aria widgets near consent text.
+ * Violates 152-ФЗ ч.1 ст.9 (consent must be active, not pre-set).
+ */
+function detectPreCheckedConsent() {
+  // consentNear: связывает чекбокс с текстом согласия. Текст часто НЕ в ближайшем предке
+  // (напр. <label><div.checkbox><input></div> текст</label> — div пустой), поэтому смотрим:
+  // 1) name/id/class самого чекбокса; 2) ближайший <label>; 3) явный label[for]; 4) 2 уровня вверх.
+  const consentRe = /соглас|персональн|обработ[еёаку]|конфиденц|privacy|personal.?data/i;
+  const near = el => {
+    const attr = `${el.getAttribute('name') || ''} ${el.id || ''} ${el.className || ''}`;
+    if (/policy|agree|consent|personal|privacy|soglas|gdpr|persdata/i.test(attr)) return true;
+    let txt = '';
+    try { const w = el.closest('label'); if (w) txt += ' ' + w.textContent; } catch (_) {}
+    try { if (el.id) { const f = document.querySelector(`label[for="${CSS.escape(el.id)}"]`); if (f) txt += ' ' + f.textContent; } } catch (_) {}
+    let x = el.parentElement;
+    for (let i = 0; i < 2 && x; i++) { txt += ' ' + (x.textContent || ''); x = x.parentElement; }
+    return consentRe.test(txt);
+  };
+  for (const cb of document.querySelectorAll('input[type="checkbox"]')) {
+    if (!cb.checked && !cb.hasAttribute('checked')) continue;
+    if (near(cb)) return true;
+  }
+  for (const cb of document.querySelectorAll('[role="checkbox"][aria-checked="true"],[aria-checked="true"]')) {
+    if (near(cb)) return true;
+  }
+  return false;
+}
+
+// Пытается раскрыть JS-модалку регистрации (форма с галочкой согласия часто только там).
+// Кликает триггеры регистрации программно через el.click() — это обходит перехват
+// pointer-events невидимым оверлеем (обычный Playwright-click на таких падает).
+function revealRegistrationForm() {
+  const re = /регистрац|зарегистр|sign.?up|создать.{0,15}аккаунт|создать.{0,15}профиль/i;
+  let clicked = 0;
+  for (const el of document.querySelectorAll('button,a,[role="button"],[data-action]')) {
+    const t = (el.innerText || el.textContent || '').trim();
+    const action = el.getAttribute('data-action') || '';
+    if ((re.test(t) && t.length < 40) || /signup|register/i.test(action)) {
+      try { el.click(); clicked++; } catch (_) {}
+      if (clicked >= 3) break;
+    }
+  }
+  return clicked;
+}
+
+/**
+ * Renders a registration/login page with Playwright and checks for a pre-checked
+ * consent checkbox there. Used for SPA sites (e.g. puzzle-english) where the consent
+ * form lives behind a click and is absent from the landing-page DOM.
+ * @returns {Promise<boolean>}
+ */
+export async function fetchConsentSignal(url) {
+  let ctx;
+  try {
+    const browser = await getBrowser();
+    ctx = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      locale: 'ru-RU',
+      extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
+      ignoreHTTPSErrors: true,
+    });
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await page.waitForTimeout(1800).catch(() => {}); // let JS render the form
+    // First check as-is; if nothing, try revealing the registration modal and re-check.
+    if (await page.evaluate(detectPreCheckedConsent).catch(() => false)) return true;
+    const clicked = await page.evaluate(revealRegistrationForm).catch(() => 0);
+    if (clicked) {
+      await page.waitForTimeout(1500).catch(() => {});
+      return await page.evaluate(detectPreCheckedConsent).catch(() => false);
+    }
+    return false;
+  } catch {
+    return false;
+  } finally {
+    await ctx?.close().catch(() => {});
+  }
+}
+
+/**
  * Navigates to the URL in a fresh browser context and extracts the same
  * fields that getCurrentPageContent() reads from the live DOM in Tampermonkey.
  *
@@ -330,17 +412,28 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
       })();
 
       // A6: заранее проставленная галочка согласия — нарушение ч.1 ст.9 152-ФЗ
-      // (согласие должно быть активным, а не предустановленным)
+      // (согласие должно быть активным, а не предустановленным).
+      // Ловит нативные input[type=checkbox] И кастомные виджеты (role=checkbox / aria-checked),
+      // которыми React/Vue-формы часто заменяют нативный чекбокс.
+      // ВАЖНО: логика продублирована в detectPreCheckedConsent() (для страниц регистрации) — менять синхронно.
       const hasPreCheckedConsent = (() => {
         const consentRe = /соглас|персональн|обработ[еёаку]|конфиденц|privacy|personal.?data/i;
-        const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
-        for (const cb of checkboxes) {
+        const near = el => {
+          const attr = `${el.getAttribute('name') || ''} ${el.id || ''} ${el.className || ''}`;
+          if (/policy|agree|consent|personal|privacy|soglas|gdpr|persdata/i.test(attr)) return true;
+          let txt = '';
+          try { const w = el.closest('label'); if (w) txt += ' ' + w.textContent; } catch (_) {}
+          try { if (el.id) { const f = document.querySelector(`label[for="${CSS.escape(el.id)}"]`); if (f) txt += ' ' + f.textContent; } } catch (_) {}
+          let x = el.parentElement;
+          for (let i = 0; i < 2 && x; i++) { txt += ' ' + (x.textContent || ''); x = x.parentElement; }
+          return consentRe.test(txt);
+        };
+        for (const cb of document.querySelectorAll('input[type="checkbox"]')) {
           if (!cb.checked && !cb.hasAttribute('checked')) continue;
-          // Look for consent-related text in nearby label or parent form
-          const label = document.querySelector(`label[for="${cb.id}"]`);
-          const labelText = label?.textContent || '';
-          const parentText = (cb.closest('form,div,p,li') || cb.parentElement)?.textContent || '';
-          if (consentRe.test(labelText) || consentRe.test(parentText)) return true;
+          if (near(cb)) return true;
+        }
+        for (const cb of document.querySelectorAll('[role="checkbox"][aria-checked="true"],[aria-checked="true"]')) {
+          if (near(cb)) return true;
         }
         return false;
       })();
@@ -392,6 +485,11 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         offerLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.offer)).slice(0, 4),
         returnLinks: uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.ret)).slice(0, 3),
         aboutLinks:  uniqueLinks.filter(l => !isContentPath(l.path) && m(l, kw.about)).slice(0, 4),
+        // Ссылки на регистрацию/вход — форма с галочкой согласия часто только там (за кликом).
+        // Сканер дополнительно проверит их на предустановленную галочку (fetchConsentSignal).
+        registerLinks: uniqueLinks.filter(l =>
+          /регистрац|зарегистр|sign-?up|signup|создать.{0,15}аккаунт|\/register|\/signup|\/reg(\/|$)|войти|\/login|\/sign-?in/i.test(l.path + ' ' + l.text)
+        ).slice(0, 3),
         hasAdScripts:       document.querySelectorAll(adNetworkScriptSelectors).length > 0,
         hasGtm:             document.querySelectorAll(gtmSelector).length > 0,
         hasAnalytics:       document.querySelectorAll(analyticsScriptSelectors).length > 0,

@@ -10,7 +10,7 @@
 import { createRequire } from 'module';
 import { createEngine } from './engine.js';
 import { isSafeUrl } from './utils.js';
-import { fetchPageText, fetchPageTextAndLinks } from './pageContext.js';
+import { fetchPageText, fetchPageTextAndLinks, fetchConsentSignal } from './pageContext.js';
 import { buildPageContext } from './pageContext.js';
 import {
   getLastScanForDomain,
@@ -536,8 +536,8 @@ function detectSiteType(pageContext) {
       !realEstateRe.test(text)) return 'media';
 
   // Services/corporate/edu signals
-  const servicesDomainRe = /institut|clinic|hospital|academy|school|university|edu\.|\.edu|медцентр|клиник|больниц/;
-  const servicesTextRe   = /институт|клиника|больниц|академия|университет|факультет|кафедр|АНО\b|НКО\b|ДПО\b|ЧОУ\b|ФГБУ|ФГБОУ|кабинет\s+врач|медицинск|стоматолог|поликлиник|образовательн|учебн[ыйое]+\s+центр|курсы\s+повышени|профессиональн[ао]+\s+переподготовк/;
+  const servicesDomainRe = /institut|clinic|hospital|academy|school|university|edu\.|\.edu|\bvet|veterinar|медцентр|клиник|больниц/;
+  const servicesTextRe   = /институт|клиника|больниц|академия|университет|факультет|кафедр|АНО\b|НКО\b|ДПО\b|ЧОУ\b|ФГБУ|ФГБОУ|кабинет\s+врач|медицинск|стоматолог|поликлиник|образовательн|учебн[ыйое]+\s+центр|курсы\s+повышени|профессиональн[ао]+\s+переподготовк|ветеринар|ветклиник|ветлечебниц|зооцентр|зоосалон/;
   if (servicesDomainRe.test(hostname) || servicesTextRe.test(titleHeader)) return 'services';
   // Installation/repair/construction services — individual contracts after on-site measurement.
   // Public offer not required: final price determined after measurement, not fixed online.
@@ -968,13 +968,27 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     aiData.checks.push(checkGoogleAnalytics(pageContext, gaPolicyText));
   }
 
+  // Pre-checked consent often lives on a registration/signup form behind a click,
+  // absent from the landing DOM (SPA sites e.g. puzzle-english). Probe those pages.
+  if (aiData?.checks && !pageContext.hasPreCheckedConsent && pageContext.registerLinks?.length
+      && !pageContext._http403 && !pageContext._firewalled && !pageContext._blocked) {
+    for (const l of pageContext.registerLinks.slice(0, 2)) {
+      if (!isSafeUrl(l.href)) continue;
+      if (await fetchConsentSignal(l.href)) {
+        pageContext.hasPreCheckedConsent = true;
+        pageContext._preCheckedConsentUrl = l.href;
+        break;
+      }
+    }
+  }
+
   // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1 (consent must be active, not pre-set)
   if (aiData?.checks && pageContext.hasPreCheckedConsent) {
     const check152 = aiData.checks.find(c => c.id === 'law152');
     if (check152 && check152.status === 'ok') {
       check152.status = 'risk';
     }
-    const preCheckedNote = ' Форма обратной связи содержит предустановленную галочку согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
+    const preCheckedNote = ' На сайте есть форма с заранее проставленной галочкой согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
     if (check152) {
       check152.issue = (check152.issue || '') + preCheckedNote;
     }
@@ -1287,11 +1301,24 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     aiData.checks.push(checkGoogleAnalytics(mainPageContext, gaPolicyText));
   }
 
+  // Probe registration/signup pages for pre-checked consent (see single-scan note above).
+  if (aiData?.checks && !mainPageContext.hasPreCheckedConsent && mainPageContext.registerLinks?.length
+      && !mainPageContext._http403 && !mainPageContext._firewalled && !mainPageContext._blocked) {
+    for (const l of mainPageContext.registerLinks.slice(0, 2)) {
+      if (!isSafeUrl(l.href)) continue;
+      if (await fetchConsentSignal(l.href)) {
+        mainPageContext.hasPreCheckedConsent = true;
+        mainPageContext._preCheckedConsentUrl = l.href;
+        break;
+      }
+    }
+  }
+
   // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1
   if (aiData?.checks && mainPageContext.hasPreCheckedConsent) {
     const check152 = aiData.checks.find(c => c.id === 'law152');
     if (check152 && check152.status === 'ok') check152.status = 'risk';
-    const preCheckedNote = ' Форма обратной связи содержит предустановленную галочку согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
+    const preCheckedNote = ' На сайте есть форма с заранее проставленной галочкой согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
     if (check152) check152.issue = (check152.issue || '') + preCheckedNote;
   }
 
