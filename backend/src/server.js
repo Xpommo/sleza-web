@@ -598,7 +598,10 @@ app.post('/api/tg/webhook', async (request, reply) => {
   return reply.status(200).send({ ok: true });
 });
 
-app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString(), v: 'r9-feedback', db: dbEnabled, tg: tgEnabled() }));
+// v = реально задеплоенный коммит (Railway прокидывает RAILWAY_GIT_COMMIT_SHA);
+// локально — короткий sha или 'dev'. Раньше тут был хардкод, который протух и вводил в заблуждение.
+const DEPLOY_VERSION = (process.env.RAILWAY_GIT_COMMIT_SHA || 'dev').slice(0, 7);
+app.get('/health', async () => ({ status: 'ok', time: new Date().toISOString(), v: DEPLOY_VERSION, db: dbEnabled, tg: tgEnabled() }));
 
 const shutdown = async () => {
   await closeBrowser();
