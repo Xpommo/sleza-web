@@ -999,6 +999,19 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     }
   }
 
+  // Data-collection form with NO consent mechanism at all (no checkbox, no policy link/text near it).
+  // Collecting PD without consent violates 152-FZ (ст.6/ст.9). Pre-checked case takes lead over this.
+  if (aiData?.checks && pageContext.hasDataFormNoConsent && !pageContext.hasPreCheckedConsent) {
+    const check152 = aiData.checks.find(c => c.id === 'law152');
+    if (check152) {
+      if (check152.status === 'ok') check152.status = 'risk';
+      check152._dataFormNoConsent = true;
+      const lead = 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).';
+      const prev = (check152.issue || '').trim();
+      check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
+    }
+  }
+
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
 
   // ── Structural caps (before feedback overrides so user-confirmed exceptions win) ──
@@ -1329,6 +1342,18 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       check152.fine = 'до 700 000 руб.';
       if (mainPageContext._preCheckedConsentUrl) check152._preCheckedConsentUrl = mainPageContext._preCheckedConsentUrl;
       const lead = 'Форма с заранее проставленной галочкой согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
+      const prev = (check152.issue || '').trim();
+      check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
+    }
+  }
+
+  // Data-collection form with NO consent mechanism (see single-scan note above).
+  if (aiData?.checks && mainPageContext.hasDataFormNoConsent && !mainPageContext.hasPreCheckedConsent) {
+    const check152 = aiData.checks.find(c => c.id === 'law152');
+    if (check152) {
+      if (check152.status === 'ok') check152.status = 'risk';
+      check152._dataFormNoConsent = true;
+      const lead = 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).';
       const prev = (check152.issue || '').trim();
       check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
     }

@@ -161,6 +161,40 @@ function revealRegistrationForm() {
   return clicked;
 }
 
+// Форма собирает персональные данные (имя/телефон/email/сообщение), но согласия ПРИ ФОРМЕ нет
+// (ни галочки, ни ссылки на политику, ни текста-уведомления). Сбор ПД без согласия нарушает
+// ст.6/ст.9 152-ФЗ. Проверка скоуплена на контейнер формы: согласие в футере не считается —
+// важно его наличие именно у формы сбора. Пароль-формы (вход/регистрация) пропускаем.
+function detectDataFormNoConsent() {
+  const pdSel = 'input[type="tel"],input[type="email"],input[name*="phone" i],input[name*="tel" i],input[name*="mail" i],input[name*="fio" i],input[placeholder*="телефон" i],input[placeholder*="почт" i],input[placeholder*="e-mail" i],input[placeholder*="mail" i],textarea';
+  const isVisible = el => { try { const s = getComputedStyle(el); return s.display !== 'none' && s.visibility !== 'hidden' && el.offsetParent !== null; } catch { return true; } };
+  const pdInputs = [...document.querySelectorAll(pdSel)].filter(isVisible);
+  if (!pdInputs.length) return false;
+  const consentRe = /соглас|обработк[ауеи].{0,40}(персональн|данн)|персональн\w*\s+данн|политик[ауеиой].{0,30}(конфиденц|обработк)|конфиденциальн|нажима[яю].{0,80}(соглаш|политик)/i;
+  // Собрать контейнеры форм (form или ближайший блок с кнопкой отправки для конструкторов без <form>).
+  const containers = new Set();
+  for (const inp of pdInputs) {
+    const form = inp.closest('form');
+    if (form) { containers.add(form); continue; }
+    let el = inp.parentElement, found = null;
+    for (let i = 0; i < 6 && el; i++) { if (el.querySelector('button,[type="submit"],input[type="submit"]')) { found = el; break; } el = el.parentElement; }
+    containers.add(found || inp.parentElement);
+  }
+  for (const cont of containers) {
+    if (!cont) continue;
+    if (cont.querySelector('input[type="password"]')) continue; // вход/регистрация — согласие отдельным путём
+    const fields = cont.querySelectorAll(pdSel).length;
+    // форма сбора контактов: есть телефон/сообщение, либо email + ещё поле (отсекает поиск/одиночную подписку)
+    const collectsContact = cont.querySelector('input[type="tel"],textarea') || (cont.querySelector('input[type="email"]') && fields >= 2);
+    if (!collectsContact) continue;
+    const hasCheckbox   = !!cont.querySelector('input[type="checkbox"],[role="checkbox"],[class*="checkbox" i]');
+    const hasConsentText = consentRe.test(cont.textContent || '');
+    const hasPolicyLink = !!cont.querySelector('a[href*="privacy" i],a[href*="policy" i],a[href*="politik" i],a[href*="konfiden" i],a[href*="personal" i],a[href*="soglas" i]');
+    if (!hasCheckbox && !hasConsentText && !hasPolicyLink) return true;
+  }
+  return false;
+}
+
 /**
  * Renders a registration/login page with Playwright and checks for a pre-checked
  * consent checkbox there. Used for SPA sites (e.g. puzzle-english) where the consent
@@ -509,6 +543,9 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         hasPreCheckedConsent,
       };
     }, KW);
+
+    // Форма сбора ПД без согласия при ней — отдельный evaluate (скоупленный на контейнер формы).
+    context.hasDataFormNoConsent = await page.evaluate(detectDataFormNoConsent).catch(() => false);
 
     const httpStatus = gotoResponse?.status?.() ?? 200;
     if (httpStatus >= 400) context._http403 = true;
