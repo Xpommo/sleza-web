@@ -982,15 +982,18 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     }
   }
 
-  // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1 (consent must be active, not pre-set)
+  // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1 (consent must be active, not pre-set).
+  // It's a concrete, fineable violation — weightier than a near-complete policy — so it LEADS the issue
+  // text (policy detail demoted to "Дополнительно") and carries a flag for downstream tracking/outreach.
   if (aiData?.checks && pageContext.hasPreCheckedConsent) {
     const check152 = aiData.checks.find(c => c.id === 'law152');
-    if (check152 && check152.status === 'ok') {
-      check152.status = 'risk';
-    }
-    const preCheckedNote = ' На сайте есть форма с заранее проставленной галочкой согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
     if (check152) {
-      check152.issue = (check152.issue || '') + preCheckedNote;
+      if (check152.status === 'ok') check152.status = 'risk';
+      check152._preCheckedConsent = true;
+      if (pageContext._preCheckedConsentUrl) check152._preCheckedConsentUrl = pageContext._preCheckedConsentUrl;
+      const lead = 'Форма с заранее проставленной галочкой согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
+      const prev = (check152.issue || '').trim();
+      check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
     }
   }
 
@@ -1314,12 +1317,17 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     }
   }
 
-  // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1
+  // Pre-checked consent checkbox — leads the issue + carries a flag (see single-scan note above).
   if (aiData?.checks && mainPageContext.hasPreCheckedConsent) {
     const check152 = aiData.checks.find(c => c.id === 'law152');
-    if (check152 && check152.status === 'ok') check152.status = 'risk';
-    const preCheckedNote = ' На сайте есть форма с заранее проставленной галочкой согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
-    if (check152) check152.issue = (check152.issue || '') + preCheckedNote;
+    if (check152) {
+      if (check152.status === 'ok') check152.status = 'risk';
+      check152._preCheckedConsent = true;
+      if (mainPageContext._preCheckedConsentUrl) check152._preCheckedConsentUrl = mainPageContext._preCheckedConsentUrl;
+      const lead = 'Форма с заранее проставленной галочкой согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
+      const prev = (check152.issue || '').trim();
+      check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
+    }
   }
 
   const hostname = (() => { try { return new URL(url).hostname; } catch { return url; } })();
