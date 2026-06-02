@@ -990,6 +990,8 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     if (check152) {
       if (check152.status === 'ok') check152.status = 'risk';
       check152._preCheckedConsent = true;
+      // ч.3 ст.13.11 КоАП (нарушение требований к согласию) — верхняя граница выше общей по ПД
+      check152.fine = 'до 700 000 руб.';
       if (pageContext._preCheckedConsentUrl) check152._preCheckedConsentUrl = pageContext._preCheckedConsentUrl;
       const lead = 'Форма с заранее проставленной галочкой согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
       const prev = (check152.issue || '').trim();
@@ -1323,6 +1325,8 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     if (check152) {
       if (check152.status === 'ok') check152.status = 'risk';
       check152._preCheckedConsent = true;
+      // ч.3 ст.13.11 КоАП (нарушение требований к согласию) — верхняя граница выше общей по ПД
+      check152.fine = 'до 700 000 руб.';
       if (mainPageContext._preCheckedConsentUrl) check152._preCheckedConsentUrl = mainPageContext._preCheckedConsentUrl;
       const lead = 'Форма с заранее проставленной галочкой согласия — нарушение ч.1 ст.9 152-ФЗ: согласие должно быть явным и активным.';
       const prev = (check152.issue || '').trim();
