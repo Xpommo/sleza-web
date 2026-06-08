@@ -196,6 +196,39 @@ function detectDataFormNoConsent() {
 }
 
 /**
+ * Probes a contact/application form page for both consent defects in one Playwright session.
+ * Used for form pages that are linked from the main page but not the main page itself
+ * (e.g. /contact, /apply, /записаться — common on school/service sites).
+ * @returns {Promise<{ preChecked: boolean, noConsent: boolean }>}
+ */
+export async function fetchFormPageSignal(url) {
+  let ctx;
+  try {
+    const browser = await getBrowser();
+    ctx = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      locale: 'ru-RU',
+      extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
+      ignoreHTTPSErrors: true,
+    });
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await page.waitForTimeout(1800).catch(() => {});
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
+    await page.waitForTimeout(600).catch(() => {});
+    const [preChecked, noConsent] = await Promise.all([
+      page.evaluate(detectPreCheckedConsent).catch(() => false),
+      page.evaluate(detectDataFormNoConsent).catch(() => false),
+    ]);
+    return { preChecked, noConsent };
+  } catch {
+    return { preChecked: false, noConsent: false };
+  } finally {
+    await ctx?.close().catch(() => {});
+  }
+}
+
+/**
  * Renders a registration/login page with Playwright and checks for a pre-checked
  * consent checkbox there. Used for SPA sites (e.g. puzzle-english) where the consent
  * form lives behind a click and is absent from the landing-page DOM.
@@ -524,6 +557,14 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         registerLinks: uniqueLinks.filter(l =>
           /регистрац|зарегистр|sign-?up|signup|создать.{0,15}аккаунт|\/register|\/signup|\/reg(\/|$)|войти|\/login|\/sign-?in/i.test(l.path + ' ' + l.text)
         ).slice(0, 3),
+        // Страницы с формами заявок / обратной связи — туда не переходят registerLinks,
+        // но именно там школы/студии/услуги собирают ПД без согласия.
+        formPageLinks: uniqueLinks.filter(l => {
+          const s = (l.path + ' ' + l.text).toLowerCase();
+          const isForm = /записат|заявк|обратн.{0,20}связ|конт[аа]кт|feedback|contact|apply|enroll|application|\/zapis|\/zayavk|\/feedback|\/contacts?$/.test(s);
+          const isRegOrLogin = /регистрац|зарегистр|sign.?up|signup|\/register|\/signup|\/reg(\/|$)|войти|\/login|\/sign.?in/.test(s);
+          return isForm && !isRegOrLogin;
+        }).slice(0, 3),
         hasAdScripts:       document.querySelectorAll(adNetworkScriptSelectors).length > 0,
         hasGtm:             document.querySelectorAll(gtmSelector).length > 0,
         hasAnalytics:       document.querySelectorAll(analyticsScriptSelectors).length > 0,

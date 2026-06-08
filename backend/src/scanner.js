@@ -10,7 +10,7 @@
 import { createRequire } from 'module';
 import { createEngine } from './engine.js';
 import { isSafeUrl } from './utils.js';
-import { fetchPageText, fetchPageTextAndLinks, fetchConsentSignal } from './pageContext.js';
+import { fetchPageText, fetchPageTextAndLinks, fetchConsentSignal, fetchFormPageSignal } from './pageContext.js';
 import { buildPageContext } from './pageContext.js';
 import {
   getLastScanForDomain,
@@ -982,6 +982,28 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     }
   }
 
+  // Contact/application form subpages (e.g. /записаться, /contacts, /feedback) — common on
+  // school/service sites that link to dedicated form pages not visible on the main page.
+  // Only probe if we haven't already found a consent defect (avoids redundant Playwright sessions).
+  if (aiData?.checks && !pageContext.hasPreCheckedConsent && !pageContext.hasDataFormNoConsent
+      && pageContext.formPageLinks?.length
+      && !pageContext._http403 && !pageContext._firewalled && !pageContext._blocked) {
+    for (const l of pageContext.formPageLinks.slice(0, 2)) {
+      if (!isSafeUrl(l.href)) continue;
+      const { preChecked, noConsent } = await fetchFormPageSignal(l.href);
+      if (preChecked) {
+        pageContext.hasPreCheckedConsent = true;
+        pageContext._preCheckedConsentUrl = l.href;
+        break;
+      }
+      if (noConsent) {
+        pageContext.hasDataFormNoConsent = true;
+        pageContext._dataFormNoConsentUrl = l.href;
+        break;
+      }
+    }
+  }
+
   // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1 (consent must be active, not pre-set).
   // It's a concrete, fineable violation — weightier than a near-complete policy — so it LEADS the issue
   // text (policy detail demoted to "Дополнительно") and carries a flag for downstream tracking/outreach.
@@ -1327,6 +1349,26 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       if (await fetchConsentSignal(l.href)) {
         mainPageContext.hasPreCheckedConsent = true;
         mainPageContext._preCheckedConsentUrl = l.href;
+        break;
+      }
+    }
+  }
+
+  // Probe contact/application form subpages (see single-scan note above).
+  if (aiData?.checks && !mainPageContext.hasPreCheckedConsent && !mainPageContext.hasDataFormNoConsent
+      && mainPageContext.formPageLinks?.length
+      && !mainPageContext._http403 && !mainPageContext._firewalled && !mainPageContext._blocked) {
+    for (const l of mainPageContext.formPageLinks.slice(0, 2)) {
+      if (!isSafeUrl(l.href)) continue;
+      const { preChecked, noConsent } = await fetchFormPageSignal(l.href);
+      if (preChecked) {
+        mainPageContext.hasPreCheckedConsent = true;
+        mainPageContext._preCheckedConsentUrl = l.href;
+        break;
+      }
+      if (noConsent) {
+        mainPageContext.hasDataFormNoConsent = true;
+        mainPageContext._dataFormNoConsentUrl = l.href;
         break;
       }
     }
