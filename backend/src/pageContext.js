@@ -247,7 +247,7 @@ export async function discoverCoursePageLinks(url) {
         const onclick = el.getAttribute('onclick') || '';
         const dataHref = el.getAttribute('data-href') || el.getAttribute('data-url') || el.getAttribute('data-link') || '';
         result.push({ idx: idx++, text, onclick, dataHref });
-        if (result.length >= 20) break;
+        if (result.length >= 40) break;
       }
       return result;
     }, SKIP_RE.source);
@@ -272,41 +272,74 @@ export async function discoverCoursePageLinks(url) {
       }
     }
 
-    // Second pass: click-and-navigate for React/Vue Router SPAs that use history.pushState.
-    // page.route() only intercepts HTTP requests; SPA navigation (pushState) never makes one.
-    // framenavigated fires on pushState too — we start waitForNavigation BEFORE the click,
-    // then check the new URL. Navigate back to the main page between clicks.
-    // IMPORTANT: after each navigation+back, old element handles are detached (DOM re-renders).
-    // We re-query allEls fresh each iteration using the candidate's text to re-locate the element.
-    if (discovered.size < 3) {
+    // Second pass: patch history.pushState and location.assign/replace to intercept ALL
+    // React/Vue Router navigation in a single pass — click every candidate button without
+    // actually navigating. Avoids the slow navigate+back loop (2-3 s per button → 60-90 s
+    // for 30 buttons). Falls back to the navigate+back approach if pushState patch fails.
+    if (discovered.size < 8) {
       const SEL = 'button, [role="button"], a:not([href]), a[href="#"], a[href="javascript:void(0)"], a[href="javascript:;"], [onclick]';
-      let clicked = 0;
-      for (const c of candidates.slice(0, 8)) {
-        if (discovered.size >= 5) break;
-        // Re-query every iteration — handles go stale after navigation+back (DOM re-render)
-        const allEls = await page.$$(SEL);
-        const el = allEls[c.idx];
-        if (!el) continue;
-        const beforeUrl = page.url();
+
+      // Attempt fast path: patch history.pushState/replaceState so clicks capture the target
+      // URL without actually navigating. No throw — just redirect to a no-op call so React
+      // doesn't see an error and the component handler completes normally.
+      const fastPaths = await page.evaluate((sel, skipRe, originUrl) => {
+        const captured = new Set();
+        const orig = {
+          push: history.pushState.bind(history),
+          replace: history.replaceState.bind(history),
+        };
+        const intercept = (s, t, u) => {
+          if (u) {
+            const full = u.startsWith('http') ? u : (u.startsWith('/') ? originUrl + u : null);
+            if (full && full.startsWith(originUrl) && full !== originUrl) captured.add(full);
+          }
+          // Call original with current path = no visible navigation
+          orig.push(s, t, window.location.pathname + window.location.search);
+        };
+        history.pushState = intercept;
+        history.replaceState = intercept;
         try {
-          // Start nav-watch BEFORE click so it doesn't miss the pushState event
-          const navPromise = page.waitForNavigation({ timeout: 3000, waitUntil: 'commit' }).catch(() => null);
-          await el.click({ force: true }).catch(() => {});
-          await navPromise;
-          await page.waitForTimeout(300).catch(() => {});
-        } catch { /* ignore */ }
-        const afterUrl = page.url();
-        if (afterUrl !== beforeUrl && afterUrl.startsWith(origin) && afterUrl !== url) {
-          discovered.add(afterUrl);
-          // Go back to scan the next course card
-          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
-          await page.waitForTimeout(1000).catch(() => {});
+          for (const el of document.querySelectorAll(sel)) {
+            const text = (el.innerText || el.textContent || '').trim();
+            if (!text || text.length < 5 || new RegExp(skipRe, 'i').test(text)) continue;
+            try { el.click(); } catch (_) { /* ignore */ }
+          }
+        } finally {
+          history.pushState = orig.push;
+          history.replaceState = orig.replace;
         }
-        if (++clicked >= 6) break;
+        return [...captured];
+      }, SEL, SKIP_RE.source, origin).catch(() => null);
+
+      if (fastPaths?.length) {
+        fastPaths.forEach(u => discovered.add(u));
+      } else {
+        // Slow fallback: navigate+back for each candidate (handles non-pushState routers)
+        let totalAttempts = 0;
+        for (const c of candidates.slice(0, 40)) {
+          if (discovered.size >= 10) break;
+          if (totalAttempts++ >= 35) break;
+          const allEls = await page.$$(SEL);
+          const el = allEls[c.idx];
+          if (!el) continue;
+          const beforeUrl = page.url();
+          try {
+            const navPromise = page.waitForNavigation({ timeout: 3000, waitUntil: 'commit' }).catch(() => null);
+            await el.click({ force: true }).catch(() => {});
+            await navPromise;
+            await page.waitForTimeout(300).catch(() => {});
+          } catch { /* ignore */ }
+          const afterUrl = page.url();
+          if (afterUrl !== beforeUrl) {
+            if (afterUrl.startsWith(origin) && afterUrl !== url) discovered.add(afterUrl);
+            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
+            await page.waitForTimeout(1000).catch(() => {});
+          }
+        }
       }
     }
 
-    return [...discovered].filter(u => u !== url).slice(0, 5);
+    return [...discovered].filter(u => u !== url).slice(0, 10);
   } catch {
     return [];
   } finally {

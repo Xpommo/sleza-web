@@ -1007,26 +1007,25 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   }
 
   // SPA course/product pages (proshkola18-style): buttons navigate via JS router, no <a href>.
-  // Probe ALL discovered URLs to count every form without consent.
+  // Probe ALL discovered URLs in parallel to count every form without consent quickly.
   if (aiData?.checks && !pageContext.hasPreCheckedConsent && !pageContext.hasDataFormNoConsent
       && !pageContext.formPageLinks?.length && !pageContext.registerLinks?.length
       && !pageContext._http403 && !pageContext._firewalled && !pageContext._blocked) {
     const courseUrls = await discoverCoursePageLinks(url).catch(() => []);
-    const noConsentUrls = [];
-    for (const cu of courseUrls.slice(0, 5)) {
-      if (!isSafeUrl(cu)) continue;
-      const { preChecked, noConsent } = await fetchFormPageSignal(cu);
-      if (preChecked) {
+    const safeUrls = courseUrls.slice(0, 10).filter(isSafeUrl);
+    if (safeUrls.length) {
+      const results = await Promise.all(safeUrls.map(cu => fetchFormPageSignal(cu)));
+      const preCheckedIdx = results.findIndex(r => r.preChecked);
+      if (preCheckedIdx >= 0) {
         pageContext.hasPreCheckedConsent = true;
-        pageContext._preCheckedConsentUrl = cu;
-        noConsentUrls.length = 0;
-        break;
+        pageContext._preCheckedConsentUrl = safeUrls[preCheckedIdx];
+      } else {
+        const noConsentUrls = safeUrls.filter((_, i) => results[i].noConsent);
+        if (noConsentUrls.length) {
+          pageContext.hasDataFormNoConsent = true;
+          pageContext._dataFormNoConsentUrls = noConsentUrls;
+        }
       }
-      if (noConsent) noConsentUrls.push(cu);
-    }
-    if (noConsentUrls.length) {
-      pageContext.hasDataFormNoConsent = true;
-      pageContext._dataFormNoConsentUrls = noConsentUrls;
     }
   }
 
@@ -1407,26 +1406,25 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     }
   }
 
-  // SPA course/product pages — full-scan path, probe ALL to count every affected form.
+  // SPA course/product pages — full-scan path, probe ALL in parallel.
   if (aiData?.checks && !mainPageContext.hasPreCheckedConsent && !mainPageContext.hasDataFormNoConsent
       && !mainPageContext.formPageLinks?.length && !mainPageContext.registerLinks?.length
       && !mainPageContext._http403 && !mainPageContext._firewalled && !mainPageContext._blocked) {
     const courseUrls = await discoverCoursePageLinks(url).catch(() => []);
-    const noConsentUrls = [];
-    for (const cu of courseUrls.slice(0, 5)) {
-      if (!isSafeUrl(cu)) continue;
-      const { preChecked, noConsent } = await fetchFormPageSignal(cu);
-      if (preChecked) {
+    const safeUrls = courseUrls.slice(0, 10).filter(isSafeUrl);
+    if (safeUrls.length) {
+      const results = await Promise.all(safeUrls.map(cu => fetchFormPageSignal(cu)));
+      const preCheckedIdx = results.findIndex(r => r.preChecked);
+      if (preCheckedIdx >= 0) {
         mainPageContext.hasPreCheckedConsent = true;
-        mainPageContext._preCheckedConsentUrl = cu;
-        noConsentUrls.length = 0;
-        break;
+        mainPageContext._preCheckedConsentUrl = safeUrls[preCheckedIdx];
+      } else {
+        const noConsentUrls = safeUrls.filter((_, i) => results[i].noConsent);
+        if (noConsentUrls.length) {
+          mainPageContext.hasDataFormNoConsent = true;
+          mainPageContext._dataFormNoConsentUrls = noConsentUrls;
+        }
       }
-      if (noConsent) noConsentUrls.push(cu);
-    }
-    if (noConsentUrls.length) {
-      mainPageContext.hasDataFormNoConsent = true;
-      mainPageContext._dataFormNoConsentUrls = noConsentUrls;
     }
   }
 
