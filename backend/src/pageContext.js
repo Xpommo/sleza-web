@@ -276,12 +276,15 @@ export async function discoverCoursePageLinks(url) {
     // page.route() only intercepts HTTP requests; SPA navigation (pushState) never makes one.
     // framenavigated fires on pushState too — we start waitForNavigation BEFORE the click,
     // then check the new URL. Navigate back to the main page between clicks.
+    // IMPORTANT: after each navigation+back, old element handles are detached (DOM re-renders).
+    // We re-query allEls fresh each iteration using the candidate's text to re-locate the element.
     if (discovered.size < 3) {
       const SEL = 'button, [role="button"], a:not([href]), a[href="#"], a[href="javascript:void(0)"], a[href="javascript:;"], [onclick]';
-      const allEls = await page.$$(SEL);
       let clicked = 0;
       for (const c of candidates.slice(0, 8)) {
         if (discovered.size >= 5) break;
+        // Re-query every iteration — handles go stale after navigation+back (DOM re-render)
+        const allEls = await page.$$(SEL);
         const el = allEls[c.idx];
         if (!el) continue;
         const beforeUrl = page.url();
