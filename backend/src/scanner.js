@@ -968,6 +968,20 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     aiData.checks.push(checkGoogleAnalytics(pageContext, gaPolicyText));
   }
 
+  // Pre-consent tracking: analytic scripts fire on first load BEFORE banner interaction.
+  // Only actionable when a banner exists (without banner = separate "no banner" finding).
+  if (aiData?.checks && pageContext.hasPreConsentTracking && pageContext.hasCookieBanner) {
+    const checkCookie = aiData.checks.find(c => c.id === 'cookie');
+    if (checkCookie) {
+      if (checkCookie.status === 'ok') checkCookie.status = 'risk';
+      checkCookie._preConsentTracking = true;
+      const services = (pageContext.preConsentTrackingServices || []).join(', ') || 'трекинг-скрипты';
+      const lead = `${services} устанавливают куки при первой загрузке страницы — до взаимодействия с баннером (нарушение ч.1 ст.6 152-ФЗ: согласие предшествует обработке).`;
+      const prev = (checkCookie.issue || '').trim();
+      checkCookie.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
+    }
+  }
+
   // Pre-checked consent often lives on a registration/signup form behind a click,
   // absent from the landing DOM (SPA sites e.g. puzzle-english). Probe those pages.
   if (aiData?.checks && !pageContext.hasPreCheckedConsent && pageContext.registerLinks?.length
@@ -1407,6 +1421,19 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
   // Inject Google Analytics check — local detection, always reliable regardless of AI mode
   if (aiData?.checks && !aiData.checks.find(c => c.id === 'ga')) {
     aiData.checks.push(checkGoogleAnalytics(mainPageContext, gaPolicyText));
+  }
+
+  // Pre-consent tracking (full-scan path — same logic as single-scan).
+  if (aiData?.checks && mainPageContext.hasPreConsentTracking && mainPageContext.hasCookieBanner) {
+    const checkCookie = aiData.checks.find(c => c.id === 'cookie');
+    if (checkCookie) {
+      if (checkCookie.status === 'ok') checkCookie.status = 'risk';
+      checkCookie._preConsentTracking = true;
+      const services = (mainPageContext.preConsentTrackingServices || []).join(', ') || 'трекинг-скрипты';
+      const lead = `${services} устанавливают куки при первой загрузке страницы — до взаимодействия с баннером (нарушение ч.1 ст.6 152-ФЗ: согласие предшествует обработке).`;
+      const prev = (checkCookie.issue || '').trim();
+      checkCookie.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
+    }
   }
 
   // Probe registration/signup pages for pre-checked consent (see single-scan note above).

@@ -499,6 +499,14 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
   try {
     const page = await browserCtx.newPage();
 
+    // Intercept tracking requests fired before banner interaction.
+    // Only data-collection endpoints (not script loads) — avoids false positives from GA Consent Mode.
+    const _preConsentReqs = [];
+    const TRACKING_REQ_RE = /mc\.yandex\.ru\/(webvisor|watch)|vk\.com\/rtrg|top-fwz1\.mail\.ru|google-analytics\.com\/(collect|j\/collect)|analytics\.google\.com\/g\/collect|facebook\.com\/tr\?/i;
+    page.on('request', req => {
+      if (TRACKING_REQ_RE.test(req.url())) _preConsentReqs.push(req.url());
+    });
+
     // domcontentloaded is much more reliable than 'load' — avoids timeouts on
     // sites with heavy third-party resources (ads, analytics, large images).
     // JS hydration wait below compensates for React/Vue late rendering.
@@ -510,6 +518,33 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
     // Scroll slightly to trigger lazy-loaded cookie banners (some appear only on scroll)
     await page.evaluate(() => window.scrollTo(0, 400));
     await page.waitForTimeout(600);
+
+    // Snapshot: cookies + requests already fired BEFORE user touches the banner.
+    // _ym_uid/_ga/_fbp etc. being set here = tracking without consent.
+    const _preCookies = (await browserCtx.cookies()).filter(c =>
+      /^(_ym_uid|_ym_d|_ym_isad|_ym_visorc|_ga$|_ga_\w|_gid$|_gat_?\w*|_fbp$|_fbc$|_ttp$|tmr_lv|tmr_detect)/.test(c.name)
+    );
+    const _svcFromCookie = c => {
+      if (c.name.startsWith('_ym')) return 'Яндекс.Метрика';
+      if (/^(_ga|_gid|_gat)/.test(c.name)) return 'Google Analytics';
+      if (/^_fb/.test(c.name)) return 'Meta Pixel';
+      if (c.name === '_ttp') return 'TikTok Pixel';
+      if (c.name.startsWith('tmr_')) return 'Mail.ru';
+      return null;
+    };
+    const _svcFromReq = u => {
+      if (/mc\.yandex\.ru/.test(u)) return 'Яндекс.Метрика';
+      if (/vk\.com\/rtrg/.test(u)) return 'VK Pixel';
+      if (/top-fwz1\.mail\.ru/.test(u)) return 'Mail.ru';
+      if (/google-analytics\.com/.test(u)) return 'Google Analytics';
+      if (/analytics\.google\.com/.test(u)) return 'Google Analytics 4';
+      if (/facebook\.com\/tr/.test(u)) return 'Meta Pixel';
+      return null;
+    };
+    const _preConsentServices = [...new Set([
+      ..._preCookies.map(_svcFromCookie).filter(Boolean),
+      ..._preConsentReqs.map(_svcFromReq).filter(Boolean),
+    ])];
 
     // Try to dismiss cookie banner so it doesn't pollute bodyText
     try {
@@ -806,6 +841,10 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
     // Форма сбора ПД без согласия при ней — отдельный evaluate (скоупленный на контейнер формы).
     context.hasDataFormNoConsent = await page.evaluate(detectDataFormNoConsent).catch(() => false);
 
+    // Pre-consent tracking: snapshot built before banner dismissal (above).
+    context.hasPreConsentTracking = _preConsentServices.length > 0;
+    context.preConsentTrackingServices = _preConsentServices;
+
     const httpStatus = gotoResponse?.status?.() ?? 200;
     if (httpStatus >= 400) context._http403 = true;
 
@@ -913,6 +952,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         links: [], policyLinks: [], offerLinks: [], returnLinks: [], aboutLinks: [],
         hasAdScripts: false, hasAnalytics: false, hasCookieBanner: false,
         hasPolicyFooterLink: false, hasConsentCheckbox: false, inlineModalPolicyText: '',
+        hasPreConsentTracking: false, preConsentTrackingServices: [],
         _fallback: true,
         _blocked: /^challenge:/.test(String(err?.message)),
         _http403: res.status === 403,
