@@ -17,7 +17,7 @@ import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { scanSinglePage, scanFullSite } from './scanner.js';
 import { closeBrowser } from './pageContext.js';
-import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats, saveEvent, getFunnel, saveDocRequest, getRecentDocRequests, getRecentScansRaw } from './db.js';
+import { initSchema, saveScan, getScan, findCachedScan, saveLead, saveSubscription, cleanupOldScans, dbEnabled, getCheckStats, getTopViolations, findScansWithStatus, saveFeedback, getFeedbackStats, getFeedbackPatterns, upsertDomainException, handleConfirmFeedback, getAllExceptions, expireExceptionsByCheckId, getDomainExceptionStatus, getRecentLeads, getLeadStats, getScanStats, saveEvent, getFunnel, saveDocRequest, getRecentDocRequests, getRecentScansRaw, getConsentStats } from './db.js';
 import { tgEnabled, sendLeadNotification, registerWebhook, getWebhookSecret, handleUpdate } from './tg.js';
 import { verifyException } from './scanner.js';
 import { validateEmail, validateCompany, validateEmailMX } from './validateLead.js';
@@ -570,6 +570,17 @@ app.get('/api/admin/stats', async (request, reply) => {
   const days = Math.min(Number(request.query.days || 30), 90);
   const rows = await getCheckStats(days);
   return reply.send({ days, rows });
+});
+
+// Consent-defect stats: pre-checked checkbox + data-form-without-consent (flags inside law152).
+app.get('/api/admin/consent-stats', async (request, reply) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken || request.headers['x-admin-token'] !== adminToken) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+  const days = Math.min(Number(request.query.days || 90), 365);
+  const stats = await getConsentStats(days);
+  return reply.send({ days, ...(stats || {}) });
 });
 
 app.get('/api/admin/cases', async (request, reply) => {

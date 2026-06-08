@@ -254,6 +254,24 @@ export async function findScansWithStatus(checkId, status, days = 30) {
   `;
 }
 
+// Consent-defect sub-signals — flags inside law152, not separate check_ids,
+// so they don't show up in getTopViolations/getCheckStats. Count them explicitly.
+export async function getConsentStats(days = 90) {
+  if (!enabled) return null;
+  const rows = await sql`
+    SELECT
+      COUNT(DISTINCT s.uuid)::int                                          AS scans,
+      COUNT(*) FILTER (WHERE elem->>'_preCheckedConsent' = 'true')::int    AS pre_checked,
+      COUNT(*) FILTER (WHERE elem->>'_dataFormNoConsent'  = 'true')::int    AS no_consent_form
+    FROM scans s,
+      jsonb_array_elements(s.result_json->'aiData'->'checks') AS elem
+    WHERE s.result_json->'aiData'->'checks' IS NOT NULL
+      AND s.created_at > NOW() - MAKE_INTERVAL(days => ${days})
+      AND elem->>'id' = 'law152'
+  `;
+  return rows[0] || null;
+}
+
 // ── Feedback ─────────────────────────────────────────────────────────────────
 
 export async function saveFeedback({ scanUuid, checkId, verdict, issueText = null }) {
