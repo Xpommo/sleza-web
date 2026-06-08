@@ -1014,15 +1014,22 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   }
 
   // SPA course/product pages (proshkola18-style): buttons navigate via JS router, no <a href>.
-  // Probe ALL discovered URLs in parallel to count every form without consent quickly.
+  // Skipped for shop/media — their JS buttons rarely lead to consent forms, and probing wastes
+  // Playwright sessions. Batched at 3 concurrent contexts to avoid Chromium OOM on Railway.
   if (aiData?.checks && !pageContext.hasPreCheckedConsent && !pageContext.hasDataFormNoConsent
       && !pageContext.hasBundledConsent && !pageContext.formPageLinks?.length
       && !pageContext.registerLinks?.length
-      && !pageContext._http403 && !pageContext._firewalled && !pageContext._blocked) {
+      && !pageContext._http403 && !pageContext._firewalled && !pageContext._blocked
+      && siteType !== 'shop' && siteType !== 'ecommerce' && siteType !== 'marketplace' && siteType !== 'media') {
     const courseUrls = await discoverCoursePageLinks(url).catch(() => []);
     const safeUrls = courseUrls.slice(0, 10).filter(isSafeUrl);
     if (safeUrls.length) {
-      const results = await Promise.all(safeUrls.map(cu => fetchFormPageSignal(cu)));
+      const results = [];
+      for (let i = 0; i < safeUrls.length; i += 3) {
+        const batch = safeUrls.slice(i, i + 3);
+        results.push(...await Promise.all(batch.map(cu => fetchFormPageSignal(cu))));
+        if (results.some(r => r.preChecked)) break;
+      }
       const preCheckedIdx = results.findIndex(r => r.preChecked);
       if (preCheckedIdx >= 0) {
         pageContext.hasPreCheckedConsent = true;
@@ -1444,15 +1451,21 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     }
   }
 
-  // SPA course/product pages — full-scan path, probe ALL in parallel.
+  // SPA course/product pages — full-scan path, batched at 3 concurrent contexts (OOM guard).
   if (aiData?.checks && !mainPageContext.hasPreCheckedConsent && !mainPageContext.hasDataFormNoConsent
       && !mainPageContext.hasBundledConsent && !mainPageContext.formPageLinks?.length
       && !mainPageContext.registerLinks?.length
-      && !mainPageContext._http403 && !mainPageContext._firewalled && !mainPageContext._blocked) {
+      && !mainPageContext._http403 && !mainPageContext._firewalled && !mainPageContext._blocked
+      && siteType !== 'shop' && siteType !== 'ecommerce' && siteType !== 'marketplace' && siteType !== 'media') {
     const courseUrls = await discoverCoursePageLinks(url).catch(() => []);
     const safeUrls = courseUrls.slice(0, 10).filter(isSafeUrl);
     if (safeUrls.length) {
-      const results = await Promise.all(safeUrls.map(cu => fetchFormPageSignal(cu)));
+      const results = [];
+      for (let i = 0; i < safeUrls.length; i += 3) {
+        const batch = safeUrls.slice(i, i + 3);
+        results.push(...await Promise.all(batch.map(cu => fetchFormPageSignal(cu))));
+        if (results.some(r => r.preChecked)) break;
+      }
       const preCheckedIdx = results.findIndex(r => r.preChecked);
       if (preCheckedIdx >= 0) {
         mainPageContext.hasPreCheckedConsent = true;

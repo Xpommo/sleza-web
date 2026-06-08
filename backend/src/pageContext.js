@@ -169,8 +169,9 @@ function detectDataFormNoConsent() {
   const pdSel = 'input[type="tel"],input[type="email"],input[name*="phone" i],input[name*="tel" i],input[name*="mail" i],input[name*="fio" i],input[placeholder*="телефон" i],input[placeholder*="почт" i],input[placeholder*="e-mail" i],input[placeholder*="mail" i],textarea';
   // Don't require offsetParent !== null: on course/landing pages forms are often hidden inside
   // tabs or "register" modals (shown on click) — offsetParent is null but the form IS shown to
-  // the user when they interact. Only skip inputs explicitly set display:none on the element itself.
-  const isVisible = el => { try { return getComputedStyle(el).display !== 'none'; } catch { return true; } };
+  // the user when they interact. visibility:hidden IS checked — it covers template duplicates and
+  // animation clones that are never shown to the user (common in Tilda/Bitrix builders).
+  const isVisible = el => { try { const s = getComputedStyle(el); return s.display !== 'none' && s.visibility !== 'hidden'; } catch { return true; } };
   const pdInputs = [...document.querySelectorAll(pdSel)].filter(isVisible);
   if (!pdInputs.length) return false;
   const consentRe = /соглас|обработк[ауеи].{0,40}(персональн|данн)|персональн\w*\s+данн|политик[ауеиой].{0,30}(конфиденц|обработк)|конфиденциальн|нажима[яю].{0,80}(соглаш|политик)/i;
@@ -205,7 +206,7 @@ function detectDataFormNoConsent() {
 // оферту и рассылку в одном чекбоксе (человек не может отозвать согласие избирательно).
 function detectBundledConsent() {
   const pdSel = 'input[type="tel"],input[type="email"],input[name*="phone" i],input[name*="tel" i],input[name*="mail" i],input[placeholder*="телефон" i],input[placeholder*="phone" i],textarea';
-  const isVisible = el => { try { return getComputedStyle(el).display !== 'none'; } catch { return true; } };
+  const isVisible = el => { try { const s = getComputedStyle(el); return s.display !== 'none' && s.visibility !== 'hidden'; } catch { return true; } };
   const pdInputs = [...document.querySelectorAll(pdSel)].filter(isVisible);
   if (!pdInputs.length) return false;
   const containers = new Set();
@@ -222,12 +223,26 @@ function detectBundledConsent() {
     /оферт[ауеиой]|условия\s*(использования|сервис[аe]?|договор|оказания|обслуживания)|пользовательск\w+\s+соглаш|terms\s*(of\s*)?(service|use)/i,
     /рассылк|маркетинг|акци[ий]|уведомлени[ий]|новости|newsletter/i,
   ];
+  // Resolve label text for a single checkbox without bleeding into sibling checkboxes.
+  // Priority: label[for=id] → aria-label → aria-labelledby → ancestor <label> → next siblings only.
+  // Deliberately avoids parentElement.textContent (would concatenate all sibling labels in a div,
+  // causing false positives when two correctly-separated checkboxes share the same parent).
   const getLabelText = cb => {
-    let txt = '';
-    try { if (cb.id) { const f = document.querySelector(`label[for="${CSS.escape(cb.id)}"]`); if (f) txt += ' ' + f.textContent; } } catch (_) {}
-    if (!txt) { try { const p = cb.closest('label'); if (p) txt += ' ' + p.textContent; } catch (_) {} }
-    if (!txt) { try { const p = cb.parentElement; if (p) txt += ' ' + p.textContent; } catch (_) {} }
-    return txt;
+    try { if (cb.id) { const f = document.querySelector(`label[for="${CSS.escape(cb.id)}"]`); if (f) return f.textContent; } } catch (_) {}
+    const aria = cb.getAttribute('aria-label') || '';
+    if (aria) return aria;
+    try { const lblId = cb.getAttribute('aria-labelledby'); if (lblId) { const el = document.getElementById(lblId); if (el) return el.textContent; } } catch (_) {}
+    try { const p = cb.closest('label'); if (p) return p.textContent; } catch (_) {}
+    // Walk next siblings — stop at the next input/button to avoid crossing into the next checkbox
+    try {
+      let n = cb.nextSibling;
+      while (n) {
+        if (n.nodeType === 3 && n.textContent.trim()) return n.textContent;
+        if (n.nodeType === 1 && !n.matches('input,button')) return n.textContent;
+        n = n.nextSibling;
+      }
+    } catch (_) {}
+    return '';
   };
   for (const cont of containers) {
     if (!cont) continue;
@@ -323,8 +338,10 @@ export async function discoverCoursePageLinks(url) {
       // Attempt fast path: patch history.pushState/replaceState so clicks capture the target
       // URL without actually navigating. No throw — just redirect to a no-op call so React
       // doesn't see an error and the component handler completes normally.
-      const fastPaths = await page.evaluate((sel, skipRe, originUrl) => {
+      // page.evaluate accepts exactly ONE argument after the function — pass all params as an object.
+      const fastPaths = await page.evaluate(({ sel, skipRe, originUrl }) => {
         const captured = new Set();
+        const skipRe_ = new RegExp(skipRe, 'i');
         const orig = {
           push: history.pushState.bind(history),
           replace: history.replaceState.bind(history),
@@ -342,7 +359,7 @@ export async function discoverCoursePageLinks(url) {
         try {
           for (const el of document.querySelectorAll(sel)) {
             const text = (el.innerText || el.textContent || '').trim();
-            if (!text || text.length < 5 || new RegExp(skipRe, 'i').test(text)) continue;
+            if (!text || text.length < 5 || skipRe_.test(text)) continue;
             try { el.click(); } catch (_) { /* ignore */ }
           }
         } finally {
@@ -350,18 +367,25 @@ export async function discoverCoursePageLinks(url) {
           history.replaceState = orig.replace;
         }
         return [...captured];
-      }, SEL, SKIP_RE.source, origin).catch(() => null);
+      }, { sel: SEL, skipRe: SKIP_RE.source, originUrl: origin }).catch(() => null);
 
       if (fastPaths?.length) {
         fastPaths.forEach(u => discovered.add(u));
       } else {
-        // Slow fallback: navigate+back for each candidate (handles non-pushState routers)
+        // Slow fallback: navigate+back for each candidate (handles non-pushState routers).
+        // Re-query the DOM after each goto() to get fresh handles, then match by text content
+        // instead of positional index — index breaks after page reload if DOM changes shape.
         let totalAttempts = 0;
         for (const c of candidates.slice(0, 40)) {
           if (discovered.size >= 10) break;
           if (totalAttempts++ >= 35) break;
           const allEls = await page.$$(SEL);
-          const el = allEls[c.idx];
+          const targetText = c.text.slice(0, 60);
+          let el = null;
+          for (const candidate of allEls) {
+            const t = await candidate.evaluate(e => (e.innerText || e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 60)).catch(() => '');
+            if (t === targetText) { el = candidate; break; }
+          }
           if (!el) continue;
           const beforeUrl = page.url();
           try {
