@@ -200,6 +200,47 @@ function detectDataFormNoConsent() {
   return false;
 }
 
+// Форма имеет галочку, но одна галочка объединяет несколько разных целей обработки.
+// Ст.9 152-ФЗ: согласие должно быть конкретным — нельзя связывать политику конфиденциальности,
+// оферту и рассылку в одном чекбоксе (человек не может отозвать согласие избирательно).
+function detectBundledConsent() {
+  const pdSel = 'input[type="tel"],input[type="email"],input[name*="phone" i],input[name*="tel" i],input[name*="mail" i],input[placeholder*="телефон" i],input[placeholder*="phone" i],textarea';
+  const isVisible = el => { try { return getComputedStyle(el).display !== 'none'; } catch { return true; } };
+  const pdInputs = [...document.querySelectorAll(pdSel)].filter(isVisible);
+  if (!pdInputs.length) return false;
+  const containers = new Set();
+  for (const inp of pdInputs) {
+    const form = inp.closest('form');
+    if (form) { containers.add(form); continue; }
+    let el = inp.parentElement, found = null;
+    for (let i = 0; i < 6 && el; i++) { if (el.querySelector('button,[type="submit"],input[type="submit"]')) { found = el; break; } el = el.parentElement; }
+    containers.add(found || inp.parentElement);
+  }
+  // Три группы целей, каждая из которых требует отдельного согласия
+  const groups = [
+    /политик[ауеиой].{0,30}конфиденциальн|обработк[ауеи].{0,30}персональн|персональн\w*\s+данн|privacy\s+policy|personal\s+data/i,
+    /оферт[ауеиой]|условия\s*(использования|сервис[аe]?|договор|оказания|обслуживания)|пользовательск\w+\s+соглаш|terms\s*(of\s*)?(service|use)/i,
+    /рассылк|маркетинг|акци[ий]|уведомлени[ий]|новости|newsletter/i,
+  ];
+  const getLabelText = cb => {
+    let txt = '';
+    try { if (cb.id) { const f = document.querySelector(`label[for="${CSS.escape(cb.id)}"]`); if (f) txt += ' ' + f.textContent; } } catch (_) {}
+    if (!txt) { try { const p = cb.closest('label'); if (p) txt += ' ' + p.textContent; } catch (_) {} }
+    if (!txt) { try { const p = cb.parentElement; if (p) txt += ' ' + p.textContent; } catch (_) {} }
+    return txt;
+  };
+  for (const cont of containers) {
+    if (!cont) continue;
+    if (cont.querySelector('input[type="password"]')) continue;
+    for (const cb of cont.querySelectorAll('input[type="checkbox"],[role="checkbox"]')) {
+      const txt = getLabelText(cb);
+      if (txt.length < 25) continue;
+      if (groups.filter(re => re.test(txt)).length >= 2) return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Discovers landing/course page URLs that are only reachable via JS button clicks
  * (SPA-navigation — no <a href>). Renders the page, then for each course/product-like
@@ -368,13 +409,14 @@ export async function fetchFormPageSignal(url) {
     await page.waitForTimeout(1800).catch(() => {});
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
     await page.waitForTimeout(600).catch(() => {});
-    const [preChecked, noConsent] = await Promise.all([
+    const [preChecked, noConsent, bundledConsent] = await Promise.all([
       page.evaluate(detectPreCheckedConsent).catch(() => false),
       page.evaluate(detectDataFormNoConsent).catch(() => false),
+      page.evaluate(detectBundledConsent).catch(() => false),
     ]);
-    return { preChecked, noConsent };
+    return { preChecked, noConsent, bundledConsent };
   } catch {
-    return { preChecked: false, noConsent: false };
+    return { preChecked: false, noConsent: false, bundledConsent: false };
   } finally {
     await ctx?.close().catch(() => {});
   }

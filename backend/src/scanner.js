@@ -989,27 +989,35 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       && pageContext.formPageLinks?.length
       && !pageContext._http403 && !pageContext._firewalled && !pageContext._blocked) {
     const noConsentUrls = [];
+    const bundledConsentUrls = [];
     for (const l of pageContext.formPageLinks.slice(0, 3)) {
       if (!isSafeUrl(l.href)) continue;
-      const { preChecked, noConsent } = await fetchFormPageSignal(l.href);
+      const { preChecked, noConsent, bundledConsent } = await fetchFormPageSignal(l.href);
       if (preChecked) {
         pageContext.hasPreCheckedConsent = true;
         pageContext._preCheckedConsentUrl = l.href;
         noConsentUrls.length = 0;
+        bundledConsentUrls.length = 0;
         break;
       }
       if (noConsent) noConsentUrls.push(l.href);
+      if (bundledConsent) bundledConsentUrls.push(l.href);
     }
     if (noConsentUrls.length) {
       pageContext.hasDataFormNoConsent = true;
       pageContext._dataFormNoConsentUrls = noConsentUrls;
+    }
+    if (bundledConsentUrls.length && !pageContext.hasPreCheckedConsent) {
+      pageContext.hasBundledConsent = true;
+      pageContext._bundledConsentUrls = bundledConsentUrls;
     }
   }
 
   // SPA course/product pages (proshkola18-style): buttons navigate via JS router, no <a href>.
   // Probe ALL discovered URLs in parallel to count every form without consent quickly.
   if (aiData?.checks && !pageContext.hasPreCheckedConsent && !pageContext.hasDataFormNoConsent
-      && !pageContext.formPageLinks?.length && !pageContext.registerLinks?.length
+      && !pageContext.hasBundledConsent && !pageContext.formPageLinks?.length
+      && !pageContext.registerLinks?.length
       && !pageContext._http403 && !pageContext._firewalled && !pageContext._blocked) {
     const courseUrls = await discoverCoursePageLinks(url).catch(() => []);
     const safeUrls = courseUrls.slice(0, 10).filter(isSafeUrl);
@@ -1024,6 +1032,11 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
         if (noConsentUrls.length) {
           pageContext.hasDataFormNoConsent = true;
           pageContext._dataFormNoConsentUrls = noConsentUrls;
+        }
+        const bundledConsentUrls = safeUrls.filter((_, i) => results[i].bundledConsent);
+        if (bundledConsentUrls.length) {
+          pageContext.hasBundledConsent = true;
+          pageContext._bundledConsentUrls = bundledConsentUrls;
         }
       }
     }
@@ -1059,6 +1072,24 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       const lead = n > 1
         ? `${n} формы сбора персональных данных без согласия — на ${n} страницах сайта рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).`
         : 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).';
+      const prev = (check152.issue || '').trim();
+      check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
+    }
+  }
+
+  // All consent purposes bundled in one checkbox — violates ст.9 152-FZ specificity requirement.
+  // Lower severity than pre-checked (consent exists but isn't granular). Skipped if pre-checked already leads.
+  if (aiData?.checks && pageContext.hasBundledConsent && !pageContext.hasPreCheckedConsent) {
+    const check152 = aiData.checks.find(c => c.id === 'law152');
+    if (check152) {
+      if (check152.status === 'ok') check152.status = 'risk';
+      check152._bundledConsent = true;
+      if (!check152.fine) check152.fine = 'до 150 000 руб.';
+      const urls = pageContext._bundledConsentUrls || [];
+      const n = urls.length;
+      const lead = n > 1
+        ? `${n} форм с объединёнными согласиями в одном чекбоксе — нарушение ч.1 ст.9 152-ФЗ: согласие на обработку данных, принятие оферты и согласие на рассылку должны запрашиваться отдельными галочками.`
+        : 'Все согласия объединены в одном чекбоксе — нарушение ч.1 ст.9 152-ФЗ: согласие на обработку персональных данных, принятие оферты и рассылку должны запрашиваться отдельно.';
       const prev = (check152.issue || '').trim();
       check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
     }
@@ -1389,26 +1420,34 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       && mainPageContext.formPageLinks?.length
       && !mainPageContext._http403 && !mainPageContext._firewalled && !mainPageContext._blocked) {
     const noConsentUrls = [];
+    const bundledConsentUrls = [];
     for (const l of mainPageContext.formPageLinks.slice(0, 3)) {
       if (!isSafeUrl(l.href)) continue;
-      const { preChecked, noConsent } = await fetchFormPageSignal(l.href);
+      const { preChecked, noConsent, bundledConsent } = await fetchFormPageSignal(l.href);
       if (preChecked) {
         mainPageContext.hasPreCheckedConsent = true;
         mainPageContext._preCheckedConsentUrl = l.href;
         noConsentUrls.length = 0;
+        bundledConsentUrls.length = 0;
         break;
       }
       if (noConsent) noConsentUrls.push(l.href);
+      if (bundledConsent) bundledConsentUrls.push(l.href);
     }
     if (noConsentUrls.length) {
       mainPageContext.hasDataFormNoConsent = true;
       mainPageContext._dataFormNoConsentUrls = noConsentUrls;
     }
+    if (bundledConsentUrls.length && !mainPageContext.hasPreCheckedConsent) {
+      mainPageContext.hasBundledConsent = true;
+      mainPageContext._bundledConsentUrls = bundledConsentUrls;
+    }
   }
 
   // SPA course/product pages — full-scan path, probe ALL in parallel.
   if (aiData?.checks && !mainPageContext.hasPreCheckedConsent && !mainPageContext.hasDataFormNoConsent
-      && !mainPageContext.formPageLinks?.length && !mainPageContext.registerLinks?.length
+      && !mainPageContext.hasBundledConsent && !mainPageContext.formPageLinks?.length
+      && !mainPageContext.registerLinks?.length
       && !mainPageContext._http403 && !mainPageContext._firewalled && !mainPageContext._blocked) {
     const courseUrls = await discoverCoursePageLinks(url).catch(() => []);
     const safeUrls = courseUrls.slice(0, 10).filter(isSafeUrl);
@@ -1423,6 +1462,11 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
         if (noConsentUrls.length) {
           mainPageContext.hasDataFormNoConsent = true;
           mainPageContext._dataFormNoConsentUrls = noConsentUrls;
+        }
+        const bundledConsentUrls = safeUrls.filter((_, i) => results[i].bundledConsent);
+        if (bundledConsentUrls.length) {
+          mainPageContext.hasBundledConsent = true;
+          mainPageContext._bundledConsentUrls = bundledConsentUrls;
         }
       }
     }
@@ -1455,6 +1499,23 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       const lead = n > 1
         ? `${n} формы сбора персональных данных без согласия — на ${n} страницах сайта рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).`
         : 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).';
+      const prev = (check152.issue || '').trim();
+      check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
+    }
+  }
+
+  // All consent purposes bundled in one checkbox (full-scan path — mirrors single-scan block above).
+  if (aiData?.checks && mainPageContext.hasBundledConsent && !mainPageContext.hasPreCheckedConsent) {
+    const check152 = aiData.checks.find(c => c.id === 'law152');
+    if (check152) {
+      if (check152.status === 'ok') check152.status = 'risk';
+      check152._bundledConsent = true;
+      if (!check152.fine) check152.fine = 'до 150 000 руб.';
+      const urls = mainPageContext._bundledConsentUrls || [];
+      const n = urls.length;
+      const lead = n > 1
+        ? `${n} форм с объединёнными согласиями в одном чекбоксе — нарушение ч.1 ст.9 152-ФЗ: согласие на обработку данных, принятие оферты и согласие на рассылку должны запрашиваться отдельными галочками.`
+        : 'Все согласия объединены в одном чекбоксе — нарушение ч.1 ст.9 152-ФЗ: согласие на обработку персональных данных, принятие оферты и рассылку должны запрашиваться отдельно.';
       const prev = (check152.issue || '').trim();
       check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
     }
