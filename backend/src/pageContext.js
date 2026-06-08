@@ -196,6 +196,112 @@ function detectDataFormNoConsent() {
 }
 
 /**
+ * Discovers landing/course page URLs that are only reachable via JS button clicks
+ * (SPA-navigation — no <a href>). Renders the page, then for each course/product-like
+ * clickable element uses page.route() to intercept and abort the navigation, capturing
+ * the target URL without actually leaving the page.
+ *
+ * Typical use: online schools, fitness studios, clinics — course cards are <div>/<button>
+ * that trigger React/Vue router navigation, invisible to standard link extraction.
+ *
+ * @param {string} url  Main page URL to probe
+ * @returns {Promise<string[]>}  Up to 5 discovered same-domain URLs
+ */
+export async function discoverCoursePageLinks(url) {
+  let ctx;
+  try {
+    const browser = await getBrowser();
+    const origin = new URL(url).origin;
+    ctx = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      locale: 'ru-RU',
+      extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
+      ignoreHTTPSErrors: true,
+    });
+    const page = await ctx.newPage();
+
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 25000 });
+    await page.waitForTimeout(1500).catch(() => {});
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
+    await page.waitForTimeout(600).catch(() => {});
+
+    // Pattern: course/product/event-like content on the button/card
+    const COURSE_RE = /курс|вебинар|интенсив|програм|тренинг|семинар|мастер.?класс|событи|занятие|урок|workshop|webinar|training|course|event/i;
+
+    // Collect candidate selectors with text + element handle index
+    const candidates = await page.evaluate(() => {
+      const result = [];
+      const els = document.querySelectorAll('button, [role="button"], a:not([href]), a[href="#"], a[href="javascript:void(0)"], a[href="javascript:;"], [onclick], [class*="card"], [class*="course"]');
+      let idx = 0;
+      for (const el of els) {
+        const text = (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 120);
+        const onclick = el.getAttribute('onclick') || '';
+        const dataHref = el.getAttribute('data-href') || el.getAttribute('data-url') || el.getAttribute('data-link') || '';
+        result.push({ idx: idx++, text, onclick, dataHref });
+        if (idx > 30) break;
+      }
+      return result;
+    });
+
+    const filtered = candidates.filter(c => COURSE_RE.test(c.text));
+    if (!filtered.length) return [];
+
+    const discovered = new Set();
+
+    // First pass: extract URLs from onclick / data-href without clicking
+    for (const c of filtered) {
+      if (c.dataHref) {
+        const full = c.dataHref.startsWith('http') ? c.dataHref : origin + (c.dataHref.startsWith('/') ? c.dataHref : '/' + c.dataHref);
+        if (full.startsWith(origin) && full !== url) discovered.add(full);
+      }
+      if (c.onclick) {
+        const m = c.onclick.match(/(?:location\.href\s*=\s*|location\s*=\s*|href\s*=\s*|navigate\s*\(\s*|push\s*\(\s*|replace\s*\(\s*)['"]([^'"]{2,80})['"]/i);
+        if (m) {
+          const path = m[1];
+          const full = path.startsWith('http') ? path : origin + (path.startsWith('/') ? path : '/' + path);
+          if (full.startsWith(origin) && full !== url) discovered.add(full);
+        }
+      }
+    }
+
+    // Second pass: click-and-intercept for React/Vue router navigation (no onclick attr)
+    if (discovered.size < 3) {
+      // Route intercept: capture navigation URL and abort so we stay on the page
+      await page.route('**', async (route, request) => {
+        const reqUrl = request.url();
+        if (request.isNavigationRequest() && reqUrl !== page.url() && reqUrl !== url) {
+          if (reqUrl.startsWith(origin)) discovered.add(reqUrl);
+          await route.abort().catch(() => {});
+        } else {
+          await route.continue().catch(() => {});
+        }
+      });
+
+      const allEls = await page.$$('button, [role="button"], a:not([href]), a[href="#"], a[href="javascript:void(0)"], [class*="card"], [class*="course"]');
+      let clicked = 0;
+      for (const c of filtered.slice(0, 8)) {
+        if (discovered.size >= 5) break;
+        const el = allEls[c.idx];
+        if (!el) continue;
+        try {
+          await el.click({ timeout: 2000, force: true }).catch(() => {});
+          await page.waitForTimeout(500).catch(() => {});
+        } catch { /* ignore */ }
+        if (++clicked >= 6) break;
+      }
+
+      await page.unroute('**').catch(() => {});
+    }
+
+    return [...discovered].filter(u => u !== url).slice(0, 5);
+  } catch {
+    return [];
+  } finally {
+    await ctx?.close().catch(() => {});
+  }
+}
+
+/**
  * Probes a contact/application form page for both consent defects in one Playwright session.
  * Used for form pages that are linked from the main page but not the main page itself
  * (e.g. /contact, /apply, /записаться — common on school/service sites).

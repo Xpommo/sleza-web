@@ -10,7 +10,7 @@
 import { createRequire } from 'module';
 import { createEngine } from './engine.js';
 import { isSafeUrl } from './utils.js';
-import { fetchPageText, fetchPageTextAndLinks, fetchConsentSignal, fetchFormPageSignal } from './pageContext.js';
+import { fetchPageText, fetchPageTextAndLinks, fetchConsentSignal, fetchFormPageSignal, discoverCoursePageLinks } from './pageContext.js';
 import { buildPageContext } from './pageContext.js';
 import {
   getLastScanForDomain,
@@ -1004,6 +1004,29 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     }
   }
 
+  // SPA course/product pages (proshkola18-style): buttons navigate via JS router, no <a href>.
+  // If neither formPageLinks nor registerLinks found anything yet, try clicking course-like
+  // buttons to discover URLs, then probe those pages for consent defects.
+  if (aiData?.checks && !pageContext.hasPreCheckedConsent && !pageContext.hasDataFormNoConsent
+      && !pageContext.formPageLinks?.length && !pageContext.registerLinks?.length
+      && !pageContext._http403 && !pageContext._firewalled && !pageContext._blocked) {
+    const courseUrls = await discoverCoursePageLinks(url).catch(() => []);
+    for (const cu of courseUrls.slice(0, 3)) {
+      if (!isSafeUrl(cu)) continue;
+      const { preChecked, noConsent } = await fetchFormPageSignal(cu);
+      if (preChecked) {
+        pageContext.hasPreCheckedConsent = true;
+        pageContext._preCheckedConsentUrl = cu;
+        break;
+      }
+      if (noConsent) {
+        pageContext.hasDataFormNoConsent = true;
+        pageContext._dataFormNoConsentUrl = cu;
+        break;
+      }
+    }
+  }
+
   // Pre-checked consent checkbox — violates 152-FZ Art.9 Part 1 (consent must be active, not pre-set).
   // It's a concrete, fineable violation — weightier than a near-complete policy — so it LEADS the issue
   // text (policy detail demoted to "Дополнительно") and carries a flag for downstream tracking/outreach.
@@ -1369,6 +1392,27 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       if (noConsent) {
         mainPageContext.hasDataFormNoConsent = true;
         mainPageContext._dataFormNoConsentUrl = l.href;
+        break;
+      }
+    }
+  }
+
+  // SPA course/product pages — full-scan path (see single-scan comment above).
+  if (aiData?.checks && !mainPageContext.hasPreCheckedConsent && !mainPageContext.hasDataFormNoConsent
+      && !mainPageContext.formPageLinks?.length && !mainPageContext.registerLinks?.length
+      && !mainPageContext._http403 && !mainPageContext._firewalled && !mainPageContext._blocked) {
+    const courseUrls = await discoverCoursePageLinks(url).catch(() => []);
+    for (const cu of courseUrls.slice(0, 3)) {
+      if (!isSafeUrl(cu)) continue;
+      const { preChecked, noConsent } = await fetchFormPageSignal(cu);
+      if (preChecked) {
+        mainPageContext.hasPreCheckedConsent = true;
+        mainPageContext._preCheckedConsentUrl = cu;
+        break;
+      }
+      if (noConsent) {
+        mainPageContext.hasDataFormNoConsent = true;
+        mainPageContext._dataFormNoConsentUrl = cu;
         break;
       }
     }
