@@ -984,46 +984,49 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
 
   // Contact/application form subpages (e.g. /записаться, /contacts, /feedback) — common on
   // school/service sites that link to dedicated form pages not visible on the main page.
-  // Only probe if we haven't already found a consent defect (avoids redundant Playwright sessions).
+  // Probe ALL links (not just first) to count every form without consent — more findings = stronger case.
   if (aiData?.checks && !pageContext.hasPreCheckedConsent && !pageContext.hasDataFormNoConsent
       && pageContext.formPageLinks?.length
       && !pageContext._http403 && !pageContext._firewalled && !pageContext._blocked) {
-    for (const l of pageContext.formPageLinks.slice(0, 2)) {
+    const noConsentUrls = [];
+    for (const l of pageContext.formPageLinks.slice(0, 3)) {
       if (!isSafeUrl(l.href)) continue;
       const { preChecked, noConsent } = await fetchFormPageSignal(l.href);
       if (preChecked) {
         pageContext.hasPreCheckedConsent = true;
         pageContext._preCheckedConsentUrl = l.href;
+        noConsentUrls.length = 0;
         break;
       }
-      if (noConsent) {
-        pageContext.hasDataFormNoConsent = true;
-        pageContext._dataFormNoConsentUrl = l.href;
-        break;
-      }
+      if (noConsent) noConsentUrls.push(l.href);
+    }
+    if (noConsentUrls.length) {
+      pageContext.hasDataFormNoConsent = true;
+      pageContext._dataFormNoConsentUrls = noConsentUrls;
     }
   }
 
   // SPA course/product pages (proshkola18-style): buttons navigate via JS router, no <a href>.
-  // If neither formPageLinks nor registerLinks found anything yet, try clicking course-like
-  // buttons to discover URLs, then probe those pages for consent defects.
+  // Probe ALL discovered URLs to count every form without consent.
   if (aiData?.checks && !pageContext.hasPreCheckedConsent && !pageContext.hasDataFormNoConsent
       && !pageContext.formPageLinks?.length && !pageContext.registerLinks?.length
       && !pageContext._http403 && !pageContext._firewalled && !pageContext._blocked) {
     const courseUrls = await discoverCoursePageLinks(url).catch(() => []);
-    for (const cu of courseUrls.slice(0, 3)) {
+    const noConsentUrls = [];
+    for (const cu of courseUrls.slice(0, 5)) {
       if (!isSafeUrl(cu)) continue;
       const { preChecked, noConsent } = await fetchFormPageSignal(cu);
       if (preChecked) {
         pageContext.hasPreCheckedConsent = true;
         pageContext._preCheckedConsentUrl = cu;
+        noConsentUrls.length = 0;
         break;
       }
-      if (noConsent) {
-        pageContext.hasDataFormNoConsent = true;
-        pageContext._dataFormNoConsentUrl = cu;
-        break;
-      }
+      if (noConsent) noConsentUrls.push(cu);
+    }
+    if (noConsentUrls.length) {
+      pageContext.hasDataFormNoConsent = true;
+      pageContext._dataFormNoConsentUrls = noConsentUrls;
     }
   }
 
@@ -1051,7 +1054,12 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     if (check152) {
       if (check152.status === 'ok') check152.status = 'risk';
       check152._dataFormNoConsent = true;
-      const lead = 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).';
+      const urls = pageContext._dataFormNoConsentUrls || (pageContext._dataFormNoConsentUrl ? [pageContext._dataFormNoConsentUrl] : []);
+      check152._dataFormNoConsentCount = urls.length || 1;
+      const n = check152._dataFormNoConsentCount;
+      const lead = n > 1
+        ? `${n} формы сбора персональных данных без согласия — на ${n} страницах сайта рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).`
+        : 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).';
       const prev = (check152.issue || '').trim();
       check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
     }
@@ -1377,44 +1385,48 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     }
   }
 
-  // Probe contact/application form subpages (see single-scan note above).
+  // Probe contact/application form subpages — probe ALL to count every affected form.
   if (aiData?.checks && !mainPageContext.hasPreCheckedConsent && !mainPageContext.hasDataFormNoConsent
       && mainPageContext.formPageLinks?.length
       && !mainPageContext._http403 && !mainPageContext._firewalled && !mainPageContext._blocked) {
-    for (const l of mainPageContext.formPageLinks.slice(0, 2)) {
+    const noConsentUrls = [];
+    for (const l of mainPageContext.formPageLinks.slice(0, 3)) {
       if (!isSafeUrl(l.href)) continue;
       const { preChecked, noConsent } = await fetchFormPageSignal(l.href);
       if (preChecked) {
         mainPageContext.hasPreCheckedConsent = true;
         mainPageContext._preCheckedConsentUrl = l.href;
+        noConsentUrls.length = 0;
         break;
       }
-      if (noConsent) {
-        mainPageContext.hasDataFormNoConsent = true;
-        mainPageContext._dataFormNoConsentUrl = l.href;
-        break;
-      }
+      if (noConsent) noConsentUrls.push(l.href);
+    }
+    if (noConsentUrls.length) {
+      mainPageContext.hasDataFormNoConsent = true;
+      mainPageContext._dataFormNoConsentUrls = noConsentUrls;
     }
   }
 
-  // SPA course/product pages — full-scan path (see single-scan comment above).
+  // SPA course/product pages — full-scan path, probe ALL to count every affected form.
   if (aiData?.checks && !mainPageContext.hasPreCheckedConsent && !mainPageContext.hasDataFormNoConsent
       && !mainPageContext.formPageLinks?.length && !mainPageContext.registerLinks?.length
       && !mainPageContext._http403 && !mainPageContext._firewalled && !mainPageContext._blocked) {
     const courseUrls = await discoverCoursePageLinks(url).catch(() => []);
-    for (const cu of courseUrls.slice(0, 3)) {
+    const noConsentUrls = [];
+    for (const cu of courseUrls.slice(0, 5)) {
       if (!isSafeUrl(cu)) continue;
       const { preChecked, noConsent } = await fetchFormPageSignal(cu);
       if (preChecked) {
         mainPageContext.hasPreCheckedConsent = true;
         mainPageContext._preCheckedConsentUrl = cu;
+        noConsentUrls.length = 0;
         break;
       }
-      if (noConsent) {
-        mainPageContext.hasDataFormNoConsent = true;
-        mainPageContext._dataFormNoConsentUrl = cu;
-        break;
-      }
+      if (noConsent) noConsentUrls.push(cu);
+    }
+    if (noConsentUrls.length) {
+      mainPageContext.hasDataFormNoConsent = true;
+      mainPageContext._dataFormNoConsentUrls = noConsentUrls;
     }
   }
 
@@ -1439,7 +1451,12 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
     if (check152) {
       if (check152.status === 'ok') check152.status = 'risk';
       check152._dataFormNoConsent = true;
-      const lead = 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).';
+      const urls = mainPageContext._dataFormNoConsentUrls || (mainPageContext._dataFormNoConsentUrl ? [mainPageContext._dataFormNoConsentUrl] : []);
+      check152._dataFormNoConsentCount = urls.length || 1;
+      const n = check152._dataFormNoConsentCount;
+      const lead = n > 1
+        ? `${n} формы сбора персональных данных без согласия — на ${n} страницах сайта рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).`
+        : 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).';
       const prev = (check152.issue || '').trim();
       check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
     }
