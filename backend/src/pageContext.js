@@ -167,7 +167,10 @@ function revealRegistrationForm() {
 // важно его наличие именно у формы сбора. Пароль-формы (вход/регистрация) пропускаем.
 function detectDataFormNoConsent() {
   const pdSel = 'input[type="tel"],input[type="email"],input[name*="phone" i],input[name*="tel" i],input[name*="mail" i],input[name*="fio" i],input[placeholder*="телефон" i],input[placeholder*="почт" i],input[placeholder*="e-mail" i],input[placeholder*="mail" i],textarea';
-  const isVisible = el => { try { const s = getComputedStyle(el); return s.display !== 'none' && s.visibility !== 'hidden' && el.offsetParent !== null; } catch { return true; } };
+  // Don't require offsetParent !== null: on course/landing pages forms are often hidden inside
+  // tabs or "register" modals (shown on click) — offsetParent is null but the form IS shown to
+  // the user when they interact. Only skip inputs explicitly set display:none on the element itself.
+  const isVisible = el => { try { return getComputedStyle(el).display !== 'none'; } catch { return true; } };
   const pdInputs = [...document.querySelectorAll(pdSel)].filter(isVisible);
   if (!pdInputs.length) return false;
   const consentRe = /соглас|обработк[ауеи].{0,40}(персональн|данн)|персональн\w*\s+данн|политик[ауеиой].{0,30}(конфиденц|обработк)|конфиденциальн|нажима[яю].{0,80}(соглаш|политик)/i;
@@ -184,8 +187,10 @@ function detectDataFormNoConsent() {
     if (!cont) continue;
     if (cont.querySelector('input[type="password"]')) continue; // вход/регистрация — согласие отдельным путём
     const fields = cont.querySelectorAll(pdSel).length;
-    // форма сбора контактов: есть телефон/сообщение, либо email + ещё поле (отсекает поиск/одиночную подписку)
-    const collectsContact = cont.querySelector('input[type="tel"],textarea') || (cont.querySelector('input[type="email"]') && fields >= 2);
+    // форма сбора контактов: есть телефон/сообщение, либо email + ещё поле, либо name/placeholder
+    // указывают на телефон/почту (type="text" с name="phone" — распространено в конструкторах форм).
+    const hasPdByAttr = cont.querySelector('input[name*="phone" i],input[name*="tel" i],input[name*="mail" i],input[placeholder*="телефон" i],input[placeholder*="phone" i]');
+    const collectsContact = cont.querySelector('input[type="tel"],textarea') || (cont.querySelector('input[type="email"]') && fields >= 2) || (hasPdByAttr && fields >= 2);
     if (!collectsContact) continue;
     const hasCheckbox   = !!cont.querySelector('input[type="checkbox"],[role="checkbox"],[class*="checkbox" i]');
     const hasConsentText = consentRe.test(cont.textContent || '');
@@ -225,31 +230,34 @@ export async function discoverCoursePageLinks(url) {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
     await page.waitForTimeout(600).catch(() => {});
 
-    // Pattern: course/product/event-like content on the button/card
-    const COURSE_RE = /курс|вебинар|интенсив|програм|тренинг|семинар|мастер.?класс|событи|занятие|урок|workshop|webinar|training|course|event/i;
+    // Skip auth/support/nav buttons — everything else might be a course/product landing page
+    const SKIP_RE = /войти|вход|регистрац|зарегистр|логин|sign.?in|log.?in|sign.?up|поддержк|служб|помощ|помощь|contact|написать.нам/i;
 
-    // Collect candidate selectors with text + element handle index
-    const candidates = await page.evaluate(() => {
+    // Collect all clickable non-anchor elements — don't pre-filter by text content because
+    // course card labels vary wildly ("3 ПРИЁМА СЕНСОРНОЙ ИНТЕГРАЦИИ" has no "курс" in it).
+    const candidates = await page.evaluate((skipRe) => {
       const result = [];
-      const els = document.querySelectorAll('button, [role="button"], a:not([href]), a[href="#"], a[href="javascript:void(0)"], a[href="javascript:;"], [onclick], [class*="card"], [class*="course"]');
+      const SEL = 'button, [role="button"], a:not([href]), a[href="#"], a[href="javascript:void(0)"], a[href="javascript:;"], [onclick]';
       let idx = 0;
-      for (const el of els) {
+      for (const el of document.querySelectorAll(SEL)) {
         const text = (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 120);
+        // Skip empty, very short labels (icons), auth/nav buttons
+        if (!text || text.length < 5) { idx++; continue; }
+        if (new RegExp(skipRe, 'i').test(text)) { idx++; continue; }
         const onclick = el.getAttribute('onclick') || '';
         const dataHref = el.getAttribute('data-href') || el.getAttribute('data-url') || el.getAttribute('data-link') || '';
         result.push({ idx: idx++, text, onclick, dataHref });
-        if (idx > 30) break;
+        if (result.length >= 20) break;
       }
       return result;
-    });
+    }, SKIP_RE.source);
 
-    const filtered = candidates.filter(c => COURSE_RE.test(c.text));
-    if (!filtered.length) return [];
+    if (!candidates.length) return [];
 
     const discovered = new Set();
 
     // First pass: extract URLs from onclick / data-href without clicking
-    for (const c of filtered) {
+    for (const c of candidates) {
       if (c.dataHref) {
         const full = c.dataHref.startsWith('http') ? c.dataHref : origin + (c.dataHref.startsWith('/') ? c.dataHref : '/' + c.dataHref);
         if (full.startsWith(origin) && full !== url) discovered.add(full);
@@ -264,33 +272,35 @@ export async function discoverCoursePageLinks(url) {
       }
     }
 
-    // Second pass: click-and-intercept for React/Vue router navigation (no onclick attr)
+    // Second pass: click-and-navigate for React/Vue Router SPAs that use history.pushState.
+    // page.route() only intercepts HTTP requests; SPA navigation (pushState) never makes one.
+    // framenavigated fires on pushState too — we start waitForNavigation BEFORE the click,
+    // then check the new URL. Navigate back to the main page between clicks.
     if (discovered.size < 3) {
-      // Route intercept: capture navigation URL and abort so we stay on the page
-      await page.route('**', async (route, request) => {
-        const reqUrl = request.url();
-        if (request.isNavigationRequest() && reqUrl !== page.url() && reqUrl !== url) {
-          if (reqUrl.startsWith(origin)) discovered.add(reqUrl);
-          await route.abort().catch(() => {});
-        } else {
-          await route.continue().catch(() => {});
-        }
-      });
-
-      const allEls = await page.$$('button, [role="button"], a:not([href]), a[href="#"], a[href="javascript:void(0)"], [class*="card"], [class*="course"]');
+      const SEL = 'button, [role="button"], a:not([href]), a[href="#"], a[href="javascript:void(0)"], a[href="javascript:;"], [onclick]';
+      const allEls = await page.$$(SEL);
       let clicked = 0;
-      for (const c of filtered.slice(0, 8)) {
+      for (const c of candidates.slice(0, 8)) {
         if (discovered.size >= 5) break;
         const el = allEls[c.idx];
         if (!el) continue;
+        const beforeUrl = page.url();
         try {
-          await el.click({ timeout: 2000, force: true }).catch(() => {});
-          await page.waitForTimeout(500).catch(() => {});
+          // Start nav-watch BEFORE click so it doesn't miss the pushState event
+          const navPromise = page.waitForNavigation({ timeout: 3000, waitUntil: 'commit' }).catch(() => null);
+          await el.click({ force: true }).catch(() => {});
+          await navPromise;
+          await page.waitForTimeout(300).catch(() => {});
         } catch { /* ignore */ }
+        const afterUrl = page.url();
+        if (afterUrl !== beforeUrl && afterUrl.startsWith(origin) && afterUrl !== url) {
+          discovered.add(afterUrl);
+          // Go back to scan the next course card
+          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
+          await page.waitForTimeout(1000).catch(() => {});
+        }
         if (++clicked >= 6) break;
       }
-
-      await page.unroute('**').catch(() => {});
     }
 
     return [...discovered].filter(u => u !== url).slice(0, 5);
