@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import MonitoringSignup from './MonitoringSignup';
-import DocOfferCard from './DocOfferCard';
+import LeadOfferCard from './LeadOfferCard';
 import IntakeModal from './IntakeModal';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
@@ -289,6 +289,8 @@ function SlezaBlock({ pages }) {
 
 export default function Results({ data, uuid, onShare, onNewScan, onEmailCaptured }) {
   const [intakeOpen, setIntakeOpen] = useState(false);
+  const [leadCaptured, setLeadCaptured] = useState(false);
+  const handleEmailCaptured = (e) => { setLeadCaptured(true); onEmailCaptured?.(e); };
   const hostname = data.hostname || data.url;
   const checks   = data.aiData?.checks || [];
   const violations = checks.filter(c => c.status === 'violation');
@@ -439,9 +441,11 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
         </div>
       )}
 
-      {/* Document package offer — primary action when there's something to fix */}
+      {/* Low-threshold lead offer — primary action when there's something to fix.
+          A/B vs the old DocOfferCard (3 900 ₽ заявка, 0 конверсий): capture email
+          for a free personal разбор, sell the doc package in concierge follow-up. */}
       {(violations.length > 0 || risks.length > 0) && (
-        <DocOfferCard data={data} hostname={hostname} uuid={uuid} onOpenIntake={() => setIntakeOpen(true)} />
+        <LeadOfferCard data={data} hostname={hostname} uuid={uuid} onEmailCaptured={handleEmailCaptured} />
       )}
 
       {/* CTA */}
@@ -473,12 +477,15 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
                 🔗
               </button>
             </div>
-            <MonitoringSignup
-              hostname={hostname}
-              uuid={uuid}
-              hasViolations={true}
-              onEmailCaptured={onEmailCaptured}
-            />
+            {/* hidden once the lead offer above captured an email — avoid a second email field */}
+            {!leadCaptured && (
+              <MonitoringSignup
+                hostname={hostname}
+                uuid={uuid}
+                hasViolations={true}
+                onEmailCaptured={handleEmailCaptured}
+              />
+            )}
           </>
         ) : (
           <>

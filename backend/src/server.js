@@ -273,6 +273,8 @@ app.post('/api/subscribe', {
 
 const VALID_EVENT_TYPES = new Set([
   'scan_done', 'doc_offer_shown', 'doc_offer_clicked', 'intake_opened', 'intake_submitted',
+  // Low-threshold lead offer (A/B vs the high-threshold doc-package intake)
+  'lead_offer_shown', 'lead_submitted',
 ]);
 
 // Public — frontend fires funnel steps. Fire-and-forget, always 200 (analytics must
