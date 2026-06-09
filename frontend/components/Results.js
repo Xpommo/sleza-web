@@ -14,6 +14,15 @@ const LAW_LINKS = {
   'drugs':  'https://www.consultant.ru/document/cons_doc_LAW_10172/',
 };
 
+// Short actionable hint shown inline under each violation — answers "что делать прямо сейчас"
+// without sending the user to PDF first.
+const FIX_HINTS = {
+  law152: 'Нужен cookie-баннер с кнопкой «Отказаться» и Политика конфиденциальности с целями обработки.',
+  law149: 'Добавьте ИНН, ОГРН и юридический адрес в подвал сайта или на страницу «Контакты».',
+  erir:   'Каждый рекламный блок требует пометки «реклама» и ERID-токена, выданного ОРД.',
+  offer:  'Опубликуйте публичную оферту с ценами, порядком возврата и контактами продавца.',
+};
+
 const STATUS_BADGE_CLASS = {
   ok:        'bg-[rgba(26,122,82,0.1)] text-ok',
   risk:      'bg-[rgba(184,121,0,0.12)] text-warn',
@@ -210,6 +219,12 @@ function FindingRow({ check, idx, diffEntry, scanUuid }) {
             )}
             <DiffBadge diffEntry={diffEntry} />
             <FeedbackButton checkId={check.id} scanUuid={scanUuid} />
+            {FIX_HINTS[check.id] && (
+              <div className="mt-2.5 flex items-start gap-2 text-[12px] bg-brand/[0.05] border border-brand/20 rounded-[5px] px-2.5 py-2 leading-snug">
+                <span className="text-brand font-bold shrink-0">→</span>
+                <span className="text-ink/75">{FIX_HINTS[check.id]}</span>
+              </div>
+            )}
           </>
         ) : (
           <>
@@ -422,6 +437,11 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
         )}
       </div>
 
+      {/* Lead offer — сразу после таблицы, пока тревога горячая */}
+      {(violations.length > 0 || risks.length > 0) && (
+        <LeadOfferCard data={data} hostname={hostname} uuid={uuid} onEmailCaptured={handleEmailCaptured} />
+      )}
+
       {/* Sleza */}
       <SlezaBlock pages={data.pages || []} />
 
@@ -439,13 +459,6 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
             <div>статус: {data.egrul.result.parsed.isActive ? 'действующая' : `прекращена — ${data.egrul.result.parsed.reason || ''}`}</div>
           </div>
         </div>
-      )}
-
-      {/* Low-threshold lead offer — primary action when there's something to fix.
-          A/B vs the old DocOfferCard (3 900 ₽ заявка, 0 конверсий): capture email
-          for a free personal разбор, sell the doc package in concierge follow-up. */}
-      {(violations.length > 0 || risks.length > 0) && (
-        <LeadOfferCard data={data} hostname={hostname} uuid={uuid} onEmailCaptured={handleEmailCaptured} />
       )}
 
       {/* CTA */}
@@ -477,61 +490,54 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
                 🔗
               </button>
             </div>
-            {/* hidden once the lead offer above captured an email — avoid a second email field */}
-            {!leadCaptured && (
-              <MonitoringSignup
-                hostname={hostname}
-                uuid={uuid}
-                hasViolations={true}
-                onEmailCaptured={handleEmailCaptured}
-              />
-            )}
           </>
         ) : (
           <>
             <div className="label-micro mb-1.5">всё в порядке</div>
             <div className="text-[18px] font-bold tracking-tight mb-1 leading-snug">
-              Сохраните результат и проверьтесь снова через квартал
+              Сайт прошёл проверку по {checks.length} параметрам
             </div>
             <div className="text-[13px] text-ink/55 leading-snug mb-4">
-              Законы меняются. Мы напомним.
+              Нарушений не найдено. Поделитесь результатом с командой или партнёрами — или скачайте PDF для документации.
             </div>
-            <MonitoringSignup
-              hostname={hostname}
-              uuid={uuid}
-              hasViolations={false}
-              onEmailCaptured={onEmailCaptured}
-            />
-            <div className="flex gap-2 mt-4 pt-4 border-t border-line w-full">
-              <button
-                onClick={() => onShare?.('pdf')}
-                disabled={!uuid}
-                className="flex-1 bg-white hover:bg-warm disabled:opacity-40 disabled:cursor-wait text-ink border border-line-2 rounded-lg px-5 py-3 text-[14px] font-medium transition-colors inline-flex items-center justify-center gap-2"
-              >
-                {uuid ? '📄 Скачать PDF' : '⏳ Подготовка…'}
-              </button>
+            <div className="flex gap-2 w-full mb-4">
               <button
                 onClick={() => onShare?.('share')}
                 disabled={!uuid}
-                className="bg-white hover:bg-warm disabled:opacity-40 disabled:cursor-wait text-ink border border-line-2 rounded-lg px-4 py-3 text-[14px] font-medium transition-colors"
-                title="поделиться ссылкой"
+                className="flex-1 bg-ink hover:bg-brand disabled:opacity-40 disabled:cursor-wait text-white rounded-lg px-5 py-3 text-[14px] font-bold transition-colors inline-flex items-center justify-center gap-2"
               >
-                🔗
+                🔗 Поделиться результатом
               </button>
+              <button
+                onClick={() => onShare?.('pdf')}
+                disabled={!uuid}
+                className="bg-white hover:bg-warm disabled:opacity-40 disabled:cursor-wait text-ink border border-line-2 rounded-lg px-4 py-3 text-[14px] font-medium transition-colors inline-flex items-center justify-center gap-1"
+                title="скачать PDF"
+              >
+                📄 PDF
+              </button>
+            </div>
+            <div className="pt-4 border-t border-line">
+              <MonitoringSignup
+                hostname={hostname}
+                uuid={uuid}
+                hasViolations={false}
+                onEmailCaptured={onEmailCaptured}
+              />
             </div>
           </>
         )}
       </div>
 
-      {/* Tertiary CTA: разобрать отчёт с автором */}
-      <div className="text-center py-1">
-        <a
-          href={`mailto:kirillmash99@gmail.com?subject=${encodeURIComponent(`Разбор отчёта по ${hostname}`)}&body=${encodeURIComponent('Привет! Хочу разобрать отчёт по своему сайту.')}`}
-          className="text-[12px] text-ink/40 hover:text-ink/70 transition-colors font-mono"
-        >
-          разобрать отчёт вместе с автором →
-        </a>
-      </div>
+      {/* Связаться с экспертом — видимая кнопка, не footnote */}
+      <a
+        href={`mailto:kirillmash99@gmail.com?subject=${encodeURIComponent(`Разбор отчёта по ${hostname}`)}&body=${encodeURIComponent(`Привет!\n\nХочу разобрать отчёт по сайту ${hostname}.\nОтчёт: https://fonarik-web.vercel.app/?report=${uuid || ''}\n\nЧто нашли: ${violations.length} нарушений, ${risks.length} рисков.`)}`}
+        className="w-full flex items-center justify-center gap-2 text-[13px] font-medium text-ink/55 hover:text-ink border border-line-2 hover:border-ink/30 bg-paper rounded-lg py-3 transition-colors"
+      >
+        <span>✉</span>
+        <span>разобрать отчёт с экспертом</span>
+        <span className="text-ink/30">→</span>
+      </a>
 
       <button
         onClick={onNewScan}
