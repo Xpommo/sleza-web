@@ -1,246 +1,79 @@
-'use client';
+import HomeClient from './HomeClient';
 
-import { useState, useEffect, useRef } from 'react';
-import ScanForm from '../components/ScanForm';
-import ScanProgress from '../components/ScanProgress';
-import Results from '../components/Results';
-import Landing from '../components/Landing';
-import ShareModal from '../components/ShareModal';
-import { captureUTM, fireEvent } from '../lib/analytics';
+const BACKEND   = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+const SITE_URL  = process.env.NEXT_PUBLIC_SITE_URL   || 'https://fonarik-web.vercel.app';
+const UUID_RE   = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
-
-function LiveStatsBar({ stats }) {
-  if (!stats?.scans) return null;
-  const fmt = n => new Intl.NumberFormat('ru-RU').format(n);
-  const minutesAgo = stats.lastScanAt
-    ? Math.max(1, Math.floor((Date.now() - new Date(stats.lastScanAt)) / 60000))
-    : null;
-  const timeLabel = minutesAgo == null ? null
-    : minutesAgo < 60 ? `${minutesAgo} мин назад`
-    : `${Math.floor(minutesAgo / 60)} ч назад`;
-  return (
-    <div className="font-mono text-[11px] text-ink/50 tracking-wide mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span className="inline-flex items-center gap-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-ok animate-pulseDot" />
-        проверено {fmt(stats.scans)} сайтов
-      </span>
-      {timeLabel && <span>· последний скан {timeLabel}</span>}
-    </div>
-  );
+async function fetchScanMeta(reportId) {
+  try {
+    const res = await fetch(`${BACKEND}/api/results/${reportId}`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
 
-function FlashlightIcon({ width = 24, height = 16, className = '' }) {
-  return (
-    <svg
-      width={width}
-      height={height}
-      viewBox="0 0 24 16"
-      fill="none"
-      aria-hidden="true"
-      className={`text-brand shrink-0 ${className}`}
-    >
-      <rect x="2" y="5" width="8" height="6" rx="1.4" fill="currentColor" />
-      <rect x="10" y="4" width="3" height="8" rx="0.6" fill="currentColor" />
-      <g stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-        <line className="beam beam-top"    x1="14" y1="7" x2="20.4" y2="3.4"  />
-        <line className="beam beam-center" x1="14" y1="8" x2="22"   y2="8"    />
-        <line className="beam beam-bottom" x1="14" y1="9" x2="20.4" y2="12.6" />
-      </g>
-    </svg>
-  );
+function parseFine(str) {
+  if (!str) return 0;
+  const m = str.replace(/[\s ]/g, '').match(/(\d+)руб/);
+  return m ? parseInt(m[1], 10) : 0;
 }
 
-export default function Home() {
-  const [result,        setResult]        = useState(null);
-  const [loading,       setLoading]       = useState(false);
-  const [error,         setError]         = useState(null);
-  const [progress,      setProgress]      = useState({ phase: '', current: 0, total: 0 });
-  const [uuid,          setUuid]          = useState(null);
-  const [shareModal,    setShareModal]    = useState(null);
-  const [showForm,      setShowForm]      = useState(true);
-  const [capturedEmail, setCapturedEmail] = useState('');
-  const [stats,         setStats]         = useState(null);
-  const cancelRef = useRef(null);
-  const formRef = useRef(null);
-  const resultsRef = useRef(null);
+export async function generateMetadata({ searchParams }) {
+  const reportId = searchParams?.report;
+  if (!reportId || !UUID_RE.test(reportId)) return {};
 
-  // Capture UTM params once on mount so funnel events can be attributed to source
-  useEffect(() => { captureUTM(); }, []);
+  const data = await fetchScanMeta(reportId);
+  if (!data?.result) return {};
 
-  // Fetch public aggregate stats for the LiveStatsBar
-  useEffect(() => {
-    fetch(`${BASE}/api/stats`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) setStats(data); })
-      .catch(() => {});
-  }, []);
+  const result   = data.result;
+  const hostname = result.hostname || result.url || 'сайт';
+  const checks   = result.aiData?.checks || [];
+  const violations = checks.filter(c => c.status === 'violation');
+  const risks      = checks.filter(c => c.status === 'risk');
 
-  // Open a shared report when ?report=<uuid> is present
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const reportId = params.get('report');
-    if (!reportId) return;
-    setShowForm(false);
-    setLoading(true);
-    fetch(`${BASE}/api/results/${reportId}`)
-      .then(r => {
-        if (!r.ok) throw new Error(r.status === 410 ? 'Срок хранения отчёта истёк (24 часа)' : 'Отчёт не найден');
-        return r.json();
-      })
-      .then(data => { setResult(data.result); setUuid(reportId); })
-      .catch(e => { setError(e.message); setShowForm(true); })
-      .finally(() => setLoading(false));
-  }, []);
+  let title, description;
 
-  useEffect(() => {
-    if (result) {
-      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    }
-  }, [result]);
+  if (violations.length > 0) {
+    const totalFine = violations.reduce((s, c) => s + parseFine(c.fine), 0);
+    const fineStr   = totalFine > 0
+      ? ` · штраф до ${new Intl.NumberFormat('ru-RU').format(totalFine)} ₽`
+      : '';
+    title       = `${hostname} — ${violations.length} нарушений 152-ФЗ${fineStr}`;
+    description = `Аудит выявил ${violations.length} нарушений${risks.length > 0 ? ` и ${risks.length} риска` : ''} по российскому законодательству. Подробный отчёт с рекомендациями — ФОНАРИК.`;
+  } else if (risks.length > 0) {
+    title       = `${hostname} — ${risks.length} риска по 152-ФЗ`;
+    description = `Критических нарушений не найдено, есть ${risks.length} риска. Полный отчёт проверки — ФОНАРИК.`;
+  } else {
+    title       = `${hostname} — сайт прошёл проверку 152-ФЗ ✓`;
+    description = `Нарушений не найдено. ${hostname} соответствует требованиям 152-ФЗ, 149-ФЗ и ЕРИР. Проверка ФОНАРИК.`;
+  }
 
-  const newScan = () => {
-    setResult(null); setUuid(null); setError(null); setShowForm(true);
-    window.history.replaceState(null, '', '/');
-    setTimeout(() => formRef.current?.querySelector('input')?.focus(), 50);
+  const url = `${SITE_URL}/?report=${reportId}`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: 'ФОНАРИК',
+      locale: 'ru_RU',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
   };
+}
 
-  const applyUuid = (id) => {
-    if (!id) return;
-    setUuid(id);
-    window.history.replaceState(null, '', `?report=${id}`);
-  };
-
-  const stopScan = () => {
-    if (cancelRef.current) { cancelRef.current(); cancelRef.current = null; }
-    setLoading(false); setProgress({ phase: '', current: 0, total: 0 });
-    setError('Сканирование остановлено.');
-  };
-
-  const scan = async (url, mode, siteType = 'auto') => {
-    setLoading(true); setError(null); setResult(null); setUuid(null);
-    setProgress({ phase: 'render', current: 0, total: 0 });
-    cancelRef.current = null;
-    window.history.replaceState(null, '', '/');
-
-    const headers = { 'Content-Type': 'application/json' };
-    const body = JSON.stringify({ url, useAI: true, siteType });
-
-    try {
-      if (mode === 'single') {
-        const res = await fetch(`${BASE}/api/scan/single`, { method: 'POST', headers, body });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
-        setResult(data); applyUuid(data.uuid);
-        fireEvent('scan_done', { scanUuid: data.uuid, hostname: data.hostname });
-      } else {
-        const res = await fetch(`${BASE}/api/scan/full/stream`, { method: 'POST', headers, body });
-        if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || 'Ошибка сервера'); }
-        const reader = res.body.getReader();
-        cancelRef.current = () => reader.cancel();
-        const decoder = new TextDecoder();
-        let buffer = '', finished = false;
-        while (!finished) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const parts = buffer.split('\n\n'); buffer = parts.pop() ?? '';
-          for (const part of parts) {
-            if (!part.startsWith('data: ')) continue;
-            const data = JSON.parse(part.slice(6));
-            if (data.error) throw new Error(data.error);
-            if (data.done) { setResult(data.result); applyUuid(data.result?.uuid); fireEvent('scan_done', { scanUuid: data.result?.uuid, hostname: data.result?.hostname }); finished = true; break; }
-            setProgress({ phase: data.phase || '', current: data.current || 0, total: data.total || 0 });
-          }
-        }
-      }
-    } catch (e) {
-      if (e.name !== 'AbortError' && e.message !== 'Сканирование остановлено.') setError(e.message);
-    } finally {
-      cancelRef.current = null; setLoading(false); setProgress({ phase: '', current: 0, total: 0 });
-    }
-  };
-
-  const showLanding = showForm && !result && !loading;
-
-  return (
-    <>
-      <ShareModal open={!!shareModal} onClose={() => setShareModal(null)} uuid={uuid} mode={shareModal} defaultEmail={capturedEmail} />
-
-      {/* sticky top nav */}
-      <nav className="sticky top-0 z-50 bg-warm/85 backdrop-blur-md border-b border-line">
-        <div className="max-w-3xl mx-auto px-5 py-3.5 flex items-center gap-7">
-          <a href="/" className="flex items-center gap-2.5">
-            <FlashlightIcon width={26} height={17} />
-            <span className="font-extrabold text-[19px] tracking-[-0.04em] leading-none">
-              фонарик
-            </span>
-          </a>
-          <div className="ml-auto hidden sm:flex items-center gap-3 font-mono text-[11px] text-ink/60">
-            <span className="inline-flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-ok animate-pulseDot" />
-              сервис активен
-            </span>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-3xl mx-auto px-4 sm:px-5 py-8 sm:py-10">
-
-        {/* Doc header */}
-        {showLanding && (
-          <header className="mb-7 pb-7 border-b border-line">
-            <div className="label-micro mb-5">бесплатно · без регистрации</div>
-            <h1 className="text-[32px] sm:text-[48px] lg:text-[52px] font-extrabold tracking-[-0.045em] leading-[0.96] mb-5 text-balance break-words">
-              Проверка сайта на <span className="text-brand">152-ФЗ, 149-ФЗ и ЕРИР</span> — узнайте про штраф раньше регулятора
-            </h1>
-            <p className="text-[15px] sm:text-[16px] text-ink/65 leading-relaxed max-w-[58ch]">
-              Бесплатный аудит за 5 минут. Сверка с реестрами иноагентов, ЕГРЮЛ и государственными базами. PDF-отчёт со ссылками на статьи закона и понятными рекомендациями, что починить первым.
-            </p>
-            <LiveStatsBar stats={stats} />
-          </header>
-        )}
-
-        {/* Scan form */}
-        {showForm && (
-          <div ref={formRef}>
-            <ScanForm onScan={scan} loading={loading} />
-          </div>
-        )}
-
-        {/* Progress */}
-        {loading && !result && (
-          <ScanProgress
-            phase={progress.phase}
-            current={progress.current}
-            total={progress.total}
-            onStop={stopScan}
-          />
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="mt-5 border border-danger/30 bg-danger/[0.06] rounded-lg px-4 py-3 text-[13px] text-danger">
-            ⚠ {error}
-          </div>
-        )}
-
-        {/* Results */}
-        {result && (
-          <div ref={resultsRef}>
-            <Results
-              data={result}
-              uuid={uuid}
-              onShare={mode => setShareModal(mode)}
-              onNewScan={newScan}
-              onEmailCaptured={setCapturedEmail}
-            />
-          </div>
-        )}
-
-        {/* Landing */}
-        {showLanding && <Landing />}
-      </main>
-    </>
-  );
+export default function Page() {
+  return <HomeClient />;
 }
