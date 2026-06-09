@@ -8,44 +8,37 @@ Monorepo with two packages managed from the root:
 
 - `backend/` — Fastify HTTP server, Node.js ESM, no transpilation
 - `frontend/` — Next.js 14 App Router, Tailwind CSS
+- `marketing/` — untracked outreach tools (dashboard.html, triage.mjs), not part of the product
 
-**Script resolution** (engine.js проверяет в порядке приоритета):
+**Script resolution** (`engine.js` checks in priority order):
 1. `SLEZA_SCRIPT_PATH` env var (Railway/Docker)
-2. `backend/sleza_script` — бандлованная копия в репо (для Railway, всегда актуальна)
-3. `../../../sleza_tets_js/script` — сиблинг-репо (локальная разработка)
+2. `backend/sleza_script` — bundled copy in repo (always up to date for Railway)
+3. `../../../sleza_tets_js/script` — sibling repo (local dev)
 
-**Локальная разработка:** `sleza_tets_js` должен быть склонирован рядом в `~/sleza_tets_js/` на ветке `main` (все фиксы смержены в main).
-
-**Важно при обновлении скрипта:** после изменений в `sleza_tets_js/script` нужно обновить бандлованную копию: `cp ~/sleza_tets_js/script ~/sleza-web/backend/sleza_script && git add backend/sleza_script && git commit`
+**Updating the bundled script:** after changes in `sleza_tets_js/script`:
+```bash
+cp ~/sleza_tets_js/script ~/sleza-web/backend/sleza_script && git add backend/sleza_script && git commit
+```
 
 ## Common commands
 
 ```bash
-# Node.js is installed via NVM on this machine — load it first
+# Node.js via NVM — load first
 export NVM_DIR="$HOME/.nvm" && source "$NVM_DIR/nvm.sh"
 
-# From repo root — install all packages
-npm run install:all
-
-# Start both servers concurrently (backend :3001, frontend :3000)
-npm run dev
-
-# Start individually
+npm run install:all          # install all packages from root
+npm run dev                  # backend :3001 + frontend :3000 concurrently
 npm run dev:backend
 npm run dev:frontend
+npm run start --prefix backend   # production
 
-# Production
-npm run start --prefix backend
+# Smoke tests — run from backend/, not root
+cd backend && node test/smoke.js 2>/dev/null           # all URLs in test-urls.txt (~70 min)
+cd backend && node test/smoke.js --diff                # with diff vs baseline
+# For 7-site quick baseline: temporarily replace test-urls.txt with 7 lines, restore after
 ```
 
-Backend auto-restarts on file changes (`node --watch`). Frontend uses Next.js dev server with HMR.
-
-**First-time setup:** copy `backend/.env.example` to `backend/.env`. Keys can be left empty — users pass their own via request headers.
-
-Playwright (Chromium) must be installed once:
-```bash
-npx playwright install chromium
-```
+Backend auto-restarts on file changes (`node --watch`). First-time setup: copy `backend/.env.example` to `backend/.env`. Playwright Chromium must be installed once: `npx playwright install chromium`.
 
 ## Architecture
 
@@ -53,461 +46,149 @@ npx playwright install chromium
 
 ```
 Browser → Next.js frontend
-        → POST /api/scan/single        (JSON response)
-        → POST /api/scan/full/stream   (SSE stream)
+        → POST /api/scan/single        (JSON)
+        → POST /api/scan/full/stream   (SSE)
               ↓
-        Fastify backend (backend/src/server.js)
+        Fastify (backend/src/server.js)
               ↓
-        createEngine()  ← loads sleza_tets_js/script in a Node VM context
+        createEngine()  ← loads sleza_script in Node VM context
               ↓
-        buildPageContext()  ← Playwright headless Chromium renders the page
+        buildPageContext()  ← Playwright renders the page
               ↓
         engine.checkWithSleza()  → sleza.media/api/parse
         engine.checkEgrul()      → egrul.org/<id>.json
-        engine.runAIAnalysis()   → api.groq.com (Groq llama-3.3-70b)
+        engine.runAIAnalysis()   → api.groq.com (llama-3.3-70b)
 ```
 
-### Engine isolation (`backend/src/engine.js`)
+### Backend source files (`backend/src/`)
 
-Each HTTP request gets its own `vm.createContext()` — this is intentional. The Tampermonkey script uses module-level mutable state (`scanCancelled`, `SKIP_REASONS`, etc.) that would leak across concurrent scans if shared. After VM instantiation, two adapters are wired in:
+| File | Role |
+|---|---|
+| `server.js` | Fastify routes, SSRF guard (`isSafeUrl`), admin endpoints, SSE streaming |
+| `engine.js` | VM isolation per request, adapters for fetch transport and keystore |
+| `pageContext.js` | Playwright page rendering — extracts bodyText, links, cookie/consent signals |
+| `scanner.js` | Orchestrates full/single scan, local compliance checks, post-processing |
+| `db.js` | Supabase PostgreSQL — scans, leads, feedback, domain_exceptions tables |
+| `scanDiff.js` | Compares scan results vs baseline for regression detection |
+| `utils.js` | `isSafeUrl()` — shared SSRF protection |
+| `transport.js` | `makeFetchTransport()` — replaces GM_xmlhttpRequest with Node fetch |
+| `tg.js` | Telegram bot notifications (lead alerts, scan-of-day) |
+| `email.js` | Resend email integration |
+| `validateLead.js` | Lead form validation |
 
-- `engine.setHttpTransport(makeFetchTransport())` — replaces `GM_xmlhttpRequest` with Node `fetch` (see `transport.js`)
-- `engine.setKeyStore({ get, set })` — replaces `GM_getValue`/`GM_setValue` with request-scoped key lookup
+### Engine isolation (`engine.js`)
 
-Keys (Groq, Sleza) arrive in request headers (`x-groq-key`, `x-sleza-key`) and are never stored server-side.
+Each HTTP request gets its own `vm.createContext()`. The Tampermonkey script uses module-level mutable state (`scanCancelled`, `SKIP_REASONS`) that would leak across concurrent scans if shared. Two adapters are wired in per request:
+- `engine.setHttpTransport(makeFetchTransport())` — replaces `GM_xmlhttpRequest`
+- `engine.setKeyStore({ get, set })` — request-scoped key lookup
 
-### Why Playwright (`backend/src/pageContext.js`)
+Keys (Groq, Sleza) arrive in request headers (`x-groq-key`, `x-sleza-key`), never stored server-side.
 
-Many Russian sites (SPA frameworks, React/Vue) return an empty skeleton on plain `fetch()`. Playwright runs the full JS and gives the same DOM content that the Tampermonkey extension sees in a real browser. `buildPageContext()` is called once per scan — only for the main/current page. The rest of the URLs in a full-site scan use `engine.fetchUrl()` (plain HTTP) since Sleza only needs text, not rendered HTML.
+### Why Playwright (`pageContext.js`)
 
-A single Chromium instance is kept alive as a singleton and reused across requests. Each scan gets an isolated `BrowserContext` (separate cookies/storage) which is closed after use. `closeBrowser()` is called on `SIGTERM`/`SIGINT`.
+Many Russian sites (SPAs, React/Vue) return empty skeletons on plain `fetch()`. Playwright runs full JS. `buildPageContext()` is called once per scan for the main page only. A single Chromium instance is kept alive as a singleton; each scan gets an isolated `BrowserContext` (separate cookies/storage) closed after use.
 
-### SSE streaming (`/api/scan/full/stream`)
+**Key signals extracted by `buildPageContext`:**
+- `policyLinks`, `offerLinks`, `aboutLinks` — same-domain compliance links
+- `hasCookieBanner`, `hasConsentCheckbox`, `hasPreCheckedConsent`
+- `hasPreConsentTracking`, `preConsentTrackingServices` — tracking fires before banner interaction
+- `hasDataFormNoConsent`, `inlineModalPolicyText`, `bundledConsent`
+- `hasAdScripts`, `hasAnalytics`, `hasGtm`, `hasGoogleAnalytics`
+- `_http403`, `_firewalled`, `_blocked`, `_fallback` — access failure flags
 
-Full-site scans take 2–5 minutes. Instead of a long-polling JSON response, the backend sends Server-Sent Events (SSE) with `{ phase, current, total, url }` progress objects and a final `{ done: true, result }`. The frontend (`frontend/app/page.js`) reads the stream via `res.body.getReader()` and populates a progress bar. The stop button calls `reader.cancel()` — the backend detects the closed socket and exits naturally.
+### Consent detection pipeline (`scanner.js`)
+
+For sites collecting personal data (online schools, services), `scanner.js` probes sub-pages:
+1. `formPageLinks` / `registerLinks` — probed via `fetchFormPageSignal()` (batches of 3)
+2. SPA course pages — discovered via `discoverCoursePageLinks()` (Playwright click-interception, up to 10 pages)
+3. Each probe returns `{ preChecked, noConsent, bundledConsent }`
+
+`bundledConsent` = single checkbox combining 2+ of: [privacy/data] + [offer/terms] + [newsletter] — violation of ч.1 ст.9 152-FZ.
+
+`hasPreConsentTracking` = tracking cookies (`_ym_uid`, `_ga`, `_fbp`, etc.) or requests (`mc.yandex.ru/watch`, `analytics.google.com/g/collect`) detected before banner dismissal.
+
+### URL stratification for full scans
+
+Three-layer URL selection:
+- **Layer 1** (mandatory): homepage + known compliance paths (`/privacy`, `/about`, `/contacts`, etc.)
+- **Layer 2** (scored): top URLs by `scoreUrl()` — 70% of budget
+- **Layer 3** (sample): stride-sample from remainder — 15% of budget
+
+Page cap: 50 with Sleza key (rate-limited 1.1 s/page), 150 without.
+
+### SSE streaming
+
+Full-site scans take 2–5 min. Backend sends SSE `{ phase, current, total, url }` + final `{ done: true, result }`. Frontend reads via `res.body.getReader()`. Stop button calls `reader.cancel()`.
 
 ### Key flow
 
-Frontend stores keys in `localStorage` and sends them on every request as `x-groq-key` / `x-sleza-key` headers. Backend reads them in `extractKeys()` and passes them to `createEngine()`. If `DEFAULT_GROQ_KEY` / `DEFAULT_SLEZA_KEY` are set in `.env`, they act as fallbacks when headers are absent.
+Frontend stores keys in `localStorage`, sends as `x-groq-key` / `x-sleza-key` headers. Backend `extractKeys()` reads them, falls back to `DEFAULT_GROQ_KEY` / `DEFAULT_SLEZA_KEY` env vars.
 
-### Adaptive scan limit
+### Database (Supabase PostgreSQL, `db.js`)
 
-Full-site scan caps pages differently depending on whether a Sleza key was provided: 50 pages with key (rate-limited to 1.1 s/page ≈ 55 s wait), 150 pages without (no rate limit).
+Tables: `scans` (results by UUID), `leads`, `feedback`, `domain_exceptions` (feedback loop), `events` (funnel analytics), `doc_requests`. Scan cache: 20-min TTL via `findCachedScan`. **Railway Redeploy does NOT invalidate the Supabase cache** — wait 20 min after redeploy for fresh results.
 
-## Frontend components
+## Frontend components (`frontend/`)
 
-- `frontend/app/page.js` — single-page app: key storage, scan trigger, SSE reader, progress bar, stop button
-- `frontend/components/ScanForm.js` — URL input + mode buttons (single / full)
-- `frontend/components/Results.js` — renders `{ pages, aiData, egrul, slezaError, stats }` returned by the backend
+| File | Role |
+|---|---|
+| `app/page.js` | Key storage, scan trigger, SSE reader, progress bar, stop button |
+| `components/ScanForm.js` | URL input + mode buttons |
+| `components/Results.js` | Renders scan result — checks, штрафы, confidence badge |
+| `components/Landing.js` | Marketing landing page |
+| `components/LeadOfferCard.js` | Email capture CTA (free audit offer) |
+| `components/DocOfferCard.js` | Document package upsell |
+| `components/IntakeModal.js` | Full intake form |
+| `components/ShareModal.js` | Share report link |
 
-Result shape is identical to what the Tampermonkey script's `runFullSiteScan` / `runSinglePageScan` produce, so the rendering logic can be kept in sync.
+Result shape matches what `runFullSiteScan` / `runSinglePageScan` produce in the Tampermonkey script.
+
+## Environment variables
+
+```
+PORT=3001
+DEFAULT_GROQ_KEY=          # fallback if user doesn't provide header
+DEFAULT_SLEZA_KEY=
+ALLOWED_ORIGINS=http://localhost:3000
+FRONTEND_URL=http://localhost:3000   # used by PDF generator (Playwright screenshots)
+DATABASE_URL=              # Supabase postgres:// — graceful fallback if absent
+ADMIN_TOKEN=               # required for /api/admin/* and /api/debug/* (fail-closed)
+```
 
 ## Git workflow
 
 - Main branch: `master`
-- Backend is Node ESM (`"type": "module"`) — use `import`/`export`, not `require`.
-- Do not push to `master` without explicit user request.
+- Backend is Node ESM (`"type": "module"`) — use `import`/`export`, not `require`
+- Do not push to `master` without explicit user request
+- Railway and Vercel auto-deploy on every push to `master`
 
-## Текущий статус (2026-05-29) — АКТУАЛЬНО
+## MCP tools
 
-### Что реализовано и задеплоено ✅
+`.mcp.json` at project root configures Playwright MCP for Claude Code (VSCode extension). Restart session after changes to `.mcp.json`.
 
-**Раунд 1 — базовый скан** ✅
-**Раунд 1.5 — точность детектирования** ✅
-**Раунд 2 — лидогенерация** ✅ (UUID отчёты, PDF, ShareModal, CTA штрафов)
+## Deployment
 
-**Раунд 3 — качество сканирования** ✅
+- **Frontend:** https://fonarik-web.vercel.app (Vercel, auto-deploy from master)
+- **Backend:** https://sleza-web-production.up.railway.app (Railway)
+- Health check: `curl https://sleza-web-production.up.railway.app/health`
 
-_pageContext.js:_
-- `bodyText` cap: 25k для compliance-страниц (/privacy, /oferta и т.д.), 10k для остальных
-- `policyLinks` лимит 2→5, `offerLinks` 2→4, `aboutLinks` 2→4
-- Авто-закрытие cookie-баннеров перед извлечением DOM
-- Детект Cloudflare/DDoS-Guard challenge страниц → fallback на plain fetch
-- Новые поля: `hasPolicyFooterLink`, `hasConsentCheckbox`
-- User-Agent: Windows Chrome (уже был), таймаут 20s→30s
-- Логи скрипта подавлены по умолчанию (включить: `SLEZA_DEBUG=1`)
+## Known limitations / false positives
 
-_scanner.js:_
-- PDF-парсинг через `pdf-parse`: читает оферты/договоры в PDF (напр. callibri.ru/Offer.pdf)
-- `fetchExtraText` проактивно пробует `/Offer.pdf`, `/oferta.pdf` и т.д. при каждом скане
-- `fetchPolicyText` Fallback 2: пробует `/terms`, `/legal`, `/rules`, `/agreement` напрямую
-- C1: при single-scan субстраницы — добавляет текст главной для check149FZ (ИНН в footer)
-- C2: трёхуровневая стратификация URL при full-scan:
-  - Layer 1 (mandatory): главная + известные compliance-пути (/privacy, /about, /contacts...)
-  - Layer 2 (scored): топ URL по scoreUrl() — 70% бюджета
-  - Layer 3 (sample): stride-sample из остатка — 15% бюджета
+- **Cloudflare/DDoS-Guard** (wildberries.ru): falls back to plain fetch — results partial
+- **Яндекс anti-bot / SmartCaptcha**: Railway IP blocked → 152-FZ RISK despite compliant site
+- **Playwright fallback (⚡)**: sberbank.ru, rosatom.ru — ИНН in JS-footer invisible to plain fetch
+- **20-min Supabase cache**: survives Railway Redeploy — wait 20 min for fresh scan
+- **Server-Side GTM**: tracking requests are server-to-server, invisible to browser interception
 
-_engine.js:_
-- Логи скрипта через `scriptConsole` — тихо по умолчанию, `SLEZA_DEBUG=1` для отладки
-
-_test/:_
-- `backend/test/smoke.js` — smoke-тест по 7 типам сайтов
-- `backend/test-urls.txt` — список тестовых URL
-- Запуск: `export NVM_DIR="$HOME/.nvm" && source "$NVM_DIR/nvm.sh" && cd backend && node test/smoke.js 2>/dev/null` (запускать из `backend/`, не из root)
-- С диффом: добавить флаг `--diff`
-
-**Раунд 4 — Supabase PostgreSQL** ✅ (версия `r4-supabase`)
-
-_db.js:_
-- Таблица `scans`: хранит результаты по UUID (заменяет `backend/results/*.json`)
-- Таблица `leads`: email-лиды (заменяет `backend/leads.jsonl`)
-- Кэш повторных сканов одного URL — 20 минут (`findCachedScan`)
-- `cleanupOldScans(7)` — автоочистка при старте (старше 7 дней)
-- Graceful fallback: если `DATABASE_URL` не задан — работает без БД (local dev)
-
-_server.js:_
-- `initSchema()` запускается после `app.listen` — Railway healthcheck не блокируется
-- `/api/results/:uuid` — чтение отчёта из БД
-- `/health` возвращает `"db": true/false`
-
-**D2 — Структурированный AI-промпт** ✅ (2026-05-21)
-
-_sleza_tets_js/script (runAIAnalysis):_
-- `bodyText` в промпте обрезан 25k → 2000 симв. (local checks уже используют полный текст)
-- Секции policy/offer/about перенесены **перед** блоком ЕГРЮЛ — AI читает источники первым
-- Каждая секция помечена URL источника: `─── ПОЛИТИКА [https://example.ru/privacy] ───`
-- `hasConsentCheckbox` добавлен в мета-строку промпта
-
-**D1 — Retry Groq API + улучшенный SYSTEM prompt** ✅ (2026-05-22)
-
-_sleza_tets_js/script (runAIAnalysis):_
-- `tryGroq()` — `_httpRequest` обёрнут в Promise
-- 2 попытки с паузой 3 секунды между ними (обрабатывает rate-limit спайки)
-- Fallback на локальные проверки только если обе попытки упали
-- SYSTEM prompt: явная инструкция доверять локальным чек-листам и не пересчитывать их
-- Чёткие критерии `violation` / `risk` / `unknown` (презумпция соответствия)
-- Инструкция по заполнению `found_text` (цитата), `location` (где на сайте), `found_url`
-
-**S1 — Security hardening** ✅ (2026-05-23)
-
-_server.js:_
-- `isSafeUrl()` — SSRF-защита: блокирует `file://`, `gopher://`, `javascript:`, RFC-1918, loopback (`127.*`), link-local (`169.254.*`). Применена во всех 4 точках где URL попадает в Playwright/fetch: `/api/scan/single`, `/api/scan/full`, `/api/scan/full/stream`, `/api/debug/links`
-- `/api/admin/stats` и `/api/admin/cases` — добавлен `ADMIN_TOKEN` guard (раньше не было совсем)
-- `/api/debug/links` — добавлен `ADMIN_TOKEN` guard (раньше публичный)
-- Все admin guard-ы переведены на **fail-closed**: без токена → 401 всегда (было: без токена → открыто)
-- Предупреждение в логах при старте если `ADMIN_TOKEN` не выставлен
-
-**Переменная окружения:** `ADMIN_TOKEN` — обязательно выставить в Railway Variables. Без неё все `/api/admin/*` и `/api/debug/*` возвращают 401. `/api/debug/links` оставлен намеренно на период разработки — удалить перед публичным релизом.
-
-**S2 — Security audit fixes** ✅ (2026-05-25)
-
-_Выявлено `/security-review`, два подтверждённых High severity:_
-
-_utils.js (новый файл):_
-- `isSafeUrl()` вынесена из server.js в `backend/src/utils.js` — shared между server и scanner
-
-_scanner.js:_
-- SSRF fix: `isSafeUrl()` теперь применяется ко всем URL из сторонних HTML-страниц:
-  `policyLinks`, `offerLinks`, `aboutLinks` кандидаты; `extractPolicyHrefs()` sub-ссылки; `fetchExtraText` hrefs; sitemap URL
-- До фикса: атакующий мог передать `evil.com` с ссылкой `href="http://169.254.169.254/..."` → сканер запрашивал внутреннюю инфраструктуру Railway
-
-_server.js:_
-- `POST /api/results` удалён — позволял записать произвольный JSON в БД без аутентификации → создать поддельный «зелёный» отчёт с чужим доменом
-- Scan-роуты уже возвращают `uuid` в ответе — frontend теперь читает его напрямую
-
-_frontend/app/page.js:_
-- `saveResult()` убрана; заменена на `applyUuid(data.uuid)` — uuid берётся из ответа скана
-
-**UI v2 — audit-report дизайн** ✅ (2026-05-24, в master)
-
-Смержено в master. Новый дизайн задеплоен на Vercel.
-
-**Раунд 5 — точность детектирования (фикс 4 root-cause bugs)** ✅ (2026-05-24)
-
-_pageContext.js:_
-- `isContentPath` — `COMPLIANCE_IN_PATH` exception: compliance-пути (personal_data, privacy, ofert...) никогда не считаются content-путями → hh.ru `/article/personal_data` теперь корректно попадает в policyLinks
-- `hasPolicyFooterLink` — возвращает `null` (не `false`) когда footer-элемент не найден; исключает false-positive "нет ссылки в footer" для сайтов без `<footer>`
-- KW.policy расширен: `personal_data`, `privacy_policy`, `personaldata` (underscore/слитные варианты)
-- KW.policy расширен: EN-фразы (`privacy policy`, `data protection`, `cookie policy`, etc.)
-- KW.offer расширен: EN-фразы (`terms of service`, `terms of use`, `eula`, `license agreement`, etc.)
-- Новые ad-network скрипты: `adriver.ru`, `begun.ru`, `smi2.ru`, `relap.io`, `recreativ.ru`, `segmento.net`, `criteo.net`, `doubleclick.net`, `adnxs.com`
-- GTM вынесен из adNetworkSelectors → отдельный `hasGtm` флаг
-- Новые CMP dismiss-селекторы: OneTrust, Cookiebot, Axeptio, Usercentrics
-
-_scanner.js:_
-- `fetchPolicyText` quality-check: использует combined текст только если `check152FZ` находит ≥4/7 разделов — предотвращает использование страницы «Правила» (vc.ru) вместо /privacy
-- `detectSiteType`: media-детект расширен на body2k + паттерны community-платформ (`моя лента`, `написать/войти`)
-- `applyMediaOverride` / `applyServicesOverride` теперь вызываются и для local-checks (не только AI)
-- `effectiveHasAdScripts`: GTM считается рекламой только если на странице есть текстовые ad-маркеры
-- `tryDiscoverFromSitemap`: sitemap-discovery как Fallback 1.5 в fetchPolicyText
-- `EXTRA_PATHS` расширен: `/help/privacy`, `/help/terms`, `/article/personal_data`, `/v10/privacy` и др.
-- `REKVIZITY_PATHS` расширен: `/rbc_about`, `/about-us`, `/company/about` и др.
-- `blocked403` поле в результатах → frontend показывает предупреждение
-
-**Раунд 6 — modal policy + VK false positive** ✅ (2026-05-24)
-
-_frontend:_
-- 403 warning banner в Results.js
-- Auto-scroll к результатам при завершении сканирования
-- ConfidenceBadge с tooltip-объяснением
-- Кнопка «← проверить другой сайт»
-
-_pageContext.js:_
-- `vk.com/js/api` удалён из adNetworkScriptSelectors — VK openapi.js это социальный виджет, НЕ реклама
-- Modal detection: если `policyLinks: []`, Playwright кликает кнопку с текстом "политика/конфиденц/privacy", захватывает текст из modal/dialog → поле `inlineModalPolicyText`
-
-_scanner.js:_
-- `fetchPolicyText` проверяет `inlineModalPolicyText` (≥2 152-FZ секций) как источник политики
-
-**Раунд 7 — DOCX-политики + точность типа сайта** ✅ (2026-05-24)
-
-_scanner.js:_
-- `fetchDocxText()` + `isDocxUrl()` — парсинг Word-документов через mammoth (политики в .docx у Russian B2B/застройщиков)
-- `fetchPolicyText` и `fetchExtraText` обрабатывают .docx наравне с .pdf
-- `SITEMAP_KW` расширен: `.docx`, `положени`
-- `detectSiteType`: `realEstateRe` — застройщики/девелоперы не классифицируются как media
-- `detectSiteType`: `installServiceRe` — монтаж/ремонт/натяжные потолки → 'services'
-- `applyServicesOverride`: offer violation → risk для services (индивидуальные договоры, не публичная оферта); обновлен action text
-
-_pageContext.js (Р7):_
-- KW.policy расширен: `положени`, `согласие на обработку`
-- policyLinks исключает антикоррупционные и технические "политики" (антикоррупцион, политика.качества, охрана.труда)
-
-_sleza_tets_js/script + backend/sleza_script (Р7):_
-- ИНН/ОГРН regex: добавлен `(` в character class → поддержка формата `(ИНН 3000001232)` (brackets в DOCX)
-
-**mammoth dependency:** `npm install mammoth` уже добавлен в `backend/package.json`
-
-### Деплой
-
-- **Frontend:** https://sleza-web.vercel.app (Vercel, auto-deploy от master) ✅
-- **Backend:** https://sleza-web-production.up.railway.app (Railway) ⚠️
-
-Railway деплоит автоматически при каждом push в master (как и Vercel). ✅
-
-Проверка версии: `curl https://sleza-web-production.up.railway.app/health`
-- Актуальная версия: `"v":"r4-supabase"` + `"db":true`
-- После security-фикса нужен Redeploy (коммит `e8cff6b` в master, `ADMIN_TOKEN` нужен в Railway Variables)
-
-**Раунд 8 — Точность AI-сканов + SaaS offer fix** ✅ (2026-05-25)
-
-_scanner.js:_
-- Ground-truth overrides в AI-режиме: 149-ФЗ и ЕРИР проверяются локальными проверками после AI и перебивают ложные срабатывания AI
-- `findAICheck(checks, id, lawSnippet)` — хелпер для поиска по `id` или `law` (AI использует human-readable `law`, локальный путь использует короткий `id`)
-- `detectSiteType`: SaaS-детект переставлен ПЕРЕД e-commerce (calltouch.ru с `/product/` URL больше не классифицируется как ecommerce)
-- `applyServicesOverride`: расширен на `siteType=saas` и `siteType=auto+aiMisclassified`; единственная жалоба "условия возврата товара" → `ok` для SaaS/services
-- Убраны `\b` перед кириллицей в regex (JS `\b` = ASCII-only, не работает с русскими словами)
-- `effectiveHasAds`: GTM считается рекламой только при наличии рекламного текста на странице
-- `policyLinks` фильтр: исключает "Персональная доработка" и аналогичные ложные ссылки
-
-_scanDiff.js:_
-- Нормализация confidence к achievable max: без AI-ключей max=65 (не 100); score нормируется → "medium" вместо ложного "low"
-
-**Раунд 9 — Feedback Loop: автообучение на фидбэке (Option A + D)** ✅ (2026-05-25)
-
-_db.js:_
-- Новая таблица `domain_exceptions`: lifecycle `pending → verifying → active/disputed/expired`
-- `issue_text` добавлен в таблицу `feedback` (денормализация для D-аналитики)
-- CRUD: `upsertDomainException`, `activateDomainException`, `disputeDomainException`, `handleConfirmFeedback`, `getActiveDomainExceptions`, `expireExceptionsByCheckId`
-- `invalidateCacheForHostname` — инвалидирует 20-мин кэш при активации exception (К5)
-
-_scanner.js:_
-- `applyFeedbackOverrides(hostname, checks)` — применяет active exceptions; сохраняет `_original` (К1, К6)
-- `verifyException(hostname, checkId, originUrl)` — check-specific re-scan стратегии (ЕРИР, 149-ФЗ, 152-ФЗ, оферта, cookie/drugs); max 3 retry → disputed (К7)
-- Безопасность: law152/law149 max override = `risk`, никогда `ok`
-
-_server.js:_
-- `POST /api/feedback` расширен: сохраняет `issue_text` + upsert exception + `setImmediate(verifyException)` при 2-м голосе (К8 идемпотентность)
-- `GET /api/admin/exceptions` — все domain exceptions
-- `POST /api/admin/exceptions/expire {check_id}` — bulk-expire (К3)
-- `GET /api/admin/patterns` — D-аналитика: кластеризация issue_text по check_id
-
-_scanDiff.js:_
-- diff сравнивает `_original.status` а не текущий статус (К6 — исключает ложные «улучшения»)
-
-_Results.js:_
-- Бейдж «оспорено N раз» рядом со статусом когда `check._override` присутствует
-
-_test/feedback.js:_
-- lifecycle suite: pending→verifying→active; applyFeedbackOverrides; confirm×2→disputed
-- safety cap проверка: law152 override_status = 'risk' не 'ok'
-- retry exhaustion: 3 failed re-scans → disputed
-
-**Раунд 10 — Scanner accuracy hotfixes** ✅ (2026-05-25)
-
-_pageContext.js:_
-- `kw.about` расширен: `'props'`, `'rekviz'` — захватывает ссылки типа `/ekb/props` (sdvor.com региональная структура)
-
-_scanner.js:_
-- `REKVIZITY_PATHS` расширен: `/props`, `/rekviz` — прямой fallback для нестандартных путей реквизитов
-- `EXTRA_PATHS` расширен: `/page/policy`, `/page/privacy`, `/page/terms`, `/page/personal-data`, `/page/agreement`, `/page/legal`, `/pub/policy`, `/pub/privacy`, `/pub/terms` — покрывает CMS-сайты на Bitrix и custom CMS (sostav.ru и подобные)
-
-_Исправленные false positives:_
-- **sdvor.com/ekb**: 149-ФЗ false positive — реквизиты находились на `/ekb/props`, теперь захватываются через `kw.about: 'props'`
-- **sostav.ru**: 152-ФЗ false positive — политика находится на `/page/policy`, теперь проверяется в EXTRA_PATHS
-
-**Раунд 11 — Tilda lazy-load fix** ✅ (2026-05-25)
-
-_Root cause:_ Tilda-сайты (thepike.ru и др.) используют `data-tilda-lazy="yes"` + IntersectionObserver для ленивой загрузки блоков. Без прокрутки Playwright захватывал пустой footer → ИНН/ОГРНИП не видны → 149-ФЗ false RISK.
-
-_pageContext.js:_
-- `buildPageContext()`: после закрытия cookie-баннера добавлен `scrollTo(0, scrollHeight)` + 800ms wait → lazy секции Tilda и других конструкторов рендерятся до захвата текста
-- `fetchPageText()`: аналогичный scroll добавлен в fallback Playwright-функцию
-
-_Результат:_ rbc.ru: 152-ФЗ и 149-ФЗ ⚠️→✅ (Qrator перестал блокировать политику через Playwright); sleza.media: оферта и куки ⚠️→✅
-
-**Раунд 12 — Bitrix EXTRA_PATHS + alutech.ru диагностика** ✅ (2026-05-25)
-
-_scanner.js:_
-- `EXTRA_PATHS` в `fetchPolicyText` расширен Bitrix/транслит-путями:
-  `/politika-konfidencialnosti`, `/politika-konfidencialnosti/`, `/politika-obrabotki-personalnyh-dannyh`, `/politika-obrabotki-personalnyh-dannyh/`, `/politika`, `/politika/`, `/konfidencialnost`, `/konfidencialnost/`, `/personalnie-dannie`, `/personal-data-policy`
-
-_test/test-urls.txt:_
-- Расширен с 7 до 140+ URL по 18 категориям: shop, marketplace, media, services, saas, finance, telecom, travel, food, realestate, health, education, gov, entertainment, legal, industrial, auto, charity, tech, extra
-- Используется для полного regression-прогона (вечерний, ~70 мин): `node test/smoke.js 2>/dev/null` из `backend/`
-- Для быстрого baseline (7 сайтов, ~5 мин) временно заменить test-urls.txt на 7-строчный файл или использовать `--baseline` флаг
-
-_Диагностика alutech.ru (false positive разобран):_
-- **alutech.ru 152-ФЗ РИСК** — Playwright подтвердил: policyLinks ×5 → `/politika-konfidencialnosti/`, check152FZ = 7/7 разделов → должен быть ✅
-- **alutech.ru ЕРИР РИСК** — `hasAdScripts: false`, `hasGtm: true`, `adTextMarker: false` → effectiveHasAdScripts = false → должен быть ✅
-- **Root cause:** 20-минутный Supabase-кэш (`findCachedScan`, `maxAgeMinutes=20`). Кэш хранится в БД, не в памяти Railway — пережил Redeploy. После 20 мин новый скан вернёт корректный результат.
-- **Важно:** Railway Redeploy НЕ инвалидирует кэш сканов в Supabase. Нужно ждать 20 мин после последнего скана URL.
-
-**Раунд 13 — SPA fallback + pre-checked consent + GA check** ✅ (2026-05-26)
-
-_scanner.js:_
-- EXTRA_PATHS loop: `found >= 2` quality gate — предотвращает возврат React/Next.js скелетов (1393 символа nav-текста) как политик
-- `discoverPolicyByCommonPaths` и sitemap fallback: добавлен quality check (`found >= 1/2`)
-- **Fallback 3 (SPA Playwright)**: если `policyLinks: []`, пробует `/legal`, `/privacy`, `/policy`, `/terms`, `/terms-of-service` через Playwright + следует policy-ссылкам на один уровень (для TOC-страниц). Использует отдельный `spaVisited` Set чтобы не пропускать пути, уже проверенные через plain fetch.
-- `hasPreCheckedConsent` (из pageContext) → добавляет violation-note к `law152` check
-- `checkGoogleAnalytics(pageContext)` — определяет GA Universal + GA4 через gtag/js + inline gtag config; GTM ≠ GA (GTM нейтральный)
-
-_pageContext.js:_
-- `fetchPageTextAndLinks(url)` — новая функция: Playwright-рендер + возвращает `{ text, hrefs }`; используется в SPA fallback для TOC-страниц
-- `hasPreCheckedConsent` — детект предустановленных галочек (`input[type=checkbox]` с `checked`/`hasAttribute('checked')`) рядом с consent-текстом в label/parent
-
-_frontend/:_
-- `ScanForm.js`, `Landing.js`: `12 параметров` → `6 проверок`
-- `Results.js`: отображает `check.issue` как тизер (action скрыт, отображается только в PDF)
-
-_Исправленные false positives:_
-- **netology.ru 152-ФЗ**: `violation` → `risk` (SPA fallback находит политику через `/legal` via Playwright, `check152FZ.found=6/7`)
-- Root cause: sitemap возвращал skeleton (1393 chars) без quality check → `found:true` с пустым текстом
-
-**Раунд 18 — Meta Pixel ERIR fix + Yandex.Disk policy detection (2026-05-27)** ✅ (коммит `e99dd40`)
-
-_pageContext.js:_
-- `facebook.net` убран из `adNetworkScriptSelectors` — Meta Pixel (`fbevents.js`) это tracking pixel рекламодателя, НЕ рекламная сеть. ЕРИР применяется к рекламе на сайте, не к исходящим пикселям конверсий.
-- `extDocPolicyLinks` — дополнительная экстракция ссылок на политику с внешних doc-хостингов (Яндекс.Диск / Google Drive / Dropbox / OneDrive). Ранее все внешние ссылки фильтровались через `sameDomain()`.
-
-_scanner.js:_
-- `EXT_DOC_HOST_RE` — модульная константа для doc-hosting сервисов
-- `isDocHostUrl` в `fetchPolicyText` — пробует Playwright для рендера просмотрщика документов
-- **Cap 4** (single + full scan): если `policyLinks` содержит doc-host ссылку → 152-ФЗ violation/no_policy → risk с сообщением "Политика на внешнем хостинге — проверить вручную"
-
-_Исправленные false positives:_
-- **saltsalt.ru/msc ЕРИР**: ❌ → ✅ (только Meta Pixel, не реклама на сайте)
-- **saltsalt.ru/msc 152-ФЗ**: ❌ → ⚠️ (политика на Яндекс.Диске, теперь обнаруживается)
-
-_Baseline (27.05.2026):_ 39✅ 3⚠️ 0❌ — без изменений (0 регрессий)
-
----
-
-**Раунд 16 — Structural false-positive caps (2026-05-27)**
-
-_scanner.js:_
-- **Post-processing caps** после `buildLocalChecks` в обоих путях (single + full scan):
-  - Cap 1 (blocked pages): `check149FZ`/`check152FZ` возвращают `'unknown'`/`'no_policy'` при пустой странице (< 50 chars) → `buildLocalChecks` ошибочно делал violation. Теперь: `_http403 || _firewalled || _blocked` → law152/law149 unknown/violation → risk
-  - Cap 2 (иностранные компании): non-.ru/.рф TLD + EGRUL null → law149 violation + GA violation → risk (apple.com, microsoft.com, coursera.org, edx.org, meduza.io)
-  - Cap 3 (госорганы): `*.gov.ru`, `*.nalog.ru`, `fss.ru`, `pfr.ru`, `gosuslugi.ru` и др. → law149 violation → risk
-
-_Исправленные false positives (❌ 71 → ❌ 38, −46%):_
-- **magnit.ru / tripadvisor.ru / vseinstrumenti.ru 152-ФЗ**: ❌ → ⚠️ (root cause: `no_policy` статус не перехватывался старым cap)
-- **yandex.ru 152-ФЗ**: ❌ → ⚠️ (blocked403 теперь действует и для 152-ФЗ)
-- **apple.com / microsoft.com / coursera.org / edx.org 149-ФЗ**: ❌ → ⚠️ (иностранные компании)
-- **microsoft.com / coursera.org / edx.org GA**: ❌ → ⚠️ (аналогично)
-- **nalog.gov.ru / pfr.gov.ru / fss.ru / service.nalog.ru 149-ФЗ**: ❌ → ⚠️ (госорганы)
-- **meduza.io 149-ФЗ / GA**: ❌ → ⚠️ (иностранная регистрация)
-
-_Smoke test (27.05):_ ✅ 472  ⚠️ 171  ❌ 38  💥 24 | baseline: 0 регрессий, 1 улучшение
-
----
-
-**Раунд 15 — HTTP 4xx false positive fix (2026-05-27)** ✅ (коммит `06f9a8e`)
-
-_pageContext.js:_
-- `_http403` расширен: `httpStatus >= 400` (было только `=== 403`) — 404-страницы (Яндекс anti-bot redirect) теперь тоже получают флаг
-
-_scanner.js:_
-- 149-ФЗ override: добавлен `_http403` к условию `_firewalled || _blocked` — sites с 4xx ответом больше не получают violation
-- `EXTRA_PATHS` расширен: `/privacy-policy` и `/privacy-policy/` — наиболее распространённый URL для политик конфиденциальности
-
-_Исправленные false positives:_
-- **dns-shop.ru 149-ФЗ**: ❌ → ⚠️ (403 при загрузке, реквизиты есть но недоступны)
-- **eldorado.ru 149-ФЗ**: ❌ → ⚠️ (аналогично)
-- **ikea.com 149-ФЗ**: ❌ → ⚠️ (аналогично)
-
----
-
-**Раунд 14 — IP-block firewall detection (2026-05-26)** ✅ (коммит `14700dd`)
-
-_pageContext.js:_
-- `_firewalled = true` — детектирует страницы IP-блокировки avito/Яндекс: `"доступ ограничен.*проблема с ip"` в title/bodyText
-- Отличается от Cloudflare challenge (< 300 chars): firewall-страницы полноразмерные (735+ chars)
-
-_scanner.js:_
-- Когда `_firewalled = true`, 149-ФЗ violation → risk (аналогично 152-ФЗ когда политика недоступна)
-- Применяется в оба пути: local-checks (non-AI) + AI-override (single + full scan)
-
-_Также — Cloudflare challenge detection (коммит `6df78c1`):_
-- `_firewalled` расширен: `title` содержит `"почти готово" / "just a moment"` → теперь wildberries.ru тоже детектируется (Cloudflare рендерит interstitial > 300 chars, минуя старый `< 300` порог)
-
-_Исправленные false positives:_
-- **avito.ru 149-ФЗ**: ❌ → ⚠️ (Railway IP заблокирован avito; реквизиты реально есть, но недоступны)
-- **market.yandex.ru 149-ФЗ**: ❌ → ⚠️ (аналогично, Яндекс firewall)
-- **wildberries.ru 149-ФЗ**: ❌ → ⚠️ (Cloudflare "Почти готово..." — interstitial страница)
-
-### Следующие задачи
-
-**Лендинг (все спринты закрыты) ✅**
-- ~~Sprint 1–9~~ ✅ слиты в master 2026-05-29
-
-**Продукт — следующий шаг:**
-- **Sprint 10 (монетизация)** — после регистрации ИП: оферта, реквизиты, ЮKassa/Tinkoff, цены
-- **Sprint 11 (SEO long-tail)** — статьи /articles/... после первого органического трафика
-- **Yandex.Webmaster + Google Search Console** — настраивает владелец вручную (verification files готовы)
-- **Привлечение пользователей** — outreach к 30 знакомым, Telegram-чаты предпринимателей
-
-**В резерве (Feedback Loop):** B (ML сигнальные паттерны), E (memory injection в промпт), F (shadow mode A/B), G (авто ре-валидация всего домена)
-
-**Технические фиксы (scanner):**
-- ~~DOCX с нейтральным якорем (vse42.ru)~~ ✅ rawDocLinks fix (2026-05-29)
-- ~~SPA Playwright fallback для compliance-страниц~~ ✅ (2026-05-29)
-- ~~Удалить `/api/debug/links`~~ ✅ удалён
-- ~~Настройка Telegram бота~~ ✅ настроен
-- ~~149-ФЗ false positives на маркетплейсах~~ ✅ R14
-- ~~149-ФЗ false positives на сайтах с 4xx~~ ✅ R15
-- ~~Structural false positive caps~~ ✅ R16 — ❌ 71→38
-- ~~Meta Pixel ERIR false positive~~ ✅ R18
-- ~~Политика на Яндекс.Диске~~ ✅ R18
-
-**Оставшиеся неточности (❌ 38 после R16/R18):**
-- **GA violations (~11)** — ivi.ru, amocrm.ru, cian.ru, skyeng.ru и др.: скорее всего **реальные**
-- **ERIR violations (4)** — mk.ru, rt.com, meduza.io, onetwotrip.com: **реальные**
-- **law149/152 при Playwright fallback (~12)** — sberbank.ru, rosatom.ru и др.: ИНН в JS-footer
-- **mail.ru law149/GA** — suspicious, нужна ручная проверка
-
-### Известные ограничения / false positives
-
-- **Cloudflare/DDoS-Guard** (wildberries.ru): fallback на plain fetch, результаты неполные.
-- **SmartCaptcha / Яндекс anti-bot** (sdvor.com): Railway IP блокируется → 152-ФЗ RISK. Решение: feedback loop.
-- **Playwright fallback (⚡)**: sberbank.ru, rosatom.ru, afisha.ru и др. — ИНН в JS-footer не виден при plain fetch.
-- **Реквизиты только в PDF** (callibri.ru): читаем через pdf-parse; если PDF недоступен — риск.
-- **20-мин Supabase-кэш**: Railway Redeploy НЕ сбрасывает кэш. Ждать 20 мин после Redeploy.
-
-### Smoke test baseline (2026-05-27, R18) ← АКТУАЛЬНЫЙ
+## Smoke test baseline (2026-05-27, актуальный)
 
 ```
-shop     www.wildberries.ru  → ⚠️ ⚠️ ✅ ✅ ✅ ✅  (Cloudflare firewalled)
-media    www.rbc.ru          → ✅ ✅ ✅ ✅ ✅ ✅
-services hh.ru               → ✅ ✅ ✅ ✅ ✅ ✅
-saas     www.bitrix24.ru     → ✅ ✅ ✅ ✅ ✅ ✅
-media    vc.ru               → ✅ ✅ ✅ ✅ ✅ ✅
-extra    callibri.ru         → ✅ ✅ ✅ ✅ ✅ ✅
-extra    sleza.media         → ✅ ⚠️ ✅ ✅ ✅ ✅
-Итого: 39✅ 3⚠️ 0❌  (6 колонок × 7 сайтов = 42 проверки)
+shop     wildberries.ru   → ⚠️ ⚠️ ✅ ✅ ✅ ✅  (Cloudflare firewalled)
+media    rbc.ru           → ✅ ✅ ✅ ✅ ✅ ✅
+services hh.ru            → ✅ ✅ ✅ ✅ ✅ ✅
+saas     bitrix24.ru      → ✅ ✅ ✅ ✅ ✅ ✅
+media    vc.ru            → ✅ ✅ ✅ ✅ ✅ ✅
+extra    callibri.ru      → ✅ ✅ ✅ ✅ ✅ ✅
+extra    sleza.media      → ✅ ⚠️ ✅ ✅ ✅ ✅
 Колонки: 152-ФЗ | 149-ФЗ | ЕРИР | Оферта | Куки | GA
 ```
-
-Прогресс: ... → **39✅ 3⚠️ 0❌** (R14–R16: 0 violations в baseline)
-140-URL прогон (27.05): ✅ 472  ⚠️ 171  ❌ 38  💥 24
