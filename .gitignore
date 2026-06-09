@@ -7,3 +7,4 @@ backend/results/
 backend/pdfs/
 backend/leads.jsonl
 backend/test/results/
+.dev-screenshots/

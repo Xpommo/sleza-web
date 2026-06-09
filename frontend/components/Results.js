@@ -14,13 +14,13 @@ const LAW_LINKS = {
   'drugs':  'https://www.consultant.ru/document/cons_doc_LAW_10172/',
 };
 
-// Short actionable hint shown inline under each violation — answers "что делать прямо сейчас"
-// without sending the user to PDF first.
+// Inline hint per violation: ЧТО нужно + почему самому сложно сделать правильно.
+// Цель — создать желание отдать задачу нам, а не гуглить шаблон.
 const FIX_HINTS = {
-  law152: 'Нужен cookie-баннер с кнопкой «Отказаться» и Политика конфиденциальности с целями обработки.',
-  law149: 'Добавьте ИНН, ОГРН и юридический адрес в подвал сайта или на страницу «Контакты».',
-  erir:   'Каждый рекламный блок требует пометки «реклама» и ERID-токена, выданного ОРД.',
-  offer:  'Опубликуйте публичную оферту с ценами, порядком возврата и контактами продавца.',
+  law152: 'Нужны cookie-баннер с кнопкой «Отказаться» и Политика конфиденциальности. Типовой шаблон не закроет нарушение — документ должен описывать именно то, что собирает ваш сайт.',
+  law149: 'Добавьте ИНН, ОГРН и юридический адрес в подвал сайта. Если данные расходятся с ЕГРЮЛ — это отдельное нарушение, даже при наличии реквизитов.',
+  erir:   'Каждый рекламный блок требует пометки «реклама» и ERID-токена от ОРД. Маркировка задним числом не снимает ответственность за уже опубликованные материалы.',
+  offer:  'Нужна публичная оферта с ценами, возвратом и реквизитами. Без неё каждая продажа на сайте формально нарушает ЗоЗПП — даже если оплата проходит.',
 };
 
 const STATUS_BADGE_CLASS = {
@@ -535,7 +535,7 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
         className="w-full flex items-center justify-center gap-2 text-[13px] font-medium text-ink/55 hover:text-ink border border-line-2 hover:border-ink/30 bg-paper rounded-lg py-3 transition-colors"
       >
         <span>✉</span>
-        <span>разобрать отчёт с экспертом</span>
+        <span>узнать про пакет документов</span>
         <span className="text-ink/30">→</span>
       </a>
 
