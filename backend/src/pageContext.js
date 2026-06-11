@@ -193,9 +193,21 @@ function detectDataFormNoConsent() {
     const hasPdByAttr = cont.querySelector('input[name*="phone" i],input[name*="tel" i],input[name*="mail" i],input[placeholder*="телефон" i],input[placeholder*="phone" i]');
     const collectsContact = cont.querySelector('input[type="tel"],textarea') || (cont.querySelector('input[type="email"]') && fields >= 2) || (hasPdByAttr && fields >= 2);
     if (!collectsContact) continue;
-    const hasCheckbox   = !!cont.querySelector('input[type="checkbox"],[role="checkbox"],[class*="checkbox" i]');
-    const hasConsentText = consentRe.test(cont.textContent || '');
-    const hasPolicyLink = !!cont.querySelector('a[href*="privacy" i],a[href*="policy" i],a[href*="politik" i],a[href*="konfiden" i],a[href*="personal" i],a[href*="soglas" i]');
+    // Согласие часто оформлено дисклеймером-блоком ПОД кнопкой («Нажимая кнопку, вы даёте
+    // согласие…» со ссылкой на /agreement_pii/), который лежит вне узкого контейнера с кнопкой.
+    // Расширяем зону проверки на соседние блоки и небольшого родителя, оставаясь локально
+    // (без футера) — иначе можно замаскировать реальное нарушение. Это убирает класс ложных
+    // срабатываний, найденный на amocrm и подобных конструкторских лендингах.
+    const scope = new Set([cont]);
+    let sib = cont.nextElementSibling, hop = 0;
+    while (sib && hop < 2) { scope.add(sib); sib = sib.nextElementSibling; hop++; }
+    const par = cont.parentElement;
+    if (par && par !== document.body && !par.querySelector('footer') && (par.textContent || '').length < 2500) scope.add(par);
+    const scopeEls = [...scope];
+    const linkSel = 'a[href*="privacy" i],a[href*="policy" i],a[href*="politik" i],a[href*="konfiden" i],a[href*="personal" i],a[href*="soglas" i],a[href*="agreement" i],a[href*="agree" i],a[href*="consent" i],a[href*="dogovor" i],a[href*="usloviya" i],a[href*="persdata" i]';
+    const hasCheckbox    = scopeEls.some(e => e.querySelector('input[type="checkbox"],[role="checkbox"],[class*="checkbox" i]'));
+    const hasConsentText = consentRe.test(scopeEls.map(e => e.textContent || '').join(' '));
+    const hasPolicyLink  = scopeEls.some(e => e.querySelector(linkSel));
     if (!hasCheckbox && !hasConsentText && !hasPolicyLink) return true;
   }
   return false;
