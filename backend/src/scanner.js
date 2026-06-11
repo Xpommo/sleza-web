@@ -974,6 +974,30 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     aiData.checks.push(checkGoogleAnalytics(pageContext, gaPolicyText));
   }
 
+  // Policy-read-confidence guard. The biggest law152 false-positive class — «политика неполная»
+  // / «недостаточная информация» / «не найдена» — is dominated NOT by a section-regex gap but by
+  // a policy we could only PARTIALLY read: image-PDF, JS-rendered SPA page, anti-bot fallback, or
+  // a short consent-form picked instead of the full policy (skysmart, foxford, ozon, lego all hit
+  // this in production on reputable, lawyer-backed sites). Signal: a policy LINK/doc exists, but
+  // the text we managed to extract is far too short to be a complete 7-section 152-ФЗ policy.
+  // In that case the «incomplete/missing» verdict is unreliable — cap at risk and say honestly
+  // «found but couldn't read fully — verify manually», instead of a confident violation.
+  // AI-path checks carry «law» (human name), not «id» — match on both.
+  if (aiData?.checks) {
+    const law152check = aiData.checks.find(c =>
+      (c.id === 'law152' || /персональн/i.test(c.law || '')) && !/cookie|куки/i.test(c.law || ''));
+    const policyLen = (gaPolicyText || '').replace(/\s+/g, ' ').trim().length;
+    const policyDocExists = (pageContext.policyLinks?.length || 0) > 0 || pageContext.hasPolicyFooterLink;
+    if (law152check && (law152check.status === 'risk' || law152check.status === 'violation')
+        && policyDocExists && policyLen < 3000) {
+      law152check.status = 'risk';
+      law152check.issue = 'Политика конфиденциальности есть, но автоматически прочитать её полностью не удалось — опубликована как PDF/скан/документ или подгружается скриптом. Перечислять отсутствующие разделы по обрывку текста было бы недостоверно.';
+      law152check.action = 'Откройте политику и проверьте вручную наличие 7 обязательных разделов 152-ФЗ: категории субъектов и ПД, цели обработки, правовое основание, сроки хранения, права субъекта, контакты оператора, передача третьим лицам.';
+      law152check.fine = '';
+      law152check._partialPolicyRead = true;
+    }
+  }
+
   // Pre-consent tracking: analytic scripts fire on first load BEFORE banner interaction.
   // Only actionable when a banner exists (without banner = separate "no banner" finding).
   if (aiData?.checks && pageContext.hasPreConsentTracking && pageContext.hasCookieBanner) {
