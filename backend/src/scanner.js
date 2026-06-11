@@ -49,15 +49,16 @@ function isSpaResponse(html) {
 // direction — we never want to falsely accuse a site that did disclose).
 const GA_DISCLOSURE_RE = /трансгранич|за пределы\s+(территории\s+)?р(оссийск|ф)|иностранн\w*\s+(государств|лиц|юрисдикц)|google analytics|\bgoogle\b|гугл/i;
 
-// Google Analytics detection — cross-border data transfer (152-ФЗ ст.12 + 242-ФЗ).
-// Presence alone is NOT a provable violation: lawful GA use requires a РКН cross-border-
-// transfer notification + consent + 242-ФЗ localization — none visible from the script.
-// So we grade by what we CAN see in the policy:
-//   GA + policy discloses cross-border/Google → risk (verify the РКН filing);
-//   GA + policy silent                        → violation (most likely no basis);
-//   no GA                                     → ok.
+// Google Analytics detection — data-localization + cross-border transfer.
+// КЛЮЧЕВОЕ (проверено по закону, июнь 2026): с 01.07.2025 (поправка 23-ФЗ к 152-ФЗ ст.18 ч.5)
+// первичный сбор ПД граждан РФ обязан идти на серверах в России. GA шлёт IP/поведение сразу
+// на серверы Google (США) → нарушение ЛОКАЛИЗАЦИИ, которое раскрытием в политике или
+// уведомлением РКН НЕ лечится (это лечит только трансграничку, ст.12, — отдельный, меньший вопрос).
+// Штраф за локализацию: КоАП ст.13.11 ч.8, юрлица 6–18 млн ₽.
+// Мы не видим server-side RU-proxy снаружи, поэтому НЕ ставим жёсткий violation там, где
+// сайт хотя бы раскрыл передачу; политику используем как градиент серьёзности, а не как «лечение».
 export function checkGoogleAnalytics(pageContext, policyText = '') {
-  const base = { id: 'ga', law: 'Google Analytics', law_code: '152-ФЗ ст.12 + 242-ФЗ' };
+  const base = { id: 'ga', law: 'Google Analytics', law_code: '152-ФЗ ст.18 ч.5 + ст.12' };
   if (!pageContext.hasGoogleAnalytics) {
     return { ...base, status: 'ok', issue: '', action: '', fine: '0 руб.', found_text: 'Google Analytics не найден' };
   }
@@ -65,8 +66,8 @@ export function checkGoogleAnalytics(pageContext, policyText = '') {
     return {
       ...base,
       status: 'risk',
-      issue: 'Обнаружен Google Analytics — трансграничная передача данных посетителей в Google (США). Политика её упоминает; убедитесь, что подано уведомление в РКН о трансграничной передаче, есть согласие и соблюдена локализация (242-ФЗ).',
-      action: 'Проверьте: уведомление РКН о трансграничной передаче, явное согласие субъекта на неё, первичное хранение ПД на серверах в РФ. Либо переведите аналитику на Яндекс.Метрику.',
+      issue: 'Обнаружен Google Analytics — данные посетителей (IP, поведение) уходят на серверы Google в США. Политика упоминает трансграничную передачу, но локализация (ст.18 ч.5 152-ФЗ, с 01.07.2025) требует ПЕРВИЧНОГО сбора данных граждан РФ на серверах в России — раскрытием в политике это не заменяется.',
+      action: 'Убедитесь, что данные собираются сначала на сервере в РФ (server-side proxy) и подано уведомление в РКН о трансграничной передаче. Надёжнее — перейти на Яндекс.Метрику / VK Аналитику.',
       fine: '',
       found_text: 'Google Analytics обнаружен; трансграничная передача упомянута в политике',
     };
@@ -74,10 +75,10 @@ export function checkGoogleAnalytics(pageContext, policyText = '') {
   return {
     ...base,
     status: 'violation',
-    issue: 'Обнаружен Google Analytics — трансграничная передача персональных данных посетителей в Google (США), при этом политика конфиденциальности её не раскрывает.',
-    action: 'Раскройте трансграничную передачу в политике, подайте уведомление в РКН (ст.12 152-ФЗ), получите согласие и обеспечьте локализацию (242-ФЗ). Либо замените на Яндекс.Метрику.',
-    fine: '300 000 руб.',
-    found_text: 'Google Analytics обнаружен; политика не упоминает трансграничную передачу',
+    issue: 'Обнаружен Google Analytics — данные посетителей (IP, поведение) уходят на серверы Google в США. Это нарушает локализацию (ст.18 ч.5 152-ФЗ, с 01.07.2025): первичный сбор данных граждан РФ на иностранных серверах запрещён. Уведомление РКН или запись в политике это не лечит.',
+    action: 'Перейдите на Яндекс.Метрику / VK Аналитику, либо настройте первичный сбор на сервере в РФ. РКН с 2025 рассылает требования удалить GA и проверяет сайты автоматически.',
+    fine: 'до 6 000 000 руб.',
+    found_text: 'Google Analytics обнаружен; политика не раскрывает трансграничную передачу',
   };
 }
 
@@ -871,6 +872,11 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
   let gaPolicyText = ''; // policy text for the GA cross-border-disclosure check (set in local branch)
   if (useAI && groqKey) {
     aiData = await engine.runAIAnalysis(pageContext, egrul, fullText, siteType);
+    // GA disclosure check needs the policy text runAIAnalysis already fetched (fetched.policy).
+    // Without this gaPolicyText stays '' on the AI path → checkGoogleAnalytics always reads the
+    // policy as silent → false "violation / policy doesn't disclose" even when it does. This is
+    // why every AI-path GA flag was a violation regardless of the actual policy.
+    gaPolicyText = (aiData?.fetched?.policy || []).map(p => p.text || '').join('\n\n');
     applyMediaOverride(aiData, siteType);
     applyServicesOverride(aiData, siteType);
     if (siteType === 'ip') applyIPOverride(aiData);
