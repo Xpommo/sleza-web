@@ -71,7 +71,7 @@ export async function registerWebhook(backendUrl) {
   const result = await callApi('setWebhook', {
     url,
     secret_token:     secret,
-    allowed_updates:  ['message'],
+    allowed_updates:  ['message', 'callback_query'],
     drop_pending_updates: true,
   });
   if (result?.ok) {
@@ -81,33 +81,47 @@ export async function registerWebhook(backendUrl) {
   }
 }
 
+// ── Agent bot (lazy-loaded) ───────────────────────────────────────────────────
+
+let _agentHandler = null;
+async function agentHandler() {
+  if (!_agentHandler) _agentHandler = await import('./agent/handler.js');
+  return _agentHandler;
+}
+
 // ── Command handler ───────────────────────────────────────────────────────────
 
+const ADMIN_COMMANDS = new Set(['/stats', '/leads']);
+
 export async function handleUpdate(update, db) {
+  // Callback queries → всегда агент (кнопки воронки / ответ специалисту)
+  if (update.callback_query) {
+    const agent = await agentHandler();
+    await agent.handleCallback(update.callback_query);
+    return;
+  }
+
   const msg = update?.message;
   if (!msg?.text) return;
 
   const fromChat = String(msg.chat.id);
+  const [cmd] = msg.text.trim().split(/\s+/);
 
-  // Only the configured admin chat can run commands
-  if (String(CHAT_ID) !== fromChat) {
-    await callApi('sendMessage', { chat_id: fromChat, text: '⛔ Доступ запрещён.' });
+  // Админские команды (/stats, /leads) — обрабатываем здесь
+  if (String(CHAT_ID) === fromChat && ADMIN_COMMANDS.has(cmd)) {
+    await handleAdminCommand(msg, db);
     return;
   }
 
+  // Всё остальное — агент-бот Фонарик
+  const agent = await agentHandler();
+  await agent.handleMessage(msg);
+}
+
+async function handleAdminCommand(msg, db) {
   const [cmd, ...args] = msg.text.trim().split(/\s+/);
 
-  if (cmd === '/start' || cmd === '/help') {
-    await sendMessage([
-      '👋 <b>Sleza Admin Bot</b>',
-      '',
-      'Команды:',
-      '/stats — статистика лидов и сканов',
-      '/leads — последние 5 лидов',
-      '/leads 10 — последние N лидов (макс. 20)',
-    ].join('\n'));
-
-  } else if (cmd === '/stats') {
+  if (cmd === '/stats') {
     const [ls, ss] = await Promise.all([db.getLeadStats(), db.getScanStats()]);
     await sendMessage([
       '📊 <b>Статистика</b>',
