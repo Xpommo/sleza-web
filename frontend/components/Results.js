@@ -529,6 +529,18 @@ export default function Results({ data, uuid, onShare, onNewScan, onEmailCapture
         )}
       </div>
 
+      {/* Вход в Telegram-бота — обсудить отчёт и задать вопросы */}
+      <a
+        href={`https://t.me/${process.env.NEXT_PUBLIC_TG_BOT || 'AnswerTestSleza_bot'}${uuid ? `?start=${uuid}` : ''}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-full flex items-center justify-center gap-2 text-[14px] font-bold text-white bg-brand hover:bg-brand-soft rounded-lg py-3.5 transition-colors"
+      >
+        <span>💬</span>
+        <span>Обсудить в Telegram</span>
+        <span className="opacity-70">→</span>
+      </a>
+
       {/* Связаться с экспертом — видимая кнопка, не footnote */}
       <a
         href={`mailto:kirillmash99@gmail.com?subject=${encodeURIComponent(`Разбор отчёта по ${hostname}`)}&body=${encodeURIComponent(`Привет!\n\nХочу разобрать отчёт по сайту ${hostname}.\nОтчёт: https://fonarik-web.vercel.app/?report=${uuid || ''}\n\nЧто нашли: ${violations.length} нарушений, ${risks.length} рисков.`)}`}

@@ -35,7 +35,16 @@ npm run start --prefix backend   # production
 # Smoke tests — run from backend/, not root
 cd backend && node test/smoke.js 2>/dev/null           # all URLs in test-urls.txt (~70 min)
 cd backend && node test/smoke.js --diff                # with diff vs baseline
+cd backend && node test/smoke.js --vs-baseline         # vs golden baseline.json (7 sites)
+# NB: smoke without --ai does NOT exercise the AI-path fixes (law152 guard, GA) — use --ai for those
 # For 7-site quick baseline: temporarily replace test-urls.txt with 7 lines, restore after
+
+# Unit tests (node:test)
+cd backend && node --test test/calcConfidence.test.js test/computeScanDiff.test.js test/validateLead.test.js
+
+# Telegram agent bot (client-facing) — run from backend/
+cd backend && node src/agent/bot.mjs        # long-poll; needs TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID in .env
+cd backend && node src/agent/tg-setup.mjs   # validate token / find chat id / detect webhook conflict
 ```
 
 Backend auto-restarts on file changes (`node --watch`). First-time setup: copy `backend/.env.example` to `backend/.env`. Playwright Chromium must be installed once: `npx playwright install chromium`.
@@ -158,7 +167,30 @@ Frontend stores keys in `localStorage`, sends as `x-groq-key` / `x-sleza-key` he
 
 ### Database (Supabase PostgreSQL, `db.js`)
 
-Tables: `scans` (results by UUID), `leads`, `feedback`, `domain_exceptions` (feedback loop), `events` (funnel analytics), `doc_requests`. Scan cache: 20-min TTL via `findCachedScan`. **Railway Redeploy does NOT invalidate the Supabase cache** — wait 20 min after redeploy for fresh results.
+Tables: `scans` (results by UUID), `leads`, `feedback`, `domain_exceptions` (feedback loop), `events` (funnel analytics), `doc_requests`, `monitoring_subscriptions`. Scan cache: 20-min TTL via `findCachedScan`. **Railway Redeploy does NOT invalidate the Supabase cache** — wait 20 min after redeploy for fresh results.
+
+### Telegram agent (`backend/src/agent/`)
+
+A **client-facing** bot (separate from `tg.js`, which is the admin lead-alert/command bot) that explains a scan's findings and guides the client to a human handoff. Run standalone for local testing: `node src/agent/bot.mjs` (long-poll — no public URL needed).
+
+| File | Role |
+|---|---|
+| `kb.js` | Knowledge base as DATA (per-check explanations, confirmed fines, FAQ, guardrails) + `buildSystemPrompt()` |
+| `llm.js` | LLM call — Groq `llama-3.3-70b` (default) or Claude (`AGENT_LLM=claude` + `ANTHROPIC_API_KEY`) |
+| `agent.js` | `reply(history, scanContext)` — free-form Q&A grounded in KB + the client's own scan |
+| `funnel.js` | Deterministic guidance funnel — renders `{text, keyboard}` cards from real `aiData.checks` (no LLM) |
+| `scanLookup.js` | Read-only DB helpers — `getScanByUuid`, `normalizeScan`, `formatScanContext` |
+| `store.js` | File-backed session persistence (`.agent-sessions.json`) — survives bot restart |
+| `bot.mjs` | Long-poll transport, command/callback routing, ownership + funnel orchestration |
+| `tg-setup.mjs` | One-off helper: validate token / find chat id / detect a webhook conflict |
+
+**Ownership model (privacy):** the bot reveals a scan only for sites the client *owns* — bound via deep-link `t.me/<bot>?start=<scan_uuid>` (or a typed `/start <uuid>`). Free-form domain mentions are deliberately **not** looked up in the DB (that would leak other clients' data); the bot instead links to the canonical scanner (`SCANNER_URL`). **There is no in-bot scanning** — checks always run on the main site scanner where the accuracy guards live.
+
+**Funnel:** summary card → walk findings → fix/checklist → automate → handoff. Cards are templated from scan data (deterministic, no hallucination); the LLM handles only free-form questions. Guardrails (`kb.js` `GUARDRAILS`): signals-not-verdict, confirmed fines only (no certainty/outcome promises), defer specifics to a human, never invent findings for an unprovided site.
+
+**Human handoff (relay):** "📞 Специалист" puts the client in relay mode — messages forward to the admin chat (`TELEGRAM_CHAT_ID`) with an inline "↩️ Ответить" button; the admin replies via button → type, `/reply <chatId> <text>`, or `/chats` (active-dialog picker). The client always sees a "🤖 Вернуться к боту-помощнику" button while in relay.
+
+**Prod swaps:** transport (poll → the existing `tg.js` webhook `/api/tg/webhook`) and persistence (file → a `chat_links` DB table) are the two changes when deploying; the core modules are transport-agnostic.
 
 ## Frontend components (`frontend/`)
 
@@ -185,6 +217,14 @@ ALLOWED_ORIGINS=http://localhost:3000
 FRONTEND_URL=http://localhost:3000   # used by PDF generator (Playwright screenshots)
 DATABASE_URL=              # Supabase postgres:// — graceful fallback if absent
 ADMIN_TOKEN=               # required for /api/admin/* and /api/debug/* (fail-closed)
+
+# Telegram agent (backend/src/agent/) + tg.js admin bot
+TELEGRAM_BOT_TOKEN=        # @BotFather token (shared by tg.js alerts and the agent bot)
+TELEGRAM_CHAT_ID=          # admin chat — lead alerts + handoff relay destination
+AGENT_LLM=                 # groq (default) | claude
+ANTHROPIC_API_KEY=         # required only if AGENT_LLM=claude
+AGENT_ADMIN_ONLY=          # =1 locks the agent bot to the admin chat (default: open)
+SCANNER_URL=               # public scanner link the bot sends (default: https://fonarik-web.vercel.app)
 ```
 
 ## Git workflow
