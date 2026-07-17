@@ -1,0 +1,37 @@
+# {{APP_DIR}} / {{APP_USER}} are substituted by setup.sh.
+[Unit]
+Description=fonarik backend (Fastify + Playwright)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{APP_USER}}
+WorkingDirectory={{APP_DIR}}/backend
+EnvironmentFile={{APP_DIR}}/backend/.env
+# Must match the path used at install time in setup.sh, otherwise Playwright
+# re-downloads Chromium at runtime (or, under systemd's own HOME, fails to find it).
+Environment=PLAYWRIGHT_BROWSERS_PATH={{APP_DIR}}/.playwright
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node src/server.js
+
+Restart=always
+RestartSec=5
+# Chromium spawns a process tree; without this, a restart can orphan renderers
+# that slowly eat the box's RAM.
+KillMode=control-group
+TimeoutStopSec=30
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fonarik
+
+# Hardening. NOT ProtectHome/PrivateUsers — Chromium's sandbox needs
+# user namespaces and will fail to launch under those.
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ReadWritePaths={{APP_DIR}}
+
+[Install]
+WantedBy=multi-user.target

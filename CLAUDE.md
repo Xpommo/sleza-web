@@ -10,6 +10,8 @@ Monorepo with two packages managed from the root:
 - `frontend/` — Next.js 14 App Router, Tailwind CSS
 - `marketing/` — untracked outreach tools (dashboard.html, triage.mjs), not part of the product
 
+**Not npm workspaces** — root `package.json` has no `workspaces` field; each package installs and builds independently (its own `node_modules`), wired only by the root `install:all` / `dev` scripts and `--prefix`. Add a new package the same way, not via workspace hoisting.
+
 **Script resolution** (`engine.js` checks in priority order):
 1. `SLEZA_SCRIPT_PATH` env var (Railway/Docker)
 2. `backend/sleza_script` — bundled copy in repo (always up to date for Railway)
@@ -41,13 +43,14 @@ cd backend && node test/smoke.js --vs-baseline         # vs golden baseline.json
 
 # Unit tests (node:test)
 cd backend && node --test test/calcConfidence.test.js test/computeScanDiff.test.js test/validateLead.test.js
+# test/ also holds ad-hoc diagnostic scripts (node test/<file> directly: ga.js, intake.js, precheck.mjs, …) — not node:test suites
 
 # Telegram agent bot (client-facing) — run from backend/
 cd backend && node src/agent/bot.mjs        # long-poll; needs TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID in .env
 cd backend && node src/agent/tg-setup.mjs   # validate token / find chat id / detect webhook conflict
 ```
 
-Backend auto-restarts on file changes (`node --watch`). First-time setup: copy `backend/.env.example` to `backend/.env`. Playwright Chromium must be installed once: `npx playwright install chromium`.
+Backend auto-restarts on file changes and auto-loads `.env` in dev (`node --env-file=.env --watch`). First-time setup: copy `backend/.env.example` to `backend/.env`. Playwright Chromium must be installed once: `npm run build --prefix backend` (wraps `playwright install chromium --with-deps`; `--with-deps` pulls the system libraries needed on fresh Linux/Railway).
 
 ### Testing detector changes locally (no Claude/agent cost)
 
@@ -167,21 +170,22 @@ Frontend stores keys in `localStorage`, sends as `x-groq-key` / `x-sleza-key` he
 
 ### Database (Supabase PostgreSQL, `db.js`)
 
-Tables: `scans` (results by UUID), `leads`, `feedback`, `domain_exceptions` (feedback loop), `events` (funnel analytics), `doc_requests`, `monitoring_subscriptions`. Scan cache: 20-min TTL via `findCachedScan`. **Railway Redeploy does NOT invalidate the Supabase cache** — wait 20 min after redeploy for fresh results.
+Tables: `scans` (results by UUID), `leads`, `feedback`, `domain_exceptions` (feedback loop), `events` (funnel analytics), `doc_requests`, `monitoring_subscriptions`. Scan cache: 20-min TTL via `findCachedScan`. **Redeploying/restarting the backend does NOT invalidate the Supabase cache** — wait 20 min after a deploy for fresh results.
 
 ### Telegram agent (`backend/src/agent/`)
 
-A **client-facing** bot (separate from `tg.js`, which is the admin lead-alert/command bot) that explains a scan's findings and guides the client to a human handoff. Run standalone for local testing: `node src/agent/bot.mjs` (long-poll — no public URL needed).
+A **client-facing** bot (separate from `tg.js`, which is the admin lead-alert/command bot) that explains a scan's findings and guides the client to a human handoff. **In production it runs via webhook** — `tg.js` `handleUpdate` routes `/stats` and `/leads` to the admin bot and everything else to `handler.js`. For local testing run the long-poll wrapper: `node src/agent/bot.mjs` (no public URL needed).
 
 | File | Role |
 |---|---|
+| `handler.js` | **Bot core** — `handleMessage` / `handleCallback`; command routing, ownership, funnel orchestration, relay. Shared by webhook (`tg.js`) and local poll (`bot.mjs`) |
 | `kb.js` | Knowledge base as DATA (per-check explanations, confirmed fines, FAQ, guardrails) + `buildSystemPrompt()` |
 | `llm.js` | LLM call — Groq `llama-3.3-70b` (default) or Claude (`AGENT_LLM=claude` + `ANTHROPIC_API_KEY`) |
 | `agent.js` | `reply(history, scanContext)` — free-form Q&A grounded in KB + the client's own scan |
-| `funnel.js` | Deterministic guidance funnel — renders `{text, keyboard}` cards from real `aiData.checks` (no LLM) |
+| `funnel.js` | Deterministic funnel — renders `{text, keyboard}` cards (Telegram **HTML**, `parse_mode:'HTML'`) from real `aiData.checks`, no LLM; `esc()` escapes user data |
 | `scanLookup.js` | Read-only DB helpers — `getScanByUuid`, `normalizeScan`, `formatScanContext` |
 | `store.js` | File-backed session persistence (`.agent-sessions.json`) — survives bot restart |
-| `bot.mjs` | Long-poll transport, command/callback routing, ownership + funnel orchestration |
+| `bot.mjs` | Thin long-poll wrapper for **local dev only** — imports `handler.js` |
 | `tg-setup.mjs` | One-off helper: validate token / find chat id / detect a webhook conflict |
 
 **Ownership model (privacy):** the bot reveals a scan only for sites the client *owns* — bound via deep-link `t.me/<bot>?start=<scan_uuid>` (or a typed `/start <uuid>`). Free-form domain mentions are deliberately **not** looked up in the DB (that would leak other clients' data); the bot instead links to the canonical scanner (`SCANNER_URL`). **There is no in-bot scanning** — checks always run on the main site scanner where the accuracy guards live.
@@ -190,7 +194,9 @@ A **client-facing** bot (separate from `tg.js`, which is the admin lead-alert/co
 
 **Human handoff (relay):** "📞 Специалист" puts the client in relay mode — messages forward to the admin chat (`TELEGRAM_CHAT_ID`) with an inline "↩️ Ответить" button; the admin replies via button → type, `/reply <chatId> <text>`, or `/chats` (active-dialog picker). The client always sees a "🤖 Вернуться к боту-помощнику" button while in relay.
 
-**Prod swaps:** transport (poll → the existing `tg.js` webhook `/api/tg/webhook`) and persistence (file → a `chat_links` DB table) are the two changes when deploying; the core modules are transport-agnostic.
+**Transport:** webhook is **live in prod** — `handler.js` is transport-agnostic; `tg.js` `handleUpdate` forwards non-admin updates (incl. `callback_query`) to it, `bot.mjs` does the same via long-poll locally. Remaining prod swap: persistence (file `.agent-sessions.json` → a `chat_links` DB table) for multi-instance durability.
+
+**Shared bot token:** `tg.js` (admin alerts) and `handler.js` (agent) use the **same** `TELEGRAM_BOT_TOKEN` → one webhook. Admin commands are gated to `TELEGRAM_CHAT_ID`; everything else is the agent. `AGENT_ADMIN_ONLY=1` locks the agent to the admin chat.
 
 ## Frontend components (`frontend/`)
 
@@ -232,7 +238,7 @@ SCANNER_URL=               # public scanner link the bot sends (default: https:/
 - Main branch: `master`
 - Backend is Node ESM (`"type": "module"`) — use `import`/`export`, not `require`
 - Do not push to `master` without explicit user request
-- Railway and Vercel auto-deploy on every push to `master`
+- Vercel auto-deploys the frontend on every push to `master`; the backend on Oracle is deployed manually (see Deployment)
 
 ## MCP tools
 
@@ -241,8 +247,15 @@ SCANNER_URL=               # public scanner link the bot sends (default: https:/
 ## Deployment
 
 - **Frontend:** https://fonarik-web.vercel.app (Vercel, auto-deploy from master)
-- **Backend:** https://sleza-web-production.up.railway.app (Railway)
-- Health check: `curl https://sleza-web-production.up.railway.app/health`
+- **Backend:** Oracle Cloud Always Free ARM VM (Ubuntu 24.04, 2 OCPU / 12 GB), Caddy auto-TLS in front of Fastify on :3001
+- Health check: `curl https://<subdomain>.duckdns.org/health`
+- Provisioning + runbook: [`deploy/oracle/README.md`](deploy/oracle/README.md); one-shot `deploy/oracle/setup.sh`
+
+**Railway is dead** (free credits exhausted → `404 Application not found`). Its env vars survive only as fallbacks: `RAILWAY_PUBLIC_DOMAIN` → `BACKEND_URL`, `RAILWAY_GIT_COMMIT_SHA` → `'dev'`. Set `BACKEND_URL` explicitly — the Telegram webhook registers against it at boot.
+
+**No push-to-deploy on Oracle** — that was a Railway feature. Deploy is a manual `git pull && npm ci && systemctl restart fonarik-backend` (see the runbook).
+
+**The backend now runs outside RF.** We store leads (PD of Russian citizens) while the scanner itself flags data-localization breaches under 152-ФЗ ст.18 ч.5. Oracle is an unblock, not the final architecture — the Yandex Cloud RF migration for the PD path still stands.
 
 ## Legal grounding for detectors
 
@@ -253,9 +266,9 @@ When editing a detector's verdict/severity/fine, verify the current law first (i
 ## Known limitations / false positives
 
 - **Cloudflare/DDoS-Guard** (wildberries.ru): falls back to plain fetch — results partial
-- **Яндекс anti-bot / SmartCaptcha**: Railway IP blocked → 152-FZ RISK despite compliant site
+- **Яндекс anti-bot / SmartCaptcha**: server IP blocked → 152-FZ RISK despite compliant site (the Oracle IP is a fresh one — this may behave differently than it did on Railway)
 - **Playwright fallback (⚡)**: sberbank.ru, rosatom.ru — ИНН in JS-footer invisible to plain fetch
-- **20-min Supabase cache**: survives Railway Redeploy — wait 20 min for fresh scan
+- **20-min Supabase cache**: survives a backend redeploy/restart — wait 20 min for fresh scan
 - **Server-Side GTM**: tracking requests are server-to-server, invisible to browser interception
 - **SPA policy discovery**: if no policy link appears in the rendered DOM (some React/Vue sites, e.g. foxford), law152 reads as "not found" — the read-confidence guard can't soften it (no evidence a policy exists)
 - **Scanned/image-PDF policies**: need OCR (not implemented); read-confidence guard degrades them to "couldn't read — verify manually" rather than a false "incomplete"

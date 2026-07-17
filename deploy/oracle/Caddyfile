@@ -1,0 +1,22 @@
+# Reverse proxy + automatic Let's Encrypt TLS for the fonarik backend.
+# {{DOMAIN}} is substituted by setup.sh (e.g. fonarik.duckdns.org).
+
+{{DOMAIN}} {
+	encode zstd gzip
+
+	reverse_proxy 127.0.0.1:3001 {
+		# Full-site scans stream SSE for 2–5 min. flush_interval -1 flushes to the
+		# client immediately instead of buffering, so progress events arrive as
+		# they're emitted rather than in one lump at the end.
+		flush_interval -1
+	}
+	# No explicit timeouts needed: Caddy v2 applies no deadline to a proxied
+	# response by default, which is what long scans want.
+
+	log {
+		output file /var/log/caddy/fonarik.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+	}
+}
