@@ -24,24 +24,27 @@ const FIX_HINTS = {
 };
 
 const STATUS_BADGE_CLASS = {
-  ok:        'bg-[rgba(26,122,82,0.1)] text-ok',
-  risk:      'bg-[rgba(184,121,0,0.12)] text-warn',
-  violation: 'bg-[rgba(214,56,22,0.1)] text-danger',
-  unknown:   'bg-line text-ink/50',
+  ok:             'bg-[rgba(26,122,82,0.1)] text-ok',
+  risk:           'bg-[rgba(184,121,0,0.12)] text-warn',
+  violation:      'bg-[rgba(214,56,22,0.1)] text-danger',
+  recommendation: 'bg-[rgba(59,130,246,0.1)] text-[#2563eb]',
+  unknown:        'bg-line text-ink/50',
 };
 
 const STATUS_LABEL = {
-  ok:        'в норме',
-  risk:      'риск',
-  violation: 'нарушено',
-  unknown:   '?',
+  ok:             'в норме',
+  risk:           'риск',
+  violation:      'нарушено',
+  recommendation: 'рекомендация',
+  unknown:        '?',
 };
 
 const STATUS_DOT_BG = {
-  ok:        'bg-ok',
-  risk:      'bg-warn',
-  violation: 'bg-danger',
-  unknown:   'bg-ink/30',
+  ok:             'bg-ok',
+  risk:           'bg-warn',
+  violation:      'bg-danger',
+  recommendation: 'bg-[#2563eb]',
+  unknown:        'bg-ink/30',
 };
 
 const CONFIDENCE_STYLE = {

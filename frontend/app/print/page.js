@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-const STATUS_LABEL = { ok: '✓ Соответствует', risk: '⚠ Риск', violation: '✗ Нарушение' };
-const STATUS_COLOR = { ok: '#166534', risk: '#92400e', violation: '#991b1b' };
-const STATUS_BG    = { ok: '#f0fdf4', risk: '#fffbeb', violation: '#fef2f2' };
-const STATUS_BORDER = { ok: '#bbf7d0', risk: '#fde68a', violation: '#fecaca' };
+const STATUS_LABEL = { ok: '✓ Соответствует', risk: '⚠ Риск', violation: '✗ Нарушение', recommendation: 'ℹ Рекомендация' };
+const STATUS_COLOR = { ok: '#166534', risk: '#92400e', violation: '#991b1b', recommendation: '#2563eb' };
+const STATUS_BG    = { ok: '#f0fdf4', risk: '#fffbeb', violation: '#fef2f2', recommendation: '#eff6ff' };
+const STATUS_BORDER = { ok: '#bbf7d0', risk: '#fde68a', violation: '#fecaca', recommendation: '#bfdbfe' };
 
 function CheckRow({ check }) {
   const color  = STATUS_COLOR[check.status]  || '#374151';

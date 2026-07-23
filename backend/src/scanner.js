@@ -82,6 +82,77 @@ export function checkGoogleAnalytics(pageContext, policyText = '') {
   };
 }
 
+// Правила обработки cookie как ОТДЕЛЬНЫЙ документ (спек: «если есть сбор куки → страница
+// + ссылка в футере»). Существующий чек id:'cookie' проверяет БАННЕР согласия; этот —
+// наличие отдельной страницы правил. Отдельная cookie-страница — best-practice, не жёсткое
+// требование (cookie можно описать и в общей политике ПД), поэтому вердикт — recommendation.
+export function checkCookiePolicy(pageContext) {
+  const base = { id: 'cookie_policy', law: 'Правила обработки cookie', law_code: '152-ФЗ (рекомендация)' };
+  const collectsCookies = pageContext.hasCookieBanner || pageContext.hasAnalytics ||
+                          pageContext.hasGtm || pageContext.hasGoogleAnalytics;
+  if (!collectsCookies) {
+    return { ...base, status: 'ok', fine: '0 руб.', action: '', found_text: '',
+      issue: 'Признаков сбора cookie / трекинга не обнаружено — отдельные правила обработки cookie не требуются.' };
+  }
+  // Ссылка на cookie-политику может быть обычной ссылкой, PDF/DOCX (rawDocLinks) или в списке
+  // policyLinks; плюс само название часто видно в тексте футера. Проверяем все источники —
+  // одного links[] (топ-40) мало: cookie-политику часто кладут PDF-ом в подвал.
+  const cookieWord = /cookie|кук(и|е|ах|ов|и-?файл)/;
+  const policyWord = /политик|policy|правил|обработк|соглашен|notice|уведомл/;
+  const linkSources = [
+    ...(pageContext.links || []),
+    ...(pageContext.policyLinks || []),
+    ...(pageContext.rawDocLinks || []),
+  ];
+  const hasCookiePolicyPage =
+    linkSources.some(l => {
+      const s = `${l.text || ''} ${l.href || ''} ${l.path || ''}`.toLowerCase();
+      return cookieWord.test(s) && policyWord.test(s);
+    }) ||
+    (() => { const f = (pageContext.footer || '').toLowerCase(); return cookieWord.test(f) && policyWord.test(f); })();
+  if (hasCookiePolicyPage) {
+    return { ...base, status: 'ok', fine: '0 руб.', action: '', found_text: '',
+      issue: 'Отдельная страница правил обработки cookie найдена.' };
+  }
+  return {
+    ...base, status: 'recommendation', fine: '', found_text: '',
+    issue: 'Сайт собирает cookie / использует трекинг, но отдельной страницы «Правила обработки cookie» со ссылкой в подвале не найдено (cookie могут быть описаны только внутри общей политики).',
+    action: 'Рекомендуем разместить отдельный документ «Правила обработки cookie» и ссылку на него в подвале сайта. Это рекомендация, не обязательное требование.',
+  };
+}
+
+// Правила доставки и возврата (спек: «если продаётся товар с доставкой → страница + ссылка
+// в футере»). ЗоЗПП ст.26.1 (дистанционная продажа). Применяется только к продаже ФИЗИЧЕСКОГО
+// товара с доставкой — для B2B/услуг/SaaS не требуется. Вердикт recommendation (не пугаем штрафом).
+export function checkDeliveryReturn(pageContext) {
+  const base = { id: 'delivery_return', law: 'Правила доставки и возврата', law_code: 'ЗоЗПП ст.26.1 (рекомендация)' };
+  const text = `${pageContext.title || ''} ${pageContext.bodyText || ''} ${pageContext.footer || ''}`.toLowerCase();
+  // Требуем ОДНОВРЕМЕННО признак онлайн-покупки товара И доставки — иначе это B2B/услуги.
+  const sellsPhysical =
+    /(корзин|добавить в корзин|оформить заказ|в наличии|артикул|каталог товар|купить в один клик)/.test(text) &&
+    /(доставк|самовывоз|курьер|отправк|транспортн[а-я]{0,3}\s+компан|сдэк|почт[аой]\s+россии)/.test(text);
+  if (!sellsPhysical) {
+    return { ...base, status: 'ok', fine: '0 руб.', action: '', found_text: '',
+      issue: 'Признаков продажи физического товара с доставкой не обнаружено — правила доставки/возврата не требуются.' };
+  }
+  // Спек требует отдельную СТРАНИЦУ + ссылку в футере, поэтому засчитываем только реальную
+  // ссылку на правила доставки/возврата (не упоминание в теле — иначе любой «условия доставки»
+  // в тексте даёт ложное «ok»).
+  const links = [...(pageContext.links || []), ...(pageContext.returnLinks || []), ...(pageContext.rawDocLinks || [])];
+  const hasPage = links.some(l => {
+    const s = `${l.text || ''} ${l.href || ''} ${l.path || ''}`.toLowerCase();
+    return /(доставк|возврат|обмен|delivery|return|shipping|dostavka|vozvrat)/.test(s) &&
+           /(правил|услови|политик|порядок|policy|\/delivery|\/return|\/dostavka|\/vozvrat|оплат)/.test(s);
+  });
+  if (hasPage) {
+    return { ...base, status: 'ok', fine: '0 руб.', action: '', found_text: '',
+      issue: 'Правила доставки / возврата на сайте присутствуют.' };
+  }
+  return { ...base, status: 'recommendation', fine: '', found_text: '',
+    issue: 'Сайт продаёт товар с доставкой, но отдельной страницы «Правила доставки и возврата» со ссылкой в подвале не найдено.',
+    action: 'Рекомендуем разместить правила доставки и возврата (ЗоЗПП ст.26.1) и ссылку на них в подвале сайта.' };
+}
+
 // Fetch URL text with automatic Playwright fallback for anti-bot and SPA pages.
 // Use for URLs that are KNOWN to exist (from policyLinks, offerLinks, etc.)
 // — not for blind path probing (too slow if every speculative path triggers a browser).
@@ -974,6 +1045,16 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
     aiData.checks.push(checkGoogleAnalytics(pageContext, gaPolicyText));
   }
 
+  // Inject cookie-policy-page check — local & deterministic (спек: отдельные правила обработки cookie)
+  if (aiData?.checks && !aiData.checks.find(c => c.id === 'cookie_policy')) {
+    aiData.checks.push(checkCookiePolicy(pageContext));
+  }
+
+  // Inject delivery/return check — local & deterministic (спек: правила доставки/возврата для товара)
+  if (aiData?.checks && !aiData.checks.find(c => c.id === 'delivery_return')) {
+    aiData.checks.push(checkDeliveryReturn(pageContext));
+  }
+
   // Policy-read-confidence guard. The biggest law152 false-positive class — «политика неполная»
   // / «недостаточная информация» / «не найдена» — is dominated NOT by a section-regex gap but by
   // a policy we could only PARTIALLY read: image-PDF, JS-rendered SPA page, anti-bot fallback, or
@@ -995,6 +1076,27 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       law152check.action = 'Откройте политику и проверьте вручную наличие 7 обязательных разделов 152-ФЗ: категории субъектов и ПД, цели обработки, правовое основание, сроки хранения, права субъекта, контакты оператора, передача третьим лицам.';
       law152check.fine = '';
       law152check._partialPolicyRead = true;
+    }
+  }
+
+  // Реквизиты владельца (149-ФЗ ст.10) — по закону РЕКОМЕНДАЦИЯ, не обязанность. Наш сервис
+  // добавляет их в подвал в 100% случаев, поэтому «реквизиты отсутствуют» — повод для
+  // рекомендации, а не вердикт «нарушение»/«штраф». Пугать штрафом за необязательное некорректно
+  // и завышает статистику нарушений (см. валидацию: 149 — единственная «ошибка» скана, и она чисто
+  // в формулировке). ИСКЛЮЧЕНИЕ: недействующие/фейковые реквизиты (организация прекращена в ЕГРЮЛ,
+  // ИНН не найден, недостоверны) — это реальное нарушение достоверности, его НЕ понижаем.
+  // AI-путь несёт «law» (имя), локальный — «id»: матчим по обоим.
+  if (aiData?.checks) {
+    const law149check = aiData.checks.find(c =>
+      c.id === 'law149' || /149-ФЗ|владельц|реквизит/i.test(c.law || ''));
+    if (law149check && (law149check.status === 'violation' || law149check.status === 'risk')) {
+      const invalidRequisites = /прекращен|не найден в егрюл|не действ|недостоверн|фейков|не ведёт деятельность/i
+        .test(law149check.issue || '');
+      if (!invalidRequisites) {
+        law149check.status = 'recommendation';
+        law149check.fine = '';
+        law149check.action = 'Рекомендуем разместить реквизиты владельца в подвале сайта (наименование, адрес, контакты) — 149-ФЗ ст.10. Это рекомендация, не обязательное требование.';
+      }
     }
   }
 
