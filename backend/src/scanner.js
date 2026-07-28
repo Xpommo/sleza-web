@@ -86,7 +86,7 @@ export function checkGoogleAnalytics(pageContext, policyText = '') {
 // + ссылка в футере»). Существующий чек id:'cookie' проверяет БАННЕР согласия; этот —
 // наличие отдельной страницы правил. Отдельная cookie-страница — best-practice, не жёсткое
 // требование (cookie можно описать и в общей политике ПД), поэтому вердикт — recommendation.
-export function checkCookiePolicy(pageContext) {
+export function checkCookiePolicy(pageContext, policyText = '') {
   const base = { id: 'cookie_policy', law: 'Правила обработки cookie', law_code: '152-ФЗ (рекомендация)' };
   const collectsCookies = pageContext.hasCookieBanner || pageContext.hasAnalytics ||
                           pageContext.hasGtm || pageContext.hasGoogleAnalytics;
@@ -114,10 +114,29 @@ export function checkCookiePolicy(pageContext) {
     return { ...base, status: 'ok', fine: '0 руб.', action: '', found_text: '',
       issue: 'Отдельная страница правил обработки cookie найдена.' };
   }
+  // Cookie НЕ обязаны быть отдельным документом — их можно описать внутри общей политики ПД
+  // (юр-норма). Если в вытянутом тексте политики есть cookie-раздел (упоминание «cookie/куки»
+  // рядом со словами про обработку/сбор/хранение/файлы), требование выполнено → ok, отдельный
+  // документ не нужен. Оконная проверка ±140 симв. отсекает случайное одиночное упоминание.
+  const cookieInPolicy = (() => {
+    const t = (policyText || '').toLowerCase();
+    if (!t || t.length < 200) return false;
+    const ctx = /собира|использ|обраб|хран|файл|сайт|аналит|трек|устройств|браузер/;
+    let m; const re = new RegExp(cookieWord.source, 'gi'); re.lastIndex = 0;
+    while ((m = re.exec(t))) {
+      const win = t.slice(Math.max(0, m.index - 140), m.index + 140);
+      if (ctx.test(win)) return true;
+    }
+    return false;
+  })();
+  if (cookieInPolicy) {
+    return { ...base, status: 'ok', fine: '0 руб.', action: '', found_text: '',
+      issue: 'Отдельной cookie-страницы нет, но обработка cookie описана внутри политики конфиденциальности — этого достаточно (отдельный документ не обязателен).' };
+  }
   return {
     ...base, status: 'recommendation', fine: '', found_text: '',
-    issue: 'Сайт собирает cookie / использует трекинг, но отдельной страницы «Правила обработки cookie» со ссылкой в подвале не найдено (cookie могут быть описаны только внутри общей политики).',
-    action: 'Рекомендуем разместить отдельный документ «Правила обработки cookie» и ссылку на него в подвале сайта. Это рекомендация, не обязательное требование.',
+    issue: 'Сайт собирает cookie / использует трекинг, но правил обработки cookie не найдено — ни отдельной страницы, ни раздела внутри политики конфиденциальности.',
+    action: 'Рекомендуем описать обработку cookie — либо разделом в политике конфиденциальности, либо отдельным документом «Правила обработки cookie» со ссылкой в подвале. Это рекомендация, не обязательное требование.',
   };
 }
 
@@ -151,6 +170,59 @@ export function checkDeliveryReturn(pageContext) {
   return { ...base, status: 'recommendation', fine: '', found_text: '',
     issue: 'Сайт продаёт товар с доставкой, но отдельной страницы «Правила доставки и возврата» со ссылкой в подвале не найдено.',
     action: 'Рекомендуем разместить правила доставки и возврата (ЗоЗПП ст.26.1) и ссылку на них в подвале сайта.' };
+}
+
+// Согласие на рекламные рассылки. Спек: «если сайт хочет рассылать рекламу → страница + ссылка
+// в футере + галочка при оставлении email». «Хочет» — намерение, статикой невидимо; детектим
+// ПРОКСИ — маркетинговую инфраструктуру (email-рассыльщики / web-push, ловятся в pageContext по
+// сетевым запросам) + виджет подписки. Реклама по email/push без согласия — ч.1 ст.18 ФЗ «О
+// рекламе». Tier push = чистый сигнал (пуш почти всегда реклама) → risk; email-рассыльщик может
+// слать транзакционку → recommendation. Нашли отдельное согласие на рассылку → ok.
+export function checkMarketingConsent(pageContext) {
+  const base = { id: 'marketing_consent', law: 'Согласие на рекламные рассылки', law_code: 'ч.1 ст.18 ФЗ «О рекламе» + 152-ФЗ' };
+  const svcs = pageContext.marketingServices || [];
+  const hasPush   = svcs.some(s => s.tier === 'push');
+  const hasEmail  = svcs.some(s => s.tier === 'email');
+  const hasWidget = pageContext.hasSubscribeWidget === true;
+  if (!hasPush && !hasEmail && !hasWidget) {
+    return { ...base, status: 'ok', fine: '0 руб.', action: '', found_text: '',
+      issue: 'Признаков рекламных рассылок (email-рассыльщик / web-push / виджет подписки) не обнаружено — отдельное согласие на рассылку не требуется.' };
+  }
+  const services = svcs.map(s => s.name).join(', ');
+  // Есть ли отдельный документ/ссылка «Согласие на рассылку»?
+  const linkSources = [...(pageContext.links || []), ...(pageContext.policyLinks || []), ...(pageContext.rawDocLinks || [])];
+  const consentWord = /соглас|consent/;
+  const mktWord = /рассылк|рекламн|маркетинг|newsletter/; // без «акци» — слишком шумно в подвале
+  const hasConsentDoc =
+    // Оба слова в ОДНОЙ ссылке (текст/href) — «Согласие на рассылку», /soglasie-na-rassylku и т.п.
+    linkSources.some(l => {
+      const s = `${l.text || ''} ${l.href || ''} ${l.path || ''}`.toLowerCase();
+      return consentWord.test(s) && mktWord.test(s);
+    }) ||
+    // Либо в подвале, но с оконной близостью ±60 симв. (иначе «Согласие на ПД … Рассылка новостей»
+    // в разных концах футера дали бы ложный ok).
+    (() => {
+      const f = (pageContext.footer || '').toLowerCase();
+      if (!f) return false;
+      let m; const re = /соглас|consent/gi;
+      while ((m = re.exec(f))) {
+        if (mktWord.test(f.slice(Math.max(0, m.index - 60), m.index + 60))) return true;
+      }
+      return false;
+    })();
+  if (hasConsentDoc) {
+    return { ...base, status: 'ok', fine: '0 руб.', action: '', found_text: '',
+      issue: `Обнаружены рассылки${services ? ` (${services})` : ''}, и отдельное согласие на рекламную рассылку найдено.` };
+  }
+  const channel = hasPush ? 'web-push рекламные уведомления' : (hasEmail ? 'сервис email-рассылок' : 'форму подписки на рассылку');
+  return {
+    ...base,
+    status: hasPush ? 'risk' : 'recommendation',
+    fine: hasPush ? 'до 500 000 руб.' : '',
+    found_text: '',
+    issue: `Сайт использует ${channel}${services ? ` (${services})` : ''}, но отдельного согласия на рекламную рассылку не найдено — ни документа, ни галочки. Реклама по email/push без предварительного согласия получателя — нарушение ч.1 ст.18 ФЗ «О рекламе»${hasEmail && !hasPush ? ' (сервис может слать и транзакционные письма — проверьте вручную)' : ''}.`,
+    action: 'Добавьте отдельное согласие на рекламные рассылки: галочку при подписке / оставлении email (НЕ связанную с согласием на обработку ПД и офертой) + документ «Согласие на рекламную рассылку» со ссылкой в подвале.',
+  };
 }
 
 // Fetch URL text with automatic Playwright fallback for anti-bot and SPA pages.
@@ -1047,7 +1119,12 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
 
   // Inject cookie-policy-page check — local & deterministic (спек: отдельные правила обработки cookie)
   if (aiData?.checks && !aiData.checks.find(c => c.id === 'cookie_policy')) {
-    aiData.checks.push(checkCookiePolicy(pageContext));
+    aiData.checks.push(checkCookiePolicy(pageContext, gaPolicyText));
+  }
+
+  // Inject marketing-consent check — local & deterministic (спек: согласие на рекламные рассылки)
+  if (aiData?.checks && !aiData.checks.find(c => c.id === 'marketing_consent')) {
+    aiData.checks.push(checkMarketingConsent(pageContext));
   }
 
   // Inject delivery/return check — local & deterministic (спек: правила доставки/возврата для товара)
@@ -1223,8 +1300,8 @@ export async function scanSinglePage({ url, groqKey, slezaKey, useAI = true, sit
       check152._dataFormNoConsentCount = urls.length || 1;
       const n = check152._dataFormNoConsentCount;
       const lead = n > 1
-        ? `${n} формы сбора персональных данных без согласия — на ${n} страницах сайта рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).`
-        : 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).';
+        ? `${n} формы сбора персональных данных без согласия — на ${n} страницах сайта рядом с формой нет ни галочки, ни текста-уведомления («нажимая кнопку, вы соглашаетесь…»), ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ). Закон не требует именно галочки — согласие может быть оформлено текстом-уведомлением, но какая-либо форма его получения обязательна.`
+        : 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки, ни текста-уведомления («нажимая кнопку, вы соглашаетесь…»), ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ). Закон не требует именно галочки — согласие может быть оформлено текстом-уведомлением, но какая-либо форма его получения обязательна.';
       const prev = (check152.issue || '').trim();
       check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
     }
@@ -1669,8 +1746,8 @@ export async function scanFullSite({ url, groqKey, slezaKey = '', useAI = true, 
       check152._dataFormNoConsentCount = urls.length || 1;
       const n = check152._dataFormNoConsentCount;
       const lead = n > 1
-        ? `${n} формы сбора персональных данных без согласия — на ${n} страницах сайта рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).`
-        : 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки согласия, ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ).';
+        ? `${n} формы сбора персональных данных без согласия — на ${n} страницах сайта рядом с формой нет ни галочки, ни текста-уведомления («нажимая кнопку, вы соглашаетесь…»), ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ). Закон не требует именно галочки — согласие может быть оформлено текстом-уведомлением, но какая-либо форма его получения обязательна.`
+        : 'Форма сбора персональных данных без согласия на обработку — рядом с формой нет ни галочки, ни текста-уведомления («нажимая кнопку, вы соглашаетесь…»), ни ссылки на политику конфиденциальности (нарушение ст.6/ст.9 152-ФЗ). Закон не требует именно галочки — согласие может быть оформлено текстом-уведомлением, но какая-либо форма его получения обязательна.';
       const prev = (check152.issue || '').trim();
       check152.issue = prev ? `${lead} Дополнительно: ${prev}` : lead;
     }

@@ -515,8 +515,16 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
     // Only data-collection endpoints (not script loads) — avoids false positives from GA Consent Mode.
     const _preConsentReqs = [];
     const TRACKING_REQ_RE = /mc\.yandex\.ru\/(webvisor|watch)|vk\.com\/rtrg|top-fwz1\.mail\.ru|google-analytics\.com\/(collect|j\/collect)|analytics\.google\.com\/g\/collect|facebook\.com\/tr\?/i;
+    // Marketing infrastructure: email-рассыльщики (Tier 2 — могут слать и транзакционку) и
+    // web-push сервисы (Tier 1 — почти всегда реклама). Ловим по сетевым запросам (SDK-скрипт
+    // ИЛИ API-вызов бьёт по домену сервиса при рендере). Сигнал того, что компания ЗАВЕЛА канал
+    // рассылки — прокси намерения «слать рекламу», которое напрямую статикой не видно.
+    const _marketingReqs = [];
+    const MARKETING_REQ_RE = /onesignal\.com|gravitec\.net|pushwoosh\.com|sendpulse\.com|mindbox\.ru|unisender\.(?:com|ru)|sendsay\.ru|dashamail|enkod|carrotquest\.io|list-manage\.com|chimpstatic\.com|getresponse\.com/i;
     page.on('request', req => {
-      if (TRACKING_REQ_RE.test(req.url())) _preConsentReqs.push(req.url());
+      const u = req.url();
+      if (TRACKING_REQ_RE.test(u)) _preConsentReqs.push(u);
+      if (MARKETING_REQ_RE.test(u)) _marketingReqs.push(u);
     });
 
     // domcontentloaded is much more reliable than 'load' — avoids timeouts on
@@ -557,6 +565,32 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
       ..._preCookies.map(_svcFromCookie).filter(Boolean),
       ..._preConsentReqs.map(_svcFromReq).filter(Boolean),
     ])];
+
+    // Маркетинговые сервисы → {name, tier}. push = web-push (Tier 1, чистый сигнал рекламы);
+    // email = рассыльщик (Tier 2, возможна транзакционка → мягче вердикт).
+    const _svcFromMarketing = u => {
+      if (/onesignal\.com/i.test(u))        return { name: 'OneSignal (web-push)', tier: 'push' };
+      if (/gravitec\.net/i.test(u))         return { name: 'Gravitec (web-push)', tier: 'push' };
+      if (/pushwoosh\.com/i.test(u))        return { name: 'Pushwoosh (web-push)', tier: 'push' };
+      if (/mindbox\.ru/i.test(u))           return { name: 'Mindbox', tier: 'email' };
+      if (/sendpulse\.com/i.test(u))        return { name: 'SendPulse', tier: 'email' };
+      if (/unisender\.(?:com|ru)/i.test(u)) return { name: 'UniSender', tier: 'email' };
+      if (/sendsay\.ru/i.test(u))           return { name: 'Sendsay', tier: 'email' };
+      if (/dashamail/i.test(u))             return { name: 'DashaMail', tier: 'email' };
+      if (/enkod/i.test(u))                 return { name: 'enKod', tier: 'email' };
+      if (/carrotquest\.io/i.test(u))       return { name: 'Carrot quest', tier: 'email' };
+      if (/list-manage\.com|chimpstatic\.com/i.test(u)) return { name: 'Mailchimp', tier: 'email' };
+      if (/getresponse\.com/i.test(u))      return { name: 'GetResponse', tier: 'email' };
+      return null;
+    };
+    const _marketingServices = (() => {
+      const seen = new Set(), out = [];
+      for (const u of _marketingReqs) {
+        const s = _svcFromMarketing(u);
+        if (s && !seen.has(s.name)) { seen.add(s.name); out.push(s); }
+      }
+      return out;
+    })();
 
     // Try to dismiss cookie banner so it doesn't pollute bodyText
     try {
@@ -847,6 +881,20 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         hasPolicyFooterLink,
         hasConsentCheckbox,
         hasPreCheckedConsent,
+        // Виджет подписки на рассылку (Tier 3): поле email БЕЗ имени/телефона (иначе это
+        // транзакционная контакт-форма, не подписка) + текст про подписку/рассылку рядом.
+        hasSubscribeWidget: (() => {
+          const emailInputs = [...document.querySelectorAll('input[type="email"],input[name*="mail" i],input[placeholder*="mail" i],input[placeholder*="почт" i]')];
+          const subRe = /подпи|рассылк|новост|акци|дайджест|subscribe|newsletter/i;
+          for (const inp of emailInputs) {
+            const box = inp.closest('form') || inp.parentElement?.parentElement || inp.parentElement;
+            if (!box) continue;
+            const hasNameOrPhone = box.querySelector('input[type="tel"],input[name*="phone" i],input[name*="tel" i],input[name*="name" i],input[name*="fio" i],input[placeholder*="имя" i],input[placeholder*="телефон" i]');
+            if (hasNameOrPhone) continue;
+            if (subRe.test(box.textContent || '')) return true;
+          }
+          return false;
+        })(),
       };
     }, KW);
 
@@ -856,6 +904,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
     // Pre-consent tracking: snapshot built before banner dismissal (above).
     context.hasPreConsentTracking = _preConsentServices.length > 0;
     context.preConsentTrackingServices = _preConsentServices;
+    context.marketingServices = _marketingServices;
 
     const httpStatus = gotoResponse?.status?.() ?? 200;
     if (httpStatus >= 400) context._http403 = true;
@@ -965,6 +1014,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
         hasAdScripts: false, hasAnalytics: false, hasCookieBanner: false,
         hasPolicyFooterLink: false, hasConsentCheckbox: false, inlineModalPolicyText: '',
         hasPreConsentTracking: false, preConsentTrackingServices: [],
+        marketingServices: [], hasSubscribeWidget: false,
         _fallback: true,
         _blocked: /^challenge:/.test(String(err?.message)),
         _http403: res.status === 403,
