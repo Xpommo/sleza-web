@@ -39,9 +39,38 @@ let _browser = null;
 
 async function getBrowser() {
   if (!_browser || !_browser.isConnected()) {
-    _browser = await chromium.launch({ headless: true });
+    // --disable-blink-features=AutomationControlled убирает флаг автоматизации, по которому
+    // JS-фингерпринт анти-ботов (BotFAQtor и др.) палит headless-Chromium и редиректит на блок.
+    _browser = await chromium.launch({
+      headless: true,
+      args: ['--disable-blink-features=AutomationControlled'],
+    });
   }
   return _browser;
+}
+
+// Stealth init-script: прячем headless-приметы (navigator.webdriver, пустой plugins/languages,
+// отсутствие window.chrome). Достаточно, чтобы пройти фингерпринт-детекторы вроде BotFAQtor —
+// проверено: без него peregorodka77.ru редиректит на blocked.botfaqtor.ru, с ним отдаёт реальную
+// страницу. НЕ обходит интерактивные капчи (SmartCaptcha, Cloudflare Turnstile) — те не по фингерпринту.
+function _stealthInit() {
+  Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+  Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+  Object.defineProperty(navigator, 'languages', { get: () => ['ru-RU', 'ru', 'en-US'] });
+  window.chrome = { runtime: {}, app: {}, csi: () => {}, loadTimes: () => {} };
+  try {
+    const orig = navigator.permissions.query.bind(navigator.permissions);
+    navigator.permissions.query = p =>
+      p && p.name === 'notifications' ? Promise.resolve({ state: Notification.permission }) : orig(p);
+  } catch (_) {}
+}
+
+// Обёртка над browser.newContext: создаёт контекст и вешает stealth init-script. Все места,
+// создающие контекст, должны идти через неё — иначе на анти-бот-сайтах получим блок-заглушку.
+async function newStealthContext(browser, opts) {
+  const ctx = await browser.newContext(opts);
+  await ctx.addInitScript(_stealthInit);
+  return ctx;
 }
 
 export async function closeBrowser() {
@@ -61,7 +90,7 @@ export async function fetchPageText(url) {
   let ctx;
   try {
     const browser = await getBrowser();
-    ctx = await browser.newContext({
+    ctx = await newStealthContext(browser, {
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       locale: 'ru-RU',
       extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
@@ -91,7 +120,7 @@ export async function fetchPageTextAndLinks(url) {
   let ctx;
   try {
     const browser = await getBrowser();
-    ctx = await browser.newContext({
+    ctx = await newStealthContext(browser, {
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       locale: 'ru-RU',
       extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
@@ -138,7 +167,7 @@ function detectPreCheckedConsent() {
     if (!cb.checked && !cb.hasAttribute('checked')) continue;
     if (near(cb)) return true;
   }
-  for (const cb of document.querySelectorAll('[role="checkbox"][aria-checked="true"],[aria-checked="true"]')) {
+  for (const cb of document.querySelectorAll('[role="checkbox"][aria-checked="true"],[role="switch"][aria-checked="true"]')) {
     if (near(cb)) return true;
   }
   return false;
@@ -205,7 +234,9 @@ function detectDataFormNoConsent() {
     if (par && par !== document.body && !par.querySelector('footer') && (par.textContent || '').length < 2500) scope.add(par);
     const scopeEls = [...scope];
     const linkSel = 'a[href*="privacy" i],a[href*="policy" i],a[href*="politik" i],a[href*="konfiden" i],a[href*="personal" i],a[href*="soglas" i],a[href*="agreement" i],a[href*="agree" i],a[href*="consent" i],a[href*="dogovor" i],a[href*="usloviya" i],a[href*="persdata" i]';
-    const hasCheckbox    = scopeEls.some(e => e.querySelector('input[type="checkbox"],[role="checkbox"],[class*="checkbox" i]'));
+    // Согласие часто оформлено ТУМБЛЕРОМ (role="switch" / class toggle|switch), а не чекбоксом —
+    // считаем и его. Ошибка в сторону «не флагать» безопаснее ложного «нет согласия».
+    const hasCheckbox    = scopeEls.some(e => e.querySelector('input[type="checkbox"],[role="checkbox"],[class*="checkbox" i],[role="switch"],[class*="toggle" i],[class*="switch" i]'));
     const hasConsentText = consentRe.test(scopeEls.map(e => e.textContent || '').join(' '));
     const hasPolicyLink  = scopeEls.some(e => e.querySelector(linkSel));
     if (!hasCheckbox && !hasConsentText && !hasPolicyLink) return true;
@@ -285,7 +316,7 @@ export async function discoverCoursePageLinks(url) {
   try {
     const browser = await getBrowser();
     const origin = new URL(url).origin;
-    ctx = await browser.newContext({
+    ctx = await newStealthContext(browser, {
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       locale: 'ru-RU',
       extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
@@ -434,7 +465,7 @@ export async function fetchFormPageSignal(url) {
   let ctx;
   try {
     const browser = await getBrowser();
-    ctx = await browser.newContext({
+    ctx = await newStealthContext(browser, {
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       locale: 'ru-RU',
       extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
@@ -443,6 +474,11 @@ export async function fetchFormPageSignal(url) {
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
     await page.waitForTimeout(1800).catch(() => {});
+    // Anti-bot block (BotFAQtor и т.п.): страница-заглушка сама несёт «форму связи» без согласия →
+    // ложное noConsent. Если увели на блок-хост — считаем сигнал недостоверным.
+    if (/botfaqtor|\/\/blocked\./i.test(page.url())) {
+      return { preChecked: false, noConsent: false, bundledConsent: false };
+    }
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
     await page.waitForTimeout(600).catch(() => {});
     const [preChecked, noConsent, bundledConsent] = await Promise.all([
@@ -468,7 +504,7 @@ export async function fetchConsentSignal(url) {
   let ctx;
   try {
     const browser = await getBrowser();
-    ctx = await browser.newContext({
+    ctx = await newStealthContext(browser, {
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       locale: 'ru-RU',
       extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
@@ -502,7 +538,7 @@ export async function fetchConsentSignal(url) {
  */
 export async function buildPageContext(url, { timeout = 30000 } = {}) {
   const browser = await getBrowser();
-  const browserCtx = await browser.newContext({
+  const browserCtx = await newStealthContext(browser, {
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     locale: 'ru-RU',
     extraHTTPHeaders: { 'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8' },
@@ -798,7 +834,7 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
           if (!cb.checked && !cb.hasAttribute('checked')) continue;
           if (near(cb)) return true;
         }
-        for (const cb of document.querySelectorAll('[role="checkbox"][aria-checked="true"],[aria-checked="true"]')) {
+        for (const cb of document.querySelectorAll('[role="checkbox"][aria-checked="true"],[role="switch"][aria-checked="true"]')) {
           if (near(cb)) return true;
         }
         return false;
@@ -914,9 +950,18 @@ export async function buildPageContext(url, { timeout = 30000 } = {}) {
     const isChallenge = context.bodyText.length < 300 && (
       /just a moment|почти готово|проверка браузера|checking your browser|ddos.guard|enable javascript/i.test(context.title + ' ' + context.bodyText)
     );
-    if (isChallenge) {
+    // Anti-bot block pages that redirect to a challenge host (BotFAQtor и т.п.). Их тело ДЛИННОЕ
+    // (показывают собственную «форму связи» + текст «визит заблокирован»), поэтому length-гвард
+    // выше их не ловит. Если это блок-заглушка — сканировать её нельзя: её форма без согласия
+    // даёт ложное «форма без согласия», а её текст — ложную политику. Detect по финальному хосту
+    // (redirect на blocked.*/botfaqtor) + сигнатуре, и уводим в fallback (пометит _blocked).
+    const finalUrl = page.url();
+    const isAntiBotBlock =
+      /botfaqtor|\/\/blocked\./i.test(finalUrl) ||
+      /botfaqtor|визит заблокирован|зафиксирован подозрительный трафик/i.test(context.title + ' ' + context.bodyText.slice(0, 600));
+    if (isChallenge || isAntiBotBlock) {
       // Fall through to plain-fetch fallback below
-      throw new Error(`challenge:${context.title}`);
+      throw new Error(`challenge:${context.title || finalUrl}`);
     }
 
     // If no policy links found, try clicking policy-text buttons (modal popups, SPAs).
