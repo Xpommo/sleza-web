@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ШтрафКонтроль — админка, каркас v4</title>
+
+<!--
+  КАРКАС ВНУТРЕННЕЙ АДМИНКИ. Только интерфейс: данные выдуманы, логики нет.
+
+  Модель: сервис автоматический. Клиент заполняет анкету — документы собираются
+  и выдаются без участия человека. Поэтому админка построена не как конвейер
+  юриста, а как наблюдение + вмешательство в исключениях:
+
+    · Обзор     — что происходит в потоке: выдано автоматом, застряло, ошибки
+    · Клиенты   — дерево «клиент → его сайты», ручные действия по каждому
+    · Шаблоны   — тексты и версии, от которых зависит вся автоматика
+    · Переменные— словарь: что можно подставить и откуда оно берётся
+
+  Два уровня карточек
+  -------------------
+  Клиент  — контакты, оплата, несколько доменов, история.
+  Сайт    — скан, анкета, состав пакета, переменные, выданные документы.
+  Пакет документов собирается на домен, поэтому всё «документное» живёт на сайте.
+
+  Для разработчиков
+  -----------------
+  · data-field="имя.поля"  — точка подстановки данных.
+  · data-action="действие" — точка, куда вешать обработчик.
+  · JS в файле только переключает экраны и вкладки.
+  · Палитра и шрифты — как в клиентском кабинете (frontend/app/globals.css).
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#111110; --ink-2:#2a2825;
+  --paper:#faf8f4; --warm:#f4f1ec; --white:#fff;
+  --brand:#1f1fe6; --brand-tint:rgba(31,31,230,.05);
+  --danger:#d63816; --danger-tint:rgba(214,56,22,.10);
+  --ok:#1a7a52;     --ok-tint:rgba(26,122,82,.10);
+  --warn:#b87900;   --warn-tint:rgba(184,121,0,.12);
+  --line:#e8e4dd; --line-2:#dcd6cc;
+  --sans:'Onest',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --ring:0 0 0 4px rgba(31,31,230,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{background:var(--warm);color:var(--ink);font-family:var(--sans);font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+button{font-family:inherit}
+:focus-visible{outline:none;box-shadow:var(--ring);border-radius:8px}
+
+.app{display:grid;grid-template-columns:180px 296px 1fr;height:100vh}
+.app.wide{grid-template-columns:180px 1fr}
+@media(max-width:1100px){.app{grid-template-columns:60px 250px 1fr}.rail .lbl{display:none}}
+
+.rail{background:var(--paper);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:14px 10px}
+.brand{display:flex;align-items:center;gap:8px;padding:4px 8px 16px}
+.brand b{font-size:14px;font-weight:800;letter-spacing:-.02em}
+.rail nav{display:flex;flex-direction:column;gap:2px}
+.rail button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:0;color:rgba(17,17,16,.65);font-size:13.5px;font-weight:600;padding:9px 10px;border-radius:8px;cursor:pointer}
+.rail button:hover{background:var(--white);color:var(--ink)}
+.rail button.on{background:var(--ink);color:#fff}
+.rail .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;background:var(--danger-tint);color:var(--danger);padding:1px 6px;border-radius:999px}
+.rail button.on .cnt{background:rgba(255,255,255,.18);color:#fff}
+.rail .foot{margin-top:auto;padding:10px 8px;border-top:1px solid var(--line);font-size:11px;color:rgba(17,17,16,.45)}
+
+.col{background:var(--white);border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.col-head{padding:13px 14px 10px;border-bottom:1px solid var(--line)}
+.col-head h2{margin:0;font-size:15px;font-weight:800;letter-spacing:-.02em}
+.col-head .sub{font-size:12px;color:rgba(17,17,16,.55);margin-top:2px}
+.col-scroll{overflow-y:auto;flex:1}
+.work{overflow-y:auto;min-width:0}
+.work-in{padding:22px 26px 60px;max-width:1000px}
+
+/* дерево «клиент → сайты» */
+.cli{border-bottom:1px solid var(--line);padding:9px 12px 10px}
+.cli-h{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;text-align:left;cursor:pointer;padding:2px 2px 4px;border-radius:6px}
+.cli-h:hover{background:var(--paper)}
+.cli-h .nm{font-size:13.5px;font-weight:800;letter-spacing:-.01em}
+.cli-h .meta{font-size:11.5px;color:rgba(17,17,16,.55)}
+.site{display:flex;align-items:center;gap:7px;width:100%;background:none;border:0;text-align:left;cursor:pointer;padding:6px 8px;border-radius:7px;margin-top:2px}
+.site:hover{background:var(--paper)}
+.site.on{background:var(--warm);box-shadow:inset 3px 0 0 var(--ink)}
+.site .d{font-family:var(--mono);font-size:12px}
+.site .s{margin-left:auto}
+
+.b{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;padding:3px 7px;border-radius:999px;background:var(--line);color:rgba(17,17,16,.6);white-space:nowrap}
+.b.red{background:var(--danger-tint);color:var(--danger)}
+.b.amber{background:var(--warn-tint);color:var(--warn)}
+.b.green{background:var(--ok-tint);color:var(--ok)}
+.b.blue{background:var(--brand-tint);color:var(--brand)}
+.b.out{background:var(--white);border:1px solid var(--line-2)}
+.dot{width:7px;height:7px;border-radius:50%;flex:none}
+.dot.red{background:var(--danger)} .dot.amber{background:var(--warn)}
+.dot.green{background:var(--ok)}  .dot.blue{background:var(--brand)} .dot.grey{background:var(--line-2)}
+
+.btn{font-size:13px;font-weight:700;border:1px solid var(--line-2);background:var(--white);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:rgba(17,17,16,.35)}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.primary:hover{background:var(--brand);border-color:var(--brand)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.ghost{border-color:transparent;background:none;color:rgba(17,17,16,.65)}
+.btn.ghost:hover{background:var(--paper);color:var(--ink)}
+.btn.danger{color:var(--danger);border-color:rgba(214,56,22,.3)}
+.btn.danger:hover{border-color:var(--danger)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+
+h1{font-size:24px;font-weight:800;letter-spacing:-.03em;margin:0}
+h3{font-size:14px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
+.micro{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45)}
+.muted{color:rgba(17,17,16,.55)}
+.card{background:var(--white);border:1px solid var(--line-2);border-radius:10px}
+.pad{padding:15px 16px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+.wrapflex{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.right{margin-left:auto}
+.hr{height:1px;background:var(--line);margin:13px 0}
+.sec{margin-top:22px}
+.sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.sec-head .hint{font-size:11.5px;color:rgba(17,17,16,.45);margin-left:auto}
+
+.kv{display:flex;gap:10px;padding:5px 0;font-size:13px}
+.kv .k{color:rgba(17,17,16,.55);width:180px;flex:none}
+.kv .v{font-family:var(--mono);font-size:12px}
+
+table{width:100%;border-collapse:collapse}
+thead th{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45);text-align:left;font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:13px}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--paper)}
+td.tight{width:1%;white-space:nowrap}
+.code{font-family:var(--mono);font-size:11.5px;background:var(--warm);padding:2px 6px;border-radius:5px}
+
+.note{font-size:12.5px;color:rgba(17,17,16,.65);background:var(--paper);border:1px dashed var(--line-2);border-radius:10px;padding:12px 14px}
+.note b{color:var(--ink)}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:18px;flex-wrap:wrap}
+.tabs button{background:none;border:0;padding:9px 13px;font-size:13px;font-weight:700;color:rgba(17,17,16,.55);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button:hover{color:var(--ink)}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
+
+/* обзор потока */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line-2);border-radius:10px;overflow:hidden}
+@media(max-width:900px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--white);padding:14px 15px}
+.tile .n{font-size:26px;font-weight:800;letter-spacing:-.03em}
+.tile .l{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.45);margin-top:2px}
+.tile.red .n{color:var(--danger)} .tile.amber .n{color:var(--warn)} .tile.green .n{color:var(--ok)}
+
+.feed{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.feed:last-child{border-bottom:0}
+.feed .tm{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.45);width:96px;flex:none}
+.feed .who{width:84px;flex:none}
+
+/* анкета */
+.q{padding:12px 0;border-bottom:1px solid var(--line)}
+.q:last-child{border-bottom:0}
+.q .txt{font-size:13px;font-weight:600}
+.q .ans{font-family:var(--mono);font-size:12.5px;margin-top:4px}
+.q .ans.empty{color:var(--danger)}
+.q .maps{font-size:11.5px;color:rgba(17,17,16,.5);margin-top:4px}
+.q .maps .code{font-size:11px}
+
+/* документы и подстановки */
+.docbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--paper)}
+.doctext{padding:20px 22px;font-family:var(--mono);font-size:12.5px;line-height:1.85;white-space:pre-wrap;color:var(--ink-2);max-height:460px;overflow:auto}
+.ph{background:var(--brand-tint);color:var(--brand);border-radius:4px;padding:1px 4px}
+.ph.filled{background:var(--ok-tint);color:var(--ok)}
+.ph.miss{background:var(--danger-tint);color:var(--danger)}
+.cut{display:block;background:var(--warm);color:rgba(17,17,16,.45);border-left:2px solid var(--line-2);padding:3px 9px;margin:4px 0;border-radius:0 6px 6px 0;font-size:11.5px}
+
+.doc{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.doc:last-child{border-bottom:0}
+.doc input[type=checkbox]{appearance:none;width:17px;height:17px;flex:none;margin-top:2px;border:1.5px solid var(--line-2);border-radius:5px;background:#fff;cursor:pointer;position:relative}
+.doc input[type=checkbox]:checked{background:var(--ink);border-color:var(--ink)}
+.doc input[type=checkbox]:checked::after{content:"";position:absolute;left:5px;top:1.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.doc .t{flex:1;min-width:0}
+.doc .n{font-weight:700;font-size:13.5px}
+.doc .why{font-size:12px;color:rgba(17,17,16,.6);margin-top:2px}
+.doc .why b{color:var(--ink)}
+
+/* ── Без JavaScript видно всё ────────────────────────────────────────────
+   Файл смотрят где придётся: предпросмотр в почте, мессенджере, облаке.
+   Там скрипты часто отключены, и переключение панелей не работает —
+   раньше от этого оставался один экран. Теперь по умолчанию показаны все
+   экраны подряд, а прятать их начинает сам скрипт, добавив body.js.        */
+.screen{display:block}
+.pane{display:block;border-top:1px solid var(--line-2)}
+.js .screen{display:none} .js .screen.on{display:block}
+.js .pane{display:none;border-top:0} .js .pane.on{display:block}
+.nojs-hint{display:block;background:var(--warn-tint);color:var(--warn);font-size:12.5px;padding:9px 26px;border-bottom:1px solid var(--line)}
+.js .nojs-hint{display:none}
+
+/* ── Телефон ──────────────────────────────────────────────────────────────
+   Три колонки на 375px не помещаются: рабочая область уезжала за экран.
+   Складываем в один столбец, рельс превращается в полосу кнопок сверху.   */
+@media(max-width:760px){
+  .app,.app.wide{display:block;height:auto}
+  .rail{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;border-right:0;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;padding:10px 12px}
+  .rail .brand{padding:0 8px 0 0}
+  .rail nav{flex-direction:row;flex-wrap:wrap;gap:6px;width:100%}
+  .rail nav button{width:auto;padding:7px 11px;font-size:12.5px}
+  .rail .lbl{display:inline}
+  .rail .foot{display:none}
+  .col{border-right:0;border-bottom:1px solid var(--line-2);max-height:none}
+  .col-scroll{overflow:visible}
+  .work-in{padding:18px 15px 40px}
+  .tiles{grid-template-columns:1fr 1fr}
+  .kv{flex-direction:column;gap:1px} .kv .k{width:auto}
+  table{display:block;overflow-x:auto;white-space:nowrap}
+  h1{font-size:21px}
+}
+</style>
+</head>
+<body>
+
+<!-- Видно только там, где скрипты отключены: объясняет, почему экраны идут подряд -->
+<div class="nojs-hint">Скрипты отключены — экраны показаны один за другим, листайте вниз. Чтобы переключаться по разделам, откройте файл в браузере.</div>
+
+<div class="app" id="app">
+
+  <!-- ══ РЕЛЬС ═══════════════════════════════════════════════════════ -->
+  <div class="rail">
+    <div class="brand">
+      <svg width="22" height="15" viewBox="0 0 24 16" fill="none" aria-hidden="true" style="color:var(--brand)">
+        <rect x="2" y="5" width="8" height="6" rx="1.4" fill="currentColor"/>
+        <rect x="10" y="4" width="3" height="8" rx=".6" fill="currentColor"/>
+        <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/>
+        </g>
+      </svg>
+      <b>Админка</b>
+    </div>
+    <nav>
+      <button class="on" data-screen="overview">◈ <span class="lbl">Обзор</span></button>
+      <button data-screen="clients">▤ <span class="lbl">Клиенты</span> <span class="cnt" data-field="stuck.count">3</span></button>
+      <button data-screen="templates">▧ <span class="lbl">Шаблоны</span></button>
+      <button data-screen="vars">≡ <span class="lbl">Переменные</span></button>
+    </nav>
+    <div class="foot">каркас интерфейса<br>данные выдуманные</div>
+  </div>
+
+  <!-- ══ КОЛОНКА: дерево клиентов ════════════════════════════════════ -->
+  <div class="col screen" id="col-clients">
+    <div class="col-head">
+      <h2>Клиенты</h2>
+      <div class="sub">Клиент → его сайты. Пакет собирается на домен</div>
+    </div>
+    <div class="col-scroll">
+
+      <div class="cli">
+        <button class="cli-h" data-open="client" data-id="alfa">
+          <span>
+            <span class="nm" data-field="client.name">Школа Альфа</span>
+            <span class="meta" style="display:block">ООО «Альфа Образование» · 2 сайта</span>
+          </span>
+          <span class="right b red">застрял</span>
+        </button>
+        <button class="site on" data-open="site" data-id="alfa-school.ru">
+          <span class="dot red"></span><span class="d">alfa-school.ru</span>
+          <span class="s b red">нет данных</span>
+        </button>
+        <button class="site" data-open="site" data-id="alfa-camp.ru">
+          <span class="dot green"></span><span class="d">alfa-camp.ru</span>
+          <span class="s b green">выдано</span>
+        </button>
+      </div>
+
+      <div class="cli">
+        <button class="cli-h" data-open="client" data-id="epsilon">
+          <span>
+            <span class="nm">Эпсилон Курсы</span>
+            <span class="meta" style="display:block">ИП Петров П. П. · 1 сайт</span>
+          </span>
+          <span class="right b amber">проверка</span>
+        </button>
+        <button class="site" data-open="site" data-id="epsilon-edu.ru">
+          <span class="dot amber"></span><span class="d">epsilon-edu.ru</span>
+          <span class="s b amber">на проверке</span>
+        </button>
+      </div>
+
+      <div class="cli">
+        <button class="cli-h" data-open="client" data-id="zeta">
+          <span>
+            <span class="nm">Дзета Логистика</span>
+            <span class="meta" style="display:block">ООО «Дзета Транс» · 1 сайт</span>
+          </span>
+          <span class="right b blue">обновить</span>
+        </button>
+        <button class="site" data-open="site" data-id="zeta-logistic.ru">
+          <span class="dot blue"></span><span class="d">zeta-logistic.ru</span>
+          <span class="s b blue">новая версия</span>
+        </button>
+      </div>
+
+      <div class="cli">
+        <button class="cli-h" data-open="client" data-id="gamma">
+          <span>
+            <span class="nm">Гамма Клиника</span>
+            <span class="meta" style="display:block">ООО «Гамма Мед» · 1 сайт</span>
+          </span>
+          <span class="right b green">выдано</span>
+        </button>
+        <button class="site" data-open="site" data-id="gamma-clinic.ru">
+          <span class="dot green"></span><span class="d">gamma-clinic.ru</span>
+          <span class="s b green">выдано</span>
+        </button>
+      </div>
+
+      <div class="cli">
+        <button class="cli-h" data-open="client" data-id="theta">
+          <span>
+            <span class="nm">Тета Студия</span>
+            <span class="meta" style="display:block">ИП Смирнова А. В. · 1 сайт</span>
+          </span>
+          <span class="right b">ждём анкету</span>
+        </button>
+        <button class="site" data-open="site" data-id="theta-studio.ru">
+          <span class="dot grey"></span><span class="d">theta-studio.ru</span>
+          <span class="s b">анкета 40%</span>
+        </button>
+      </div>
+
+      <div style="padding:12px 14px"><button class="btn sm" data-action="client.create">+ Добавить клиента</button></div>
+    </div>
+  </div>
+
+  <!-- ══ КОЛОНКА: шаблоны ════════════════════════════════════════════ -->
+  <div class="col screen" id="col-templates">
+    <div class="col-head"><h2>Шаблоны</h2><div class="sub">От них зависит вся автоматика</div></div>
+    <div class="col-scroll">
+      <button class="site on" style="border-bottom:1px solid var(--line);border-radius:0;padding:11px 14px">
+        <span><span class="d" style="font-weight:700;font-family:var(--sans);font-size:13.5px">Политика обработки ПДн</span>
+        <span class="meta mono" style="display:block;font-size:11px;color:rgba(17,17,16,.5)">pdn-policy · v3</span></span>
+        <span class="s b green">актуальный</span>
+      </button>
+      <button class="site" style="border-bottom:1px solid var(--line);border-radius:0;padding:11px 14px">
+        <span><span class="d" style="font-weight:700;font-family:var(--sans);font-size:13.5px">Согласие на обработку ПДн</span>
+        <span class="meta mono" style="display:block;font-size:11px;color:rgba(17,17,16,.5)">pdn-consent · v2</span></span>
+        <span class="s b green">актуальный</span>
+      </button>
+      <button class="site" style="border-bottom:1px solid var(--line);border-radius:0;padding:11px 14px">
+        <span><span class="d" style="font-weight:700;font-family:var(--sans);font-size:13.5px">Cookie-политика и баннер</span>
+        <span class="meta mono" style="display:block;font-size:11px;color:rgba(17,17,16,.5)">cookie-policy · v1</span></span>
+        <span class="s b green">актуальный</span>
+      </button>
+      <button class="site" style="border-bottom:1px solid var(--line);border-radius:0;padding:11px 14px">
+        <span><span class="d" style="font-weight:700;font-family:var(--sans);font-size:13.5px">Согласие на рассылку</span>
+        <span class="meta mono" style="display:block;font-size:11px;color:rgba(17,17,16,.5)">mailing-consent · v1</span></span>
+        <span class="s b green">актуальный</span>
+      </button>
+      <button class="site" style="border-bottom:1px solid var(--line);border-radius:0;padding:11px 14px">
+        <span><span class="d" style="font-weight:700;font-family:var(--sans);font-size:13.5px">Публичная оферта</span>
+        <span class="meta mono" style="display:block;font-size:11px;color:rgba(17,17,16,.5)">offer · v1</span></span>
+        <span class="s b amber">черновик</span>
+      </button>
+      <div style="padding:12px 14px"><button class="btn sm" data-action="template.create">+ Новый шаблон</button></div>
+    </div>
+  </div>
+
+  <!-- ══ КОЛОНКА: переменные ═════════════════════════════════════════ -->
+  <div class="col screen" id="col-vars">
+    <div class="col-head"><h2>Переменные</h2><div class="sub">Шаблон берёт значения только отсюда</div></div>
+    <div class="col-scroll">
+      <button class="site on" style="border-bottom:1px solid var(--line);border-radius:0;padding:11px 14px"><span class="d" style="font-family:var(--sans);font-weight:700">Все · 28</span></button>
+      <button class="site" style="border-bottom:1px solid var(--line);border-radius:0;padding:11px 14px"><span class="dot blue"></span><span class="d" style="font-family:var(--sans)">Из ЕГРЮЛ · 7</span></button>
+      <button class="site" style="border-bottom:1px solid var(--line);border-radius:0;padding:11px 14px"><span class="dot green"></span><span class="d" style="font-family:var(--sans)">Из скана · 9</span></button>
+      <button class="site" style="border-bottom:1px solid var(--line);border-radius:0;padding:11px 14px"><span class="dot amber"></span><span class="d" style="font-family:var(--sans)">Из анкеты · 10</span></button>
+      <button class="site" style="border-bottom:1px solid var(--line);border-radius:0;padding:11px 14px"><span class="dot grey"></span><span class="d" style="font-family:var(--sans)">Вручную · 2</span></button>
+    </div>
+  </div>
+
+  <!-- ══ РАБОЧАЯ ОБЛАСТЬ ═════════════════════════════════════════════ -->
+  <div class="work">
+
+    <!-- ── ОБЗОР ПОТОКА ────────────────────────────────────────────── -->
+    <!-- Сервис автоматический: главный вопрос не «что мне делать»,
+         а «что прошло само и где сломалось» -->
+    <div class="pane on" id="pane-overview">
+      <div class="work-in">
+        <h1>Обзор</h1>
+        <div class="muted" style="font-size:13px;margin-top:2px">Сегодня, 3 августа</div>
+
+        <div class="sec">
+          <div class="tiles">
+            <div class="tile"><div class="n" data-field="today.new">12</div><div class="l">анкет пришло</div></div>
+            <div class="tile green"><div class="n" data-field="today.auto">9</div><div class="l">выдано автоматом</div></div>
+            <div class="tile red"><div class="n" data-field="today.stuck">3</div><div class="l">застряло</div></div>
+            <div class="tile amber"><div class="n" data-field="today.review">1</div><div class="l">на ручной проверке</div></div>
+          </div>
+          <div class="note" style="margin-top:12px">
+            <b>Норма — это «выдано автоматом».</b> Всё остальное требует внимания: застрявшее нужно
+            расшить, ручная проверка — это исключение, а не этап. Если доля автоматических выдач
+            падает, значит в анкете или шаблонах что-то не сходится.
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-head"><h3 style="margin:0">Где застряло</h3><span class="hint">клик — на карточку сайта</span></div>
+          <div class="card">
+            <table>
+              <thead><tr><th>Сайт</th><th>Клиент</th><th>Что мешает</th><th>Сколько ждёт</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="mono">alfa-school.ru</td><td>Школа Альфа</td>
+                  <td style="color:var(--danger)">не заполнена почта ответственного за ПДн</td>
+                  <td class="mono">2 дня</td>
+                  <td class="tight"><button class="btn sm" data-open="site">Открыть</button></td>
+                </tr>
+                <tr>
+                  <td class="mono">theta-studio.ru</td><td>Тета Студия</td>
+                  <td class="muted">анкета заполнена на 40% · напоминание ушло 2 раза</td>
+                  <td class="mono">4 дня</td>
+                  <td class="tight"><button class="btn sm" data-open="site">Открыть</button></td>
+                </tr>
+                <tr>
+                  <td class="mono">delta-service.ru</td><td>Дельта Услуги</td>
+                  <td style="color:var(--danger)">ЕГРЮЛ не ответил · ИНН не проверен</td>
+                  <td class="mono">6 часов</td>
+                  <td class="tight"><button class="btn sm" data-action="egrul.retry">Повторить</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-head"><h3 style="margin:0">Что происходило</h3><span class="hint">пишется автоматом</span></div>
+          <div class="card pad">
+            <div class="feed"><span class="tm">14:22</span><span class="who"><span class="b green">автомат</span></span><span>gamma-clinic.ru · собран и выдан пакет из 5 документов</span></div>
+            <div class="feed"><span class="tm">14:19</span><span class="who"><span class="b">клиент</span></span><span>Гамма Клиника · анкета заполнена полностью</span></div>
+            <div class="feed"><span class="tm">13:40</span><span class="who"><span class="b red">автомат</span></span><span>alfa-school.ru · сборка остановлена: пустая обязательная переменная <span class="code">contacts.dpo_email</span></span></div>
+            <div class="feed"><span class="tm">12:05</span><span class="who"><span class="b blue">система</span></span><span>Шаблон <span class="code">pdn-policy</span> обновлён до v3 · 2 сайта помечены «нужно обновить»</span></div>
+            <div class="feed"><span class="tm">09:14</span><span class="who"><span class="b">админ</span></span><span>epsilon-edu.ru · документ отправлен на ручную проверку</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── КАРТОЧКА КЛИЕНТА ────────────────────────────────────────── -->
+    <div class="pane" id="pane-client">
+      <div class="work-in">
+        <div class="wrapflex" style="margin-bottom:4px">
+          <h1 data-field="client.name">Школа Альфа</h1>
+          <span class="b red">застрял</span>
+        </div>
+        <div class="muted" style="font-size:13px">
+          <span data-field="operator.full_name">ООО «Альфа Образование»</span> ·
+          ИНН <span class="mono" data-field="operator.inn">7701234567</span>
+        </div>
+
+        <div class="sec">
+          <div class="tabs" data-tabs="client">
+            <button class="on" data-tab="c-main">Клиент</button>
+            <button data-tab="c-sites">Сайты · 2</button>
+            <button data-tab="c-billing">Оплата</button>
+            <button data-tab="c-log">История</button>
+          </div>
+
+          <div class="tabpane on" data-tabpane="c-main">
+            <div class="split">
+              <div class="card pad">
+                <h3>Контакты</h3>
+                <div class="kv"><span class="k">Кто написал</span><span class="v" data-field="client.contact_name">Кирилл Машков</span></div>
+                <div class="kv"><span class="k">Почта</span><span class="v" data-field="client.email">director@alfa-school.ru</span></div>
+                <div class="kv"><span class="k">Телефон</span><span class="v" data-field="client.phone">+7 (999) 123-45-67</span></div>
+                <div class="kv"><span class="k">Откуда пришёл</span><span class="v" data-field="client.source">сканер · utm=telegram</span></div>
+                <div class="hr"></div>
+                <div class="wrapflex">
+                  <button class="btn sm" data-action="client.edit">Править контакты</button>
+                  <button class="btn sm" data-action="client.email">Написать</button>
+                </div>
+              </div>
+
+              <div class="card pad">
+                <h3>Оператор · ЕГРЮЛ</h3>
+                <div class="kv"><span class="k">Наименование</span><span class="v">ООО «Альфа Образование»</span></div>
+                <div class="kv"><span class="k">ОГРН</span><span class="v" data-field="operator.ogrn">1157746123456</span></div>
+                <div class="kv"><span class="k">Юр. адрес</span><span class="v" data-field="operator.legal_address">г. Москва, ул. Тверская, 15</span></div>
+                <div class="kv"><span class="k">Руководитель</span><span class="v" data-field="operator.director">Иванов И. И.</span></div>
+                <div class="kv"><span class="k">Статус</span><span class="v" style="color:var(--ok)">действующее</span></div>
+                <div class="hr"></div>
+                <div class="wrapflex">
+                  <span class="b green">сверено 12.06.2026</span>
+                  <button class="btn sm" data-action="egrul.refresh">Обновить из ЕГРЮЛ</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="note" style="margin-top:14px">
+              <b>Ручное вмешательство админа.</b> Всё, что автомат сделал неправильно, правится здесь:
+              данные оператора, значения переменных на сайте, состав пакета. Правка помечается как ручная
+              и не перезаписывается следующим сканом.
+            </div>
+          </div>
+
+          <div class="tabpane" data-tabpane="c-sites" style="display:none">
+            <div class="card">
+              <table>
+                <thead><tr><th>Домен</th><th>Состояние</th><th>Пакет</th><th>Последний скан</th><th></th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">alfa-school.ru</td>
+                    <td><span class="b red">застрял</span></td>
+                    <td class="muted">3 из 6 собрано</td>
+                    <td class="mono muted">24.07.2026</td>
+                    <td class="tight"><button class="btn sm" data-open="site">Открыть</button></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">alfa-camp.ru</td>
+                    <td><span class="b green">выдано</span></td>
+                    <td class="muted">4 документа · v3</td>
+                    <td class="mono muted">28.07.2026</td>
+                    <td class="tight"><button class="btn sm" data-open="site">Открыть</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="margin-top:12px"><button class="btn sm" data-action="site.create">+ Добавить сайт клиенту</button></div>
+            <div class="note" style="margin-top:12px">
+              У клиента может быть несколько доменов. Каждый сканируется отдельно, анкета и пакет
+              документов — свои: цели обработки и формы на лендинге и в магазине разные.
+            </div>
+          </div>
+
+          <div class="tabpane" data-tabpane="c-billing" style="display:none">
+            <div class="card pad">
+              <h3>Подписка</h3>
+              <div class="kv"><span class="k">Тариф</span><span class="v" data-field="billing.plan">Базовый · 2 990 ₽/мес</span></div>
+              <div class="kv"><span class="k">Оплачено до</span><span class="v" data-field="billing.paid_until">12.09.2026</span></div>
+              <div class="kv"><span class="k">Способ оплаты</span><span class="v" data-field="billing.method">карта ···· 4417</span></div>
+              <div class="kv"><span class="k">Сайтов в тарифе</span><span class="v">2 из 3</span></div>
+              <div class="hr"></div>
+              <div class="wrapflex">
+                <button class="btn sm" data-action="billing.extend">Продлить вручную</button>
+                <button class="btn sm" data-action="billing.invoice">Выставить счёт</button>
+                <button class="btn sm danger" data-action="billing.suspend">Приостановить</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="tabpane" data-tabpane="c-log" style="display:none">
+            <div class="card pad">
+              <div class="feed"><span class="tm">31.07 09:14</span><span class="who"><span class="b">админ</span></span><span>Снята галочка «Публичная оферта» на alfa-school.ru</span></div>
+              <div class="feed"><span class="tm">30.07 18:02</span><span class="who"><span class="b">клиент</span></span><span>Анкета заполнена · 11 из 12 обязательных полей</span></div>
+              <div class="feed"><span class="tm">28.07 11:20</span><span class="who"><span class="b green">автомат</span></span><span>alfa-camp.ru · выдан пакет из 4 документов</span></div>
+              <div class="feed"><span class="tm">10.06 15:23</span><span class="who"><span class="b">система</span></span><span>Клиент создан · источник: сканер</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── КАРТОЧКА САЙТА ──────────────────────────────────────────── -->
+    <div class="pane" id="pane-site">
+      <div class="work-in">
+        <div class="wrapflex" style="margin-bottom:4px">
+          <h1 class="mono" data-field="site.domain">alfa-school.ru</h1>
+          <span class="b red">застрял на сборке</span>
+          <button class="btn ghost right" data-open="client">← К клиенту</button>
+        </div>
+        <div class="muted" style="font-size:13px">
+          <span data-field="client.name">Школа Альфа</span> · подписка активна до 12.09.2026
+        </div>
+
+        <!-- Ручные действия админа всегда на виду -->
+        <div class="card pad" style="margin-top:14px">
+          <div class="wrapflex">
+            <button class="btn primary" data-action="package.rebuild">Пересобрать пакет</button>
+            <button class="btn" data-action="package.publish">Выдать клиенту</button>
+            <button class="btn" data-action="scan.run">Пересканировать</button>
+            <button class="btn danger right" data-action="package.revoke">Отозвать выдачу</button>
+          </div>
+          <div class="muted" style="font-size:12px;margin-top:9px">
+            Сейчас автомат остановился: не заполнена <span class="code">contacts.dpo_email</span>.
+            Можно заполнить значение вручную во вкладке «Переменные» и пересобрать.
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="tabs" data-tabs="site">
+            <button class="on" data-tab="s-anketa">Анкета</button>
+            <button data-tab="s-package">Пакет</button>
+            <button data-tab="s-vars">Переменные <span class="b red" style="margin-left:4px">1</span></button>
+            <button data-tab="s-docs">Документы</button>
+            <button data-tab="s-scan">Скан</button>
+          </div>
+
+          <!-- АНКЕТА: что спросили, что ответил клиент, куда легло -->
+          <div class="tabpane on" data-tabpane="s-anketa">
+            <div class="card pad">
+              <div class="wrapflex" style="margin-bottom:6px">
+                <h3 style="margin:0">Анкета клиента</h3>
+                <span class="right wrapflex">
+                  <span class="b amber">11 из 12</span>
+                  <button class="btn sm" data-action="anketa.remind">Напомнить клиенту</button>
+                  <button class="btn sm" data-action="anketa.fill">Заполнить за клиента</button>
+                </span>
+              </div>
+              <div class="muted" style="font-size:12px;margin-bottom:4px">
+                Заполнена 30.07.2026 в 18:02 · ссылка отправлена на director@alfa-school.ru
+              </div>
+
+              <div class="q">
+                <div class="txt">1. Что вы собираете через формы на сайте?</div>
+                <div class="ans">имя, телефон, email</div>
+                <div class="maps">→ <span class="code">processing.data_types</span></div>
+              </div>
+              <div class="q">
+                <div class="txt">2. Зачем вы собираете эти данные?</div>
+                <div class="ans">запись на занятия, обратная связь, рассылка</div>
+                <div class="maps">→ <span class="code">processing.purposes</span> · включает документ «Согласие на рассылку»</div>
+              </div>
+              <div class="q">
+                <div class="txt">3. Передаёте ли данные третьим лицам?</div>
+                <div class="ans">нет</div>
+                <div class="maps">→ <span class="code">processing.third_parties</span> · раздел о передаче будет пропущен</div>
+              </div>
+              <div class="q">
+                <div class="txt">4. Есть ли сотрудники, оформленные в штат?</div>
+                <div class="ans">да, 4 человека</div>
+                <div class="maps">→ <span class="code">operator.has_staff</span> · включает «Внутренний пакет оператора»</div>
+              </div>
+              <div class="q">
+                <div class="txt">5. Продаёте ли что-то через сайт?</div>
+                <div class="ans">нет, оплата в офисе</div>
+                <div class="maps">→ <span class="code">site.has_sales</span> · оферта не требуется</div>
+              </div>
+              <div class="q">
+                <div class="txt">6. Почта ответственного за обработку данных</div>
+                <div class="ans empty">не заполнено</div>
+                <div class="maps">→ <span class="code">contacts.dpo_email</span> · <b style="color:var(--danger)">обязательное, блокирует сборку</b></div>
+              </div>
+            </div>
+
+            <div class="note" style="margin-top:12px">
+              <b>Анкета — главный источник.</b> Здесь видно, какой ответ какую переменную заполнил
+              и какой документ из-за него попал в пакет или выпал. Если клиент ответил неточно,
+              админ правит значение на вкладке «Переменные», не трогая саму анкету.
+            </div>
+          </div>
+
+          <!-- ПАКЕТ -->
+          <div class="tabpane" data-tabpane="s-package" style="display:none">
+            <div class="card pad">
+              <div class="wrapflex" style="margin-bottom:8px">
+                <h3 style="margin:0">Состав пакета</h3>
+                <span class="hint muted right" style="font-size:11.5px">галочки ставит автомат · админ правит вручную</span>
+              </div>
+              <div class="doc">
+                <input type="checkbox" checked data-field="package.pdn_policy">
+                <div class="t"><div class="n">Политика обработки ПДн</div><div class="why">обязательна всегда · <b>ст. 18.1 152-ФЗ</b></div></div>
+                <span class="b"><span class="dot grey"></span>по умолчанию</span>
+              </div>
+              <div class="doc">
+                <input type="checkbox" checked data-field="package.pdn_consent">
+                <div class="t"><div class="n">Согласие на обработку ПДн · 2 шт.</div><div class="why">скан нашёл <b>2 формы сбора</b></div></div>
+                <span class="b"><span class="dot green"></span>из скана</span>
+              </div>
+              <div class="doc">
+                <input type="checkbox" checked data-field="package.cookie">
+                <div class="t"><div class="n">Cookie-политика и текст баннера</div><div class="why">скан нашёл <b>трекеры без баннера</b></div></div>
+                <span class="b"><span class="dot green"></span>из скана</span>
+              </div>
+              <div class="doc">
+                <input type="checkbox" checked data-field="package.mailing">
+                <div class="t"><div class="n">Согласие на рекламную рассылку</div><div class="why">анкета, вопрос 2: <b>рассылка указана в целях</b></div></div>
+                <span class="b"><span class="dot amber"></span>из анкеты</span>
+              </div>
+              <div class="doc">
+                <input type="checkbox" data-field="package.offer">
+                <div class="t"><div class="n">Публичная оферта</div><div class="why">анкета, вопрос 5: <b>продаж через сайт нет</b></div></div>
+                <span class="b"><span class="dot amber"></span>снято автоматом</span>
+              </div>
+              <div class="doc">
+                <input type="checkbox" checked data-field="package.internal_kit">
+                <div class="t"><div class="n">Внутренний пакет оператора</div><div class="why">анкета, вопрос 4: <b>есть сотрудники</b></div></div>
+                <span class="b"><span class="dot amber"></span>из анкеты</span>
+              </div>
+              <div class="hr"></div>
+              <div class="wrapflex">
+                <button class="btn sm" data-action="package.add">+ Добавить документ вручную</button>
+                <span class="right muted" style="font-size:12px">отмечено 5 позиций · 6 файлов на выходе</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ПЕРЕМЕННЫЕ САЙТА -->
+          <div class="tabpane" data-tabpane="s-vars" style="display:none">
+            <div class="card">
+              <table>
+                <thead><tr><th>Код</th><th>Название</th><th>Источник</th><th>Значение</th><th></th></tr></thead>
+                <tbody>
+                  <tr style="background:var(--danger-tint)">
+                    <td class="tight"><span class="code">contacts.dpo_email</span></td>
+                    <td>Почта ответственного за ПДн</td>
+                    <td class="tight"><span class="b"><span class="dot amber"></span>анкета</span></td>
+                    <td style="color:var(--danger);font-family:var(--mono);font-size:12px">пусто · блокирует сборку</td>
+                    <td class="tight"><button class="btn sm primary" data-action="variable.fill">Заполнить</button></td>
+                  </tr>
+                  <tr>
+                    <td class="tight"><span class="code">operator.full_name</span></td><td>Наименование оператора</td>
+                    <td class="tight"><span class="b"><span class="dot blue"></span>ЕГРЮЛ</span></td>
+                    <td class="mono" style="font-size:12px">ООО «Альфа Образование»</td>
+                    <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+                  </tr>
+                  <tr>
+                    <td class="tight"><span class="code">processing.purposes</span></td><td>Цели обработки</td>
+                    <td class="tight"><span class="b"><span class="dot amber"></span>анкета</span></td>
+                    <td class="mono" style="font-size:12px">запись на занятия, обратная связь, рассылка</td>
+                    <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+                  </tr>
+                  <tr>
+                    <td class="tight"><span class="code">processing.third_parties</span></td><td>Передача третьим лицам</td>
+                    <td class="tight"><span class="b"><span class="dot amber"></span>анкета</span></td>
+                    <td class="muted mono" style="font-size:12px">пусто · блок будет пропущен</td>
+                    <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+                  </tr>
+                  <tr>
+                    <td class="tight"><span class="code">site.trackers</span></td><td>Трекеры и счётчики</td>
+                    <td class="tight"><span class="b"><span class="dot green"></span>скан</span></td>
+                    <td class="mono" style="font-size:12px">Яндекс Метрика, Google Analytics</td>
+                    <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+                  </tr>
+                  <tr>
+                    <td class="tight"><span class="code">retention.period</span></td><td>Срок хранения данных</td>
+                    <td class="tight"><span class="b"><span class="dot grey"></span>вручную</span></td>
+                    <td class="mono muted" style="font-size:12px">до отзыва согласия <span class="b amber" style="margin-left:5px">по умолчанию</span></td>
+                    <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="note" style="margin-top:12px">
+              Правка здесь <b>меняет только этот сайт</b>, а не общий словарь. Значение помечается
+              как ручное и не перезаписывается следующим сканом или повторной анкетой.
+            </div>
+          </div>
+
+          <!-- ДОКУМЕНТЫ: что собралось и как подставилось -->
+          <div class="tabpane" data-tabpane="s-docs" style="display:none">
+            <div class="card" style="overflow:hidden;margin-bottom:14px">
+              <table>
+                <thead><tr><th>Документ</th><th>Шаблон</th><th>Состояние</th><th>Выдан</th><th></th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>Политика обработки ПДн</td><td class="mono muted" style="font-size:11.5px">pdn-policy · v3</td>
+                    <td><span class="b amber">черновик</span></td><td class="muted">—</td>
+                    <td class="tight"><button class="btn sm" data-action="doc.preview">Смотреть</button></td>
+                  </tr>
+                  <tr>
+                    <td>Согласие ПДн — «заявка»</td><td class="mono muted" style="font-size:11.5px">pdn-consent · v2</td>
+                    <td><span class="b amber">черновик</span></td><td class="muted">—</td>
+                    <td class="tight"><button class="btn sm" data-action="doc.preview">Смотреть</button></td>
+                  </tr>
+                  <tr>
+                    <td>Cookie-политика</td><td class="mono muted" style="font-size:11.5px">cookie-policy · v1</td>
+                    <td><span class="b">не собран</span></td><td class="muted">—</td>
+                    <td class="tight"><button class="btn sm" disabled>Смотреть</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- проверка выдачи руками: что подставилось, что вырезано -->
+            <div class="card" style="overflow:hidden">
+              <div class="docbar">
+                <b style="font-size:13px">Политика обработки ПДн</b>
+                <div class="tabs" style="border:0;margin:0" data-tabs="doc">
+                  <button class="on" data-tab="d-result">Результат</button>
+                  <button data-tab="d-source">Шаблон</button>
+                </div>
+                <span class="right wrapflex">
+                  <span class="b green">подставлено 8</span>
+                  <span class="b amber">пропущен 1 блок</span>
+                  <span class="b red">пусто 1</span>
+                </span>
+              </div>
+
+              <div class="tabpane on" data-tabpane="d-result">
+                <div class="doctext">1. ОБЩИЕ ПОЛОЖЕНИЯ
+
+Настоящая Политика обработки персональных данных разработана
+<span class="ph filled">ООО «Альфа Образование»</span>, ИНН <span class="ph filled">7701234567</span>,
+юридический адрес: <span class="ph filled">г. Москва, ул. Тверская, 15, оф. 402</span>
+(далее — Оператор), в отношении сайта <span class="ph filled">alfa-school.ru</span>.
+
+2. ЦЕЛИ ОБРАБОТКИ
+
+Оператор обрабатывает персональные данные в следующих целях:
+  — <span class="ph filled">запись на занятия</span>
+  — <span class="ph filled">обратная связь</span>
+  — <span class="ph filled">рассылка</span>
+
+3. СОСТАВ ОБРАБАТЫВАЕМЫХ ДАННЫХ
+
+Через формы на сайте собираются: <span class="ph filled">имя, телефон, email</span>.
+Используются средства аналитики: <span class="ph filled">Яндекс Метрика, Google Analytics</span>.
+
+<span class="cut">4. ПЕРЕДАЧА ТРЕТЬИМ ЛИЦАМ — блок пропущен: в анкете указано «не передаём»</span>
+
+5. СРОК ХРАНЕНИЯ
+
+Персональные данные хранятся <span class="ph filled">до отзыва согласия</span>.
+
+6. КОНТАКТЫ
+
+Вопросы по обработке данных: <span class="ph miss">почта ответственного не заполнена</span></div>
+              </div>
+
+              <div class="tabpane" data-tabpane="d-source" style="display:none">
+                <div class="doctext">1. ОБЩИЕ ПОЛОЖЕНИЯ
+
+Настоящая Политика обработки персональных данных разработана
+<span class="ph">{{operator.full_name}}</span>, ИНН <span class="ph">{{operator.inn}}</span>,
+юридический адрес: <span class="ph">{{operator.legal_address}}</span>
+(далее — Оператор), в отношении сайта <span class="ph">{{site.domain}}</span>.
+
+2. ЦЕЛИ ОБРАБОТКИ
+
+Оператор обрабатывает персональные данные в следующих целях:
+<span class="ph">{{#each processing.purposes}}</span>
+  — <span class="ph">{{this}}</span>
+<span class="ph">{{/each}}</span>
+
+3. СОСТАВ ОБРАБАТЫВАЕМЫХ ДАННЫХ
+
+Через формы на сайте собираются: <span class="ph">{{processing.data_types}}</span>.
+Используются средства аналитики: <span class="ph">{{site.trackers}}</span>.
+
+<span class="ph">{{#if processing.third_parties}}</span>
+4. ПЕРЕДАЧА ТРЕТЬИМ ЛИЦАМ
+
+Данные передаются: <span class="ph">{{processing.third_parties}}</span>.
+<span class="ph">{{/if}}</span>
+
+5. СРОК ХРАНЕНИЯ
+
+Персональные данные хранятся <span class="ph">{{retention.period}}</span>.
+
+6. КОНТАКТЫ
+
+Вопросы по обработке данных: <span class="ph miss">{{contacts.dpo_email}}</span></div>
+              </div>
+
+              <div class="docbar" style="border-top:1px solid var(--line);border-bottom:0">
+                <button class="btn primary" disabled data-action="doc.publish">Выдать клиенту</button>
+                <button class="btn" data-action="doc.download">Скачать</button>
+                <button class="btn ghost" data-action="doc.edit_value">Поправить значение</button>
+                <span class="right" style="font-size:12.5px;color:var(--danger)">нельзя выдать: пустая обязательная переменная</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- СКАН -->
+          <div class="tabpane" data-tabpane="s-scan" style="display:none">
+            <div class="card pad">
+              <div class="wrapflex" style="margin-bottom:10px">
+                <h3 style="margin:0">Что нашёл скан</h3>
+                <span class="right wrapflex">
+                  <span class="b green">24.07.2026</span>
+                  <button class="btn sm" data-action="scan.run">Пересканировать</button>
+                </span>
+              </div>
+              <div class="kv"><span class="k">Формы сбора данных</span><span class="v" data-field="site.forms_fields">2 · заявка, обратный звонок</span></div>
+              <div class="kv"><span class="k">Корзина / оплата</span><span class="v muted">не найдена</span></div>
+              <div class="kv"><span class="k">Трекеры</span><span class="v">Яндекс Метрика, Google Analytics</span></div>
+              <div class="kv"><span class="k">Cookie-баннер</span><span class="v" style="color:var(--danger)">нет</span></div>
+              <div class="kv"><span class="k">Найденные документы</span><span class="v" style="color:var(--danger)">1 · чужое юрлицо</span></div>
+              <div class="hr"></div>
+              <div class="muted" style="font-size:12px">Скан идёт по расписанию раз в месяц и после каждой выдачи пакета.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ШАБЛОН ──────────────────────────────────────────────────── -->
+    <div class="pane" id="pane-template">
+      <div class="work-in">
+        <div class="wrapflex" style="margin-bottom:14px">
+          <div>
+            <h1>Политика обработки ПДн</h1>
+            <div class="muted mono" style="font-size:12.5px">pdn-policy</div>
+          </div>
+          <span class="right wrapflex">
+            <button class="btn sm">v1</button><button class="btn sm">v2</button>
+            <button class="btn sm primary">v3</button>
+            <button class="btn" data-action="template.edit">Редактировать</button>
+          </span>
+        </div>
+
+        <div class="card" style="overflow:hidden">
+          <div class="docbar">
+            <span class="b green">актуальный</span>
+            <span class="muted" style="font-size:12.5px">v3 от 12.06.2026 · причина:
+              <b style="color:var(--ink)">изменился 152-ФЗ, добавлен блок о локализации данных</b></span>
+          </div>
+          <div class="doctext">1. ОБЩИЕ ПОЛОЖЕНИЯ
+
+Настоящая Политика обработки персональных данных разработана
+<span class="ph">{{operator.full_name}}</span>, ИНН <span class="ph">{{operator.inn}}</span>,
+юридический адрес: <span class="ph">{{operator.legal_address}}</span>
+(далее — Оператор), в отношении сайта <span class="ph">{{site.domain}}</span>.
+
+<span class="ph">{{#if processing.third_parties}}</span>
+4. ПЕРЕДАЧА ТРЕТЬИМ ЛИЦАМ
+
+Данные передаются: <span class="ph">{{processing.third_parties}}</span>.
+<span class="ph">{{/if}}</span>
+
+6. КОНТАКТЫ
+
+Вопросы по обработке данных: <span class="ph">{{contacts.dpo_email}}</span></div>
+        </div>
+
+        <div class="split" style="margin-top:14px">
+          <div class="card pad">
+            <h3>Переменные шаблона · 9</h3>
+            <div class="kv"><span class="k mono" style="font-size:11.5px">operator.full_name</span><span class="v"><span class="b"><span class="dot blue"></span>ЕГРЮЛ</span></span></div>
+            <div class="kv"><span class="k mono" style="font-size:11.5px">site.domain</span><span class="v"><span class="b"><span class="dot green"></span>скан</span></span></div>
+            <div class="kv"><span class="k mono" style="font-size:11.5px">processing.purposes</span><span class="v"><span class="b"><span class="dot amber"></span>анкета</span></span></div>
+            <div class="kv"><span class="k mono" style="font-size:11.5px">retention.period</span><span class="v"><span class="b"><span class="dot grey"></span>вручную</span></span></div>
+            <div class="kv"><span class="k mono" style="font-size:11.5px;color:var(--danger)">contacts.dpo_email</span><span class="v"><span class="b red">часто пуста</span></span></div>
+          </div>
+          <div class="card pad">
+            <h3>Кто на какой версии</h3>
+            <div class="kv"><span class="k">v3 — актуальная</span><span class="v">6 сайтов</span></div>
+            <div class="kv"><span class="k" style="color:var(--brand)">v2 — устарела</span><span class="v">2 сайта</span></div>
+            <div class="hr"></div>
+            <button class="btn sm" style="width:100%" data-action="template.show_sites">Показать эти сайты</button>
+            <button class="btn sm primary" style="width:100%;margin-top:6px" data-action="template.migrate">Пересобрать всем на v3</button>
+            <div class="muted" style="font-size:11.5px;margin-top:8px">
+              Пересборка идёт автоматом: где все переменные заполнены — документы выдаются сразу,
+              остальные попадают в «застряло».
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── РЕЕСТР ПЕРЕМЕННЫХ ───────────────────────────────────────── -->
+    <div class="pane" id="pane-vars">
+      <div class="work-in">
+        <div class="wrapflex" style="margin-bottom:14px">
+          <div>
+            <h1>Переменные</h1>
+            <div class="muted" style="font-size:13px">Единый словарь: шаблон может брать только то, что заведено здесь</div>
+          </div>
+          <button class="btn primary right" data-action="variable.create">+ Новая переменная</button>
+        </div>
+
+        <div class="card">
+          <table>
+            <thead><tr><th>Код</th><th>Название</th><th>Источник</th><th>Вопрос анкеты</th><th>Если пусто</th><th>Шаблонов</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="tight"><span class="code">operator.full_name</span></td><td>Наименование оператора</td>
+                <td class="tight"><span class="b"><span class="dot blue"></span>ЕГРЮЛ</span></td>
+                <td class="muted">—</td>
+                <td style="font-size:12px;color:var(--danger)">остановить сборку</td>
+                <td class="tight mono">7</td>
+                <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+              </tr>
+              <tr>
+                <td class="tight"><span class="code">site.domain</span></td><td>Домен сайта</td>
+                <td class="tight"><span class="b"><span class="dot green"></span>скан</span></td>
+                <td class="muted">—</td>
+                <td style="font-size:12px;color:var(--danger)">остановить сборку</td>
+                <td class="tight mono">7</td>
+                <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+              </tr>
+              <tr>
+                <td class="tight"><span class="code">processing.purposes</span></td><td>Цели обработки</td>
+                <td class="tight"><span class="b"><span class="dot amber"></span>анкета</span></td>
+                <td style="font-size:12px">№2 «Зачем собираете данные?»</td>
+                <td style="font-size:12px;color:var(--danger)">остановить сборку</td>
+                <td class="tight mono">5</td>
+                <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+              </tr>
+              <tr>
+                <td class="tight"><span class="code">processing.third_parties</span></td><td>Передача третьим лицам</td>
+                <td class="tight"><span class="b"><span class="dot amber"></span>анкета</span></td>
+                <td style="font-size:12px">№3 «Передаёте третьим лицам?»</td>
+                <td style="font-size:12px" class="muted">пропустить блок</td>
+                <td class="tight mono">3</td>
+                <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+              </tr>
+              <tr>
+                <td class="tight"><span class="code">retention.period</span></td><td>Срок хранения данных</td>
+                <td class="tight"><span class="b"><span class="dot grey"></span>вручную</span></td>
+                <td class="muted">—</td>
+                <td style="font-size:12px">подставить «до отзыва согласия»</td>
+                <td class="tight mono">4</td>
+                <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+              </tr>
+              <tr style="background:var(--danger-tint)">
+                <td class="tight"><span class="code">contacts.dpo_email</span></td><td>Почта ответственного за ПДн</td>
+                <td class="tight"><span class="b"><span class="dot amber"></span>анкета</span></td>
+                <td style="font-size:12px">№6 «Почта ответственного»</td>
+                <td style="font-size:12px;color:var(--danger)">остановить сборку</td>
+                <td class="tight mono">6</td>
+                <td class="tight"><button class="btn sm ghost" data-action="variable.edit">править</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="split" style="margin-top:14px">
+          <div class="note">
+            <b>Колонка «Если пусто» задаёт поведение автомата.</b> Три варианта: остановить сборку,
+            пропустить блок в тексте или подставить значение по умолчанию. Это и есть ответ на вопрос
+            «что мы можем убирать из документа».
+          </div>
+          <div class="note">
+            <b>Колонка «Вопрос анкеты»</b> связывает словарь с тем, что видит клиент. Добавили переменную
+            из анкеты — сразу видно, какой вопрос нужно задать, иначе значение никогда не заполнится.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* Только переключение экранов и вкладок. Бизнес-логику пишут разработчики.
+   Класс js на <html> включает режим «показываем по одному экрану».
+   Без скриптов класса нет — и все экраны видны подряд, файл читается везде. */
+document.documentElement.classList.add('js');
+
+const railBtns = document.querySelectorAll('.rail nav button');
+const app      = document.getElementById('app');
+const cols     = { clients:'col-clients', templates:'col-templates', vars:'col-vars' };
+const firstPane= { overview:'pane-overview', clients:'pane-site', templates:'pane-template', vars:'pane-vars' };
+
+function showPane(id){
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === id));
+  document.querySelector('.work').scrollTop = 0;
+}
+function showScreen(key){
+  railBtns.forEach(b => b.classList.toggle('on', b.dataset.screen === key));
+  document.querySelectorAll('.col.screen').forEach(c => c.classList.toggle('on', c.id === cols[key]));
+  /* у «Обзора» нет колонки-списка — рабочая область во всю ширину */
+  app.classList.toggle('wide', key === 'overview');
+  showPane(firstPane[key]);
+}
+railBtns.forEach(b => b.addEventListener('click', () => showScreen(b.dataset.screen)));
+
+document.querySelectorAll('[data-open]').forEach(el => el.addEventListener('click', () => {
+  const list = el.closest('.col-scroll');
+  if (list && el.classList.contains('site')) list.querySelectorAll('.site').forEach(r => r.classList.toggle('on', r === el));
+  /* переход из «Обзора» в карточку сайта показывает колонку клиентов */
+  if (app.classList.contains('wide')) {
+    railBtns.forEach(b => b.classList.toggle('on', b.dataset.screen === 'clients'));
+    document.querySelectorAll('.col.screen').forEach(c => c.classList.toggle('on', c.id === 'col-clients'));
+    app.classList.remove('wide');
+  }
+  showPane('pane-' + el.dataset.open);
+}));
+
+document.querySelectorAll('[data-tabs]').forEach(group => {
+  group.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+    group.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn));
+    const scope = group.closest('.pane') || document;
+    scope.querySelectorAll('[data-tabpane]').forEach(p => {
+      if (group.querySelector(`[data-tab="${p.dataset.tabpane}"]`)) {
+        const on = p.dataset.tabpane === btn.dataset.tab;
+        p.style.display = on ? 'block' : 'none';
+        p.classList.toggle('on', on);
+      }
+    });
+  }));
+});
+
+/* стартуем с обзора */
+showScreen('overview');
+</script>
+</body>
+</html>

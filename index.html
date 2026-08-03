@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>ШтрафКонтроль — макеты</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#111110;--warm:#f4f1ec;--white:#fff;--line-2:#dcd6cc;--brand:#1f1fe6;--ok:#1a7a52;--warn:#b87900}
+*{box-sizing:border-box}
+body{margin:0;background:var(--warm);color:var(--ink);font-family:'Onest',system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:640px;margin:0 auto;padding:56px 20px 80px}
+.micro{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45)}
+h1{font-size:32px;font-weight:800;letter-spacing:-.035em;margin:10px 0 6px}
+p.lead{color:rgba(17,17,16,.65);margin:0 0 30px}
+a.card{display:block;background:var(--white);border:1px solid var(--line-2);border-radius:12px;padding:18px 20px;margin-bottom:12px;text-decoration:none;color:inherit;transition:border-color .15s}
+a.card:hover{border-color:rgba(17,17,16,.35)}
+a.card .t{font-size:17px;font-weight:800;letter-spacing:-.02em}
+a.card .d{font-size:13.5px;color:rgba(17,17,16,.6);margin-top:4px}
+a.card .w{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(17,17,16,.45);margin-top:8px}
+.note{font-size:12.5px;color:rgba(17,17,16,.6);background:rgba(255,255,255,.6);border:1px dashed var(--line-2);border-radius:10px;padding:13px 15px;margin-top:26px}
+.note b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="micro">кликабельные макеты</span>
+  <h1>ШтрафКонтроль</h1>
+  <p class="lead">Данные выдуманные, сервера нет — всё работает прямо в браузере. Открывается и с телефона.</p>
+
+  <a class="card" href="./admin.html">
+    <div class="t">Админка → </div>
+    <div class="d">Внутренний интерфейс: обзор потока, клиенты и их сайты, анкета клиента, состав пакета, шаблоны с версиями, реестр переменных.</div>
+    <div class="w">видно, что подставилось в документ и какие блоки выпали</div>
+  </a>
+
+  <a class="card" href="./app/">
+    <div class="t">Кабинет клиента → </div>
+    <div class="d">Вход, список сайтов в двух режимах (клиент и агентство), страница проекта с шестью проверками, документами и историей.</div>
+    <div class="w">тумблеры сверху переключают режим, каркас и наличие данных</div>
+  </a>
+
+  <div class="note">
+    <b>Это макеты, а не работающий продукт.</b> Кнопки показывают, как всё устроено, но ничего не сохраняют
+    и никуда не отправляют. Все компании, домены и суммы придуманы.
+  </div>
+</div>
+</body>
+</html>
