@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>ШтрафКонтроль — клиентский флоу, кликабельный макет</title>
+
+<!--
+  КЛИКАБЕЛЬНЫЙ МАКЕТ КЛИЕНТСКОГО ПУТИ. Данные выдуманы, бэкенда нет.
+
+  Восемь экранов: скан → анкета → оффер → оплата → документы → установка → кабинет → продление.
+  Панель сверху переключает шаг, состояние сайта и наличие данных.
+
+  Правила, которые проверяет этот макет
+  -------------------------------------
+  1. Одна главная кнопка на экран, остальное — обводка или текст.
+  2. Статус = цвет + иконка + слово, никогда только цвет.
+  3. Словарь из трёх слов: нарушения / замечания / чисто.
+     «Риск» и «рекомендация» — только внутри раскрытой проверки, не в заголовках.
+  4. Вес кнопки идёт за статусом: нарушения — залитая, замечания — обводка, чисто — текст.
+  5. Кнопка называет действие, и следующий экран называется так же.
+
+  Без JavaScript экраны показываются один за другим — файл читается и там,
+  где скрипты отключены (предпросмотр в почте, мессенджере, облаке).
+
+  Палитра и шрифты — как в кабинете и админке: это один продукт.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#111110; --ink-2:#2a2825;
+  --paper:#faf8f4; --warm:#f4f1ec; --white:#fff;
+  --brand:#1f1fe6; --brand-tint:rgba(31,31,230,.05);
+  --danger:#d63816; --danger-tint:rgba(214,56,22,.10);
+  --ok:#1a7a52;     --ok-tint:rgba(26,122,82,.10);
+  --warn:#b87900;   --warn-tint:rgba(184,121,0,.12);
+  --line:#e8e4dd; --line-2:#dcd6cc;
+  --sans:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --ring:0 0 0 4px rgba(31,31,230,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--warm);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+button{font-family:inherit}
+:focus-visible{outline:none;box-shadow:var(--ring);border-radius:10px}
+input,select{font-family:inherit;font-size:15px}
+
+/* ── панель режимов ──────────────────────────────────────────────────── */
+.modes{position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:1px solid var(--line);padding:9px 18px}
+.modes-in{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.45)}
+.modes .grp{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap}
+.modes button{background:none;border:0;color:inherit;font-family:inherit;font-size:inherit;letter-spacing:inherit;
+  text-transform:inherit;padding:3px 7px;border-radius:6px;cursor:pointer}
+.modes button:hover{color:var(--ink)}
+.modes button.on{background:var(--ink);color:#fff}
+.modes .tag{border:1px solid var(--line-2);border-radius:999px;padding:2px 8px}
+.modes .all{margin-left:auto;border:1px solid var(--line-2);background:var(--white)}
+
+.nojs{display:block;background:var(--warn-tint);color:var(--warn);font-size:13px;padding:9px 18px;text-align:center}
+.js .nojs{display:none}
+
+/* ── общее ───────────────────────────────────────────────────────────── */
+.wrap{max-width:760px;margin:0 auto;padding:30px 18px 90px}
+.wrap.wide{max-width:1080px}
+h1{font-size:30px;font-weight:800;letter-spacing:-.035em;margin:0}
+h2{font-size:19px;font-weight:800;letter-spacing:-.025em;margin:0 0 12px}
+h3{font-size:15px;font-weight:800;letter-spacing:-.02em;margin:0 0 8px}
+p{margin:0 0 12px}
+.lead{font-size:16px;color:rgba(17,17,16,.65)}
+.muted{color:rgba(17,17,16,.6)}
+.micro{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45)}
+.small{font-size:13px}
+.tiny{font-size:12px;color:rgba(17,17,16,.55)}
+.card{background:var(--white);border:1px solid var(--line-2);border-radius:12px}
+.pad{padding:18px 20px}
+.sec{margin-top:26px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.right{margin-left:auto}
+.hr{height:1px;background:var(--line);margin:16px 0}
+.stepno{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.4);margin-bottom:6px}
+
+/* кнопки трёх весов — вес идёт за статусом */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:700;
+  border:1.5px solid var(--line-2);background:var(--white);color:var(--ink);padding:13px 22px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:rgba(17,17,16,.4)}
+.btn.solid{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.solid:hover{background:var(--brand);border-color:var(--brand)}
+.btn.text{border-color:transparent;background:none;padding:13px 6px;color:rgba(17,17,16,.7)}
+.btn.text:hover{color:var(--ink);background:none}
+.btn.sm{padding:8px 14px;font-size:13.5px;border-radius:9px}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* бейджи: цвет + иконка + слово */
+.b{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
+.b.red{color:var(--danger)} .b.amber{color:var(--warn)} .b.green{color:var(--ok)}
+.b .ic{font-size:14px;line-height:1}
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--line);color:rgba(17,17,16,.6)}
+.chip.red{background:var(--danger-tint);color:var(--danger)}
+.chip.amber{background:var(--warn-tint);color:var(--warn)}
+.chip.green{background:var(--ok-tint);color:var(--ok)}
+.chip.out{background:var(--white);border:1px solid var(--line-2)}
+
+/* полоска шести проверок: три термина, как в заголовках */
+.strip{display:flex;gap:4px}
+.strip i{height:6px;flex:1;border-radius:999px;background:var(--ok)}
+.strip i.red{background:var(--danger)} .strip i.amber{background:var(--warn)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.06em;text-transform:uppercase;color:rgba(17,17,16,.45)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:7px;height:7px;border-radius:999px;display:inline-block;background:var(--ok)}
+.legend i.red{background:var(--danger)} .legend i.amber{background:var(--warn)}
+
+/* карточка находки */
+.find{border:1px solid var(--line-2);background:var(--white);border-radius:12px;padding:16px 18px;margin-bottom:10px}
+.find.hot{border-color:rgba(214,56,22,.35)}
+.find.warm{border-color:rgba(184,121,0,.35)}
+.find .nm{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.find .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45);margin:12px 0 3px}
+.find .txt{font-size:14px;color:var(--ink-2)}
+.find .q{font-family:var(--mono);font-size:12.5px;background:var(--warm);border-radius:8px;padding:8px 11px;margin-top:5px}
+.fold{width:100%;text-align:left;background:var(--white);border:1px solid var(--line-2);border-radius:12px;
+  padding:13px 18px;cursor:pointer;font-size:14px;color:rgba(17,17,16,.65);display:flex;align-items:center;gap:9px}
+.fold:hover{border-color:rgba(17,17,16,.25)}
+
+/* прогресс из точек */
+.dots{display:flex;align-items:center;gap:7px;margin-bottom:14px}
+.dots i{width:8px;height:8px;border-radius:999px;background:var(--line-2)}
+.dots i.on{background:var(--ink)} .dots i.done{background:var(--ok)}
+
+/* формы */
+label.f{display:block;font-size:13.5px;font-weight:700;margin-bottom:5px}
+.inp{width:100%;border:1.5px solid var(--line-2);border-radius:10px;padding:12px 13px;background:var(--white);
+  font-size:16px;color:var(--ink)}
+.inp:focus{outline:none;border-color:var(--brand);box-shadow:var(--ring)}
+.check{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.check:last-of-type{border-bottom:0}
+.check input{appearance:none;width:19px;height:19px;flex:none;margin-top:1px;border:1.5px solid var(--line-2);
+  border-radius:6px;background:#fff;cursor:pointer;position:relative}
+.check input:checked{background:var(--ink);border-color:var(--ink)}
+.check input:checked::after{content:"";position:absolute;left:6px;top:2px;width:4px;height:9px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.check .t{font-size:14.5px}
+.seg{display:inline-flex;gap:3px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
+.seg button{background:none;border:0;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:700;
+  color:rgba(17,17,16,.6);cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff}
+
+/* список пакета */
+.pkg{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.pkg:last-child{border-bottom:0}
+.pkg .tick{color:var(--ok);font-size:15px;line-height:1.4;flex:none}
+.pkg .n{font-size:14.5px;font-weight:700}
+.pkg .w{font-size:13px;color:rgba(17,17,16,.6);margin-top:1px}
+
+/* код установки */
+.code{font-family:var(--mono);font-size:12.5px;background:var(--ink);color:#f2f0ec;border-radius:10px;
+  padding:14px 15px;overflow-x:auto;white-space:pre;line-height:1.7}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+.tabs button{background:none;border:0;padding:9px 13px;font-size:13.5px;font-weight:700;color:rgba(17,17,16,.55);
+  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
+
+/* кабинет */
+.lk{display:grid;grid-template-columns:212px 1fr;gap:0;border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--white)}
+.lk-side{background:var(--paper);border-right:1px solid var(--line);padding:14px 12px;display:flex;flex-direction:column;min-height:420px}
+.lk-side a{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;font-size:14px;font-weight:700;
+  color:rgba(17,17,16,.65);text-decoration:none;cursor:pointer}
+.lk-side a:hover{background:var(--white);color:var(--ink)}
+.lk-side a.on{background:var(--ink);color:#fff}
+.lk-side .who{margin-top:auto;border-top:1px solid var(--line);padding-top:11px;font-size:13px}
+.lk-main{padding:20px 22px;min-width:0}
+.sitecard{border:1px solid var(--line-2);border-radius:12px;padding:16px;background:var(--white);margin-bottom:11px}
+
+/* было / стало */
+.was{color:rgba(17,17,16,.4);text-decoration:line-through}
+.now{color:var(--ok);font-weight:700}
+
+.screen{display:block;border-top:1px solid var(--line-2)}
+.js .screen{display:none;border-top:0}
+.js .screen.on{display:block}
+.state{display:block}
+.js .state{display:none}
+.js .state.on{display:block}
+/* Залипающая кнопка. Не градиент, а честная панель с линией: карточки белые, фон бежевый,
+   растворить одно в другом нельзя — любой градиент даст грязный край поверх карточки. */
+.sticky-cta{position:sticky;bottom:0;z-index:10;background:var(--warm);
+  border-top:1px solid var(--line-2);padding:14px 0 16px;margin-top:20px}
+
+@media(max-width:700px){
+  .wrap{padding:22px 15px 80px}
+  h1{font-size:25px}
+  .lk{grid-template-columns:1fr}
+  .lk-side{flex-direction:row;flex-wrap:wrap;min-height:0;border-right:0;border-bottom:1px solid var(--line)}
+  .lk-side .who{display:none}
+  .lk-side a{padding:7px 10px;font-size:13px}
+}
+</style>
+</head>
+<body>
+
+<div class="nojs">Скрипты отключены — экраны идут один за другим, листайте вниз.</div>
+
+<!-- ══ ПАНЕЛЬ РЕЖИМОВ ═════════════════════════════════════════════════ -->
+<div class="modes">
+  <div class="modes-in">
+    <span class="tag">макет</span>
+    <span class="grp">шаг:
+      <button class="on" data-step="s0">00 скан</button>
+      <button data-step="s1">01 анкета</button>
+      <button data-step="s2">02 оффер</button>
+      <button data-step="s3">03 оплата</button>
+      <button data-step="s4">04 документы</button>
+      <button data-step="s5">05 установка</button>
+      <button data-step="s6">06 кабинет</button>
+      <button data-step="s7">07 продление</button>
+    </span>
+    <span class="grp">сайт:
+      <button class="on" data-health="bad">нарушения</button>
+      <button data-health="warn">замечания</button>
+      <button data-health="ok">чисто</button>
+    </span>
+    <span class="grp">данные:
+      <button class="on" data-data="full">есть</button>
+      <button data-data="empty">пусто</button>
+    </span>
+    <button class="all" data-all>все экраны подряд</button>
+  </div>
+</div>
+
+<!-- ══════════════════ 00 · РЕЗУЛЬТАТ СКАНА ══════════════════════════ -->
+<section class="screen on" id="s0">
+  <div class="wrap">
+    <div class="stepno">00 · публичный результат проверки</div>
+
+    <!-- состояние: скан идёт -->
+    <div class="state" data-state="scanning">
+      <div class="card pad">
+        <div class="row"><span class="chip amber">идёт проверка</span></div>
+        <h1 class="mono" style="margin-top:10px">alfa-school.ru</h1>
+        <p class="lead" style="margin-top:8px">Проверяем сайт по шести требованиям. Обычно 2–5 минут — можно закрыть страницу, пришлём результат на почту.</p>
+        <div class="hr"></div>
+        <div class="small" style="line-height:2">
+          <div><span style="color:var(--ok)">●</span> Открываем страницы сайта</div>
+          <div><span style="color:var(--ok)">●</span> Ищем политику и согласия</div>
+          <div><span style="color:var(--warn)">●</span> Сверяем реквизиты с ЕГРЮЛ <span class="tiny">— идёт</span></div>
+          <div><span style="color:var(--line-2)">●</span> Проверяем трекинг и рекламу</div>
+        </div>
+      </div>
+      <p class="tiny" style="margin-top:14px">Состояние «скан идёт» · переключить: <button class="btn text sm" data-state-to="done">показать результат</button></p>
+    </div>
+
+    <!-- состояние: ошибка скана -->
+    <div class="state" data-state="error">
+      <div class="card pad">
+        <div class="b red"><span class="ic">✕</span> Не смогли открыть сайт</div>
+        <h1 class="mono" style="margin-top:10px">alfa-school.ru</h1>
+        <p class="lead" style="margin-top:8px">Сайт не ответил за 30 секунд. Так бывает, если он лежит, закрыт защитой от ботов или домен написан с ошибкой.</p>
+        <div class="row" style="margin-top:16px">
+          <button class="btn solid">Проверить ещё раз</button>
+          <button class="btn text">Проверить другой адрес</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- состояние: результат -->
+    <div class="state on" data-state="done">
+      <h1 class="mono">alfa-school.ru</h1>
+      <p class="tiny" style="margin-top:4px">ООО «Альфа Образование» · ИНН 7701234567 · проверено 3 августа</p>
+
+      <!-- вердикт: нарушения -->
+      <div class="sec" data-health="bad">
+        <div class="card pad">
+          <div class="row">
+            <span class="b red" style="font-size:19px"><span class="ic">⛔</span> 2 нарушения · 2 замечания</span>
+          </div>
+          <p class="lead" style="margin:8px 0 0">Штраф по найденному — до <b>300 000 ₽</b> для юрлица. Три пункта из четырёх закрываются документами и виджетом.</p>
+          <div class="hr"></div>
+          <div class="strip"><i class="red"></i><i class="red"></i><i class="amber"></i><i class="amber"></i><i></i><i></i></div>
+          <div class="legend">
+            <span><i class="red"></i> нарушения 2</span>
+            <span><i class="amber"></i> замечания 2</span>
+            <span><i></i> чисто 2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- вердикт: замечания -->
+      <div class="sec" data-health="warn">
+        <div class="card pad">
+          <div class="row"><span class="b amber" style="font-size:19px"><span class="ic">⚠</span> 4 замечания</span></div>
+          <p class="lead" style="margin:8px 0 0">Нарушений, за которые штрафуют сразу, нет. Есть четыре пункта, которые лучше закрыть до проверки.</p>
+          <div class="hr"></div>
+          <div class="strip"><i class="amber"></i><i class="amber"></i><i class="amber"></i><i class="amber"></i><i></i><i></i></div>
+          <div class="legend">
+            <span><i class="red"></i> нарушения 0</span>
+            <span><i class="amber"></i> замечания 4</span>
+            <span><i></i> чисто 2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- вердикт: чисто -->
+      <div class="sec" data-health="ok">
+        <div class="card pad">
+          <div class="row"><span class="b green" style="font-size:19px"><span class="ic">✓</span> Нарушений нет</span></div>
+          <p class="lead" style="margin:8px 0 0">Сайт закрывает все шесть требований. Закон меняется — держите проверку на автомате, чтобы не откатиться назад.</p>
+          <div class="hr"></div>
+          <div class="strip"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="legend">
+            <span><i class="red"></i> нарушения 0</span>
+            <span><i class="amber"></i> замечания 0</span>
+            <span><i></i> чисто 6</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- находки: проблемные вверху и крупнее -->
+      <div class="sec" data-health="bad">
+        <h2>Что нашли</h2>
+
+        <div class="find hot">
+          <div class="row"><div class="nm">152-ФЗ · персональные данные</div><span class="right chip red">нарушение</span></div>
+          <div class="lbl">что нашли</div>
+          <div class="txt">Форма заявки отправляет имя и телефон без согласия на обработку. Политики конфиденциальности на сайте нет.</div>
+          <div class="q">alfa-school.ru/contacts — «Оставьте заявку» · чекбокса согласия нет</div>
+          <div class="lbl">чем грозит</div>
+          <div class="txt"><b style="color:var(--danger)">КоАП 13.11 ч.1 — до 100 000 ₽</b> · при повторе выше</div>
+        </div>
+
+        <div class="find hot">
+          <div class="row"><div class="nm">Google Analytics · данные уходят за рубеж</div><span class="right chip red">нарушение</span></div>
+          <div class="lbl">что нашли</div>
+          <div class="txt">Счётчик отправляет IP и поведение посетителей на серверы в США. С 1 июля 2025 первичный сбор данных россиян должен идти на серверах в РФ.</div>
+          <div class="q">analytics.google.com/g/collect — срабатывает на всех страницах</div>
+          <div class="lbl">чем грозит</div>
+          <div class="txt"><b style="color:var(--danger)">152-ФЗ ст. 18 ч. 5 · КоАП 13.11 ч. 8 — до 18 000 000 ₽</b></div>
+        </div>
+
+        <div class="find warm">
+          <div class="row"><div class="nm">Куки · согласие на трекинг</div><span class="right chip amber">замечание</span></div>
+          <div class="lbl">что нашли</div>
+          <div class="txt">Яндекс Метрика ставит куку до того, как посетитель что-то выбрал. Баннера с отказом нет.</div>
+          <div class="q">_ym_uid — записывается при первой загрузке страницы</div>
+          <div class="lbl">чем грозит</div>
+          <div class="txt"><b style="color:var(--warn)">152-ФЗ ст. 9 — до 100 000 ₽</b></div>
+        </div>
+
+        <div class="find warm">
+          <div class="row"><div class="nm">149-ФЗ · реквизиты владельца</div><span class="right chip amber">замечание</span></div>
+          <div class="lbl">что нашли</div>
+          <div class="txt">В подвале нет ИНН и ОГРН. Нашли документ, где оператором указано другое юрлицо — похоже, шаблон скопировали с чужого сайта.</div>
+          <div class="q">alfa-school.ru/privacy — «ООО „Ромашка“» вместо вашего названия</div>
+          <div class="lbl">чем грозит</div>
+          <div class="txt"><b style="color:var(--warn)">Штрафа нет, но документ не защищает: он выдан не на вас</b></div>
+        </div>
+
+        <button class="fold" data-fold="ok-checks-0">
+          <span style="color:var(--ok)">✓</span> 2 проверки в норме — оферта, реклама <span class="right">⌄</span>
+        </button>
+        <div id="ok-checks-0" style="display:none">
+          <div class="find" style="margin-top:10px">
+            <div class="row"><div class="nm" style="font-size:15px">Оферта · условия продажи</div><span class="right chip green">чисто</span></div>
+            <div class="txt small" style="margin-top:6px">Оплата на сайте не принимается — публичная оферта не требуется.</div>
+          </div>
+          <div class="find">
+            <div class="row"><div class="nm" style="font-size:15px">ЕРИР · маркировка рекламы</div><span class="right chip green">чисто</span></div>
+            <div class="txt small" style="margin-top:6px">Рекламных блоков не найдено — маркировка не нужна.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec" data-health="warn">
+        <h2>Что нашли</h2>
+        <div class="find warm">
+          <div class="row"><div class="nm">Куки · согласие на трекинг</div><span class="right chip amber">замечание</span></div>
+          <div class="lbl">что нашли</div>
+          <div class="txt">Метрика ставит куку до выбора посетителя, баннер есть, но кнопки «Отказаться» в нём нет.</div>
+          <div class="lbl">чем грозит</div>
+          <div class="txt"><b style="color:var(--warn)">152-ФЗ ст. 9 — до 100 000 ₽</b></div>
+        </div>
+        <div class="find warm">
+          <div class="row"><div class="nm">149-ФЗ · реквизиты владельца</div><span class="right chip amber">замечание</span></div>
+          <div class="txt small" style="margin-top:8px">В подвале нет ОГРН — по нему клиент проверяет, кому платит.</div>
+        </div>
+        <button class="fold" data-fold="ok-checks-w">
+          <span style="color:var(--ok)">✓</span> 2 проверки в норме <span class="right">⌄</span>
+        </button>
+        <div id="ok-checks-w" style="display:none">
+          <div class="find" style="margin-top:10px"><div class="nm" style="font-size:15px">152-ФЗ · персональные данные</div>
+            <div class="txt small" style="margin-top:6px">Политика на месте, у форм есть согласие.</div></div>
+        </div>
+      </div>
+
+      <div class="sec" data-health="ok">
+        <h2>Что проверили</h2>
+        <div class="card pad">
+          <div class="small" style="line-height:2.1">
+            <div><span class="b green"><span class="ic">✓</span></span> 152-ФЗ · политика и согласия на месте</div>
+            <div><span class="b green"><span class="ic">✓</span></span> Куки · баннер с отказом работает</div>
+            <div><span class="b green"><span class="ic">✓</span></span> 149-ФЗ · реквизиты совпадают с ЕГРЮЛ</div>
+            <div><span class="b green"><span class="ic">✓</span></span> Оферта · условия опубликованы</div>
+            <div><span class="b green"><span class="ic">✓</span></span> Аналитика · данные не уходят за рубеж</div>
+            <div><span class="b green"><span class="ic">✓</span></span> ЕРИР · реклама промаркирована</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- главная кнопка: вес идёт за статусом -->
+      <div class="sticky-cta">
+        <div data-health="bad">
+          <button class="btn solid wide" data-go="s1">Исправить нарушения →</button>
+        </div>
+        <div data-health="warn">
+          <button class="btn wide" data-go="s1">Закрыть замечания →</button>
+        </div>
+        <div data-health="ok">
+          <button class="btn wide" data-go="s1">Держать под контролем →</button>
+        </div>
+        <div class="row" style="margin-top:10px;justify-content:center">
+          <button class="btn text sm" data-fold="pdf">Скачать PDF-отчёт</button>
+        </div>
+        <div id="pdf" style="display:none;margin-top:6px">
+          <div class="card pad">
+            <label class="f" for="pdf-mail">Куда прислать отчёт</label>
+            <input class="inp mono" id="pdf-mail" placeholder="you@company.ru">
+            <button class="btn sm" style="margin-top:10px">Отправить отчёт</button>
+          </div>
+        </div>
+        <p class="tiny" style="text-align:center;margin:14px 0 0">
+          Автоматическая проверка, не юридическое заключение. Суммы — верхняя граница штрафа для юрлица.
+        </p>
+      </div>
+
+      <p class="tiny" style="margin-top:18px">
+        Другие состояния экрана:
+        <button class="btn text sm" data-state-to="scanning">скан идёт</button> ·
+        <button class="btn text sm" data-state-to="error">сайт недоступен</button>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 01 · МИНИ-АНКЕТА ══════════════════════════════ -->
+<section class="screen" id="s1">
+  <div class="wrap">
+    <div class="stepno">01 · уточняем детали · 2 990 ₽/мес</div>
+
+    <!-- шаг 1 -->
+    <div class="state on" data-state="q1">
+      <div class="dots"><i class="on"></i><i></i><i></i></div>
+      <h1>Вот что мы увидели на сайте</h1>
+      <p class="lead">Поправьте, если ошиблись — от этого зависит, какие документы соберём.</p>
+
+      <div class="card pad sec">
+        <label class="check"><input type="checkbox" checked><span class="t">Форма заявки — имя, телефон</span></label>
+        <label class="check"><input type="checkbox" checked><span class="t">Форма обратного звонка — телефон</span></label>
+        <label class="check"><input type="checkbox" checked><span class="t">Яндекс Метрика</span></label>
+        <label class="check"><input type="checkbox" checked><span class="t">Google Analytics</span></label>
+        <label class="check"><input type="checkbox"><span class="t">Корзина и оплата на сайте <span class="tiny">— не нашли</span></span></label>
+        <div class="hr"></div>
+        <label class="f" for="miss">Мы что-то пропустили?</label>
+        <input class="inp" id="miss" placeholder="Например: форма записи на пробное занятие">
+      </div>
+
+      <div class="sec"><button class="btn solid wide" data-state-to="q2">Далее</button></div>
+    </div>
+
+    <!-- шаг 2 -->
+    <div class="state" data-state="q2">
+      <div class="dots"><i class="done"></i><i class="on"></i><i></i></div>
+      <h1>Один вопрос, который со стороны не видно</h1>
+      <p class="lead">Сканер видит сайт, но не видит, что вы делаете с собранными контактами.</p>
+
+      <div class="card pad sec">
+        <h3>Звоните или пишете клиентам по базе?</h3>
+        <p class="tiny" style="margin-bottom:14px">От этого зависит, нужно ли отдельное согласие на рекламные рассылки. Без него звонок по старой базе — уже нарушение.</p>
+        <div class="seg"><button class="on">Да</button><button>Нет</button></div>
+      </div>
+
+      <div class="sec row">
+        <button class="btn solid" data-state-to="q3">Далее</button>
+        <button class="btn text" data-state-to="q1">Назад</button>
+      </div>
+    </div>
+
+    <!-- шаг 3 -->
+    <div class="state" data-state="q3">
+      <div class="dots"><i class="done"></i><i class="done"></i><i class="on"></i></div>
+      <h1>Куда прислать документы и чек</h1>
+      <p class="lead">Туда же придут уведомления, если на сайте что-то изменится.</p>
+
+      <div class="card pad sec">
+        <div class="seg" style="margin-bottom:14px"><button class="on" data-swap="mail">Почта</button><button data-swap="tel">Телефон</button></div>
+        <div data-swapped="mail">
+          <label class="f" for="c-mail">Почта</label>
+          <input class="inp mono" id="c-mail" placeholder="you@company.ru">
+        </div>
+        <div data-swapped="tel" style="display:none">
+          <label class="f" for="c-tel">Телефон</label>
+          <input class="inp mono" id="c-tel" placeholder="+7 (999) 123-45-67">
+        </div>
+        <div class="hr"></div>
+        <div class="micro" style="margin-bottom:9px">или войти через</div>
+        <div class="row">
+          <button class="btn sm">Telegram</button>
+          <button class="btn sm">ВК</button>
+          <button class="btn sm">Яндекс</button>
+        </div>
+      </div>
+
+      <div class="sec row">
+        <button class="btn solid" data-go="s2">Показать, что соберём</button>
+        <button class="btn text" data-state-to="q2">Назад</button>
+      </div>
+      <p class="tiny" style="margin-top:12px">Пароль придумывать не нужно — вход по ссылке из письма.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 02 · ПЕРСОНАЛЬНЫЙ ОФФЕР ═══════════════════════ -->
+<section class="screen" id="s2">
+  <div class="wrap">
+    <div class="stepno">02 · что соберём</div>
+
+    <div data-health="bad">
+      <div class="b red" style="font-size:17px"><span class="ic">⛔</span> 2 нарушения · риск до 300 000 ₽</div>
+      <h1 style="margin-top:10px">Закроем это за вас</h1>
+      <p class="lead">Три пункта из четырёх — документами и виджетом, без вашего участия. По четвёртому пришлём инструкцию.</p>
+    </div>
+    <div data-health="warn">
+      <div class="b amber" style="font-size:17px"><span class="ic">⚠</span> 4 замечания</div>
+      <h1 style="margin-top:10px">Закроем это за вас</h1>
+      <p class="lead">Штрафа сейчас нет, но каждый пункт — повод для претензии. Соберём документы и закроем.</p>
+    </div>
+    <div data-health="ok">
+      <div class="b green" style="font-size:17px"><span class="ic">✓</span> Нарушений нет</div>
+      <h1 style="margin-top:10px">Держим под контролем</h1>
+      <p class="lead">Проверяем сайт каждый месяц и обновляем документы, когда меняется закон. Если что-то съедет — узнаете первым.</p>
+    </div>
+
+    <div class="sec">
+      <h2>Что соберём для alfa-school.ru</h2>
+      <div class="card pad">
+        <div class="pkg"><span class="tick">✓</span><div><div class="n">Куки-баннер и правила обработки куки</div><div class="w">трекеры работают без баннера</div></div></div>
+        <div class="pkg"><span class="tick">✓</span><div><div class="n">Политика обработки персональных данных</div><div class="w">обязательна всегда</div></div></div>
+        <div class="pkg"><span class="tick">✓</span><div><div class="n">Согласие на обработку данных × 2</div><div class="w">под ваши формы: заявка и обратный звонок</div></div></div>
+        <div class="pkg"><span class="tick">✓</span><div><div class="n">Дисклеймер на форме сбора</div><div class="w">короткий текст рядом с кнопкой отправки</div></div></div>
+        <div class="pkg"><span class="tick">✓</span><div><div class="n">Согласие на рекламные рассылки</div><div class="w">вы звоните по базе</div></div></div>
+        <div class="pkg"><span class="tick">✓</span><div><div class="n">Реквизиты в подвале сайта</div><div class="w">подставим из ЕГРЮЛ и будем сверять</div></div></div>
+      </div>
+      <p class="tiny" style="margin-top:10px">Google Analytics документами не лечится — пришлём инструкцию, как перенести аналитику, и проверим результат.</p>
+    </div>
+
+    <div class="sticky-cta">
+      <button class="btn solid wide" data-go="s3">Подключить за 2 990 ₽/мес</button>
+      <p class="tiny" style="text-align:center;margin:10px 0 0">Списание раз в месяц, отменить можно в любой момент</p>
+    </div>
+
+    <div class="sec">
+      <button class="fold" data-fold="widget">Как будет выглядеть на сайте <span class="right">⌄</span></button>
+      <div id="widget" style="display:none;margin-top:10px">
+        <div class="card pad">
+          <div class="seg" style="margin-bottom:14px">
+            <button class="on" data-swap="w1">Строгая</button>
+            <button data-swap="w2">Мягкая</button>
+            <button data-swap="w3">Тёмная</button>
+          </div>
+          <div data-swapped="w1">
+            <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px;background:var(--paper)">
+              <div class="small">Мы используем куки, чтобы сайт работал. Аналитика включается только с вашего согласия.</div>
+              <div class="row" style="margin-top:10px"><button class="btn sm">Отказаться</button><button class="btn sm solid">Принять</button></div>
+            </div>
+          </div>
+          <div data-swapped="w2" style="display:none">
+            <div style="border:1px solid var(--line-2);border-radius:999px;padding:12px 18px;background:var(--white)">
+              <div class="small">Разрешить аналитику? Без неё сайт тоже работает.
+                <button class="btn text sm">Нет</button><button class="btn text sm" style="font-weight:800">Да</button></div>
+            </div>
+          </div>
+          <div data-swapped="w3" style="display:none">
+            <div style="border-radius:10px;padding:14px;background:var(--ink);color:#f2f0ec">
+              <div class="small">Куки и аналитика — с вашего согласия.</div>
+              <div class="row" style="margin-top:10px">
+                <button class="btn sm" style="background:transparent;color:#f2f0ec;border-color:rgba(255,255,255,.3)">Отказаться</button>
+                <button class="btn sm" style="background:#fff;border-color:#fff">Принять</button>
+              </div>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="tiny">В подвал добавится строка с реквизитами и ссылками на документы. Оформление подстроим под сайт.</div>
+        </div>
+      </div>
+
+      <button class="fold" style="margin-top:10px" data-fold="monthly">Что происходит каждый месяц <span class="right">⌄</span></button>
+      <div id="monthly" style="display:none;margin-top:10px">
+        <div class="card pad small" style="line-height:1.9">
+          <div>· Проверяем сайт заново — не появилось ли новых форм и трекеров</div>
+          <div>· Следим за изменениями закона и обновляем документы</div>
+          <div>· Сверяем реквизиты с ЕГРЮЛ</div>
+          <div>· Пишем, если что-то требует вашего внимания</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 03 · ОПЛАТА ═══════════════════════════════════ -->
+<section class="screen" id="s3">
+  <div class="wrap">
+    <div class="stepno">03 · оплата</div>
+
+    <div class="state on" data-state="pay">
+      <h1>Подключение</h1>
+      <p class="lead">Документы соберём сразу после оплаты — обычно за пару минут.</p>
+
+      <div class="card pad sec">
+        <h3>Сразу</h3>
+        <div class="small" style="line-height:1.9">
+          <div>· Пакет документов под ваши формы и трекеры</div>
+          <div>· Виджет: куки-баннер и реквизиты в подвале</div>
+          <div>· Постоянные ссылки на документы</div>
+        </div>
+        <div class="hr"></div>
+        <h3>Каждый месяц</h3>
+        <div class="small" style="line-height:1.9">
+          <div>· Проверка сайта и обновление документов при смене закона</div>
+          <div>· Уведомления, если что-то изменилось</div>
+        </div>
+        <div class="hr"></div>
+        <div class="row"><span class="lead" style="margin:0">Итого</span><b class="right" style="font-size:19px">2 990 ₽/мес</b></div>
+      </div>
+
+      <div class="card pad sec">
+        <label class="f" for="card">Номер карты</label>
+        <input class="inp mono" id="card" placeholder="0000 0000 0000 0000">
+        <div class="row" style="margin-top:12px">
+          <div style="flex:1"><label class="f" for="exp">Срок</label><input class="inp mono" id="exp" placeholder="ММ/ГГ"></div>
+          <div style="flex:1"><label class="f" for="cvc">CVC</label><input class="inp mono" id="cvc" placeholder="•••"></div>
+        </div>
+      </div>
+
+      <div class="sticky-cta">
+        <button class="btn solid wide" data-go="s4">Оплатить 2 990 ₽</button>
+        <p class="tiny" style="text-align:center;margin:10px 0 0">Автопродление раз в месяц · отменить можно в любой момент, деньги за неиспользованные дни вернём</p>
+      </div>
+
+      <p class="tiny" style="margin-top:16px">Другое состояние: <button class="btn text sm" data-state-to="payerr">банк отклонил платёж</button></p>
+    </div>
+
+    <div class="state" data-state="payerr">
+      <h1>Банк отклонил платёж</h1>
+      <p class="lead">Деньги не списаны. Чаще всего дело в лимите на интернет-платежи или в том, что банк не пропустил операцию.</p>
+      <div class="card pad sec">
+        <div class="b red"><span class="ic">✕</span> Карта ···· 4417 — отклонено</div>
+        <div class="hr"></div>
+        <p class="small" style="margin:0">Ваши ответы из анкеты сохранены — заполнять заново не нужно.</p>
+      </div>
+      <div class="sec row">
+        <button class="btn solid" data-state-to="pay">Попробовать другой картой</button>
+        <button class="btn text">Выставить счёт для оплаты по реквизитам</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 04 · ДОСБОР И ДОКУМЕНТЫ ═══════════════════════ -->
+<section class="screen" id="s4">
+  <div class="wrap">
+    <div class="stepno">04 · последние детали</div>
+
+    <div class="state on" data-state="collect">
+      <h1>Осталась пара минут</h1>
+      <p class="lead">Эти данные подставим в документы. Часть уже заполнили из ЕГРЮЛ — проверьте.</p>
+
+      <div class="card pad sec">
+        <label class="f" for="dpo">Почта ответственного за обработку данных</label>
+        <input class="inp mono" id="dpo" placeholder="pdn@alfa-school.ru">
+        <p class="tiny" style="margin:5px 0 0">Её увидят посетители сайта — на неё приходят запросы об удалении данных.</p>
+
+        <div class="hr"></div>
+        <label class="f" for="org">Наименование</label>
+        <input class="inp" id="org" value="ООО «Альфа Образование»">
+        <div class="row" style="margin-top:12px">
+          <div style="flex:1"><label class="f" for="inn">ИНН</label><input class="inp mono" id="inn" value="7701234567"></div>
+          <div style="flex:1"><label class="f" for="ogrn">ОГРН</label><input class="inp mono" id="ogrn" value="1157746123456"></div>
+        </div>
+        <p class="tiny" style="margin:6px 0 0">Подставили из ЕГРЮЛ · можно поправить</p>
+
+        <div class="hr"></div>
+        <label class="f">Зачем собираете контакты</label>
+        <label class="check"><input type="checkbox" checked><span class="t">Записать на занятие</span></label>
+        <label class="check"><input type="checkbox" checked><span class="t">Ответить на обращение</span></label>
+        <label class="check"><input type="checkbox" checked><span class="t">Рассказывать об акциях и наборах</span></label>
+      </div>
+
+      <div class="sticky-cta">
+        <button class="btn solid wide" data-state-to="ready">Собрать документы</button>
+      </div>
+    </div>
+
+    <div class="state" data-state="ready">
+      <div class="b green" style="font-size:17px"><span class="ic">✓</span> Документы готовы</div>
+      <h1 style="margin-top:10px">Что изменилось</h1>
+
+      <div class="card pad sec">
+        <div class="small" style="line-height:2.2">
+          <div class="row"><span style="flex:1">152-ФЗ · персональные данные</span><span><span class="was">нарушение</span> → <span class="now">закрыто</span></span></div>
+          <div class="row"><span style="flex:1">Куки · согласие на трекинг</span><span><span class="was">замечание</span> → <span class="now">закрыто</span></span></div>
+          <div class="row"><span style="flex:1">149-ФЗ · реквизиты владельца</span><span><span class="was">замечание</span> → <span class="now">закрыто</span></span></div>
+          <div class="row"><span style="flex:1">Google Analytics · данные за рубеж</span><span><span class="chip amber">нужны вы</span></span></div>
+          <div class="row"><span style="flex:1">Оферта · условия продажи</span><span class="now">чисто</span></div>
+          <div class="row"><span style="flex:1">ЕРИР · маркировка рекламы</span><span class="now">чисто</span></div>
+        </div>
+        <div class="hr"></div>
+        <p class="tiny" style="margin:0">Три пункта закроются, как только виджет встанет на сайт. По Google Analytics пришлём инструкцию отдельно.</p>
+      </div>
+
+      <div class="sec">
+        <h2>Документы</h2>
+        <div class="card pad">
+          <div class="pkg"><span class="tick">✓</span><div style="flex:1"><div class="n">Политика обработки персональных данных</div><div class="w mono">alfa-school.ru/legal/privacy</div></div><button class="btn sm">Открыть</button></div>
+          <div class="pkg"><span class="tick">✓</span><div style="flex:1"><div class="n">Согласие — форма «заявка»</div><div class="w mono">alfa-school.ru/legal/consent-1</div></div><button class="btn sm">Открыть</button></div>
+          <div class="pkg"><span class="tick">✓</span><div style="flex:1"><div class="n">Согласие — форма «обратный звонок»</div><div class="w mono">alfa-school.ru/legal/consent-2</div></div><button class="btn sm">Открыть</button></div>
+          <div class="pkg"><span class="tick">✓</span><div style="flex:1"><div class="n">Правила обработки куки</div><div class="w mono">alfa-school.ru/legal/cookies</div></div><button class="btn sm">Открыть</button></div>
+          <div class="pkg"><span class="tick">✓</span><div style="flex:1"><div class="n">Согласие на рекламные рассылки</div><div class="w mono">alfa-school.ru/legal/marketing</div></div><button class="btn sm">Открыть</button></div>
+        </div>
+        <p class="tiny" style="margin-top:9px">Ссылки постоянные: обновим документ — адрес не изменится.</p>
+      </div>
+
+      <div class="sec">
+        <div class="card pad">
+          <h3>Документы и алерты — в Telegram</h3>
+          <p class="small" style="margin:0 0 12px">Бот пришлёт ссылки, а если на сайте что-то изменится — предупредит первым.</p>
+          <button class="btn">Подключить бота</button>
+        </div>
+      </div>
+
+      <div class="sticky-cta">
+        <button class="btn solid wide" data-go="s5">Установить скрипт</button>
+        <p class="tiny" style="text-align:center;margin:10px 0 0">Без него баннер и реквизиты не появятся на сайте</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 05 · УСТАНОВКА ════════════════════════════════ -->
+<section class="screen" id="s5">
+  <div class="wrap">
+    <div class="stepno">05 · установка скрипта</div>
+    <h1>Установить скрипт</h1>
+    <p class="lead">Одна строчка кода. Она подтянет баннер, реквизиты и ссылки на документы — дальше мы обновляем их сами.</p>
+
+    <div class="sec">
+      <h2>Сделать самому</h2>
+      <div class="card pad">
+        <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
+        data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
+        <div class="row" style="margin-top:12px"><button class="btn">Скопировать код</button></div>
+        <div class="hr"></div>
+        <div class="tabs">
+          <button class="on" data-swap="t1">Тильда</button>
+          <button data-swap="t2">WordPress</button>
+          <button data-swap="t3">Битрикс</button>
+          <button data-swap="t4">Другой сайт</button>
+        </div>
+        <div class="small" data-swapped="t1" style="line-height:1.9">
+          Настройки сайта → Ещё → HTML-код для вставки внутрь HEAD → вставить строку → Опубликовать все страницы.
+        </div>
+        <div class="small" data-swapped="t2" style="display:none;line-height:1.9">
+          Внешний вид → Редактор тем → header.php → вставить перед &lt;/head&gt;. Либо плагин для вставки кода в шапку.
+        </div>
+        <div class="small" data-swapped="t3" style="display:none;line-height:1.9">
+          Настройки → Настройки продукта → Сайты → шаблон сайта → вставить в секцию HEAD.
+        </div>
+        <div class="small" data-swapped="t4" style="display:none;line-height:1.9">
+          Вставьте строку в HTML любой страницы перед закрывающим тегом &lt;/head&gt;. Работает на любом движке.
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Поручить тому, кто делает сайт</h2>
+      <div class="card pad">
+        <label class="f" for="dev-mail">Почта разработчика</label>
+        <input class="inp mono" id="dev-mail" placeholder="dev@studio.ru">
+        <div class="row" style="margin-top:12px"><button class="btn">Отправить инструкцию</button></div>
+        <div class="hr"></div>
+        <div class="small"><span class="chip amber">отправлено 31.07</span> <span class="muted">письмо ещё не открыто</span></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Поручить нам</h2>
+      <div class="card pad">
+        <div class="row">
+          <div style="flex:1">
+            <div class="small">Подключимся к сайту и поставим сами. Нужен доступ в админку.</div>
+            <div class="tiny" style="margin-top:4px">Разово, обычно в течение рабочего дня</div>
+          </div>
+          <b style="font-size:17px">1 500 ₽</b>
+        </div>
+        <div class="row" style="margin-top:12px"><button class="btn">Заказать установку</button></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="card pad">
+        <div class="state on" data-state="notfound">
+          <div class="b red"><span class="ic">✕</span> Скрипт на сайте не найден</div>
+          <p class="small" style="margin:8px 0 0">Проверили alfa-school.ru минуту назад. Если только что вставили — подождите пару минут и проверьте снова.</p>
+          <div class="row" style="margin-top:12px">
+            <button class="btn solid" data-state-to="found">Проверить установку</button>
+          </div>
+        </div>
+        <div class="state" data-state="found">
+          <div class="b green"><span class="ic">✓</span> Скрипт установлен, всё работает</div>
+          <p class="small" style="margin:8px 0 0">Баннер показывается, реквизиты в подвале, ссылки на документы на месте.</p>
+          <div class="row" style="margin-top:12px">
+            <button class="btn solid" data-go="s6">Перейти в кабинет</button>
+            <button class="btn text" data-state-to="notfound">показать состояние «не найден»</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 06 · ЛИЧНЫЙ КАБИНЕТ ═══════════════════════════ -->
+<section class="screen" id="s6">
+  <div class="wrap wide">
+    <div class="stepno">06 · личный кабинет</div>
+
+    <div class="lk">
+      <div class="lk-side">
+        <a class="on" data-lk="list">▤ Мои сайты</a>
+        <a data-lk="docs">▧ Документы</a>
+        <a data-lk="mon">◈ Мониторинг</a>
+        <a data-lk="sub">▭ Подписка</a>
+        <a data-lk="set">≡ Настройки</a>
+        <div class="who">
+          <div style="font-weight:700">Кирилл</div>
+          <div class="tiny mono">director@alfa-school.ru</div>
+        </div>
+      </div>
+
+      <div class="lk-main">
+        <!-- список сайтов -->
+        <div data-lkpane="list">
+          <div data-data="full">
+            <div class="row" style="margin-bottom:16px">
+              <div>
+                <h2 style="margin:0">Мои сайты</h2>
+                <div class="tiny">3 сайта · <span style="color:var(--danger);font-weight:700">1 требует внимания</span></div>
+              </div>
+              <button class="btn sm right">+ Добавить сайт</button>
+            </div>
+
+            <input class="inp" style="margin-bottom:14px" placeholder="Поиск по названию, домену или ИНН">
+
+            <div class="sitecard">
+              <div class="row">
+                <div>
+                  <div class="mono" style="font-weight:600">alfa-school.ru</div>
+                  <div style="font-weight:800;letter-spacing:-.02em">Школа Альфа</div>
+                </div>
+              </div>
+              <div style="margin:10px 0 8px"><span class="b red"><span class="ic">⛔</span> 2 нарушения · 2 замечания</span>
+                <span class="muted small"> · риск до 300 000 ₽</span></div>
+              <div class="strip"><i class="red"></i><i class="red"></i><i class="amber"></i><i class="amber"></i><i></i><i></i></div>
+              <div class="small" style="margin-top:10px"><span class="b amber"><span class="ic">⚠</span> документы устарели</span></div>
+              <div class="tiny" style="margin-top:6px">ООО «Альфа Образование» · ИНН 7701234567 · проверен 7 дней назад</div>
+              <div style="margin-top:12px"><button class="btn solid wide sm" data-lk="site">Устранить →</button></div>
+            </div>
+
+            <div class="sitecard">
+              <div class="mono" style="font-weight:600">delta-service.ru</div>
+              <div style="font-weight:800;letter-spacing:-.02em">Дельта Услуги</div>
+              <div style="margin:10px 0 8px"><span class="b amber"><span class="ic">⚠</span> 4 замечания</span>
+                <span class="muted small"> · риск до 100 000 ₽</span></div>
+              <div class="strip"><i class="amber"></i><i class="amber"></i><i class="amber"></i><i class="amber"></i><i></i><i></i></div>
+              <div class="small" style="margin-top:10px"><span class="b green"><span class="ic">✓</span> документы актуальны</span></div>
+              <div class="tiny" style="margin-top:6px">ООО «Дельта Сервис» · ИНН 7712345678 · проверен 4 дня назад</div>
+              <div style="margin-top:12px"><button class="btn wide sm" data-lk="site">Обновить документы →</button></div>
+            </div>
+
+            <div class="sitecard">
+              <div class="mono" style="font-weight:600">zeta-logistic.ru</div>
+              <div style="font-weight:800;letter-spacing:-.02em">Дзета Логистика</div>
+              <div style="margin:10px 0 8px"><span class="b green"><span class="ic">✓</span> Чисто</span></div>
+              <div class="strip"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="small" style="margin-top:10px"><span class="b green"><span class="ic">✓</span> документы актуальны</span></div>
+              <div class="tiny" style="margin-top:6px">ООО «Дзета Транс» · ИНН 5024567890 · проверен вчера</div>
+              <div style="margin-top:12px"><button class="btn text sm" data-lk="site">Открыть →</button></div>
+            </div>
+
+            <div class="legend" style="margin-top:14px">
+              <span><i class="red"></i> нарушения</span><span><i class="amber"></i> замечания</span><span><i></i> чисто</span>
+              <span class="right">полоска — шесть проверок</span>
+            </div>
+            <p class="tiny" style="margin-top:14px">Автоматическая проверка, не юридическое заключение. Суммы — верхняя граница штрафа для юрлица.</p>
+          </div>
+
+          <!-- пусто -->
+          <div data-data="empty">
+            <h2>Мои сайты</h2>
+            <div class="card pad" style="text-align:center;padding:44px 20px;border-style:dashed">
+              <h3 style="margin-bottom:6px">Пока ни одного сайта</h3>
+              <p class="small muted" style="max-width:44ch;margin:0 auto 18px">
+                Добавьте домен — проверим по шести требованиям, соберём документы и будем следить за изменениями.
+              </p>
+              <button class="btn solid">Добавить сайт</button>
+            </div>
+
+            <div class="sec">
+              <div class="micro" style="margin-bottom:8px">и ещё одно состояние: поиск ничего не нашёл</div>
+              <input class="inp" style="margin-bottom:12px" value="омега">
+              <div class="card pad" style="text-align:center">
+                <b>Ничего не нашлось</b>
+                <p class="small muted" style="margin:6px 0 12px">По запросу «омега» сайтов нет. Проверьте написание домена или ИНН.</p>
+                <button class="btn sm">Сбросить поиск</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- карточка сайта -->
+        <div data-lkpane="site" style="display:none">
+          <button class="btn text sm" data-lk="list" style="padding-left:0">← Мои сайты</button>
+
+          <div class="row" style="margin-top:6px">
+            <div>
+              <h2 class="mono" style="margin:0">alfa-school.ru</h2>
+              <div class="tiny">ООО «Альфа Образование» · ИНН 7701234567</div>
+              <div class="tiny" style="margin-top:3px">проверен 7 дней назад · оплачено до 12.09.2026</div>
+            </div>
+            <button class="btn sm right">Проверить сейчас</button>
+          </div>
+
+          <div class="card pad sec" style="border-color:rgba(214,56,22,.3)">
+            <span class="b red" style="font-size:17px"><span class="ic">⛔</span> 2 нарушения</span>
+            <span class="b amber" style="margin-left:8px">· 2 замечания</span>
+            <span class="muted small"> · риск до 300 000 ₽</span>
+            <p class="small" style="margin:8px 0 0">К работе 4 пункта: 3 закроем сами, для 1 нужны вы.</p>
+            <div class="row" style="margin-top:14px">
+              <button class="btn solid">Собрать документы</button>
+              <span class="tiny">5 минут на анкету · документы за 2 рабочих дня</span>
+            </div>
+          </div>
+
+          <div class="sec">
+            <h3>Что нашли</h3>
+            <div class="card" style="overflow:hidden">
+              <button class="fold" style="border:0;border-bottom:1px solid var(--line);border-radius:0" data-fold="lk-1">
+                <span style="color:var(--danger)">●</span>
+                <span style="flex:1"><b>152-ФЗ · персональные данные</b><br><span class="tiny" style="color:var(--danger)">нарушение</span></span>
+                <span class="chip">закроем сами</span> <span>⌄</span>
+              </button>
+              <div id="lk-1" style="display:none;padding:14px 18px;background:var(--paper);border-bottom:1px solid var(--line)">
+                <div class="micro">что нашли</div>
+                <div class="small">Форма на /contacts отправляется без согласия. Политики на сайте нет.</div>
+                <div class="micro" style="margin-top:9px">чем грозит</div>
+                <div class="small" style="color:var(--danger);font-weight:700">КоАП 13.11 ч.1 — до 100 000 ₽</div>
+                <div class="micro" style="margin-top:9px">что сделаем</div>
+                <div class="small">Соберём политику и текст согласия по вашим данным, подключим через виджет.</div>
+              </div>
+
+              <button class="fold" style="border:0;border-bottom:1px solid var(--line);border-radius:0" data-fold="lk-2">
+                <span style="color:var(--danger)">●</span>
+                <span style="flex:1"><b>Google Analytics · данные за рубеж</b><br><span class="tiny" style="color:var(--danger)">нарушение</span></span>
+                <span class="chip out">нужны вы</span> <span>⌄</span>
+              </button>
+              <div id="lk-2" style="display:none;padding:14px 18px;background:var(--paper);border-bottom:1px solid var(--line)">
+                <div class="micro">что нужно от вас</div>
+                <div class="small">Документами это не лечится: нужно отключить GA или перейти на аналитику с серверами в РФ. Пришлём инструкцию и проверим переход.</div>
+                <button class="btn sm" style="margin-top:10px">Как это сделать</button>
+              </div>
+
+              <button class="fold" style="border:0;border-bottom:1px solid var(--line);border-radius:0" data-fold="lk-3">
+                <span style="color:var(--warn)">●</span>
+                <span style="flex:1"><b>Куки · согласие на трекинг</b><br><span class="tiny" style="color:var(--warn)">замечание</span></span>
+                <span class="chip">закроем сами</span> <span>⌄</span>
+              </button>
+              <div id="lk-3" style="display:none;padding:14px 18px;background:var(--paper);border-bottom:1px solid var(--line)">
+                <div class="small">Подключим баннер с реальным отказом и правила обработки куки. Трекинг будет ждать выбора посетителя.</div>
+              </div>
+
+              <button class="fold" style="border:0;border-bottom:1px solid var(--line);border-radius:0" data-fold="lk-4">
+                <span style="color:var(--warn)">●</span>
+                <span style="flex:1"><b>149-ФЗ · реквизиты владельца</b><br><span class="tiny" style="color:var(--warn)">замечание</span></span>
+                <span class="chip">закроем сами</span> <span>⌄</span>
+              </button>
+              <div id="lk-4" style="display:none;padding:14px 18px;background:var(--paper);border-bottom:1px solid var(--line)">
+                <div class="small">Выведем реквизиты в подвал через виджет — сверенные с ЕГРЮЛ.</div>
+              </div>
+
+              <button class="fold" style="border:0;border-radius:0" data-fold="lk-ok">
+                <span style="color:var(--ok)">●</span>
+                <span style="flex:1" class="muted">2 проверки в норме</span> <span>⌄</span>
+              </button>
+              <div id="lk-ok" style="display:none;padding:14px 18px;background:var(--paper)">
+                <div class="small">Оферта — продаж через сайт нет. ЕРИР — рекламных блоков не найдено.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="row" style="margin-bottom:8px">
+              <h3 style="margin:0">Документы</h3>
+              <span class="micro right">версии и причина изменений</span>
+            </div>
+            <div class="card pad">
+              <div class="pkg">
+                <div style="flex:1"><div class="n">Правила обработки куки</div><div class="w">соберём при ближайшей сборке пакета</div></div>
+                <span class="b red small"><span class="ic">⛔</span> не собран</span>
+                <button class="btn sm" style="margin-left:10px">Собрать</button>
+              </div>
+              <div class="pkg">
+                <div style="flex:1"><div class="n">Политика конфиденциальности</div><div class="w mono">v3 · 12.06.2026 · изменился 152-ФЗ: локализация данных</div></div>
+                <span class="b amber small"><span class="ic">⚠</span> обновить</span>
+                <button class="btn sm" style="margin-left:10px">Открыть</button>
+              </div>
+              <div class="pkg">
+                <div style="flex:1"><div class="n">Согласие на обработку данных</div><div class="w mono">v2 · 03.04.2026 · добавлена цель — рассылка</div></div>
+                <span class="b green small"><span class="ic">✓</span> актуально</span>
+                <button class="btn sm" style="margin-left:10px">Открыть</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <h3>История</h3>
+            <div class="card pad small" style="line-height:2">
+              <div><span class="mono tiny">03.08.2026</span> · Проверка: 2 нарушения, 2 замечания</div>
+              <div><span class="mono tiny">12.06.2026</span> · Политика обновлена до v3 — изменился 152-ФЗ</div>
+              <div><span class="mono tiny">04.06.2026</span> · Виджет установлен на сайт</div>
+              <div><span class="mono tiny">02.06.2026</span> · Собран первый пакет документов</div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="card pad">
+              <div class="b red"><span class="ic">✕</span> Скрипт на сайте не найден</div>
+              <p class="small" style="margin:8px 0 0">Баннер и реквизиты не показываются посетителям. Три закрытых пункта считаются закрытыми только после установки.</p>
+              <div class="row" style="margin-top:12px"><button class="btn" data-go="s5">Установить скрипт</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- прочие разделы: заглушки без слова «скоро» -->
+        <div data-lkpane="docs" style="display:none">
+          <h2>Документы</h2>
+          <p class="lead">Все документы по всем сайтам, с версиями и постоянными ссылками.</p>
+          <div class="card pad">
+            <div class="pkg"><div style="flex:1"><div class="n">Политика конфиденциальности</div><div class="w mono">alfa-school.ru · v3 · 12.06.2026</div></div><button class="btn sm">Открыть</button></div>
+            <div class="pkg"><div style="flex:1"><div class="n">Согласие на обработку данных</div><div class="w mono">alfa-school.ru · v2 · 03.04.2026</div></div><button class="btn sm">Открыть</button></div>
+            <div class="pkg"><div style="flex:1"><div class="n">Правила обработки куки</div><div class="w mono">delta-service.ru · v1 · 28.07.2026</div></div><button class="btn sm">Открыть</button></div>
+          </div>
+        </div>
+
+        <div data-lkpane="mon" style="display:none">
+          <h2>Мониторинг</h2>
+          <p class="lead">Проверяем сайты раз в месяц и после каждого изменения документов.</p>
+          <div class="card pad small" style="line-height:2">
+            <div class="row"><span style="flex:1">alfa-school.ru</span><span class="chip green">включён</span></div>
+            <div class="row"><span style="flex:1">delta-service.ru</span><span class="chip green">включён</span></div>
+            <div class="row"><span style="flex:1">zeta-logistic.ru</span><span class="chip">выключен</span></div>
+          </div>
+          <div class="card pad sec">
+            <h3>Куда слать уведомления</h3>
+            <label class="check"><input type="checkbox" checked><span class="t">Почта director@alfa-school.ru</span></label>
+            <label class="check"><input type="checkbox" checked><span class="t">Telegram</span></label>
+          </div>
+        </div>
+
+        <div data-lkpane="sub" style="display:none">
+          <h2>Подписка</h2>
+          <div class="card pad">
+            <div class="row"><span style="flex:1">Тариф</span><b>Базовый · 2 990 ₽/мес</b></div>
+            <div class="hr"></div>
+            <div class="row"><span style="flex:1">Сайтов в тарифе</span><b>3 из 3</b></div>
+            <div class="hr"></div>
+            <div class="row"><span style="flex:1">Оплачено до</span><b class="mono">12.09.2026</b></div>
+            <div class="hr"></div>
+            <div class="row"><span style="flex:1">Карта</span><b class="mono">···· 4417</b></div>
+            <div class="row" style="margin-top:14px">
+              <button class="btn sm">Сменить карту</button>
+              <button class="btn text sm">Скачать акты и чеки</button>
+            </div>
+          </div>
+        </div>
+
+        <div data-lkpane="set" style="display:none">
+          <h2>Настройки</h2>
+          <div class="card pad">
+            <label class="f" for="s-mail">Почта для входа</label>
+            <input class="inp mono" id="s-mail" value="director@alfa-school.ru">
+            <div class="hr"></div>
+            <label class="f">Способы входа</label>
+            <div class="row"><span class="chip green">Почта</span><span class="chip">Telegram</span><span class="chip">ВК</span></div>
+            <div class="hr"></div>
+            <button class="btn sm">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 07 · ПРОДЛЕНИЕ ════════════════════════════════ -->
+<section class="screen" id="s7">
+  <div class="wrap">
+    <div class="stepno">07 · продление подписки</div>
+
+    <div class="state on" data-state="paid">
+      <h1>Подписка активна</h1>
+      <p class="lead">Ничего делать не нужно — списываем раз в месяц, документы держим актуальными.</p>
+      <div class="card pad sec">
+        <div class="row"><span class="b green"><span class="ic">✓</span> Активна до 12.09.2026</span>
+          <span class="right tiny mono">карта ···· 4417</span></div>
+      </div>
+      <p class="tiny" style="margin-top:16px">Другие состояния:
+        <button class="btn text sm" data-state-to="grace">не прошла оплата</button> ·
+        <button class="btn text sm" data-state-to="paused">пауза</button>
+      </p>
+    </div>
+
+    <div class="state" data-state="grace">
+      <h1>Не удалось списать оплату</h1>
+      <p class="lead">Всё продолжает работать ещё 3 дня. Потом мониторинг и обновление документов остановятся — сами документы останутся на сайте.</p>
+      <div class="card pad sec" style="border-color:rgba(184,121,0,.4)">
+        <div class="b amber"><span class="ic">⚠</span> Осталось 3 дня · карта ···· 4417 отклонена</div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn solid">Обновить карту</button>
+          <button class="btn text">Оплатить по счёту</button>
+        </div>
+      </div>
+      <div class="card pad sec">
+        <h3>Что продолжает работать</h3>
+        <div class="small" style="line-height:1.9">
+          <div>· Документы на сайте доступны по прежним ссылкам</div>
+          <div>· Баннер и реквизиты показываются</div>
+          <div>· Проверки и обновления — приостановятся через 3 дня</div>
+        </div>
+      </div>
+      <p class="tiny" style="margin-top:16px">
+        <button class="btn text sm" data-state-to="paid">активна</button> ·
+        <button class="btn text sm" data-state-to="paused">пауза</button>
+      </p>
+    </div>
+
+    <div class="state" data-state="paused">
+      <h1>Подписка на паузе</h1>
+      <p class="lead">С 5 августа. Документы на сайте работают, но мы перестали проверять сайт и обновлять тексты при изменении закона.</p>
+      <div class="card pad sec">
+        <div class="b amber"><span class="ic">⏸</span> На паузе с 05.08.2026</div>
+        <div class="hr"></div>
+        <div class="small" style="line-height:1.9">
+          <div><span style="color:var(--ok)">✓</span> Документы доступны по прежним ссылкам</div>
+          <div><span style="color:var(--ok)">✓</span> Баннер и реквизиты на сайте</div>
+          <div><span style="color:var(--danger)">✕</span> Проверки сайта остановлены</div>
+          <div><span style="color:var(--danger)">✕</span> Документы не обновляются при смене закона</div>
+        </div>
+        <div class="row" style="margin-top:14px"><button class="btn solid">Возобновить подписку</button></div>
+      </div>
+      <p class="tiny" style="margin-top:16px">
+        <button class="btn text sm" data-state-to="paid">активна</button> ·
+        <button class="btn text sm" data-state-to="grace">не прошла оплата</button>
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+/* Переключение экранов и состояний. Никакой бизнес-логики и никакого хранилища —
+   состояние держим в переменных, как просит ТЗ. */
+document.documentElement.classList.add('js');
+
+var state = { step:'s0', health:'bad', data:'full', all:false };
+
+function applyHealth(){
+  document.querySelectorAll('[data-health]').forEach(function(el){
+    if (el.closest('.modes')) return;              /* кнопки самой панели не трогаем */
+    el.style.display = (el.dataset.health === state.health) ? '' : 'none';
+  });
+  document.querySelectorAll('.modes [data-health]').forEach(function(b){
+    b.classList.toggle('on', b.dataset.health === state.health);
+  });
+}
+function applyData(){
+  document.querySelectorAll('[data-data]').forEach(function(el){
+    if (el.closest('.modes')) return;
+    el.style.display = (el.dataset.data === state.data) ? '' : 'none';
+  });
+  document.querySelectorAll('.modes [data-data]').forEach(function(b){
+    b.classList.toggle('on', b.dataset.data === state.data);
+  });
+}
+function applyStep(){
+  document.querySelectorAll('.screen').forEach(function(s){
+    s.classList.toggle('on', state.all || s.id === state.step);
+  });
+  document.querySelectorAll('.modes [data-step]').forEach(function(b){
+    b.classList.toggle('on', !state.all && b.dataset.step === state.step);
+  });
+  document.querySelector('[data-all]').classList.toggle('on', state.all);
+  window.scrollTo(0,0);
+}
+function goStep(id){ state.all = false; state.step = id; applyStep(); }
+
+document.querySelectorAll('.modes [data-step]').forEach(function(b){
+  b.addEventListener('click', function(){ goStep(b.dataset.step); });
+});
+document.querySelectorAll('.modes [data-health]').forEach(function(b){
+  b.addEventListener('click', function(){ state.health = b.dataset.health; applyHealth(); });
+});
+document.querySelectorAll('.modes [data-data]').forEach(function(b){
+  b.addEventListener('click', function(){ state.data = b.dataset.data; applyData(); });
+});
+document.querySelector('[data-all]').addEventListener('click', function(){
+  state.all = !state.all; applyStep();
+});
+
+/* кнопки внутри экранов, ведущие на следующий шаг */
+document.querySelectorAll('[data-go]').forEach(function(b){
+  b.addEventListener('click', function(){ goStep(b.dataset.go); });
+});
+
+/* состояния внутри экрана: скан идёт, ошибка, шаги анкеты, оплата и т.д. */
+document.querySelectorAll('[data-state-to]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var scope = b.closest('.screen');
+    var target = b.dataset.stateTo;
+    scope.querySelectorAll('[data-state]').forEach(function(s){
+      s.classList.toggle('on', s.dataset.state === target);
+    });
+    window.scrollTo(0,0);
+  });
+});
+
+/* раскрывашки */
+document.querySelectorAll('[data-fold]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var box = document.getElementById(b.dataset.fold);
+    if (box) box.style.display = (box.style.display === 'none') ? 'block' : 'none';
+  });
+});
+
+/* переключатели внутри карточек: почта/телефон, темы виджета, вкладки движков */
+document.querySelectorAll('[data-swap]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var group = b.parentElement;
+    group.querySelectorAll('[data-swap]').forEach(function(x){ x.classList.toggle('on', x === b); });
+    var scope = b.closest('.card') || b.closest('.screen');
+    scope.querySelectorAll('[data-swapped]').forEach(function(p){
+      p.style.display = (p.dataset.swapped === b.dataset.swap) ? '' : 'none';
+    });
+  });
+});
+
+/* разделы кабинета */
+document.querySelectorAll('[data-lk]').forEach(function(a){
+  a.addEventListener('click', function(){
+    var key = a.dataset.lk;
+    document.querySelectorAll('.lk-side a').forEach(function(x){
+      x.classList.toggle('on', x.dataset.lk === key || (key === 'site' && x.dataset.lk === 'list'));
+    });
+    document.querySelectorAll('[data-lkpane]').forEach(function(p){
+      p.style.display = (p.dataset.lkpane === key) ? '' : 'none';
+    });
+  });
+});
+
+applyHealth(); applyData(); applyStep();
+</script>
+</body>
+</html>
