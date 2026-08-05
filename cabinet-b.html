@@ -200,16 +200,52 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   .main{padding:20px 16px 80px}
 }
 
-.sitecard{border:1px solid var(--line-2);border-radius:12px;padding:15px 16px;background:var(--white);margin-bottom:10px;cursor:pointer}
-.sitecard:hover{border-color:rgba(17,17,16,.3)}
-.sitecard .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.sitecard .dom{font-family:var(--mono);font-size:15px;font-weight:700}
-.sitecard .meta{font-size:11.5px;color:rgba(17,17,16,.5);margin-top:2px}
-.sitecard .strip{margin-top:10px}
+.projgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
 
-.empty{border:1px solid var(--line-2);border-radius:14px;background:var(--paper);padding:60px 30px;text-align:center}
-.empty h2{font-size:19px;margin-bottom:6px}
-.empty p{color:rgba(17,17,16,.6);font-size:14px;max-width:38ch;margin:0 auto 18px}
+.addcard{position:relative;width:100%;border:1.5px dashed var(--line-2);border-radius:12px;background:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  min-height:180px;padding:24px 16px;text-align:center;cursor:pointer;color:rgba(17,17,16,.5)}
+.addcard:hover{border-color:var(--ink);color:var(--ink)}
+.addcard .plus{width:32px;height:32px;border-radius:999px;background:var(--warm);display:grid;place-items:center;
+  font-size:18px;font-weight:700;color:var(--ink);line-height:1}
+.addcard b{font-size:13.5px;color:var(--ink)}
+.addcard span{font-size:11.5px;max-width:24ch}
+
+.projcard{position:relative;border:1px solid var(--line-2);border-radius:12px;padding:15px 16px;
+  background:var(--white);display:flex;flex-direction:column;min-height:180px}
+.projcard:hover{border-color:rgba(17,17,16,.3)}
+.projcard .dom{font-family:var(--mono);font-size:13px;font-weight:600}
+.projcard .name{font-size:14.5px;font-weight:700;letter-spacing:-.01em;margin-top:1px}
+.projcard .strip{margin:10px 0}
+.projcard .meta{font-size:11.5px;color:rgba(17,17,16,.5);line-height:1.6}
+.projcard .act{margin-top:auto;padding-top:11px;border-top:1px solid var(--line)}
+.projcard .act .actbtn{width:100%}
+.projcard .act .actbtn::after{content:"";position:absolute;inset:0}
+
+.actbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 10px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;
+  border:1.5px solid transparent;background:none;color:rgba(17,17,16,.7)}
+.actbtn.solid{background:var(--ink);color:#fff}
+.actbtn.solid:hover{background:var(--brand)}
+.actbtn.outline{border-color:var(--line-2);color:var(--ink)}
+.actbtn.outline:hover{border-color:rgba(17,17,16,.4)}
+.actbtn.text:hover{color:var(--ink)}
+
+.viewbar{display:inline-flex;gap:2px;border:1px solid var(--line-2);border-radius:9px;padding:2px;background:var(--white)}
+.viewbar button{width:32px;height:30px;display:grid;place-items:center;border:0;background:none;border-radius:6px;
+  cursor:pointer;color:rgba(17,17,16,.4)}
+.viewbar button.on{background:var(--ink);color:#fff}
+
+.projtable{width:100%;border-collapse:collapse;border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--white)}
+.projtable th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:rgba(17,17,16,.45);
+  font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line)}
+.projtable td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:12.5px}
+.projtable tr:last-child td{border-bottom:0}
+.projtable tr:hover td{background:var(--warm)}
+.projtable .dom{font-family:var(--mono);font-size:12.5px;font-weight:600}
+.projtable .meta{font-size:11px;color:rgba(17,17,16,.5)}
+.projtable td.act{text-align:right}
+.projtable td.act .actbtn{padding:6px 12px;font-size:12px}
 
 /* ── шаги воронки ── */
 .startwrap{max-width:640px;margin:0 auto;padding:26px 20px 90px}
@@ -413,10 +449,12 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <main class="main narrow">
       <h1>Мои сайты</h1>
       <p class="lead" style="margin-top:5px">Пока ни одного сайта</p>
-      <div class="empty" style="margin-top:22px">
-        <h2>Добавьте первый сайт</h2>
-        <p>Проверим по шести требованиям, соберём документы и будем следить за изменениями.</p>
-        <button class="btn solid" data-go="s-add">+ Добавить сайт</button>
+      <div class="projgrid" style="margin-top:20px">
+        <button type="button" class="addcard" data-go="s-add">
+          <span class="plus">+</span>
+          <b>Добавить сайт</b>
+          <span>Проверим по шести требованиям, соберём документы и будем следить за изменениями</span>
+        </button>
       </div>
     </main>
   </div>
@@ -480,35 +518,92 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       </div>
     </aside>
     <main class="main narrow">
-      <div class="row" style="justify-content:space-between">
-        <h1>Мои сайты</h1>
-        <button class="btn solid sm" data-go="s-add">+ Добавить сайт</button>
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div>
+          <h1>Мои сайты</h1>
+          <p class="lead" style="margin-top:4px">3 сайта · <span style="color:var(--danger);font-weight:700">1 требует внимания</span></p>
+        </div>
+        <div class="row" style="gap:8px">
+          <button class="btn sm" data-go="s-add">+ Добавить сайт</button>
+          <div class="viewbar" role="group" aria-label="Вид списка">
+            <button type="button" class="on" data-swap="pvcards" aria-label="Карточки" title="Карточки">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+            </button>
+            <button type="button" data-swap="pvtable" aria-label="Таблица" title="Таблица">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div style="margin-top:18px">
-        <div class="sitecard" data-go="s-project">
-          <div class="top">
-            <span class="dom mono">alfa-school.ru</span>
-            <span class="b red">⛔ 2 нарушения · 1 замечание</span>
-            <span class="tiny" style="margin-left:auto">подписка не подключена</span>
+      <div data-swapped="pvcards" style="margin-top:18px">
+        <div class="projgrid">
+          <button type="button" class="addcard" data-go="s-add">
+            <span class="plus">+</span>
+            <b>Добавить сайт</b>
+            <span>Ещё один сайт для проверки</span>
+          </button>
+
+          <div class="projcard">
+            <div>
+              <div class="dom">alfa-school.ru</div>
+              <div class="name">Альфа Школа</div>
+            </div>
+            <div class="strip"><i class="red"></i><i class="blue"></i><i></i><i></i><i class="red"></i><i></i></div>
+            <div class="meta">⛔ 2 нарушения · 1 замечание<br>ООО «Альфа Школа» · ИНН 7701234567<br>подписка не подключена</div>
+            <div class="act"><button type="button" class="actbtn solid" data-go="s-project">Устранить →</button></div>
           </div>
-          <div class="strip"><i class="red"></i><i class="blue"></i><i></i><i></i><i class="red"></i><i></i></div>
+
+          <div class="projcard">
+            <div>
+              <div class="dom">delta-service.ru</div>
+              <div class="name">Дельта Сервис</div>
+            </div>
+            <div class="strip"><i class="amber"></i><i class="blue"></i><i class="amber"></i><i></i><i class="amber"></i><i class="blue"></i></div>
+            <div class="meta">⚠ 4 замечания<br>ООО «Дельта Сервис» · ИНН 7802345678<br>оплачено до 03.11.2026</div>
+            <div class="act"><button type="button" class="actbtn outline" data-go="s-project">Обновить документы →</button></div>
+          </div>
+
+          <div class="projcard">
+            <div>
+              <div class="dom">zeta-logistic.ru</div>
+              <div class="name">Зета Логистик</div>
+            </div>
+            <div class="strip"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="meta">✓ Чисто<br>ИП Морозова Е.В. · ИНН 780512345678<br>оплачено до 30.12.2026</div>
+            <div class="act"><button type="button" class="actbtn text" data-go="s-project">Открыть →</button></div>
+          </div>
         </div>
-        <div class="sitecard">
-          <div class="top">
-            <span class="dom mono">delta-service.ru</span>
-            <span class="b amber">⚠ 4 замечания</span>
-            <span class="tiny" style="margin-left:auto">оплачено до 03.11.2026</span>
-          </div>
-          <div class="strip"><i class="amber"></i><i class="blue"></i><i class="amber"></i><i></i><i class="amber"></i><i class="blue"></i></div>
-        </div>
-        <div class="sitecard">
-          <div class="top">
-            <span class="dom mono">zeta-logistic.ru</span>
-            <span class="b green">✓ Чисто</span>
-            <span class="tiny" style="margin-left:auto">оплачено до 30.12.2026</span>
-          </div>
-          <div class="strip"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+
+      <div data-swapped="pvtable" style="display:none;margin-top:18px">
+        <div style="overflow-x:auto">
+        <table class="projtable">
+          <thead><tr><th>Проект</th><th>Статус</th><th>Оплата</th><th>Проверен</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Школа» · ИНН 7701234567</div></td>
+              <td><span class="b red">⛔ 2 нарушения · 1 замечание</span></td>
+              <td class="meta">подписка не подключена</td>
+              <td class="meta">2 дня назад</td>
+              <td class="act"><button type="button" class="actbtn outline" data-go="s-project">Устранить →</button></td>
+            </tr>
+            <tr>
+              <td><div class="dom">delta-service.ru</div><div class="meta">ООО «Дельта Сервис» · ИНН 7802345678</div></td>
+              <td><span class="b amber">⚠ 4 замечания</span></td>
+              <td class="meta">оплачено до 03.11.2026</td>
+              <td class="meta">5 дней назад</td>
+              <td class="act"><button type="button" class="actbtn outline" data-go="s-project">Обновить →</button></td>
+            </tr>
+            <tr>
+              <td><div class="dom">zeta-logistic.ru</div><div class="meta">ИП Морозова Е.В. · ИНН 780512345678</div></td>
+              <td><span class="b green">✓ Чисто</span></td>
+              <td class="meta">оплачено до 30.12.2026</td>
+              <td class="meta">вчера</td>
+              <td class="act"><button type="button" class="actbtn text" data-go="s-project">Открыть →</button></td>
+            </tr>
+          </tbody>
+        </table>
         </div>
       </div>
     </main>
