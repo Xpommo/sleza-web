@@ -24,6 +24,14 @@
   оплата+установка одним экраном) → кабинет (обзор+документы+виджет на
   одной странице, без вкладок) → настройки (там же и подписка).
 
+  «Обзор» и «Мониторинг» — два постоянных пункта в сайдбаре с момента,
+  когда сайт добавлен (появляются вместе на «Находки»): «Обзор» — полный
+  разбор с находками/документами/виджетом, «Мониторинг» — короткая
+  карточка со статусом и одной кнопкой действия, чтобы свериться, не
+  открывая длинный экран заново. До «Мониторинга» вернуться к статусу
+  после «Находки» можно было только листая воронку назад — некуда было
+  просто глянуть, что там.
+
   Дальнейшие урезания и почему:
   - Регистрация/вход — только почта + пароль, без телефона и без
     Telegram/ВК/MAX: один способ входа проще держать в голове и проще
@@ -453,7 +461,10 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   <div class="appwrap sidebar">
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
-      <div class="navlist"><a class="on">▤ Обзор</a></div>
+      <div class="navlist">
+        <button type="button" class="on" data-go="s-project">▤ Обзор</button>
+        <button type="button" data-go="s-status">◎ Мониторинг</button>
+      </div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
         <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
@@ -505,6 +516,55 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       </div>
       <button class="btn text sm" data-fold="ok-p">✓ 2 проверки в норме — ЕРИР, оферта ⌄</button>
       <div id="ok-p" style="display:none;margin-top:8px" class="small muted">ЕРИР · маркировка рекламы — в норме<br>Оферта · условия продажи — в норме</div>
+    </main>
+  </div>
+</section>
+
+<!-- ══════════════════ 04б · МОНИТОРИНГ — короткий статус ═══════════════
+     Второй постоянный пункт сайдбара рядом с «Обзор» — появляется с того
+     момента, когда сайт добавлен, чтобы свериться со статусом можно было
+     не открывая длинный разбор заново. Одна карточка, содержимое зависит
+     от того, оплачена ли подписка (глобальный флаг sitePaid, см. script):
+     до оплаты кнопка ведёт в воронку («Исправить»), после — в кабинет
+     («Поддерживаем»). «Обзор» в сайдбаре здесь тоже переключается между
+     s-project/s-project-paid по тому же флагу (см. syncStatusScreen). -->
+<section class="screen" id="s-status">
+  <div class="appwrap sidebar">
+    <aside class="side">
+      <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
+      <div class="navlist">
+        <button type="button" id="status-back" data-go="s-project">▤ Обзор</button>
+        <button type="button" class="on" data-go="s-status">◎ Мониторинг</button>
+      </div>
+      <div class="acct">
+        <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+      </div>
+    </aside>
+    <main class="main narrow">
+      <h1>Мониторинг</h1>
+      <p class="lead" style="margin-top:8px">Статус alfa-school.ru — без захода в полный разбор.</p>
+
+      <div class="card pad" style="margin-top:18px;max-width:460px">
+        <div class="state on" data-state="unpaid">
+          <div class="row" style="justify-content:space-between">
+            <span class="dom mono" style="font-size:17px;font-weight:700">alfa-school.ru</span>
+            <span class="b red">⛔ 2 нарушения</span>
+          </div>
+          <p class="tiny" style="margin-top:5px">1 замечание · риск до 300 000 ₽ · проверен 7 дней назад</p>
+          <button type="button" class="btn solid wide" style="margin-top:14px" data-go="s-prepare">Исправить</button>
+        </div>
+        <div class="state" data-state="paid">
+          <div class="row" style="justify-content:space-between">
+            <span class="dom mono" style="font-size:17px;font-weight:700">alfa-school.ru</span>
+            <span class="b amber">⚠ 1 замечание</span>
+          </div>
+          <p class="tiny" style="margin-top:5px">Оплачено до 05.09.2026 · проверен сегодня</p>
+          <button type="button" class="btn wide" style="margin-top:14px" data-go="s-project-paid">Поддерживаем →</button>
+        </div>
+      </div>
+
+      <p class="tiny" style="margin-top:12px;max-width:52ch">Полный список находок, документы и виджет — в «Обзоре».</p>
     </main>
   </div>
 </section>
@@ -706,7 +766,10 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
   <div class="appwrap sidebar">
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
-      <div class="navlist"><a class="on">▤ Обзор</a></div>
+      <div class="navlist">
+        <button type="button" class="on" data-go="s-project-paid">▤ Обзор</button>
+        <button type="button" data-go="s-status">◎ Мониторинг</button>
+      </div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
         <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
@@ -785,8 +848,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-project','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-settings'];
-var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-settings':'настройки'};
+var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-settings'];
+var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мониторинг','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-settings':'настройки'};
 
 var nav = document.getElementById('scr-nav');
 SCREENS.forEach(function(id){
@@ -805,8 +868,20 @@ function paintNav(id){
   });
 }
 
+var sitePaid = false;
+
+function syncStatusScreen(){
+  document.querySelectorAll('#s-status [data-state]').forEach(function(s){
+    s.classList.toggle('on', s.dataset.state === (sitePaid ? 'paid' : 'unpaid'));
+  });
+  var back = document.getElementById('status-back');
+  if (back) back.dataset.go = sitePaid ? 's-project-paid' : 's-project';
+}
+
 function goScreen(id){
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('on', s.id === id); });
+  if (id === 's-project-paid') sitePaid = true;
+  if (id === 's-status') syncStatusScreen();
   paintNav(id);
   window.scrollTo(0,0);
 }
