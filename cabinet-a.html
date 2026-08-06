@@ -545,8 +545,16 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
      находок, поэтому «Готовим документы» не может сказать «нашли 3
      нарушения» — здесь клиент сам рассказывает то, что обычно определяет
      скан. Дальше та же сборка документов, что и в сканированном пути —
-     ведёт сразу в «Установить скрипт» (оплата+установка), «ready» с его
-     таблицей «было → закрыто» пропускаем: закрывать нечего, находок не было. -->
+     ведёт сразу в «Установить скрипт» (оплата+установка, см. 4/4 ниже —
+     вариант А их не разделяет), «ready» с его таблицей «было → закрыто»
+     пропускаем: закрывать нечего, находок не было.
+
+     Вариант А намеренно короче варианта Б здесь: один компактный список
+     «Что есть на сайте» (чекбоксы) вместо шести отдельных карточек
+     вопрос+пояснение — тот же принцип, что уже двигал А к объединению
+     шагов раньше (см. HANDOFF.md 6.9). Цена компактности — меньше места
+     под юридическое обоснование каждого пункта; в Б вместо этого подробно,
+     каждый вопрос своей карточкой с объяснением, зачем он нужен. -->
 <section class="screen" id="s-fullanketa">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -566,7 +574,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
         </div>
       </div>
       <h1 style="margin-top:14px">Расскажите о сайте сами</h1>
-      <p class="lead" style="margin-top:8px">Мы не сканировали alfa-school.ru — ответьте на несколько вопросов, и мы соберём документы по ним, без автоматической проверки.</p>
+      <p class="lead" style="margin-top:8px">Мы не сканировали alfa-school.ru — отметьте, что есть на сайте, и мы соберём документы по ответам, без автоматической проверки.</p>
 
       <h2 style="margin-top:22px">Реквизиты</h2>
       <div class="card pad row" style="justify-content:space-between;margin-top:10px">
@@ -575,42 +583,22 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       </div>
       <p class="tiny" style="margin-top:7px">Сверим с ЕГРЮЛ — станет первым документом в «Документах».</p>
 
-      <h2 style="margin-top:22px">Персональные данные</h2>
+      <h2 style="margin-top:22px">Что есть на сайте</h2>
       <div class="card pad" style="margin-top:10px">
-        <h3>Собираете контакты или другие данные посетителей на сайте?</h3>
-        <p class="tiny" style="margin:6px 0 12px">Форма заявки, чат, звонок с сайта — считается любой способ.</p>
-        <div class="seg"><button class="on">Да</button><button>Нет</button></div>
+        <label class="check"><input type="checkbox" checked id="fa-collect"><span class="t">Собираем контакты или данные посетителей — форма, чат, звонок</span></label>
+        <label class="check"><input type="checkbox" checked><span class="t">Звоним, пишем в мессенджеры или на почту по базе клиентов</span></label>
+        <label class="check"><input type="checkbox" checked id="fa-offer"><span class="t">Принимаем оплату прямо на сайте</span></label>
+        <label class="check"><input type="checkbox"><span class="t">Размещаем рекламу партнёров или платные интеграции</span></label>
+        <label class="check"><input type="checkbox" checked id="fa-cookies"><span class="t">Используем Яндекс.Метрику или похожие счётчики</span></label>
       </div>
+      <p class="tiny" style="margin-top:7px">Каждый пункт — отдельное требование закона: собираете данные → нужно согласие, принимаете оплату → нужна оферта, ставите счётчики → нужен баннер с отказом.</p>
+
       <div class="card pad" style="margin-top:10px">
-        <h3>Звоните, пишете в мессенджеры или на почту по базе клиентов?</h3>
-        <p class="tiny" style="margin:6px 0 12px">От этого зависит, нужно ли отдельное согласие на рекламные рассылки.</p>
-        <div class="seg"><button class="on">Да</button><button>Нет</button></div>
-      </div>
-      <div class="card pad" style="margin-top:10px">
-        <h3>Для чего вы собираете контакты?</h3>
-        <p class="tiny" style="margin:6px 0 10px">Это попадёт в политику — цели должны совпадать с тем, что вы делаете на самом деле.</p>
+        <h3>Если собираете контакты — для чего?</h3>
+        <p class="tiny" style="margin:6px 0 10px">Попадёт в политику — цели должны совпадать с тем, что вы делаете на самом деле.</p>
         <label class="check"><input type="checkbox" checked><span class="t">Записать на занятие</span></label>
         <label class="check"><input type="checkbox" checked><span class="t">Ответить на обращение</span></label>
         <label class="check"><input type="checkbox" checked><span class="t">Рассказывать об акциях и наборах</span></label>
-      </div>
-
-      <h2 style="margin-top:22px">Оплата и реклама</h2>
-      <div class="card pad" style="margin-top:10px">
-        <h3>Принимаете оплату прямо на сайте?</h3>
-        <p class="tiny" style="margin:6px 0 12px">Без публичной оферты с ценами и условиями возврата — нарушение прав потребителя.</p>
-        <div class="seg"><button class="on">Да</button><button>Нет</button></div>
-      </div>
-      <div class="card pad" style="margin-top:10px">
-        <h3>Размещаете рекламу партнёров или платные интеграции?</h3>
-        <p class="tiny" style="margin:6px 0 12px">Баннеры, партнёрские блоки, платные упоминания — нужна пометка «реклама» и маркировка в ЕРИР.</p>
-        <div class="seg"><button>Да</button><button class="on">Нет</button></div>
-      </div>
-
-      <h2 style="margin-top:22px">Трекинг</h2>
-      <div class="card pad" style="margin-top:10px">
-        <h3>Используете Яндекс.Метрику или похожие счётчики?</h3>
-        <p class="tiny" style="margin:6px 0 12px">Без баннера с реальным отказом — это трекинг до согласия посетителя.</p>
-        <div class="seg"><button class="on">Да</button><button>Нет</button></div>
       </div>
 
       <h2 style="margin-top:24px">По вашим ответам подготовим</h2>

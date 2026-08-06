@@ -510,8 +510,15 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
      находок, поэтому «Готовим документы» не может сказать «нашли 3
      нарушения» — здесь клиент сам рассказывает то, что обычно определяет
      скан. Дальше та же сборка документов, что и в сканированном пути —
-     ведёт сразу в «Установить скрипт» (оплата+установка), «ready» с его
-     таблицей «было → закрыто» пропускаем: закрывать нечего, находок не было. -->
+     ведёт в «Оплата» → «Установить скрипт» (у варианта Б это два разных
+     экрана, см. HANDOFF.md 6.9), «ready» с его таблицей «было → закрыто»
+     пропускаем: закрывать нечего, находок не было.
+
+     Вариант Б держит здесь шесть отдельных карточек вопрос+пояснение —
+     тот же характер, что у него всегда был (anketa отдельно от prepare,
+     подробно, одно решение на экран). Вариант А вместо этого — один
+     компактный список чекбоксов «Что есть на сайте»: меньше пояснений
+     под каждым пунктом, но заполняется быстрее. -->
 <section class="screen" id="s-fullanketa">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -592,7 +599,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       </div>
 
       <div class="hr" style="margin-top:20px"></div>
-      <button type="button" class="btn solid wide" data-go="s-install">Установить и оплатить за 2 990 ₽</button>
+      <button type="button" class="btn solid wide" data-go="s-pay">Оплатить и установить за 2 990 ₽</button>
     </main>
   </div>
 </section>
@@ -795,7 +802,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
 <!-- ══════════════════ ВОРОНКА: 1/6 · ГОТОВИМ ДОКУМЕНТЫ ═══════════════ -->
 <section class="screen" id="s-prepare">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 1 из 4</span></div><div class="prog"><i style="width:25%"></i></div></div>
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 1 из 5</span></div><div class="prog"><i style="width:20%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-project" style="margin-bottom:10px">← результат проверки</button>
@@ -835,7 +842,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
 <!-- ══════════════════ ВОРОНКА: 2/5 · АНКЕТА ═══════════════════════════ -->
 <section class="screen" id="s-anketa">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 2 из 4</span></div><div class="prog"><i style="width:50%"></i></div></div>
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 2 из 5</span></div><div class="prog"><i style="width:40%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-prepare" style="margin-bottom:10px">← что подготовим</button>
@@ -863,7 +870,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
 <!-- ══════════════════ ВОРОНКА: 3/5 · ДОКУМЕНТЫ ГОТОВЫ ═════════════════ -->
 <section class="screen" id="s-ready">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 3 из 4</span></div><div class="prog"><i style="width:75%"></i></div></div>
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 3 из 5</span></div><div class="prog"><i style="width:60%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-anketa" style="margin-bottom:10px">← уточнения</button>
@@ -906,52 +913,26 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     </div>
 
     <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-go="s-install">Установить и оплатить за 2 990 ₽</button>
+    <button type="button" class="btn solid wide" data-go="s-pay">Оплатить и установить за 2 990 ₽</button>
     <p class="tiny" style="text-align:center;margin-top:10px">Без оплаты и установки баннер и реквизиты на сайте не появятся</p>
   </div>
 </section>
 
-<!-- ══════════════════ ВОРОНКА: 4/4 · УСТАНОВКА + ОПЛАТА ══════════════ -->
-<!-- Слито с прежним отдельным шагом «Оплата»: тот же приём, что раньше с
-     «оффером» (растворён в «ready») — код и инструкцию видно и можно
-     поставить бесплатно, оплата — последнее действие на этом же экране,
-     не отдельный шаг перед ним. Поэтому каркас снова startwrap, не
-     appwrap.sidebar: оплата всё ещё решение на один экран. -->
-<section class="screen" id="s-install">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 4 из 4</span></div><div class="prog"><i style="width:100%"></i></div></div>
+<!-- ══════════════════ ВОРОНКА: 4/5 · ОПЛАТА ═══════════════════════════ -->
+<!-- Вариант Б держит оплату и установку раздельными экранами — тот же
+     характер, что у него был всегда (anketa отдельно от prepare, пока А
+     сливал): подробно, одно решение на экран. Вариант А вместо этого
+     держит их слитыми в один финальный экран — см. HANDOFF.md 6.9,
+     сознательная развилка, не забытая синхронизация. -->
+<section class="screen" id="s-pay">
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 4 из 5</span></div><div class="prog"><i style="width:80%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-ready" style="margin-bottom:10px">← документы</button>
-    <h1>Установить скрипт</h1>
-    <p class="lead" style="margin-top:8px">Одна строчка кода. Она подтянет баннер, реквизиты и ссылки на документы — дальше мы обновляем их сами.</p>
+    <h1>Оплата</h1>
+    <p class="lead" style="margin-top:8px">Документы уже готовы — после оплаты сразу переходим к установке.</p>
 
-    <h2 style="margin-top:20px">Сделать самому</h2>
-    <div class="card pad">
-      <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
-data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
-      <button class="btn sm" style="margin-top:10px">Скопировать код</button>
-      <div class="hr"></div>
-      <div class="tabs"><button class="on" data-swap="t1">Тильда</button><button data-swap="t2">WordPress</button><button data-swap="t3">Битрикс</button><button data-swap="t4">Другой сайт</button></div>
-      <div class="small" data-swapped="t1">Настройки сайта → Ещё → HTML-код для вставки внутрь HEAD → вставить строку → Опубликовать все страницы.</div>
-      <div class="small" data-swapped="t2" style="display:none">Внешний вид → Редактор тем → header.php → вставить перед &lt;/head&gt;.</div>
-      <div class="small" data-swapped="t3" style="display:none">Настройки → Настройки продукта → Сайты → шаблон сайта → вставить в секцию HEAD.</div>
-      <div class="small" data-swapped="t4" style="display:none">Вставьте строку в HTML любой страницы перед закрывающим тегом &lt;/head&gt;.</div>
-    </div>
-
-    <h2 style="margin-top:18px">Поручить тому, кто делает сайт</h2>
-    <div class="card pad"><label class="f">Почта разработчика</label><input class="inp mono" placeholder="dev@studio.ru"><button class="btn sm" style="margin-top:10px">Отправить инструкцию</button></div>
-
-    <h2 style="margin-top:18px">Поручить нам</h2>
-    <div class="card pad row" style="justify-content:space-between"><div><div class="small">Подключимся к сайту и поставим сами.</div><div class="tiny" style="margin-top:3px">Разово, обычно в течение рабочего дня</div></div><b style="font-size:16px">1 500 ₽</b></div>
-
-    <div class="card pad" style="margin-top:14px">
-      <div class="b red">✕ Скрипт на сайте не найден</div>
-      <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили alfa-school.ru минуту назад.</p>
-      <button class="btn solid sm" style="margin-top:10px">↻ Проверить установку</button>
-    </div>
-
-    <h2 style="margin-top:22px">Осталось оплатить</h2>
-    <div class="card pad" style="margin-top:12px">
+    <div class="card pad" style="margin-top:16px">
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3,rgba(17,17,16,.5))">Сразу</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваши формы и трекеры<br>· Виджет: куки-баннер и реквизиты в подвале<br>· Постоянные ссылки на документы</div>
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3,rgba(17,17,16,.5));margin-top:14px">Каждый месяц</h3>
@@ -966,8 +947,59 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     </div>
 
     <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-go="s-project-paid">Оплатить 2 990 ₽ и войти в кабинет →</button>
+    <button type="button" class="btn solid wide" data-go="s-install">Оплатить 2 990 ₽</button>
     <p class="tiny" style="text-align:center;margin-top:10px">Автопродление раз в месяц · отменить можно в любой момент</p>
+  </div>
+</section>
+
+<!-- ══════════════════ ВОРОНКА: 5/5 · УСТАНОВКА (снова AppShell) ══════ -->
+<!-- Оплата уже позади к этому моменту — экран снова про кабинет
+     («что делать дальше»), не про решение платить, поэтому полный
+     сайдбар возвращается, как было до слияния с оплатой. -->
+<section class="screen" id="s-install">
+  <div class="appwrap sidebar">
+    <aside class="side">
+      <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
+      <div class="navlist"><a class="on">▤ Обзор</a><span class="stub" data-go="s-docs">▤ Документы</span><span class="stub" data-go="s-widget">▤ Виджет</span></div>
+      <div class="acct">
+        <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
+        <div class="acct-menu" data-acct-menu><button data-go="s-settings">⚙ Настройки</button><button data-go="s-billing">💳 Подписка</button><div class="div"></div><button>↪ Выйти</button></div>
+      </div>
+    </aside>
+    <main class="main narrow">
+      <button class="btn text sm" data-go="s-pay" style="margin-bottom:8px">← оплата</button>
+      <div class="micro" style="margin-bottom:10px">шаг 5 из 5</div>
+      <h1>Установить скрипт</h1>
+      <p class="lead" style="margin-top:8px">Одна строчка кода. Она подтянет баннер, реквизиты и ссылки на документы — дальше мы обновляем их сами.</p>
+
+      <h2 style="margin-top:20px">Сделать самому</h2>
+      <div class="card pad">
+        <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
+data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
+        <button class="btn sm" style="margin-top:10px">Скопировать код</button>
+        <div class="hr"></div>
+        <div class="tabs"><button class="on" data-swap="t1">Тильда</button><button data-swap="t2">WordPress</button><button data-swap="t3">Битрикс</button><button data-swap="t4">Другой сайт</button></div>
+        <div class="small" data-swapped="t1">Настройки сайта → Ещё → HTML-код для вставки внутрь HEAD → вставить строку → Опубликовать все страницы.</div>
+        <div class="small" data-swapped="t2" style="display:none">Внешний вид → Редактор тем → header.php → вставить перед &lt;/head&gt;.</div>
+        <div class="small" data-swapped="t3" style="display:none">Настройки → Настройки продукта → Сайты → шаблон сайта → вставить в секцию HEAD.</div>
+        <div class="small" data-swapped="t4" style="display:none">Вставьте строку в HTML любой страницы перед закрывающим тегом &lt;/head&gt;.</div>
+      </div>
+
+      <h2 style="margin-top:18px">Поручить тому, кто делает сайт</h2>
+      <div class="card pad"><label class="f">Почта разработчика</label><input class="inp mono" placeholder="dev@studio.ru"><button class="btn sm" style="margin-top:10px">Отправить инструкцию</button></div>
+
+      <h2 style="margin-top:18px">Поручить нам</h2>
+      <div class="card pad row" style="justify-content:space-between"><div><div class="small">Подключимся к сайту и поставим сами.</div><div class="tiny" style="margin-top:3px">Разово, обычно в течение рабочего дня</div></div><b style="font-size:16px">1 500 ₽</b></div>
+
+      <div class="card pad" style="margin-top:14px">
+        <div class="b red">✕ Скрипт на сайте не найден</div>
+        <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили alfa-school.ru минуту назад.</p>
+        <button class="btn solid sm" style="margin-top:10px">↻ Проверить установку</button>
+      </div>
+
+      <div class="hr" style="margin-top:20px"></div>
+      <button type="button" class="btn solid wide" data-go="s-project-paid">Войти в кабинет →</button>
+    </main>
   </div>
 </section>
 
@@ -1147,8 +1179,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div><button class="btn sm" 
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-register','s-empty','s-add','s-fullanketa','s-list','s-project','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-docs','s-widget','s-settings','s-billing'];
-var LABELS = {'s-login':'вход','s-register':'регистрация','s-empty':'пусто','s-add':'добавить','s-fullanketa':'полная анкета','s-list':'список','s-project':'проект','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'оплачен','s-docs':'документы','s-widget':'виджет','s-settings':'настройки','s-billing':'подписка'};
+var SCREENS = ['s-login','s-register','s-empty','s-add','s-fullanketa','s-list','s-project','s-prepare','s-anketa','s-ready','s-pay','s-install','s-project-paid','s-docs','s-widget','s-settings','s-billing'];
+var LABELS = {'s-login':'вход','s-register':'регистрация','s-empty':'пусто','s-add':'добавить','s-fullanketa':'полная анкета','s-list':'список','s-project':'проект','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'оплачен','s-docs':'документы','s-widget':'виджет','s-settings':'настройки','s-billing':'подписка'};
 
 var nav = document.getElementById('scr-nav');
 SCREENS.forEach(function(id){
