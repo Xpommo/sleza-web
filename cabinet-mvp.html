@@ -160,7 +160,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .appwrap{min-height:100vh}
 .js .appwrap.sidebar{display:grid;grid-template-columns:248px 1fr}
 .side{background:var(--paper);border-right:1px solid var(--line);padding:18px 14px 24px;
-  display:flex;flex-direction:column;min-height:100vh;position:sticky;top:0}
+  display:flex;flex-direction:column;height:100vh;position:sticky;top:0}
 .js .side{display:flex}
 .logo{display:flex;align-items:center;gap:8px;padding:0 6px;margin-bottom:20px}
 .logo svg{flex:none}
@@ -194,7 +194,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .main.narrow{max-width:820px}
 @media(max-width:820px){
   .js .appwrap.sidebar{display:block}
-  .side{position:static;min-height:0;flex-direction:row;flex-wrap:wrap;padding:12px 14px;border-right:0;border-bottom:1px solid var(--line)}
+  .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;padding:12px 14px;border-right:0;border-bottom:1px solid var(--line)}
   .logo{margin-bottom:0}
   .backlink{display:none}
   .navlist{flex-direction:row;flex-wrap:wrap}
@@ -384,28 +384,27 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     </aside>
     <main class="main narrow">
       <h1>С возвращением</h1>
-      <p class="lead" style="margin-top:8px">Перед регистрацией вы проверяли этот сайт — это он?</p>
+      <p class="lead" style="margin-top:8px">Перед регистрацией вы проверяли этот сайт — добавьте его в кабинет.</p>
       <div class="card pad" style="margin-top:18px;max-width:460px">
         <div class="row" style="justify-content:space-between">
           <span class="dom mono" style="font-size:17px;font-weight:700">alfa-school.ru</span>
           <span class="b red">⛔ 2 нарушения</span>
         </div>
         <p class="tiny" style="margin-top:5px">1 замечание · риск до 300 000 ₽</p>
-        <div class="row" style="margin-top:16px">
-          <button class="btn solid" data-go="s-project">Да, это мой сайт</button>
-          <button class="btn text" data-go="s-add">Нет, у меня другой</button>
-        </div>
+        <button class="btn solid wide" style="margin-top:16px" data-go="s-add">+ Добавить сайт</button>
       </div>
-      <p class="tiny" style="margin-top:12px;max-width:52ch">Домен не переспрашиваем — просто подтвердите, что работать нужно именно с ним. Не проверяли сайт заранее? То же «Нет» приведёт туда, где можно добавить свой.</p>
+      <p class="tiny" style="margin-top:12px;max-width:52ch">Домен уже подставлен — на следующем экране можно подтвердить его и проверить, или, если это не ваш сайт, указать другой.</p>
     </main>
   </div>
 </section>
 
-<!-- ══════════════════ 03б · ДОБАВИТЬ СВОЙ САЙТ ═══════════════════════════
-     Ветка для тех, кто не проверял сайт заранее (пришёл не со скана,
-     ошибся доменом на предыдущем экране) — без этого «Нет, у меня другой»
-     на s-confirm вело в тупик. Тот же выбор, что в вариантах А/Б: скан
-     сейчас или анкета вручную, если скан невозможен. -->
+<!-- ══════════════════ 03б · ДОБАВИТЬ САЙТ («окно проекта») ═══════════════
+     Единственная точка входа для создания проекта: с s-confirm сюда ведёт
+     одна кнопка «Добавить сайт», без промежуточного да/нет. Домен уже
+     подставлен (известен из скана до регистрации) — «Проверить сайт у нас»
+     подтверждает его и сканирует. Если домен не тот или сайт не проверялся
+     заранее — можно вписать другой или выбрать анкету вручную, тот же
+     выбор, что в вариантах А/Б. -->
 <section class="screen" id="s-add">
   <div class="appwrap sidebar">
     <aside class="side">
