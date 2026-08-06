@@ -384,27 +384,28 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     </aside>
     <main class="main narrow">
       <h1>С возвращением</h1>
-      <p class="lead" style="margin-top:8px">Перед регистрацией вы проверяли этот сайт — добавьте его в кабинет.</p>
+      <p class="lead" style="margin-top:8px">Перед регистрацией вы проверяли этот сайт — это он?</p>
       <div class="card pad" style="margin-top:18px;max-width:460px">
         <div class="row" style="justify-content:space-between">
           <span class="dom mono" style="font-size:17px;font-weight:700">alfa-school.ru</span>
           <span class="b red">⛔ 2 нарушения</span>
         </div>
         <p class="tiny" style="margin-top:5px">1 замечание · риск до 300 000 ₽</p>
-        <button class="btn solid wide" style="margin-top:16px" data-go="s-add">+ Добавить сайт</button>
+        <div class="row" style="margin-top:16px">
+          <button class="btn solid" data-go="s-project">Да, это мой сайт</button>
+          <button class="btn text" data-go="s-add">Нет, у меня другой</button>
+        </div>
       </div>
-      <p class="tiny" style="margin-top:12px;max-width:52ch">Домен уже подставлен — на следующем экране можно подтвердить его и проверить, или, если это не ваш сайт, указать другой.</p>
+      <p class="tiny" style="margin-top:12px;max-width:52ch">Домен не переспрашиваем — просто подтвердите, что работать нужно именно с ним. Не проверяли сайт заранее? То же «Нет» приведёт туда, где можно добавить свой.</p>
     </main>
   </div>
 </section>
 
-<!-- ══════════════════ 03б · ДОБАВИТЬ САЙТ («окно проекта») ═══════════════
-     Единственная точка входа для создания проекта: с s-confirm сюда ведёт
-     одна кнопка «Добавить сайт», без промежуточного да/нет. Домен уже
-     подставлен (известен из скана до регистрации) — «Проверить сайт у нас»
-     подтверждает его и сканирует. Если домен не тот или сайт не проверялся
-     заранее — можно вписать другой или выбрать анкету вручную, тот же
-     выбор, что в вариантах А/Б. -->
+<!-- ══════════════════ 03б · ДОБАВИТЬ СВОЙ САЙТ ═══════════════════════════
+     Ветка для тех, кто не проверял сайт заранее (пришёл не со скана,
+     ошибся доменом на предыдущем экране) — без этого «Нет, у меня другой»
+     на s-confirm вело в тупик. Тот же выбор, что в вариантах А/Б: скан
+     сейчас или анкета вручную, если скан невозможен. -->
 <section class="screen" id="s-add">
   <div class="appwrap sidebar">
     <aside class="side">
