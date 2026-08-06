@@ -404,8 +404,10 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 <!-- ══════════════════ 03б · ДОБАВИТЬ СВОЙ САЙТ ═══════════════════════════
      Ветка для тех, кто не проверял сайт заранее (пришёл не со скана,
      ошибся доменом на предыдущем экране) — без этого «Нет, у меня другой»
-     на s-confirm вело в тупик. Тот же выбор, что в вариантах А/Б: скан
-     сейчас или анкета вручную, если скан невозможен. -->
+     на s-confirm вело в тупик. Только скан — без анкеты: без него нет
+     находок, а MVP не должен уметь собирать документы вслепую. Сайт,
+     который правда нельзя просканировать (закрыт паролем и т.п.) — не
+     сценарий запуска, решаем позже, если появится спрос. -->
 <section class="screen" id="s-add">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -425,9 +427,6 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
           <input class="inp mono" id="add-domain" value="alfa-school.ru">
           <p class="tiny" style="margin-top:6px">Если раньше уже сканировали этот сайт у нас — покажем готовый результат.</p>
           <button class="btn solid wide" style="margin-top:14px" data-state-to="scanning">Проверить сайт у нас</button>
-          <div class="hr" style="margin-top:16px"></div>
-          <p class="tiny" style="margin-bottom:8px">Сайт совсем новый или проверка невозможна (закрыт паролем, ещё не опубликован)?</p>
-          <button type="button" class="btn wide" data-go="s-fullanketa">Заполнить анкету самостоятельно</button>
         </div>
       </div>
 
@@ -448,90 +447,6 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     </main>
   </div>
 </section>
-
-<!-- ══════════════════ 03в · ПОЛНАЯ АНКЕТА (сайт не проверялся) ═══════════
-     Без скана нет находок — «Готовим документы» не может сказать «нашли
-     3 нарушения», здесь клиент сам рассказывает то, что обычно определяет
-     скан. Компактный список чекбоксов, не шесть отдельных карточек —
-     тот же принцип, что у остального MVP: меньше решений на экран, где
-     это не путает. Дальше сразу в «Установить скрипт», «ready» с его
-     таблицей «было → закрыто» пропущен: закрывать нечего, находок не было. -->
-<section class="screen" id="s-fullanketa">
-  <div class="appwrap sidebar">
-    <aside class="side">
-      <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
-      <div class="acct">
-        <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
-      </div>
-    </aside>
-    <main class="main narrow">
-      <button class="btn text sm" data-go="s-add" style="margin-bottom:10px">← добавить сайт</button>
-      <div class="row" style="justify-content:space-between;align-items:flex-start">
-        <div>
-          <span class="dom mono" style="font-weight:700;font-size:17px">alfa-school.ru</span>
-          <div class="tiny" style="margin-top:2px">проверка не запускалась</div>
-        </div>
-      </div>
-      <h1 style="margin-top:14px">Расскажите о сайте сами</h1>
-      <p class="lead" style="margin-top:8px">Мы не сканировали alfa-school.ru — отметьте, что есть на сайте, и мы соберём документы по ответам, без автоматической проверки.</p>
-
-      <h2 style="margin-top:22px">Реквизиты</h2>
-      <div class="card pad row" style="justify-content:space-between;margin-top:10px">
-        <div><div style="font-weight:700;font-size:14.5px" id="req-name-fa">ООО «Альфа Образование»</div><div class="tiny mono" id="req-inn-fa">ИНН 7701234567</div></div>
-        <button class="btn sm" data-go-modal="modal-req-fa">Проверить и изменить</button>
-      </div>
-      <p class="tiny" style="margin-top:7px">Сверим с ЕГРЮЛ — станет первым документом в «Документах».</p>
-
-      <h2 style="margin-top:22px">Что есть на сайте</h2>
-      <div class="card pad" style="margin-top:10px">
-        <label class="check"><input type="checkbox" checked><span class="t">Собираем контакты или данные посетителей — форма, чат, звонок</span></label>
-        <label class="check"><input type="checkbox" checked><span class="t">Звоним, пишем в мессенджеры или на почту по базе клиентов</span></label>
-        <label class="check"><input type="checkbox" checked><span class="t">Принимаем оплату прямо на сайте</span></label>
-        <label class="check"><input type="checkbox"><span class="t">Размещаем рекламу партнёров или платные интеграции</span></label>
-        <label class="check"><input type="checkbox" checked><span class="t">Используем Яндекс.Метрику или похожие счётчики</span></label>
-      </div>
-      <p class="tiny" style="margin-top:7px">Каждый пункт — отдельное требование закона: собираете данные → нужно согласие, принимаете оплату → нужна оферта, ставите счётчики → нужен баннер с отказом.</p>
-
-      <div class="card pad" style="margin-top:10px">
-        <h3>Если собираете контакты — для чего?</h3>
-        <p class="tiny" style="margin:6px 0 10px">Попадёт в политику — цели должны совпадать с тем, что вы делаете на самом деле.</p>
-        <label class="check"><input type="checkbox" checked><span class="t">Записать на занятие</span></label>
-        <label class="check"><input type="checkbox" checked><span class="t">Ответить на обращение</span></label>
-        <label class="check"><input type="checkbox" checked><span class="t">Рассказывать об акциях и наборах</span></label>
-      </div>
-
-      <h2 style="margin-top:24px">По вашим ответам подготовим</h2>
-      <div class="card" style="margin-top:12px;overflow:hidden">
-        <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Политика конфиденциальности + согласие на ПДн</div><div class="w">Раз собираете контакты — нужно согласие на обработку и сама политика.</div></div></div>
-        <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Публичная оферта</div><div class="w">Раз принимаете оплату на сайте — нужны условия продажи и возврата.</div></div></div>
-        <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Cookie-баннер и политика</div><div class="w">Раз используете Метрику — баннер с реальным отказом и cookie-политика.</div></div></div>
-      </div>
-      <p class="tiny" style="margin-top:8px">Ответите иначе — список пересоберётся: часть документов может не понадобиться.</p>
-
-      <div class="card pad" style="margin-top:16px">
-        <div class="row" style="justify-content:space-between"><span class="small muted">Подписка</span><span style="font-size:19px;font-weight:800">2 990 ₽/мес</span></div>
-        <p class="tiny" style="margin-top:5px">Спишем при оплате, дальше — раз в месяц. Отменить можно в любой момент.</p>
-      </div>
-
-      <div class="hr" style="margin-top:20px"></div>
-      <button type="button" class="btn solid wide" data-go="s-install">Установить и оплатить за 2 990 ₽</button>
-    </main>
-  </div>
-</section>
-
-<!-- модалка реквизитов (полная анкета) -->
-<div class="state" data-state="closed" id="modal-req-fa" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
-  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
-    <div class="row" style="justify-content:space-between"><h3>Реквизиты</h3><button class="btn text sm" data-modal-close="modal-req-fa">✕</button></div>
-    <p class="tiny" style="margin-top:6px">Впишите наименование и ИНН — сверим с ЕГРЮЛ.</p>
-    <label class="f" style="margin-top:14px">Наименование</label>
-    <input class="inp" id="modal-req-name-fa" value="ООО «Альфа Образование»">
-    <label class="f" style="margin-top:10px">ИНН</label>
-    <input class="inp mono" id="modal-req-inn-fa" value="7701234567">
-    <div class="row" style="margin-top:16px"><button class="btn solid" data-save-req="fa" data-modal-close="modal-req-fa">Сохранить</button><button class="btn text" data-modal-close="modal-req-fa">Отмена</button></div>
-  </div>
-</div>
 
 <!-- ══════════════════ 04 · НАХОДКИ ═════════════════════════════════════ -->
 <section class="screen" id="s-project">
@@ -870,8 +785,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-fullanketa','s-project','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-settings'];
-var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-fullanketa':'полная анкета','s-project':'находки','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-settings':'настройки'};
+var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-project','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-settings'];
+var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-settings':'настройки'};
 
 var nav = document.getElementById('scr-nav');
 SCREENS.forEach(function(id){
