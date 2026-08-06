@@ -754,9 +754,15 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
             <span class="small" style="color:var(--warn);font-weight:600">⚠ подписка не подключена</span>
           </div>
         </div>
-        <button class="btn sm">↻ Проверить сейчас</button>
+        <div class="row" style="gap:8px">
+          <button class="btn sm">⬇ Скачать PDF</button>
+          <button class="btn sm">↻ Проверить сейчас</button>
+        </div>
       </div>
 
+      <!-- ⬇ Скачать PDF — для Лены: покупает не она, ей нужен документ, который
+           можно переслать директору или распечатать перед разговором, не сам
+           браузерный отчёт. -->
       <div class="card pad" style="margin-top:16px;border-color:rgba(214,56,22,.3)">
         <span class="b red" style="font-size:16px">⛔ 2 нарушения <span style="color:var(--warn);font-weight:500">· 1 замечание</span> <span class="muted" style="font-weight:500">· риск до 300 000 ₽</span></span>
         <p class="lead" style="margin-top:8px">К работе 3 пункта — закроем сами, от вас нужны только данные для анкеты.</p>
@@ -938,17 +944,52 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3,rgba(17,17,16,.5));margin-top:14px">Каждый месяц</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Проверка сайта и обновление документов при смене закона<br>· Уведомления, если что-то изменилось</div>
       <div class="hr"></div>
+      <p class="tiny" style="margin-bottom:10px"><b style="color:var(--ink)">Это подписка, не разовая покупка</b> — меняется закон, вместе с ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.</p>
       <div class="row" style="justify-content:space-between"><span class="small muted">Итого</span><b style="font-size:19px">2 990 ₽/мес</b></div>
     </div>
 
+    <!-- Три способа, не только карта: у Паши доверия к вводу карты незнакомому
+         сервису меньше, чем к СБП; у Лены компания не может провести оплату
+         личной картой вообще — нужен счёт на реквизиты, не аварийный запасной
+         путь при отклонённой карте, а равноправный выбор с самого начала. -->
     <div class="card pad" style="margin-top:12px">
-      <label class="f">Номер карты</label><input class="inp mono" placeholder="0000 0000 0000 0000">
-      <div class="row" style="margin-top:10px"><div style="flex:1"><label class="f">Срок</label><input class="inp mono" placeholder="ММ/ГГ"></div><div style="flex:1"><label class="f">CVC</label><input class="inp mono" placeholder="•••"></div></div>
-    </div>
+      <div class="seg" style="margin-bottom:14px">
+        <button type="button" class="on" data-swap="pmcard">Карта</button>
+        <button type="button" data-swap="pmsbp">СБП</button>
+        <button type="button" data-swap="pminvoice">По счёту</button>
+      </div>
 
-    <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-go="s-install">Оплатить 2 990 ₽</button>
-    <p class="tiny" style="text-align:center;margin-top:10px">Автопродление раз в месяц · отменить можно в любой момент</p>
+      <div data-swapped="pmcard">
+        <label class="f">Номер карты</label><input class="inp mono" placeholder="0000 0000 0000 0000">
+        <div class="row" style="margin-top:10px"><div style="flex:1"><label class="f">Срок</label><input class="inp mono" placeholder="ММ/ГГ"></div><div style="flex:1"><label class="f">CVC</label><input class="inp mono" placeholder="•••"></div></div>
+        <div class="hr" style="margin-top:16px"></div>
+        <button type="button" class="btn solid wide" data-go="s-install">Оплатить 2 990 ₽</button>
+        <p class="tiny" style="text-align:center;margin-top:10px">Автопродление раз в месяц · отменить можно в любой момент</p>
+      </div>
+
+      <div data-swapped="pmsbp" style="display:none;text-align:center">
+        <div style="width:120px;height:120px;margin:0 auto 12px;border:1.5px solid var(--line-2);border-radius:10px;background:repeating-linear-gradient(45deg,var(--ink) 0 3px,transparent 3px 6px),repeating-linear-gradient(-45deg,var(--ink) 0 3px,transparent 3px 6px);background-blend-mode:multiply;opacity:.85"></div>
+        <p class="tiny">Отсканируйте в приложении банка или введите номер телефона</p>
+        <input class="inp mono" placeholder="+7 (___) ___-__-__" style="margin-top:8px;max-width:260px">
+        <div class="hr" style="margin-top:16px"></div>
+        <button type="button" class="btn solid wide" data-go="s-install">Оплатить 2 990 ₽</button>
+        <p class="tiny" style="text-align:center;margin-top:10px">Автопродление раз в месяц · отменить можно в любой момент</p>
+      </div>
+
+      <div data-swapped="pminvoice" style="display:none">
+        <label class="f">Организация</label>
+        <input class="inp" value="ООО «Альфа Образование»">
+        <div class="row" style="margin-top:10px"><div style="flex:1"><label class="f">ИНН</label><input class="inp mono" value="7701234567"></div></div>
+        <label class="f" style="margin-top:10px">Почта для счёта</label>
+        <input class="inp" placeholder="buh@alfa-school.ru">
+        <p class="tiny" style="margin-top:8px">Реквизиты подставили из тех, что вы уже вводили. Счёт с закрывающими документами придёт на почту.</p>
+        <div class="hr" style="margin-top:16px"></div>
+        <button type="button" class="btn solid wide" data-go="s-install">Выставить счёт</button>
+        <p class="tiny" style="text-align:center;margin-top:10px">Новый счёт — каждый месяц на почту, отменить можно в любой момент</p>
+      </div>
+
+      <p class="tiny" style="margin-top:14px;text-align:center;color:rgba(17,17,16,.5)">🔒 Платёж обрабатывает защищённый шлюз · ваши данные под защитой</p>
+    </div>
   </div>
 </section>
 
