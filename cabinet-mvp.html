@@ -76,7 +76,8 @@ body{background:var(--warm);color:var(--ink);font-family:var(--sans);font-size:1
 button{font-family:inherit}
 a{color:inherit;text-decoration:none}
 :focus-visible{outline:none;box-shadow:var(--ring);border-radius:10px}
-input,select{font-family:inherit;font-size:15px}
+input,select,textarea{font-family:inherit;font-size:15px}
+textarea.inp{resize:vertical;line-height:1.5}
 
 .nojs{display:block;background:var(--warn-tint);color:var(--warn);font-size:13px;padding:9px 18px;text-align:center}
 .js .nojs{display:none}
@@ -442,7 +443,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -477,7 +478,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -520,7 +521,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="navlist"><a class="on">▤ Обзор</a></div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -590,7 +591,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="navlist"><a class="on">📁 Мои сайты</a></div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -904,7 +905,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="navlist"><a class="on">▤ Обзор</a><button type="button" data-go="s-docs">▤ Документы</button></div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -952,7 +953,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="navlist"><button type="button" data-go="s-project-paid">▤ Обзор</button><a class="on">▤ Документы</a></div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -987,7 +988,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="navlist"><a class="on">⚙ Настройки</a></div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -1023,11 +1024,77 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
   </div>
 </section>
 
+<!-- ══════════════════ ПОДДЕРЖКА — FAQ + ТИКЕТ ═══════════════════════════
+     Доступ через меню аккаунта (не сайдбар — используется редко, не
+     стоит постоянного пункта навигации, как «Обзор»/«Документы»).
+     FAQ — про сам ЛК (как что переключить), не про право/152-ФЗ — за
+     этим уже есть Telegram-агент со своей базой знаний и хэндоффом на
+     человека (backend/src/agent/); дублировать здесь нечего. Тикет —
+     отдельная форма в ЛК, не витрина в бота: пользователь выбрал этот
+     вариант явно, каналы поддержки держим раздельно. -->
+<section class="screen" id="s-support">
+  <div class="appwrap sidebar">
+    <aside class="side">
+      <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
+      <button type="button" class="backlink" data-go="s-project-paid">← Обзор</button>
+      <div class="navlist"><a class="on">💬 Поддержка</a></div>
+      <div class="acct">
+        <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+      </div>
+    </aside>
+    <main class="main narrow">
+      <h1>Поддержка</h1>
+      <p class="lead" style="margin-top:8px">Частые вопросы про личный кабинет — и форма, если нужен ответ от нас.</p>
+
+      <h2 style="margin-top:22px">Частые вопросы</h2>
+      <div class="find">
+        <button class="hd" data-find><span class="nm" style="flex:1">Как поменять способ оплаты?</span><span class="chev">›</span></button>
+        <div class="bd"><div class="txt">В Настройках → Подписка выберите карту или счёт.</div></div>
+      </div>
+      <div class="find">
+        <button class="hd" data-find><span class="nm" style="flex:1">Что будет, если не оплатить вовремя?</span><span class="chev">›</span></button>
+        <div class="bd"><div class="txt">Документы и баннер останутся на сайте, но обновление при смене закона приостановится, пока не возобновите подписку.</div></div>
+      </div>
+      <div class="find">
+        <button class="hd" data-find><span class="nm" style="flex:1">Как обновить реквизиты компании?</span><span class="chev">›</span></button>
+        <div class="bd"><div class="txt">На карточке документа или на шаге подготовки нажмите «Проверить и изменить» — сверим заново с ЕГРЮЛ.</div></div>
+      </div>
+      <div class="find">
+        <button class="hd" data-find><span class="nm" style="flex:1">Могу я добавить второй сайт?</span><span class="chev">›</span></button>
+        <div class="bd"><div class="txt">Да — на «Мои сайты» нажмите «Добавить сайт».</div></div>
+      </div>
+      <div class="find">
+        <button class="hd" data-find><span class="nm" style="flex:1">Как отменить подписку?</span><span class="chev">›</span></button>
+        <div class="bd"><div class="txt">В Настройках → Подписка → «Отменить подписку». Доступ к документам сохранится до конца оплаченного периода.</div></div>
+      </div>
+      <div class="find">
+        <button class="hd" data-find><span class="nm" style="flex:1">Виджет не появился на сайте — что делать?</span><span class="chev">›</span></button>
+        <div class="bd"><div class="txt">Нажмите «Проверить установку» на «Обзоре» — если код вставлен верно, статус обновится в течение минуты. Если нет, проверьте, не сбросило ли изменение кеширование сайта.</div></div>
+      </div>
+
+      <h2 style="margin-top:24px">Написать в поддержку</h2>
+      <div class="card pad" style="margin-top:10px;max-width:520px">
+        <div class="state on" data-state="form">
+          <label class="f">Опишите, что случилось</label>
+          <textarea class="inp" style="min-height:110px" placeholder="Например: не появился баннер на сайте после установки скрипта"></textarea>
+          <p class="tiny" style="margin-top:6px">Ответим на director@alfa-school.ru — обычно в течение рабочего дня.</p>
+          <button type="button" class="btn solid" style="margin-top:12px" data-state-to="sent">Отправить</button>
+        </div>
+        <div class="state" data-state="sent">
+          <span class="b green">✓ Обращение отправлено</span>
+          <p class="small" style="margin-top:6px;color:var(--ink-2)">Заявка №1042 · ответим на director@alfa-school.ru в течение рабочего дня.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-docs','s-settings'];
-var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки'};
+var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-docs','s-settings','s-support'];
+var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
 
 var nav = document.getElementById('scr-nav');
 SCREENS.forEach(function(id){
