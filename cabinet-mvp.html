@@ -577,8 +577,9 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
      Верхнеуровневый хаб сайдбара («Обзор» у конкретного проекта ведёт сюда
      через «← Мои сайты», не наоборот) — чтобы вернуться к статусу после
      «Находки» можно было не листая воронку назад. Карточка сайта берёт
-     содержимое из sitePaid (глобальный флаг, см. script): до оплаты —
-     «Устранить →» в «Находки», после — «Обновить документы →» в кабинет.
+     содержимое из siteStatus (глобальная переменная unpaid/pending/paid,
+     см. script): не оплачено — «Устранить →» в «Находки», счёт выставлен —
+     «⏳ Ожидает оплаты», оплачено — «Обновить документы →» в кабинет.
      «+ Добавить сайт» вверху скрыт в виде карточек (там уже есть addcard
      в сетке) и появляется только в виде таблицы, где своей плашки для
      добавления нет — оба вида переключает viewbar (data-swap=pvcards/pvtable). -->
@@ -620,7 +621,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
           </button>
 
           <div class="projcard">
-            <div class="state on" data-state="unpaid">
+            <div class="state on" data-pay-state="unpaid">
               <div>
                 <div class="dom">alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
@@ -629,7 +630,16 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
               <div class="meta">⛔ 2 нарушения · 1 замечание<br>ООО «Альфа Образование» · ИНН 7701234567<br>подписка не подключена</div>
               <div class="act"><button type="button" class="actbtn solid" data-go="s-project">Устранить →</button></div>
             </div>
-            <div class="state" data-state="paid">
+            <div class="state" data-pay-state="pending">
+              <div>
+                <div class="dom">alfa-school.ru</div>
+                <div class="name">Альфа Образование</div>
+              </div>
+              <div class="strip"><i class="amber"></i><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="meta">⏳ Ожидает оплаты<br>ООО «Альфа Образование» · ИНН 7701234567<br>счёт выставлен · обычно 1–3 рабочих дня</div>
+              <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
+            </div>
+            <div class="state" data-pay-state="paid">
               <div>
                 <div class="dom">alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
@@ -647,14 +657,21 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
         <table class="projtable">
           <thead><tr><th>Проект</th><th>Статус</th><th>Оплата</th><th>Проверен</th><th></th></tr></thead>
           <tbody>
-            <tr class="state on" data-state="unpaid">
+            <tr class="state on" data-pay-state="unpaid">
               <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="b red">⛔ 2 нарушения · 1 замечание</span></td>
               <td class="meta">подписка не подключена</td>
               <td class="meta">7 дней назад</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project">Устранить →</button></td>
             </tr>
-            <tr class="state" data-state="paid">
+            <tr class="state" data-pay-state="pending">
+              <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><span class="b amber">⏳ Ожидает оплаты</span></td>
+              <td class="meta">счёт выставлен</td>
+              <td class="meta">сегодня</td>
+              <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
+            </tr>
+            <tr class="state" data-pay-state="paid">
               <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="b amber">⚠ 1 замечание</span></td>
               <td class="meta">оплачено до 05.09.2026</td>
@@ -826,20 +843,26 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="row" style="justify-content:space-between"><span class="small muted">Итого</span><b style="font-size:19px">2 990 ₽/мес</b></div>
     </div>
 
-    <!-- Карта + СБП: у Паши доверия к вводу карты незнакомому сервису
-         меньше, чем к СБП. «По счёту» для юрлиц — сознательно не в MVP,
-         это B2B-цикл в 1–4 недели, не то, на чём быстро проверяют гипотезу. -->
+    <!-- Карта + СБП + По счёту: платёжный агрегатор (Т-Банк/ЮKassa) даёт
+         карту и СБП одной интеграцией — «по счёту» держали вне MVP как
+         B2B-цикл продажи (1–4 недели, ручное сопровождение), но
+         самостоятельно сгенерированный счёт по уже известным реквизитам —
+         это не тот цикл, а self-serve документ. Оплата счётом не мгновенна
+         (перевод идёт 1–3 рабочих дня) — в кабинет ведёт сразу, как карта/
+         СБП, но статус сайта отмечается «ожидает оплаты» (siteStatus,
+         см. script) до тех пор, пока деньги не поступят. -->
     <div class="card pad" style="margin-top:12px">
       <div class="seg" style="margin-bottom:14px">
         <button type="button" class="on" data-swap="pmcard">Карта</button>
         <button type="button" data-swap="pmsbp">СБП</button>
+        <button type="button" data-swap="pminvoice">По счёту</button>
       </div>
 
       <div data-swapped="pmcard">
         <label class="f">Номер карты</label><input class="inp mono" placeholder="0000 0000 0000 0000">
         <div class="row" style="margin-top:10px"><div style="flex:1"><label class="f">Срок</label><input class="inp mono" placeholder="ММ/ГГ"></div><div style="flex:1"><label class="f">CVC</label><input class="inp mono" placeholder="•••"></div></div>
         <div class="hr" style="margin-top:16px"></div>
-        <button type="button" class="btn solid wide" data-go="s-project-paid">Оплатить 2 990 ₽ и войти в кабинет →</button>
+        <button type="button" class="btn solid wide" data-set-status="paid" data-go="s-project-paid">Оплатить 2 990 ₽ и войти в кабинет →</button>
         <p class="tiny" style="text-align:center;margin-top:10px">Автопродление раз в месяц · отменить можно в любой момент</p>
       </div>
 
@@ -848,8 +871,19 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <p class="tiny">Отсканируйте в приложении банка или введите номер телефона</p>
         <input class="inp mono" placeholder="+7 (___) ___-__-__" style="margin-top:8px;max-width:260px">
         <div class="hr" style="margin-top:16px"></div>
-        <button type="button" class="btn solid wide" data-go="s-project-paid">Оплатить 2 990 ₽ и войти в кабинет →</button>
+        <button type="button" class="btn solid wide" data-set-status="paid" data-go="s-project-paid">Оплатить 2 990 ₽ и войти в кабинет →</button>
         <p class="tiny" style="text-align:center;margin-top:10px">Автопродление раз в месяц · отменить можно в любой момент</p>
+      </div>
+
+      <div data-swapped="pminvoice" style="display:none">
+        <div class="card pad" style="border-color:var(--line)">
+          <div style="font-weight:700;font-size:14.5px">ООО «Альфа Образование»</div>
+          <div class="tiny mono" style="margin-top:2px">ИНН 7701234567</div>
+        </div>
+        <p class="tiny" style="margin-top:10px">Реквизиты — те, что вы подтвердили на шаге «Реквизиты». Счёт на 2 990 ₽ придёт на почту в PDF, оплатить можно переводом с расчётного счёта.</p>
+        <div class="hr" style="margin-top:16px"></div>
+        <button type="button" class="btn solid wide" data-set-status="pending" data-go="s-project-paid">Выставить счёт и войти в кабинет →</button>
+        <p class="tiny" style="text-align:center;margin-top:10px">Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня</p>
       </div>
 
       <p class="tiny" style="margin-top:14px;text-align:center;color:rgba(17,17,16,.5)">🔒 Платёж обрабатывает защищённый шлюз · ваши данные под защитой</p>
@@ -878,7 +912,11 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div>
           <div class="mono" style="font-size:24px;font-weight:700">alfa-school.ru</div>
           <p class="tiny" style="margin-top:3px">ООО «Альфа Образование» · ИНН 7701234567</p>
-          <div class="row" style="margin-top:6px;gap:14px"><span class="tiny mono">проверен сегодня</span><span class="small" style="color:var(--ink-2)">оплачено до 05.09.2026</span></div>
+          <div class="row" style="margin-top:6px;gap:14px">
+            <span class="tiny mono">проверен сегодня</span>
+            <span class="small state" data-pay-state="paid" style="color:var(--ink-2)">оплачено до 05.09.2026</span>
+            <span class="small state" data-pay-state="pending" style="color:var(--warn);font-weight:700">⏳ ожидает оплаты · счёт выставлен</span>
+          </div>
         </div>
         <button class="btn sm">↻ Проверить сейчас</button>
       </div>
@@ -964,7 +1002,18 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 
       <h2 style="margin-top:26px">Подписка</h2>
       <div class="card pad" style="max-width:440px">
-        <div class="row" style="justify-content:space-between"><span class="mono small">···· 4417</span><button class="btn sm">Изменить карту</button></div>
+        <label class="f">Способ продления</label>
+        <div class="seg" style="margin:6px 0 12px">
+          <button type="button" class="on" data-swap="renewcard">Карта</button>
+          <button type="button" data-swap="renewinvoice">По счёту</button>
+        </div>
+        <div data-swapped="renewcard">
+          <div class="row" style="justify-content:space-between"><span class="mono small">···· 4417</span><button class="btn sm">Изменить карту</button></div>
+        </div>
+        <div data-swapped="renewinvoice" style="display:none">
+          <div class="row" style="justify-content:space-between"><span class="small">ООО «Альфа Образование» · ИНН 7701234567</span></div>
+          <p class="tiny" style="margin-top:5px">Следующий счёт придёт на почту за неделю до окончания оплаченного периода.</p>
+        </div>
         <div class="hr"></div>
         <div class="row" style="justify-content:space-between"><span class="small muted">alfa-school.ru</span><span class="chip green">оплачено до 05.09.2026</span></div>
         <div class="hr"></div>
@@ -997,23 +1046,25 @@ function paintNav(id){
   });
 }
 
-var sitePaid = false;
+var siteStatus = 'unpaid'; // 'unpaid' | 'pending' (счёт выставлен) | 'paid'
 
-function syncStatusScreen(){
-  document.querySelectorAll('#s-status [data-state]').forEach(function(s){
-    s.classList.toggle('on', s.dataset.state === (sitePaid ? 'paid' : 'unpaid'));
+function syncPayState(){
+  document.querySelectorAll('[data-pay-state]').forEach(function(s){
+    s.classList.toggle('on', s.dataset.payState === siteStatus);
   });
 }
 
 function goScreen(id){
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('on', s.id === id); });
-  if (id === 's-project-paid') sitePaid = true;
-  if (id === 's-status') syncStatusScreen();
+  syncPayState();
   paintNav(id);
   window.scrollTo(0,0);
 }
 document.querySelectorAll('[data-go]').forEach(function(b){
-  b.addEventListener('click', function(){ goScreen(b.dataset.go); });
+  b.addEventListener('click', function(){
+    if (b.dataset.setStatus) siteStatus = b.dataset.setStatus;
+    goScreen(b.dataset.go);
+  });
 });
 goScreen('s-register');
 
