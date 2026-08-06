@@ -19,14 +19,18 @@
   «второй сайт», а это вопрос удержания, не вопрос «заплатит ли вообще
   хоть один человек». Убрано целиком.
 
-  Путь: регистрация → «это ваш сайт?» → находки → воронка подключения
-  (готовим документы → анкета → черновик → оплата+установка одним экраном)
-  → кабинет (обзор+документы+виджет на одной странице, без вкладок) →
-  настройки (там же и подписка).
+  Путь: регистрация → подтвердите почту → «это ваш сайт?» → находки →
+  воронка подключения (готовим документы → анкета → черновик →
+  оплата+установка одним экраном) → кабинет (обзор+документы+виджет на
+  одной странице, без вкладок) → настройки (там же и подписка).
 
   Дальнейшие урезания и почему:
-  - Регистрация/вход — только почта/телефон + пароль, без Telegram/ВК/MAX:
-    три OAuth-интеграции это бэкенд-работа ради удобства, не ради проверки
+  - Регистрация/вход — только почта + пароль, без телефона и без
+    Telegram/ВК/MAX: один способ входа проще держать в голове и проще
+    построить, чем несколько равноправных. Раз способ один — почта, а не
+    телефон — подтверждение обязательно: иначе нечем проверить, что адрес
+    настоящий и на него дойдёт переписка. OAuth-провайдеры — отдельно,
+    три интеграции это бэкенд-работа ради удобства, не ради проверки
     спроса.
   - Оплата — карта + СБП, без «по счёту»: закрывает B2B-клиента (Лена),
     но у него цикл решения 1–4 недели — это не то, на чём быстро проверяют
@@ -278,9 +282,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     </div>
     <h1>Вход в кабинет</h1>
 
-    <div class="seg" style="margin-top:20px;margin-bottom:20px"><button class="on" data-swap="lmail">Почта</button><button data-swap="ltel">Телефон</button></div>
-    <div data-swapped="lmail"><label class="f" for="l-mail">Email</label><input class="inp" id="l-mail" type="email" placeholder="you@company.ru"></div>
-    <div data-swapped="ltel" style="display:none"><label class="f" for="l-tel">Телефон</label><input class="inp mono" id="l-tel" type="tel" placeholder="+7 (999) 123-45-67"></div>
+    <div style="margin-top:20px"><label class="f" for="l-mail">Email</label><input class="inp" id="l-mail" type="email" placeholder="you@company.ru"></div>
 
     <div style="margin-top:16px">
       <div class="row" style="justify-content:space-between;margin-bottom:6px">
@@ -325,9 +327,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
         <h1 style="margin-bottom:6px">Регистрация</h1>
         <p class="lead" style="margin-bottom:22px">Демо: подойдут любые данные — заполнять по-настоящему не нужно.</p>
 
-        <div class="seg" style="margin-bottom:16px"><button class="on" data-swap="rmail">Почта</button><button data-swap="rtel">Телефон</button></div>
-        <div data-swapped="rmail"><label class="f" for="r-mail">Email</label><input class="inp" id="r-mail" type="email" placeholder="you@company.ru"></div>
-        <div data-swapped="rtel" style="display:none"><label class="f" for="r-tel">Телефон</label><input class="inp mono" id="r-tel" type="tel" placeholder="+7 (999) 123-45-67"></div>
+        <div><label class="f" for="r-mail">Email</label><input class="inp" id="r-mail" type="email" placeholder="you@company.ru"></div>
 
         <div style="margin-top:16px">
           <label class="f" for="r-pass">Пароль</label>
@@ -340,11 +340,31 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
           </div>
         </div>
 
-        <button type="button" class="btn solid wide" style="margin-top:20px" data-go="s-confirm">Создать аккаунт</button>
+        <button type="button" class="btn solid wide" style="margin-top:20px" data-go="s-verify">Создать аккаунт</button>
 
         <p class="tiny" style="text-align:center;margin-top:24px">Уже есть аккаунт? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 02б · ПОДТВЕРДИТЕ ПОЧТУ ══════════════════════════
+     Только почта, без телефона — значит подтверждение обязательно: это
+     единственный способ проверить, что адрес настоящий и на него дойдёт
+     переписка (документы, чек, уведомления). Кнопка ниже — демо-имитация
+     перехода по ссылке из письма, не настоящая проверка. -->
+<section class="screen" id="s-verify">
+  <div class="startwrap" style="max-width:400px;padding-top:56px;text-align:center">
+    <div class="row" style="gap:9px;margin-bottom:28px;justify-content:center">
+      <svg width="26" height="17" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg>
+      <b class="mono" style="font-size:15px;font-weight:800">ШтрафКонтроль</b>
+      <span class="chip out">макет</span>
+    </div>
+    <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:22px">✉️</div>
+    <h1>Подтвердите почту</h1>
+    <p class="lead" style="margin-top:10px">Отправили письмо со ссылкой на адрес, который вы указали. Перейдите по ней, чтобы продолжить — это займёт минуту.</p>
+    <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-confirm">Ссылка подтверждена (демо) →</button>
+    <p class="tiny" style="margin-top:16px">Не пришло письмо? <button type="button" class="btn text sm" style="padding:0">Отправить ещё раз</button></p>
   </div>
 </section>
 
@@ -727,8 +747,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-register','s-confirm','s-project','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-settings'];
-var LABELS = {'s-login':'вход','s-register':'регистрация','s-confirm':'ваш сайт?','s-project':'находки','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-settings':'настройки'};
+var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-project','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-settings'];
+var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-project':'находки','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-settings':'настройки'};
 
 var nav = document.getElementById('scr-nav');
 SCREENS.forEach(function(id){
