@@ -23,8 +23,9 @@
 
   Путь: регистрация → подтвердите почту → «это ваш сайт?» → находки →
   воронка подключения (готовим документы → анкета → черновик →
-  оплата+установка одним экраном) → кабинет (обзор+документы+виджет на
-  одной странице, без вкладок) → настройки (там же и подписка).
+  оплата+установка одним экраном) → кабинет (обзор+виджет на одной
+  странице, документы — отдельный пункт сайдбара, s-docs) → настройки
+  (там же и подписка).
 
   «Мои сайты» (s-status) — верхнеуровневый хаб сайдбара: карточки/таблица
   сайтов с состоянием (найдено/оплачено), «Обзор» конкретного проекта
@@ -866,7 +867,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><a class="on">▤ Обзор</a></div>
+      <div class="navlist"><a class="on">▤ Обзор</a><button type="button" data-go="s-docs">▤ Документы</button></div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
         <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
@@ -886,13 +887,6 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <p class="lead" style="margin-top:8px">Три пункта закрыты автоматически. Осталось одно замечание — не критично, но лучше поправить.</p>
       </div>
 
-      <h2 style="margin-top:22px">Документы</h2>
-      <div class="card" style="overflow:hidden">
-        <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика конфиденциальности</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
-        <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на обработку ПДн</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
-        <div class="row" style="padding:11px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика в отношении cookie</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
-      </div>
-
       <h2 style="margin-top:22px">Виджет</h2>
       <div class="card pad">
         <span class="b green">✓ Установлен, всё работает</span>
@@ -901,6 +895,44 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <button class="btn sm" style="margin-top:10px">↻ Проверить установку</button>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ══════════════════ ДОКУМЕНТЫ (раздел проекта) ═══════════════════════
+     Портировано из cabinet-b.html (s-docs) — отдельный пункт сайдбара,
+     не подраздел «Обзора»: список документов сам по себе достаточно
+     самостоятельная задача («открыть/скачать конкретный документ»),
+     чтобы не перегружать обзорный экран. «Виджет» остался внутри
+     «Обзора» — про него не просили выносить отдельно. -->
+<section class="screen" id="s-docs">
+  <div class="appwrap sidebar">
+    <aside class="side">
+      <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
+      <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
+      <div class="navlist"><button type="button" data-go="s-project-paid">▤ Обзор</button><a class="on">▤ Документы</a></div>
+      <div class="acct">
+        <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+      </div>
+    </aside>
+    <main class="main narrow">
+      <h1>Документы</h1>
+      <p class="lead" style="margin-top:6px">alfa-school.ru · версии и причина изменений</p>
+      <div class="card" style="margin-top:16px;overflow:hidden">
+        <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика конфиденциальности</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <span class="chip green">актуальна</span><button class="btn sm">Открыть</button>
+        </div>
+        <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на обработку ПДн</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <span class="chip green">актуальна</span><button class="btn sm">Открыть</button>
+        </div>
+        <div class="row" style="padding:13px 16px">
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика в отношении cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <span class="chip green">актуальна</span><button class="btn sm">Открыть</button>
+        </div>
       </div>
     </main>
   </div>
@@ -945,8 +977,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-settings'];
-var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-settings':'настройки'};
+var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-docs','s-settings'];
+var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки'};
 
 var nav = document.getElementById('scr-nav');
 SCREENS.forEach(function(id){
