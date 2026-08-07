@@ -849,27 +849,27 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="row" style="justify-content:space-between"><span class="small muted">Итого</span><b style="font-size:19px">2 990 ₽/мес</b></div>
     </div>
 
-    <!-- Карта + СБП + По счёту: платёжный агрегатор (Т-Банк/ЮKassa) даёт
-         карту и СБП одной интеграцией — «по счёту» держали вне MVP как
-         B2B-цикл продажи (1–4 недели, ручное сопровождение), но
+    <!-- Платёжный партнёр + СБП + По счёту. Раньше здесь рисовали свою
+         форму ввода номера карты — но карту принимать будем не сами, а
+         через платёжного партнёра (Т-Банк/ЮKassa и похожие), чей виджет
+         ещё не выбран, поэтому этот таб оставлен пустым (заглушка), а не
+         додуман — рисовать чужой чекаут вслепую было бы неточно. СБП и
+         «по счёту» — свои, их макет остаётся. «По счёту» держали вне MVP
+         как B2B-цикл продажи (1–4 недели, ручное сопровождение), но
          самостоятельно сгенерированный счёт по уже известным реквизитам —
          это не тот цикл, а self-serve документ. Оплата счётом не мгновенна
-         (перевод идёт 1–3 рабочих дня) — в кабинет ведёт сразу, как карта/
-         СБП, но статус сайта отмечается «ожидает оплаты» (siteStatus,
+         (перевод идёт 1–3 рабочих дня) — в кабинет ведёт сразу, как СБП,
+         но статус сайта отмечается «ожидает оплаты» (siteStatus,
          см. script) до тех пор, пока деньги не поступят. -->
     <div class="card pad" style="margin-top:12px">
       <div class="seg" style="margin-bottom:14px">
-        <button type="button" class="on" data-swap="pmcard">Карта</button>
+        <button type="button" class="on" data-swap="pmpartner">Платёжный партнёр</button>
         <button type="button" data-swap="pmsbp">СБП</button>
         <button type="button" data-swap="pminvoice">По счёту</button>
       </div>
 
-      <div data-swapped="pmcard">
-        <label class="f">Номер карты</label><input class="inp mono" placeholder="0000 0000 0000 0000">
-        <div class="row" style="margin-top:10px"><div style="flex:1"><label class="f">Срок</label><input class="inp mono" placeholder="ММ/ГГ"></div><div style="flex:1"><label class="f">CVC</label><input class="inp mono" placeholder="•••"></div></div>
-        <div class="hr" style="margin-top:16px"></div>
-        <button type="button" class="btn solid wide" data-set-status="paid" data-go="s-project-paid">Оплатить 2 990 ₽ и войти в кабинет →</button>
-        <p class="tiny" style="text-align:center;margin-top:10px">Автопродление раз в месяц · отменить можно в любой момент</p>
+      <div data-swapped="pmpartner" style="text-align:center;padding:24px 0">
+        <p class="tiny" style="color:rgba(17,17,16,.5)">Виджет платёжного партнёра — интеграция ещё не выбрана.</p>
       </div>
 
       <div data-swapped="pmsbp" style="display:none;text-align:center">
