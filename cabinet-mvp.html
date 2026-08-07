@@ -939,10 +939,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div>
           <div class="mono" style="font-size:24px;font-weight:700">alfa-school.ru</div>
           <p class="tiny" style="margin-top:3px">ООО «Альфа Образование» · ИНН 7701234567</p>
-          <div class="row" style="margin-top:6px;gap:14px">
+          <div class="row" style="margin-top:6px">
             <span class="tiny mono">проверен сегодня</span>
-            <span class="small state" data-pay-state="paid" style="color:var(--ink-2)">оплачено до 05.09.2026</span>
-            <span class="small state" data-pay-state="pending" style="color:var(--warn);font-weight:700">⏳ ожидает оплаты · счёт выставлен</span>
           </div>
         </div>
         <button class="btn sm">↻ Проверить сейчас</button>
@@ -952,38 +950,30 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <p class="lead" style="margin-top:8px">Три пункта закрыты автоматически. Осталось одно замечание — не критично, но лучше поправить.</p>
       </div>
 
-      <!-- Третий заход. Числа (показы/%) — придуманная телеметрия, откатил.
-           Текст-чеклист — тоже не понравился, «выглядит плохо». Третий
-           вариант: не описывать словами, а ПОКАЗАТЬ — тот же визуальный
-           язык, что уже на s-ready («Вот что появится на сайте», тот же
-           .dark-footer-мокап подвала) плюс превью самого баннера. Больше
-           похоже на «вот доказательство, что стоит», не на статус-строку —
-           и не требует ничего, чего мы не знаем и так (наша конфигурация,
-           не измеренное поведение посетителей). -->
-      <h2 style="margin-top:22px">Виджет</h2>
+      <!-- Состояние сайта + подписка по этому сайту, с датой продления —
+           вынесено из мелкого бейджа в шапке в свою карточку, по прямому
+           запросу. Управление (смена способа оплаты, отмена) — в
+           Настройках, здесь только вид, с одной ссылкой туда. Виджет
+           отсюда убран целиком — тоже перенесён в Настройки. -->
+      <h2 style="margin-top:22px">Подписка</h2>
       <div class="card pad">
-        <span class="b green">✓ Работает</span>
-        <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
+        <!-- unpaid-вариант — на случай прямого перехода сюда через
+             dev-навигацию макета, минуя воронку (siteStatus по умолчанию
+             'unpaid'); в реальном флоу сюда попадают только paid/pending. -->
+        <div class="state" data-pay-state="unpaid">
+          <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">не оплачено</span></div>
+          <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">2 990 ₽/мес</span></div>
+        </div>
+        <div class="state on" data-pay-state="paid">
+          <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">оплачено</span></div>
+          <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Продление</span><span class="small" style="font-weight:700">05.09.2026 · 2 990 ₽</span></div>
+        </div>
+        <div class="state" data-pay-state="pending">
+          <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">ожидает оплаты</span></div>
+          <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Счёт</span><span class="small" style="font-weight:700">выставлен · обычно 1–3 рабочих дня</span></div>
+        </div>
         <div class="hr"></div>
-        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">Политика cookie</span>. Запретить обработку можно в настройках браузера.</div>
-          <button class="btn sm solid" style="flex:none">Принять</button>
-        </div>
-        <div class="dark-footer" style="margin-top:10px">
-          <div class="lbl">подвал сайта</div>
-          <div class="body">
-            <div class="org">ООО «Альфа Образование» · ИНН 7701234567</div>
-            <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
-        <div class="attrib">Документы подготовлены сервисами <span>Слеза</span></div>
-          </div>
-        </div>
-        <div class="hr" style="margin-top:14px"></div>
-        <button class="btn text sm" data-fold="widget-code" style="padding:0">Показать код установки ⌄</button>
-        <div id="widget-code" style="display:none;margin-top:10px">
-          <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
-data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
-          <button class="btn sm" style="margin-top:10px">↻ Проверить установку</button>
-        </div>
+        <button type="button" class="btn text sm" style="padding:0" data-go="s-settings">Управлять подпиской →</button>
       </div>
     </main>
   </div>
@@ -993,8 +983,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
      Портировано из cabinet-b.html (s-docs) — отдельный пункт сайдбара,
      не подраздел «Обзора»: список документов сам по себе достаточно
      самостоятельная задача («открыть/скачать конкретный документ»),
-     чтобы не перегружать обзорный экран. «Виджет» остался внутри
-     «Обзора» — про него не просили выносить отдельно. -->
+     чтобы не перегружать обзорный экран. -->
 <section class="screen" id="s-docs">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -1072,6 +1061,36 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="row" style="justify-content:space-between"><span class="small muted">alfa-school.ru</span><span class="chip green">оплачено до 05.09.2026</span></div>
         <div class="hr"></div>
         <button class="btn text sm" style="color:var(--danger);padding:0">Отменить подписку</button>
+      </div>
+
+      <!-- Перенесено с «Обзора» по прямому запросу — «всё, что связано с
+           виджетом, переносим в настройки». Превью баннера и подвала
+           (визуальное доказательство, что стоит — см. историю правок)
+           и код установки остались как были, только сменили экран. -->
+      <h2 style="margin-top:26px">Виджет</h2>
+      <div class="card pad" style="max-width:440px">
+        <span class="b green">✓ Работает</span>
+        <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
+        <div class="hr"></div>
+        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">Политика cookie</span>. Запретить обработку можно в настройках браузера.</div>
+          <button class="btn sm solid" style="flex:none">Принять</button>
+        </div>
+        <div class="dark-footer" style="margin-top:10px">
+          <div class="lbl">подвал сайта</div>
+          <div class="body">
+            <div class="org">ООО «Альфа Образование» · ИНН 7701234567</div>
+            <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
+            <div class="attrib">Документы подготовлены сервисами <span>Слеза</span></div>
+          </div>
+        </div>
+        <div class="hr" style="margin-top:14px"></div>
+        <button class="btn text sm" data-fold="widget-code" style="padding:0">Показать код установки ⌄</button>
+        <div id="widget-code" style="display:none;margin-top:10px">
+          <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
+data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
+          <button class="btn sm" style="margin-top:10px">↻ Проверить установку</button>
+        </div>
       </div>
     </main>
   </div>
