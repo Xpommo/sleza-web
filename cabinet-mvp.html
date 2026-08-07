@@ -778,9 +778,9 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
     <h2 style="margin-top:18px">Документы</h2>
     <div class="card" style="overflow:hidden">
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика конфиденциальности</div><div class="tiny mono">alfa-school.ru/legal/privacy</div></div><button class="btn sm">Открыть</button></div>
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на обработку ПДн</div><div class="tiny mono">alfa-school.ru/legal/consent</div></div><button class="btn sm">Открыть</button></div>
-      <div class="row" style="padding:11px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика в отношении cookie</div><div class="tiny mono">alfa-school.ru/legal/cookies</div></div><button class="btn sm">Открыть</button></div>
+      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика конфиденциальности</div><div class="tiny mono">alfa-school.ru/legal/privacy</div></div><a class="btn sm" href="https://alfa-school.ru/legal/privacy" target="_blank" rel="noopener">Открыть</a></div>
+      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на обработку ПДн</div><div class="tiny mono">alfa-school.ru/legal/consent</div></div><a class="btn sm" href="https://alfa-school.ru/legal/consent" target="_blank" rel="noopener">Открыть</a></div>
+      <div class="row" style="padding:11px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика в отношении cookie</div><div class="tiny mono">alfa-school.ru/legal/cookies</div></div><a class="btn sm" href="https://alfa-school.ru/legal/cookies" target="_blank" rel="noopener">Открыть</a></div>
     </div>
 
     <h2 style="margin-top:18px">Вот что появится на сайте</h2>
@@ -988,18 +988,21 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <main class="main narrow">
       <h1>Документы</h1>
       <p class="lead" style="margin-top:6px">alfa-school.ru · версии и причина изменений</p>
+      <!-- «Открыть» раньше была неживой кнопкой без действия — теперь
+           настоящая ссылка на реальный адрес документа (тот же URL, что
+           уже показан в превью на s-ready), открывается в новой вкладке. -->
       <div class="card" style="margin-top:16px;overflow:hidden">
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика конфиденциальности</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><button class="btn sm">Открыть</button>
+          <span class="chip green">актуальна</span><a class="btn sm" href="https://alfa-school.ru/legal/privacy" target="_blank" rel="noopener">Открыть</a>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на обработку ПДн</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><button class="btn sm">Открыть</button>
+          <span class="chip green">актуальна</span><a class="btn sm" href="https://alfa-school.ru/legal/consent" target="_blank" rel="noopener">Открыть</a>
         </div>
         <div class="row" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика в отношении cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><button class="btn sm">Открыть</button>
+          <span class="chip green">актуальна</span><a class="btn sm" href="https://alfa-school.ru/legal/cookies" target="_blank" rel="noopener">Открыть</a>
         </div>
       </div>
     </main>
