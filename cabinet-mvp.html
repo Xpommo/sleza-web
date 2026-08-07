@@ -289,6 +289,9 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .dark-footer .org{font-size:12.5px;font-weight:700;color:#fff}
 .dark-footer .links{margin-top:9px;display:flex;flex-wrap:wrap;gap:14px}
 .dark-footer .links span{font-size:11px;color:rgba(255,255,255,.7);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)}
+.dark-footer .attrib{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);
+  font-size:10.5px;color:rgba(255,255,255,.4)}
+.dark-footer .attrib span{color:rgba(255,255,255,.65);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)}
 
 /* ── вход / регистрация — портировано из frontend/app/app/login/LoginClient.js,
      провайдеры (Telegram/ВК/MAX) сознательно не переносим — см. шапку файла ── */
@@ -785,6 +788,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="body">
         <div class="org">ООО «Альфа Образование» · ИНН 7701234567</div>
         <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
+        <div class="attrib">Документы подготовлены сервисами <span>Слеза</span></div>
       </div>
     </div>
 
@@ -939,15 +943,16 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <span class="b green">✓ Работает</span>
         <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
         <div class="hr"></div>
-        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px;background:var(--paper)">
-          <div class="small">Мы используем куки для работы сайта и с вашего согласия — для аналитики. <span style="text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">Подробнее</span></div>
-          <div class="row" style="margin-top:10px;justify-content:flex-end"><button class="btn sm solid">Понятно</button></div>
+        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">Политика cookie</span>. Запретить обработку можно в настройках браузера.</div>
+          <button class="btn sm solid" style="flex:none">Принять</button>
         </div>
         <div class="dark-footer" style="margin-top:10px">
           <div class="lbl">подвал сайта</div>
           <div class="body">
             <div class="org">ООО «Альфа Образование» · ИНН 7701234567</div>
             <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
+        <div class="attrib">Документы подготовлены сервисами <span>Слеза</span></div>
           </div>
         </div>
         <div class="hr" style="margin-top:14px"></div>
