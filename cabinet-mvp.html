@@ -170,7 +170,8 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .appwrap{min-height:100vh}
 .js .appwrap.sidebar{display:grid;grid-template-columns:248px 1fr}
 .side{background:var(--paper);border-right:1px solid var(--line);padding:18px 14px 24px;
-  display:flex;flex-direction:column;height:100vh;position:sticky;top:0}
+  display:flex;flex-direction:column;height:calc(100vh - var(--toolbar-h, 34px));
+  position:sticky;top:var(--toolbar-h, 34px)}
 .js .side{display:flex}
 .logo{display:flex;align-items:center;gap:8px;padding:0 6px;margin-bottom:20px}
 .logo svg{flex:none}
@@ -1160,6 +1161,17 @@ function paintNav(id){
     b.style.color = (b.dataset.navFor === id) ? '#fff' : 'inherit';
   });
 }
+
+/* тулбар макета переносится по строкам (зависит от ширины окна) и перекрывал
+   верх зафиксированного сайдбара — оба position:sticky;top:0, но у тулбара
+   z-index:40, у сайдбара нет. Меряем реальную высоту тулбара и держим сайдбар
+   ниже неё через CSS-переменную, а не хардкодим пиксели. */
+function syncToolbarHeight(){
+  var toolbar = document.querySelector('.micro');
+  if (toolbar) document.documentElement.style.setProperty('--toolbar-h', toolbar.getBoundingClientRect().height + 'px');
+}
+syncToolbarHeight();
+window.addEventListener('resize', syncToolbarHeight);
 
 var siteStatus = 'unpaid'; // 'unpaid' | 'pending' (счёт выставлен) | 'paid'
 
