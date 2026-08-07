@@ -926,14 +926,28 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <p class="lead" style="margin-top:8px">Три пункта закрыты автоматически. Осталось одно замечание — не критично, но лучше поправить.</p>
       </div>
 
+      <!-- «✓ Установлен, всё работает» + голый код — статус без содержания,
+           не видно, что виджет вообще что-то делает. Заменено на то, что
+           он реально показывает: сколько раз баннер увидели и что с ним
+           сделали посетители — код установки убран под «Показать» (нужен
+           только при переустановке, не каждый раз при заходе в кабинет). -->
       <h2 style="margin-top:22px">Виджет</h2>
       <div class="card pad">
-        <span class="b green">✓ Установлен, всё работает</span>
-        <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили минуту назад. Баннер показывается, реквизиты в подвале, ссылки на документы на месте.</p>
+        <span class="b green">✓ Работает</span>
+        <p class="small" style="margin-top:6px;color:var(--ink-2)">Баннер и реквизиты показываются на alfa-school.ru — проверили сегодня.</p>
         <div class="hr"></div>
-        <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
+        <div class="row" style="justify-content:space-between;gap:16px">
+          <div><div style="font-size:20px;font-weight:800">312</div><div class="tiny">показов баннера за 7 дней</div></div>
+          <div><div style="font-size:20px;font-weight:800;color:var(--ok)">78%</div><div class="tiny">приняли куки</div></div>
+          <div><div style="font-size:20px;font-weight:800;color:var(--warn)">22%</div><div class="tiny">отказались</div></div>
+        </div>
+        <div class="hr"></div>
+        <button class="btn text sm" data-fold="widget-code" style="padding:0">Показать код установки ⌄</button>
+        <div id="widget-code" style="display:none;margin-top:10px">
+          <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
-        <button class="btn sm" style="margin-top:10px">↻ Проверить установку</button>
+          <button class="btn sm" style="margin-top:10px">↻ Проверить установку</button>
+        </div>
       </div>
     </main>
   </div>
@@ -1073,17 +1087,37 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="bd"><div class="txt">Нажмите «Проверить установку» на «Обзоре» — если код вставлен верно, статус обновится в течение минуты. Если нет, проверьте, не сбросило ли изменение кеширование сайта.</div></div>
       </div>
 
+      <!-- Ответ поддержки виден прямо здесь, не только по почте — email
+           остаётся уведомлением («вам ответили»), а сам ответ читается в ЛК.
+           Демо-тикет ниже уже отвечен, чтобы было видно, как это выглядит;
+           новое обращение из формы добавляется в список сверху со статусом
+           «открыто» через JS (id=ticket-list/ticket-text/ticket-submit). -->
+      <h2 style="margin-top:24px">Мои обращения</h2>
+      <div id="ticket-list" style="margin-top:10px;max-width:520px">
+        <div class="card pad" style="margin-bottom:10px">
+          <div class="row" style="justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-weight:700;font-size:14px">Не появился баннер после установки скрипта</div>
+              <div class="tiny" style="margin-top:2px">3 дня назад</div>
+            </div>
+            <span class="chip green">отвечено</span>
+          </div>
+          <div class="hr" style="margin-top:10px"></div>
+          <div class="small" style="color:var(--ink-2)"><b style="color:var(--ink)">Поддержка:</b> Проверили — скрипт стоял внутри &lt;body&gt;, а не &lt;head&gt;. В инструкции на «Обзоре» уточнили место вставки, переустановите по ней ещё раз — обычно помогает.</div>
+        </div>
+      </div>
+
       <h2 style="margin-top:24px">Написать в поддержку</h2>
       <div class="card pad" style="margin-top:10px;max-width:520px">
         <div class="state on" data-state="form">
           <label class="f">Опишите, что случилось</label>
-          <textarea class="inp" style="min-height:110px" placeholder="Например: не появился баннер на сайте после установки скрипта"></textarea>
-          <p class="tiny" style="margin-top:6px">Ответим на director@alfa-school.ru — обычно в течение рабочего дня.</p>
-          <button type="button" class="btn solid" style="margin-top:12px" data-state-to="sent">Отправить</button>
+          <textarea class="inp" id="ticket-text" style="min-height:110px" placeholder="Например: не появился баннер на сайте после установки скрипта"></textarea>
+          <p class="tiny" style="margin-top:6px">Ответ придёт сюда же, на «Мои обращения» — на почту пришлём только уведомление, что вам ответили.</p>
+          <button type="button" class="btn solid" style="margin-top:12px" id="ticket-submit" data-state-to="sent">Отправить</button>
         </div>
         <div class="state" data-state="sent">
           <span class="b green">✓ Обращение отправлено</span>
-          <p class="small" style="margin-top:6px;color:var(--ink-2)">Заявка №1042 · ответим на director@alfa-school.ru в течение рабочего дня.</p>
+          <p class="small" style="margin-top:6px;color:var(--ink-2)">Заявка №1043 · появится выше в «Моих обращениях», когда ответим.</p>
         </div>
       </div>
     </main>
@@ -1219,6 +1253,43 @@ document.querySelectorAll('[data-save-req]').forEach(function(b){
     if (innEl) innEl.textContent = 'ИНН ' + inn;
   });
 });
+
+/* новый тикет — добавляется в «Мои обращения» со статусом «открыто»,
+   ответ появляется там же, когда поддержка ответит (не только на почту) */
+var ticketSubmit = document.getElementById('ticket-submit');
+if (ticketSubmit) {
+  ticketSubmit.addEventListener('click', function(){
+    var textEl = document.getElementById('ticket-text');
+    var text = textEl.value.trim();
+    if (!text) return;
+    var list = document.getElementById('ticket-list');
+    var card = document.createElement('div');
+    card.className = 'card pad';
+    card.style.marginBottom = '10px';
+    var title = document.createElement('div');
+    title.style.fontWeight = '700';
+    title.style.fontSize = '14px';
+    title.textContent = text;
+    var meta = document.createElement('div');
+    meta.className = 'tiny';
+    meta.style.marginTop = '2px';
+    meta.textContent = 'только что';
+    var head = document.createElement('div');
+    head.className = 'row';
+    head.style.cssText = 'justify-content:space-between;align-items:flex-start';
+    var left = document.createElement('div');
+    left.appendChild(title);
+    left.appendChild(meta);
+    var chip = document.createElement('span');
+    chip.className = 'chip amber';
+    chip.textContent = 'открыто';
+    head.appendChild(left);
+    head.appendChild(chip);
+    card.appendChild(head);
+    list.insertBefore(card, list.firstChild);
+    textEl.value = '';
+  });
+}
 </script>
 </body>
 </html>
