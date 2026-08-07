@@ -287,16 +287,23 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .js .screen{display:none;border-top:0}
 .js .screen.on{display:block}
 
+/* Раскладка подсмотрена у sleza.media (реальный партнёр, sleza.media/api/parse
+   в backend/src/engine.js) — горизонтальная строка, синий акцент почти совпал
+   с нашим --brand без правок (#0000E6 у них, #1f1fe6 у нас), атрибуция как
+   скруглённая пилюля-бейдж в духе их круглой кнопки «подключить», но в наших
+   токенах и меньшего размера — не копия, отдельный стиль на тех же мотивах. */
 .dark-footer{border-radius:10px;overflow:hidden;border:1px solid var(--line-2)}
 .dark-footer .lbl{background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;
   text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.45);border-bottom:1px solid var(--line-2)}
 .dark-footer .body{background:var(--ink);padding:16px}
+.dark-footer .row2{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .dark-footer .org{font-size:12.5px;font-weight:700;color:#fff}
 .dark-footer .links{margin-top:9px;display:flex;flex-wrap:wrap;gap:14px}
 .dark-footer .links span{font-size:11px;color:rgba(255,255,255,.7);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)}
-.dark-footer .attrib{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);
-  font-size:10.5px;color:rgba(255,255,255,.4)}
-.dark-footer .attrib span{color:rgba(255,255,255,.65);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)}
+.dark-footer .badge{display:inline-flex;align-items:center;gap:5px;flex:none;white-space:nowrap;
+  background:var(--brand);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.01em;
+  padding:7px 14px;border-radius:999px}
+.dark-footer .badge b{font-weight:800}
 
 /* ── вход / регистрация — портировано из frontend/app/app/login/LoginClient.js,
      провайдеры (Telegram/ВК/MAX) сознательно не переносим — см. шапку файла ── */
@@ -791,9 +798,13 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <div class="dark-footer" style="margin-top:12px">
       <div class="lbl">подвал сайта после установки</div>
       <div class="body">
-        <div class="org">ООО «Альфа Образование» · ИНН 7701234567</div>
-        <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
-        <div class="attrib">Документы подготовлены сервисами <span>Слеза</span></div>
+        <div class="row2">
+          <div>
+            <div class="org">ООО «Альфа Образование» · ИНН 7701234567</div>
+            <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
+          </div>
+          <div class="badge">Документы <b>Слеза</b></div>
+        </div>
       </div>
     </div>
 
@@ -1122,9 +1133,13 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="dark-footer" style="margin-top:14px">
           <div class="lbl">подвал сайта</div>
           <div class="body">
-            <div class="org">ООО «Альфа Образование» · ИНН 7701234567</div>
-            <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
-            <div class="attrib">Документы подготовлены сервисами <span>Слеза</span></div>
+            <div class="row2">
+              <div>
+                <div class="org">ООО «Альфа Образование» · ИНН 7701234567</div>
+                <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
+              </div>
+              <div class="badge">Документы <b>Слеза</b></div>
+            </div>
           </div>
         </div>
         <div class="hr" style="margin-top:14px"></div>
