@@ -22,10 +22,10 @@
   структуре кабинета.
 
   Путь: регистрация → подтвердите почту → «это ваш сайт?» → находки →
-  воронка подключения (готовим документы → анкета → черновик →
-  оплата+установка одним экраном) → кабинет (обзор+виджет на одной
-  странице, документы — отдельный пункт сайдбара, s-docs) → настройки
-  (там же и подписка).
+  воронка подключения в 5 шагов (готовим документы → анкета → черновик →
+  установка → оплата) → кабинет (обзор+виджет на одной странице,
+  документы — отдельный пункт сайдбара, s-docs) → настройки (там же
+  и подписка).
 
   «Мои сайты» (s-status) — верхнеуровневый хаб сайдбара: карточки/таблица
   сайтов с состоянием (найдено/оплачено), «Обзор» конкретного проекта
@@ -41,9 +41,10 @@
     настоящий и на него дойдёт переписка. OAuth-провайдеры — отдельно,
     три интеграции это бэкенд-работа ради удобства, не ради проверки
     спроса.
-  - Оплата — карта + СБП, без «по счёту»: закрывает B2B-клиента (Лена),
-    но у него цикл решения 1–4 недели — это не то, на чём быстро проверяют
-    гипотезу. Вернуть, когда дойдёт очередь до корпоративного сегмента.
+  - Оплата — СБП, по счёту и заглушка «платёжный партнёр» (карту сами не
+    принимаем, интеграция с агрегатором вроде Т-Банка/ЮKassa ещё не
+    выбрана — рисовать чужой чекаут вслепую было бы неточно). Установка
+    и оплата — разные шаги воронки (4/5 и 5/5), не один экран.
   - Установка — без платной услуги «поручим сами за 1500 ₽»: это уже
     саппорт-нагрузка на одного человека, которого пока нет в штате.
   - Кабинет — без истории событий, без Telegram-уведомлений, без выбора
@@ -693,7 +694,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
 <!-- ══════════════════ ВОРОНКА: 1/4 · ГОТОВИМ ДОКУМЕНТЫ ═══════════════ -->
 <section class="screen" id="s-prepare">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 1 из 4</span></div><div class="prog"><i style="width:25%"></i></div></div>
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 1 из 5</span></div><div class="prog"><i style="width:20%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-project" style="margin-bottom:10px">← результат проверки</button>
@@ -733,7 +734,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
 <!-- ══════════════════ ВОРОНКА: 2/4 · АНКЕТА ═══════════════════════════ -->
 <section class="screen" id="s-anketa">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 2 из 4</span></div><div class="prog"><i style="width:50%"></i></div></div>
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 2 из 5</span></div><div class="prog"><i style="width:40%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-prepare" style="margin-bottom:10px">← что подготовим</button>
@@ -761,7 +762,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
 <!-- ══════════════════ ВОРОНКА: 3/4 · ДОКУМЕНТЫ ГОТОВЫ ═════════════════ -->
 <section class="screen" id="s-ready">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 3 из 4</span></div><div class="prog"><i style="width:75%"></i></div></div>
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 3 из 5</span></div><div class="prog"><i style="width:60%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-anketa" style="margin-bottom:10px">← уточнения</button>
@@ -804,12 +805,14 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   </div>
 </section>
 
-<!-- ══════════════════ ВОРОНКА: 4/4 · УСТАНОВКА + ОПЛАТА ══════════════ -->
-<!-- Одним экраном, не двумя: код и инструкцию видно и можно поставить
-     бесплатно, оплата — последнее действие на этом же экране. Без платной
-     «поручим сами за 1500 ₽» — это саппорт-нагрузка на одного человека. -->
+<!-- ══════════════════ ВОРОНКА: 4/5 · УСТАНОВКА ═════════════════════════
+     Раньше жила на одном экране вместе с оплатой — разведены по прямому
+     запросу пользователя: установка и оплата разные по сути (одно
+     техническое действие, другое про деньги), отдельный шаг у каждого.
+     Без платной «поручим сами за 1500 ₽» — это саппорт-нагрузка на
+     одного человека. -->
 <section class="screen" id="s-install">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 4 из 4</span></div><div class="prog"><i style="width:100%"></i></div></div>
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 4 из 5</span></div><div class="prog"><i style="width:80%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-ready" style="margin-bottom:10px">← документы</button>
@@ -838,7 +841,25 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <button class="btn solid sm" style="margin-top:10px">↻ Проверить установку</button>
     </div>
 
-    <h2 style="margin-top:22px">Осталось оплатить</h2>
+    <div class="hr" style="margin-top:20px"></div>
+    <button type="button" class="btn solid wide" data-go="s-pay">Далее → к оплате</button>
+  </div>
+</section>
+
+<!-- ══════════════════ ВОРОНКА: 5/5 · ОПЛАТА ═══════════════════════════
+     Раньше жила вместе с установкой на одном экране — разведена по
+     прямому запросу пользователя на отдельный шаг. Установка (4/5) и
+     оплата (5/5) — разные по сути действия (одно техническое, другое
+     про деньги), отдельный шаг даёт каждому свой фокус, не смешивает. -->
+<section class="screen" id="s-pay">
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">ШтрафКонтроль</b><span class="micro" style="margin-left:auto">шаг 5 из 5</span></div><div class="prog"><i style="width:100%"></i></div></div>
+  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
+  <div class="startwrap">
+    <button class="btn text sm" data-go="s-install" style="margin-bottom:10px">← установка</button>
+    <h1>Оплата</h1>
+    <p class="lead" style="margin-top:8px">Последний шаг — выберите способ оплаты подписки.</p>
+
+    <h2 style="margin-top:20px">Осталось оплатить</h2>
     <div class="card pad" style="margin-top:12px">
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3,rgba(17,17,16,.5))">Сразу</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваши формы и трекеры<br>· Виджет: куки-баннер и реквизиты в подвале<br>· Постоянные ссылки на документы</div>
@@ -1145,8 +1166,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-install','s-project-paid','s-docs','s-settings','s-support'];
-var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
+var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-install','s-pay','s-project-paid','s-docs','s-settings','s-support'];
+var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-install':'4/5','s-pay':'5/5','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
 
 var nav = document.getElementById('scr-nav');
 SCREENS.forEach(function(id){
