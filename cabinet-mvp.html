@@ -47,9 +47,10 @@
     и оплата — разные шаги воронки (4/5 и 5/5), не один экран.
   - Установка — без платной услуги «поручим сами за 1500 ₽»: это уже
     саппорт-нагрузка на одного человека, которого пока нет в штате.
-  - Кабинет — без истории событий, без Telegram-уведомлений, без выбора
-    стиля баннера (один фиксированный дизайн), без «Скачать PDF»
-    (это под корпоративного клиента, см. выше).
+  - Кабинет — без истории событий, без Telegram-уведомлений, без «Скачать
+    PDF» (это под корпоративного клиента, см. выше). Тема баннера
+    (светлая/тёмная/авто) — возвращена в Настройки по прямому запросу,
+    больше не в списке урезаний.
 
   Палитра и компоненты — те же токены, что в cabinet-a.html/cabinet-b.html
   и реальном коде кабинета (frontend/components/app/*, frontend/lib/*Mock.js).
@@ -258,6 +259,8 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
 .main{padding:26px 30px 90px}
 .main.narrow{max-width:820px}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+@media(max-width:700px){.settings-grid{grid-template-columns:1fr}}
 @media(max-width:820px){
   .js .appwrap.sidebar{display:block}
   .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;padding:12px 14px;border-right:0;border-bottom:1px solid var(--line)}
@@ -1035,48 +1038,88 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     </aside>
     <main class="main narrow">
       <h1>Настройки</h1>
-      <div class="card pad" style="margin-top:16px;max-width:440px">
-        <label class="f">Имя</label><input class="inp" value="Кирилл">
-        <label class="f" style="margin-top:10px">Почта</label><input class="inp mono" value="director@alfa-school.ru">
-        <div class="hr"></div>
-        <div class="row" style="justify-content:space-between"><span class="small">Пароль</span><button class="btn sm">Изменить</button></div>
-      </div>
-      <button class="btn solid" style="margin-top:16px">Сохранить</button>
 
-      <h2 style="margin-top:26px">Подписка</h2>
-      <div class="card pad" style="max-width:440px">
-        <label class="f">Способ продления</label>
-        <div class="seg" style="margin:6px 0 12px">
-          <button type="button" class="on" data-swap="renewcard">Карта</button>
-          <button type="button" data-swap="renewinvoice">По счёту</button>
+      <!-- Два столбца: слева то, что про вас (контакты, реквизиты
+           компании), справа — подписка на этот сайт. Реквизиты как
+           отдельный раздел не выделяли нигде в ЛК раньше — только
+           мелькали внутри воронки (s-prepare) и в других местах
+           read-only; здесь наконец полноценная точка «посмотреть и
+           поправить», как просили. Виджет — снизу, на всю ширину, ему
+           нужно больше места под превью. -->
+      <div class="settings-grid" style="margin-top:16px">
+        <div>
+          <h2>Контакты</h2>
+          <div class="card pad">
+            <label class="f">Имя</label><input class="inp" value="Кирилл">
+            <label class="f" style="margin-top:10px">Почта</label><input class="inp mono" value="director@alfa-school.ru">
+            <div class="hr"></div>
+            <div class="row" style="justify-content:space-between"><span class="small">Пароль</span><button class="btn sm">Изменить</button></div>
+          </div>
+          <button class="btn solid" style="margin-top:12px">Сохранить</button>
+
+          <h2 style="margin-top:24px">Реквизиты</h2>
+          <div class="card pad row" style="justify-content:space-between">
+            <div><div style="font-weight:700;font-size:14.5px" id="req-name-set">ООО «Альфа Образование»</div><div class="tiny mono" id="req-inn-set">ИНН 7701234567</div></div>
+            <button class="btn sm" data-go-modal="modal-req-set">Проверить и изменить</button>
+          </div>
+          <p class="tiny" style="margin-top:7px">Сверено с ЕГРЮЛ — используются в документах и в подвале сайта.</p>
         </div>
-        <div data-swapped="renewcard">
-          <div class="row" style="justify-content:space-between"><span class="mono small">···· 4417</span><button class="btn sm">Изменить карту</button></div>
+
+        <div>
+          <h2>Подписка</h2>
+          <div class="card pad">
+            <label class="f">Способ продления</label>
+            <div class="seg" style="margin:6px 0 12px">
+              <button type="button" class="on" data-swap="renewcard">Карта</button>
+              <button type="button" data-swap="renewinvoice">По счёту</button>
+            </div>
+            <div data-swapped="renewcard">
+              <div class="row" style="justify-content:space-between"><span class="mono small">···· 4417</span><button class="btn sm">Изменить карту</button></div>
+            </div>
+            <div data-swapped="renewinvoice" style="display:none">
+              <div class="row" style="justify-content:space-between"><span class="small">ООО «Альфа Образование» · ИНН 7701234567</span></div>
+              <p class="tiny" style="margin-top:5px">Следующий счёт придёт на почту за неделю до окончания оплаченного периода.</p>
+            </div>
+            <div class="hr"></div>
+            <div class="row" style="justify-content:space-between"><span class="small muted">alfa-school.ru</span><span class="chip green">оплачено до 05.09.2026</span></div>
+            <div class="hr"></div>
+            <button class="btn text sm" style="color:var(--danger);padding:0">Отменить подписку</button>
+          </div>
         </div>
-        <div data-swapped="renewinvoice" style="display:none">
-          <div class="row" style="justify-content:space-between"><span class="small">ООО «Альфа Образование» · ИНН 7701234567</span></div>
-          <p class="tiny" style="margin-top:5px">Следующий счёт придёт на почту за неделю до окончания оплаченного периода.</p>
-        </div>
-        <div class="hr"></div>
-        <div class="row" style="justify-content:space-between"><span class="small muted">alfa-school.ru</span><span class="chip green">оплачено до 05.09.2026</span></div>
-        <div class="hr"></div>
-        <button class="btn text sm" style="color:var(--danger);padding:0">Отменить подписку</button>
       </div>
 
-      <!-- Перенесено с «Обзора» по прямому запросу — «всё, что связано с
-           виджетом, переносим в настройки». Превью баннера и подвала
-           (визуальное доказательство, что стоит — см. историю правок)
-           и код установки остались как были, только сменили экран. -->
-      <h2 style="margin-top:26px">Виджет</h2>
-      <div class="card pad" style="max-width:440px">
+      <!-- Тема баннера — выбор светлая/тёмная/авто был вырезан из MVP
+           («один фиксированный дизайн», см. шапку файла) — возвращён по
+           прямому запросу вместе с переносом виджета. «Авто» не имеет
+           одного вида превью (зависит от темы браузера посетителя),
+           поэтому вместо картинки — поясняющий текст, а не додуманная
+           третья картинка. -->
+      <h2 style="margin-top:28px">Виджет</h2>
+      <div class="card pad">
         <span class="b green">✓ Работает</span>
         <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
         <div class="hr"></div>
-        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+
+        <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.5)">Тема баннера</h3>
+        <div class="seg" style="margin:8px 0 12px">
+          <button type="button" class="on" data-swap="bthemelight">Светлая</button>
+          <button type="button" data-swap="bthemedark">Тёмная</button>
+          <button type="button" data-swap="bthemeauto">Авто</button>
+        </div>
+
+        <div data-swapped="bthemelight" style="border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
           <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">Политика cookie</span>. Запретить обработку можно в настройках браузера.</div>
           <button class="btn sm solid" style="flex:none">Принять</button>
         </div>
-        <div class="dark-footer" style="margin-top:10px">
+        <div data-swapped="bthemedark" style="display:none;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:14px 16px;background:var(--ink);align-items:center;gap:16px;flex-wrap:wrap">
+          <div class="small" style="flex:1;min-width:220px;color:rgba(255,255,255,.82)">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(255,255,255,.4);color:#fff">Политика cookie</span>. Запретить обработку можно в настройках браузера.</div>
+          <button class="btn sm solid" style="flex:none;background:#fff;border-color:#fff;color:var(--ink)">Принять</button>
+        </div>
+        <div data-swapped="bthemeauto" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:16px;text-align:center">
+          <p class="tiny" style="color:rgba(17,17,16,.5)">Подстроится под системную тему браузера посетителя — светлая или тёмная. Один статичный превью здесь не покажет оба варианта.</p>
+        </div>
+
+        <div class="dark-footer" style="margin-top:14px">
           <div class="lbl">подвал сайта</div>
           <div class="body">
             <div class="org">ООО «Альфа Образование» · ИНН 7701234567</div>
@@ -1095,6 +1138,19 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     </main>
   </div>
 </section>
+
+<!-- модалка реквизитов (настройки) -->
+<div class="state" data-state="closed" id="modal-req-set" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
+    <div class="row" style="justify-content:space-between"><h3>Реквизиты</h3><button class="btn text sm" data-modal-close="modal-req-set">✕</button></div>
+    <p class="tiny" style="margin-top:6px">Сверено с ЕГРЮЛ — проверьте и поправьте, если нужно.</p>
+    <label class="f" style="margin-top:14px">Наименование</label>
+    <input class="inp" id="modal-req-name-set" value="ООО «Альфа Образование»">
+    <label class="f" style="margin-top:10px">ИНН</label>
+    <input class="inp mono" id="modal-req-inn-set" value="7701234567">
+    <div class="row" style="margin-top:16px"><button class="btn solid" data-save-req="set" data-modal-close="modal-req-set">Сохранить</button><button class="btn text" data-modal-close="modal-req-set">Отмена</button></div>
+  </div>
+</div>
 
 <!-- ══════════════════ ПОДДЕРЖКА — FAQ + ТИКЕТ ═══════════════════════════
      Доступ через меню аккаунта (не сайдбар — используется редко, не
