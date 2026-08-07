@@ -926,29 +926,31 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <p class="lead" style="margin-top:8px">Три пункта закрыты автоматически. Осталось одно замечание — не критично, но лучше поправить.</p>
       </div>
 
-      <!-- «✓ Установлен, всё работает» + голый код — статус без содержания,
-           не видно, что виджет вообще что-то делает. Первая правка добавляла
-           сюда числа (показы, % принявших/отказавшихся куки) — откатил:
-           это реальная телеметрия (виджет шлёт событие на сервер, где-то
-           агрегируется, кабинет читает) — бэкенд-работа без причины её
-           делать, плюс кнопки отказа в самом баннере нет, «% отказались»
-           не с чем сопоставить. И конечному посетителю, и владельцу (его
-           вопрос «не оштрафуют ли», не «какая конверсия баннера») это не
-           нужно — это метрика маркетинг-аналитики, не комплаенс-продукта.
-           Вместо чисел — то, что мы и так знаем без всякого трекинга: что
-           именно настроено и работает. Код установки — под «Показать»
-           (нужен только при переустановке, не каждый раз при заходе). -->
+      <!-- Третий заход. Числа (показы/%) — придуманная телеметрия, откатил.
+           Текст-чеклист — тоже не понравился, «выглядит плохо». Третий
+           вариант: не описывать словами, а ПОКАЗАТЬ — тот же визуальный
+           язык, что уже на s-ready («Вот что появится на сайте», тот же
+           .dark-footer-мокап подвала) плюс превью самого баннера. Больше
+           похоже на «вот доказательство, что стоит», не на статус-строку —
+           и не требует ничего, чего мы не знаем и так (наша конфигурация,
+           не измеренное поведение посетителей). -->
       <h2 style="margin-top:22px">Виджет</h2>
       <div class="card pad">
         <span class="b green">✓ Работает</span>
-        <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили сегодня на alfa-school.ru.</p>
+        <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
         <div class="hr"></div>
-        <div class="small" style="line-height:2">
-          <div>✓ Баннер с согласием на обработку данных</div>
-          <div>✓ Реквизиты компании в подвале сайта</div>
-          <div>✓ Ссылки на политику, согласие и cookie-документ</div>
+        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px;background:var(--paper)">
+          <div class="small">Мы используем куки для работы сайта и с вашего согласия — для аналитики. <span style="text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">Подробнее</span></div>
+          <div class="row" style="margin-top:10px;justify-content:flex-end"><button class="btn sm solid">Понятно</button></div>
         </div>
-        <div class="hr"></div>
+        <div class="dark-footer" style="margin-top:10px">
+          <div class="lbl">подвал сайта</div>
+          <div class="body">
+            <div class="org">ООО «Альфа Образование» · ИНН 7701234567</div>
+            <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
+          </div>
+        </div>
+        <div class="hr" style="margin-top:14px"></div>
         <button class="btn text sm" data-fold="widget-code" style="padding:0">Показать код установки ⌄</button>
         <div id="widget-code" style="display:none;margin-top:10px">
           <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
