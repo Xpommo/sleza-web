@@ -561,11 +561,12 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
       <div class="card pad" style="margin-top:16px;border-color:rgba(214,56,22,.3)">
         <span class="b red" style="font-size:16px">⛔ 2 нарушения <span style="color:var(--warn);font-weight:500">· 1 замечание</span> <span class="muted" style="font-weight:500">· риск до 300 000 ₽</span></span>
-        <p class="lead" style="margin-top:8px">К работе 3 пункта — закроем сами, от вас нужны только данные для анкеты.</p>
+        <p class="lead" style="margin-top:8px">Соберём документы под ООО «Альфа Образование» (ИНН 7701234567) — закроем сами, от вас нужны только данные для анкеты.</p>
         <div class="row" style="margin-top:12px">
           <button type="button" class="btn solid" data-go="s-prepare">💳 Подключить за 2 990 ₽/мес</button>
           <span class="tiny mono">3 из 3 закроем сразу · документы готовы сразу после оплаты</span>
         </div>
+        <p class="tiny" style="margin-top:10px;color:rgba(17,17,16,.5)">Реквизиты сверяем с ЕГРЮЛ, документы собираем под конкретную компанию — не общий шаблон.</p>
       </div>
 
       <h2 style="margin-top:22px">Что нашли</h2>
@@ -587,7 +588,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
         <button class="hd" data-find><span class="dot amber"></span><span class="nm" style="flex:1">149-ФЗ · реквизиты владельца</span><span class="st amber">замечание</span><span class="chip fill">закроем сами</span><span class="chev">›</span></button>
         <div class="bd">
           <div class="lbl">что нашли</div><div class="txt">В подвале нет ИНН и ОГРН. Наименование указано, но не совпадает с ЕГРЮЛ по форме собственности.</div>
-          <div class="lbl">чем грозит</div><div class="txt" style="color:var(--warn);font-weight:600">КоАП 13.11 ч.1 · рекомендация, штраф не предусмотрен</div>
+          <div class="lbl">чем грозит</div><div class="txt" style="color:var(--warn);font-weight:600">Требование к прозрачности продавца · рекомендация, штраф не предусмотрен</div>
         </div>
       </div>
       <button class="btn text sm" data-fold="ok-p">✓ 2 проверки в норме — ЕРИР, оферта ⌄</button>
@@ -917,7 +918,17 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <h1 style="margin-top:6px">Осталось установить скрипт</h1>
     <p class="lead" style="margin-top:8px">Одна строчка кода. Она подтянет баннер, реквизиты и ссылки на документы — дальше мы обновляем их сами.</p>
 
-    <h2 style="margin-top:20px">Сделать самому</h2>
+    <!-- «Поручить» теперь первым блоком, «Сделать самому» — вторым: для
+         основной персоны (не технарь, сайт делали давно и не он) это
+         экран, где выше всего риск упереться в «я сайт не трогаю» —
+         сначала показываем вариант, который снимает этот страх, а не код. -->
+    <h2 style="margin-top:20px">Поручить тому, кто делает сайт</h2>
+    <div class="card pad">
+      <p class="tiny" style="margin-bottom:10px">Не нужно разбираться самим — перешлите тому, кто ведёт сайт. Без регистрации и входа в кабинет, только вставить одну строку кода.</p>
+      <label class="f">Почта разработчика</label><input class="inp mono" placeholder="dev@studio.ru"><button class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
+    </div>
+
+    <h2 style="margin-top:18px">Сделать самому</h2>
     <div class="card pad">
       <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
@@ -929,9 +940,6 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="small" data-swapped="t3" style="display:none">Настройки → Настройки продукта → Сайты → шаблон сайта → вставить в секцию HEAD.</div>
       <div class="small" data-swapped="t4" style="display:none">Вставьте строку в HTML любой страницы перед закрывающим тегом &lt;/head&gt;.</div>
     </div>
-
-    <h2 style="margin-top:18px">Поручить тому, кто делает сайт</h2>
-    <div class="card pad"><label class="f">Почта разработчика</label><input class="inp mono" placeholder="dev@studio.ru"><button class="btn sm" style="margin-top:10px">Отправить инструкцию</button></div>
 
     <div class="card pad" style="margin-top:14px">
       <div class="b red">✕ Скрипт на сайте не найден</div>
@@ -975,6 +983,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="card pad" style="margin-top:16px;border-color:rgba(184,121,0,.3)">
         <span class="b amber" style="font-size:16px">⚠ 1 замечание</span>
         <p class="lead" style="margin-top:8px">Три пункта закрыты автоматически. Осталось одно замечание — не критично, но лучше поправить.</p>
+        <div class="hr"></div>
+        <p class="tiny" style="color:rgba(17,17,16,.5)">Сегодня, 09:14 — сверили реквизиты с ЕГРЮЛ и текст баннера с действующей редакцией 152-ФЗ. Изменений в законе с последней проверки не было.</p>
       </div>
 
       <!-- Состояние сайта + подписка по этому сайту, с датой продления —
@@ -994,6 +1004,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="state on" data-pay-state="paid">
           <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">оплачено</span></div>
           <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Продление</span><span class="small" style="font-weight:700">05.09.2026 · 2 990 ₽</span></div>
+          <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.5)">Если не продлить — баннер и документы останутся на сайте, но обновление при смене закона приостановится.</p>
         </div>
         <div class="state" data-pay-state="pending">
           <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">ожидает оплаты</span></div>
@@ -1142,12 +1153,18 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         </div>
 
         <div data-swapped="bthemelight" style="border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">Политика cookie</span>. Запретить обработку можно в настройках браузера.</div>
-          <button class="btn sm solid" style="flex:none">Принять</button>
+          <div class="small" style="flex:1;min-width:220px">Используем cookie для аналитики. Подробнее — <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">Политика cookie</span>.</div>
+          <div class="row" style="flex:none;gap:8px">
+            <button class="btn sm" style="flex:none">Отклонить</button>
+            <button class="btn sm solid" style="flex:none">Принять</button>
+          </div>
         </div>
         <div data-swapped="bthemedark" style="display:none;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:14px 16px;background:var(--ink);align-items:center;gap:16px;flex-wrap:wrap">
-          <div class="small" style="flex:1;min-width:220px;color:rgba(255,255,255,.82)">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(255,255,255,.4);color:#fff">Политика cookie</span>. Запретить обработку можно в настройках браузера.</div>
-          <button class="btn sm solid" style="flex:none;background:#fff;border-color:#fff;color:var(--ink)">Принять</button>
+          <div class="small" style="flex:1;min-width:220px;color:rgba(255,255,255,.82)">Используем cookie для аналитики. Подробнее — <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(255,255,255,.4);color:#fff">Политика cookie</span>.</div>
+          <div class="row" style="flex:none;gap:8px">
+            <button class="btn sm" style="flex:none;background:transparent;border-color:rgba(255,255,255,.3);color:#fff">Отклонить</button>
+            <button class="btn sm solid" style="flex:none;background:#fff;border-color:#fff;color:var(--ink)">Принять</button>
+          </div>
         </div>
         <div data-swapped="bthemeauto" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:16px;text-align:center">
           <p class="tiny" style="color:rgba(17,17,16,.5)">Подстроится под системную тему браузера посетителя — светлая или тёмная. Один статичный превью здесь не покажет оба варианта.</p>
