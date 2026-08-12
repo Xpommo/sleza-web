@@ -1,0 +1,46 @@
+/* mobile-shared.css — разд.6 ТЗ «мобильная версия кабинета» (12.08.2026)
+
+   Минимум для cabinet-a.html/cabinet-b.html: не довести до продакшена,
+   а сделать так, чтобы обеими версиями можно было пользоваться с
+   телефона и честно сравнить IA с cabinet-mvp.html (там вся остальная
+   доводка — липкие плашки, аккордеоны, недостающие состояния —
+   доводка, имеет смысл только для версии, которая победит).
+
+   Подключается через <link> во всех трёх cabinet-*.html — держит эти
+   шесть пунктов в одном месте вместо трёх копий, которые разъедутся
+   при следующей правке. Остальной mobile-CSS (специфичный для каждого
+   макета) остаётся инлайново в самом файле, как и было. */
+
+/* строка вердикта — стек на мобильном (разд.3.1). Общий компонент,
+   живёт во всех трёх макетах, поэтому не завязан на id экрана */
+.verdict-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px}
+.verdict-risk::before{content:"· "}
+@media(max-width:640px){
+  .verdict-line{flex-direction:column;align-items:flex-start;gap:2px}
+  .verdict-risk::before{content:""}
+}
+
+/* зоны нажатия 44×44 (разд.0.1): Да/Нет и вкладки способов оплаты —
+   оба на .seg; чекбоксы — .check; глазок пароля — .pass-eye */
+@media(max-width:640px){
+  .seg{display:flex;width:100%;gap:8px}
+  .seg button{flex:1;min-height:44px;padding:8px 10px}
+  .check{padding:12px 0}
+  .pass-eye{width:44px;height:44px}
+}
+
+/* шрифт полей ввода 16px (разд.0.4) — 15px по умолчанию заставляет
+   iOS зумить страницу при фокусе */
+@media(max-width:640px){
+  input,select,textarea{font-size:16px}
+}
+
+/* лента режимов макета → select (разд.1.3) — четыре строки
+   переключателей на телефоне мучительно листать, а тестируют
+   сравнением именно так */
+.scr-nav-mobile{display:none}
+@media(max-width:640px){
+  #scr-nav{display:none !important}
+  .scr-nav-mobile{display:inline-block;margin-left:6px;max-width:150px;font:inherit;letter-spacing:inherit;
+    border:1px solid var(--line-2);border-radius:6px;padding:2px 4px;background:var(--paper);color:inherit}
+}

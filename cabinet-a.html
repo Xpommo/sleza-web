@@ -329,6 +329,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   h1{font-size:22px}
 }
 </style>
+<link rel="stylesheet" href="mobile-shared.css">
 </head>
 <body>
 
@@ -340,6 +341,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   <span style="border:1px solid var(--line-2);border-radius:999px;padding:2px 8px">макет · вариант А</span>
   <span style="margin-left:10px">экран:</span>
   <span id="scr-nav" style="display:inline-flex;gap:3px;flex-wrap:wrap"></span>
+  <select id="scr-nav-mobile" class="scr-nav-mobile"></select>
 </div>
 
 <!-- ══════════════════ 00 · РЕГИСТРАЦИЯ ══════════════════════════════ -->
@@ -827,7 +829,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
            можно переслать директору или распечатать перед разговором, не сам
            браузерный отчёт. -->
       <div class="card pad" style="margin-top:16px;border-color:rgba(214,56,22,.3)">
-        <span class="b red" style="font-size:16px">⛔ 2 нарушения <span style="color:var(--warn);font-weight:500">· 1 замечание</span> <span class="muted" style="font-weight:500">· риск до 300 000 ₽</span></span>
+        <div class="verdict-line"><span class="b red" style="font-size:16px">⛔ 2 нарушения <span style="color:var(--warn);font-weight:500">· 1 замечание</span></span><span class="muted verdict-risk" style="font-weight:500;font-size:16px">риск до 300 000 ₽</span></div>
         <p class="lead" style="margin-top:8px">Соберём документы под ООО «Альфа Образование» (ИНН 7701234567) — закроем сами, от вас нужны только данные для анкеты.</p>
         <div class="row" style="margin-top:12px">
           <button type="button" class="btn solid" data-go="s-prepare">💳 Подключить за 2 990 ₽/мес</button>
@@ -1375,6 +1377,7 @@ var SCREENS = ['s-login','s-forgot','s-register','s-confirm','s-empty','s-add','
 var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-confirm':'ваш сайт?','s-empty':'пусто','s-add':'добавить','s-fullanketa':'полная анкета','s-list':'список','s-project':'проект','s-prepare':'1/4','s-anketa':'2/4','s-ready':'3/4','s-install':'4/4','s-project-paid':'оплачен','s-docs':'документы','s-widget':'виджет','s-settings':'настройки','s-billing':'подписка'};
 
 var nav = document.getElementById('scr-nav');
+var navMobile = document.getElementById('scr-nav-mobile');
 SCREENS.forEach(function(id){
   var b = document.createElement('button');
   b.textContent = LABELS[id];
@@ -1382,13 +1385,20 @@ SCREENS.forEach(function(id){
   b.addEventListener('click', function(){ goScreen(id); });
   b.dataset.navFor = id;
   nav.appendChild(b);
+
+  var o = document.createElement('option');
+  o.value = id;
+  o.textContent = LABELS[id];
+  navMobile.appendChild(o);
 });
+navMobile.addEventListener('change', function(){ goScreen(navMobile.value); });
 
 function paintNav(id){
   document.querySelectorAll('[data-nav-for]').forEach(function(b){
     b.style.background = (b.dataset.navFor === id) ? 'var(--ink)' : 'none';
     b.style.color = (b.dataset.navFor === id) ? '#fff' : 'inherit';
   });
+  navMobile.value = id;
 }
 
 function goScreen(id){

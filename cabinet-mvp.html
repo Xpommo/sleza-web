@@ -364,7 +364,113 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   .startwrap{padding:20px 14px 80px}
   h1{font-size:22px}
 }
+
+/* ── липкая плашка действия, разд.2 ТЗ 12.08 ──────────────────────────
+   На длинных экранах (s-ready/s-pay/s-install/s-project) главную кнопку
+   уносит за несколько прокруток. Плашка держит её на виду; исходная
+   кнопка в конце потока остаётся как есть — раздел 2 требует именно
+   дублирование, не перенос, чтобы у дошедшего до низа тоже была кнопка
+   под рукой, без поиска глазами вверх. */
+.sticky-cta{display:none}
+@media(max-width:640px){
+  .sticky-cta{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    position:fixed;left:0;right:0;bottom:0;z-index:15;
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    background:var(--paper);border-top:1px solid var(--line);
+    box-shadow:0 -8px 20px rgba(17,17,16,.08)
+  }
+  .sticky-cta .ctx{font-size:13px;font-weight:700;color:rgba(17,17,16,.6);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sticky-cta .btn{flex:none}
+}
+
+/* ── s-project, разд.3.1 ТЗ 12.08 — только мобильный, десктоп не трогаем ── */
+.verdict-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px}
+.verdict-risk::before{content:"· "}
+.proj-recheck-bottom{display:none}
+@media(max-width:640px){
+  /* строка вердикта разъезжалась по колонкам — стек, риск отдельной строкой */
+  .verdict-line{flex-direction:column;align-items:flex-start;gap:2px}
+  .verdict-risk::before{content:""}
+
+  /* оператор/ИНН — самое дорогое место у сгиба, читатель и так знает свой
+     ИНН; сдвигаем ниже статусной строки чисто визуально (order), в DOM
+     остаётся на месте — десктопный порядок текста не меняем */
+  .proj-head-info{display:flex;flex-direction:column}
+  .proj-head-info .proj-title{order:1}
+  .proj-head-info .proj-status{order:2}
+  .proj-head-info .proj-oper{order:3;margin-top:6px}
+
+  /* «Проверить сейчас» — вторичное действие, не может стоять раньше
+     главной кнопки; дублируем под низ карточки, наверху прячем */
+  .proj-recheck-top{display:none}
+  .proj-recheck-bottom{display:inline-flex;margin-top:12px}
+
+  /* бейдж «закроем сами» ломал заголовок находки на три строки —
+     переносим на отдельную строку под заголовком */
+  .find button.hd{flex-wrap:wrap}
+  .find button.hd .st{order:2}
+  .find button.hd .chev{order:3}
+  .find button.hd .chip{order:4;flex-basis:100%;margin:4px 0 0 19px}
+}
+
+/* разд.0.1 (зоны нажатия 44×44 — .seg/.check/.pass-eye) — в mobile-shared.css */
+
+/* ── разд.3.2 ТЗ 12.08 — s-status, только мобильный ── */
+@media(max-width:640px){
+  /* с одним сайтом главное — сам сайт, не добавление второго */
+  .projgrid > .addcard{order:99}
+  /* плитка/список — десктопное переключение, на мобильном только карточки */
+  .viewbar{display:none}
+}
+
+/* ── разд.3.4 ТЗ 12.08 — s-ready, превью подвала в аккордеон на мобильном ── */
+.preview-accordion{display:none}
+@media(max-width:640px){
+  .preview-block{display:none}
+  .preview-accordion{display:block;margin-top:18px}
+  .preview-accordion summary{cursor:pointer;font-size:15px;font-weight:800;letter-spacing:-.02em;list-style:none}
+  .preview-accordion summary::-webkit-details-marker{display:none}
+  .preview-accordion summary::after{content:"⌄";float:right;color:rgba(17,17,16,.4)}
+  .preview-accordion[open] summary::after{content:"⌃"}
+}
+
+/* ── разд.3.5 ТЗ 12.08 — s-pay, форма «По счёту»: без пар в ряд ──
+   вкладки способов оплаты уже покрыты общим правилом .seg (разд.0.1) */
+@media(max-width:640px){
+  .field-row{flex-direction:column;gap:0 !important}
+  .field-row > div{width:100%}
+  .field-row > div + div{margin-top:10px}
+}
+
+/* ── разд.3.7 ТЗ 12.08 — s-settings, разделы в аккордеон ──────────────
+   <details open> по умолчанию — десктоп выглядит как раньше (всё видно,
+   без интерактивной хромы); на мобильном JS снимает open при загрузке
+   (см. script), раскрывается по одному тапом. Дублировать разметку
+   ради развала по брейкпоинту здесь не оправдано — разделы тяжёлые
+   (карточки, формы, превью виджета), не пара строк как на s-ready. */
+details.acc{margin-top:24px}
+details.acc:first-child{margin-top:0}
+.acc-title{font-size:15px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px;cursor:pointer;list-style:none}
+.acc-title::-webkit-details-marker{display:none}
+.acc-title::after{display:none}
+@media(max-width:640px){
+  .acc-title::after{content:"⌄";float:right;color:rgba(17,17,16,.4);display:inline}
+  details.acc[open] .acc-title::after{content:"⌃"}
+}
+
+/* разд.0.4 (шрифт полей 16px) — в mobile-shared.css */
+
+/* ── разд.3.6 ТЗ 12.08 — s-install, только мобильный ── */
+.mail-self-h2,.mail-self{display:none}
+@media(max-width:640px){
+  .mail-self-h2,.mail-self{display:block}
+  .copy-code-btn{width:100%}
+}
+
+/* разд.1.3 (лента режимов макета → select) — в mobile-shared.css */
 </style>
+<link rel="stylesheet" href="mobile-shared.css">
 </head>
 <body>
 
@@ -376,6 +482,9 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   <span style="border:1px solid var(--line-2);border-radius:999px;padding:2px 8px">макет · MVP</span>
   <span style="margin-left:10px">экран:</span>
   <span id="scr-nav" style="display:inline-flex;gap:3px;flex-wrap:wrap"></span>
+  <!-- разд.1.3 ТЗ 12.08 — на мобильном лента режимов схлопывается в select,
+       тестировать проще, чем ловить крошечные кнопки; десктоп не трогаем -->
+  <select id="scr-nav-mobile" class="scr-nav-mobile"></select>
 </div>
 
 <!-- ══════════════════ 01 · ВХОД ═══════════════════════════════════════ -->
@@ -388,7 +497,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     </div>
     <h1>Вход в кабинет</h1>
 
-    <div style="margin-top:20px"><label class="f" for="l-mail">Email</label><input class="inp" id="l-mail" type="email" placeholder="you@company.ru"></div>
+    <div style="margin-top:20px"><label class="f" for="l-mail">Email</label><input class="inp" id="l-mail" type="email" autocomplete="email" placeholder="you@company.ru"></div>
 
     <div style="margin-top:16px">
       <div class="row" style="justify-content:space-between;margin-bottom:6px">
@@ -396,7 +505,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
         <button type="button" class="btn text sm" style="padding:0" data-go="s-forgot">Забыли пароль?</button>
       </div>
       <div class="pass-wrap">
-        <input class="inp" id="l-pass" type="password" placeholder="••••••••">
+        <input class="inp" id="l-pass" type="password" autocomplete="current-password" placeholder="••••••••">
         <button type="button" class="pass-eye" data-pass-toggle="l-pass">
           <svg class="eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 12S5.4 5.5 12 5.5 22.2 12 22.2 12 18.6 18.5 12 18.5 1.8 12 1.8 12z"/><circle cx="12" cy="12" r="3.2"/></svg>
           <svg class="eye-hide" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.6 6c.77-.2 1.58-.3 2.4-.3 6.6 0 10.2 6.3 10.2 6.3s-.9 1.6-2.5 3.2M6.1 8c-2 1.7-3.1 4-3.1 4S6.6 18.3 12 18.3c1.3 0 2.5-.25 3.5-.66"/><path d="M10 10a2.8 2.8 0 0 0 4 4"/><path d="M3.5 3.5 20.5 20.5"/></svg>
@@ -428,7 +537,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <div class="state on" data-state="request">
       <h1>Восстановление пароля</h1>
       <p class="lead" style="margin-top:8px">Укажите почту, на которую регистрировались — пришлём ссылку для смены пароля.</p>
-      <div style="margin-top:20px"><label class="f" for="f-mail">Email</label><input class="inp" id="f-mail" type="email" placeholder="you@company.ru"></div>
+      <div style="margin-top:20px"><label class="f" for="f-mail">Email</label><input class="inp" id="f-mail" type="email" autocomplete="email" placeholder="you@company.ru"></div>
       <button type="button" class="btn solid wide" style="margin-top:20px" data-state-to="sent">Отправить ссылку</button>
       <p class="tiny" style="text-align:center;margin-top:24px">Вспомнили пароль? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
     </div>
@@ -462,12 +571,12 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
         <h1 style="margin-bottom:6px">Регистрация</h1>
         <p class="lead" style="margin-bottom:22px">Демо: подойдут любые данные — заполнять по-настоящему не нужно.</p>
 
-        <div><label class="f" for="r-mail">Email</label><input class="inp" id="r-mail" type="email" placeholder="you@company.ru"></div>
+        <div><label class="f" for="r-mail">Email</label><input class="inp" id="r-mail" type="email" autocomplete="email" placeholder="you@company.ru"></div>
 
         <div style="margin-top:16px">
           <label class="f" for="r-pass">Пароль</label>
           <div class="pass-wrap">
-            <input class="inp" id="r-pass" type="password" placeholder="Минимум 8 символов">
+            <input class="inp" id="r-pass" type="password" autocomplete="new-password" placeholder="Минимум 8 символов">
             <button type="button" class="pass-eye" data-pass-toggle="r-pass">
               <svg class="eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 12S5.4 5.5 12 5.5 22.2 12 22.2 12 18.6 18.5 12 18.5 1.8 12 1.8 12z"/><circle cx="12" cy="12" r="3.2"/></svg>
               <svg class="eye-hide" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.6 6c.77-.2 1.58-.3 2.4-.3 6.6 0 10.2 6.3 10.2 6.3s-.9 1.6-2.5 3.2M6.1 8c-2 1.7-3.1 4-3.1 4S6.6 18.3 12 18.3c1.3 0 2.5-.25 3.5-.66"/><path d="M10 10a2.8 2.8 0 0 0 4 4"/><path d="M3.5 3.5 20.5 20.5"/></svg>
@@ -598,25 +707,26 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     </aside>
     <main class="main narrow">
       <div class="row" style="justify-content:space-between;align-items:flex-start">
-        <div>
-          <div class="mono" style="font-size:24px;font-weight:700">alfa-school.ru</div>
-          <p class="tiny" style="margin-top:3px">ООО «Альфа Образование» · ИНН 7701234567</p>
-          <div class="row" style="margin-top:6px;gap:14px">
+        <div class="proj-head-info">
+          <div class="mono proj-title" style="font-size:24px;font-weight:700">alfa-school.ru</div>
+          <p class="tiny proj-oper" style="margin-top:3px">ООО «Альфа Образование» · ИНН 7701234567</p>
+          <div class="row proj-status" style="margin-top:6px;gap:14px">
             <span class="tiny mono">проверен 7 дней назад</span>
             <span class="small" style="color:var(--warn);font-weight:600">⚠ подписка не подключена</span>
           </div>
         </div>
-        <button class="btn sm">↻ Проверить сейчас</button>
+        <button class="btn sm proj-recheck-top">↻ Проверить сейчас</button>
       </div>
 
       <div class="card pad" style="margin-top:16px;border-color:rgba(214,56,22,.3)">
-        <span class="b red" style="font-size:16px">⛔ 2 нарушения <span style="color:var(--warn);font-weight:500">· 1 замечание</span> <span class="muted" style="font-weight:500">· риск до 300 000 ₽</span></span>
+        <div class="verdict-line"><span class="b red" style="font-size:16px">⛔ 2 нарушения <span style="color:var(--warn);font-weight:500">· 1 замечание</span></span><span class="muted verdict-risk" style="font-weight:500;font-size:16px">риск до 300 000 ₽</span></div>
         <p class="lead" style="margin-top:8px">Соберём документы под ООО «Альфа Образование» (ИНН 7701234567) — закроем сами, от вас нужны только данные для анкеты.</p>
         <div class="row" style="margin-top:12px">
           <button type="button" class="btn solid" data-go="s-prepare">💳 Подключить за 2 990 ₽/мес</button>
-          <span class="tiny mono">3 из 3 закроем сразу · документы готовы сразу после оплаты</span>
+          <span class="tiny mono">Закроем все три пункта, документы придут сразу после оплаты</span>
         </div>
         <p class="tiny" style="margin-top:10px;color:rgba(17,17,16,.5)">Реквизиты сверяем с ЕГРЮЛ, документы собираем под конкретную компанию — не общий шаблон.</p>
+        <button class="btn sm proj-recheck-bottom" type="button">↻ Проверить сейчас</button>
       </div>
 
       <h2 style="margin-top:22px">Что нашли</h2>
@@ -645,6 +755,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div id="ok-p" style="display:none;margin-top:8px" class="small muted">ЕРИР · маркировка рекламы — в норме<br>Оферта · условия продажи — в норме</div>
     </main>
   </div>
+  <div class="sticky-cta"><span class="ctx">риск до 300 000 ₽</span><button type="button" class="btn solid" data-go="s-prepare">Подключить</button></div>
 </section>
 
 <!-- ══════════════════ 04б · МОИ САЙТЫ — портировано из cabinet-b.html (s-list) ═
@@ -901,20 +1012,42 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/cookies — откроется после оплаты</p></div>
     </div>
 
-    <h2 style="margin-top:18px">Вот что появится на сайте</h2>
-    <div class="dark-footer" style="margin-top:12px">
-      <div class="lbl">подвал сайта после установки</div>
-      <div class="body">
-        <div class="row2">
-          <div>
-            <div class="org">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">119019, Москва, ул. Воздвиженка, д. 10 · buh@alfa-school.ru</div>
-            <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
+    <!-- десктоп — всегда развёрнуто, как раньше; на мобильном тот же блок
+         тяжёлый и не влияет на решение (разд.3.4 ТЗ 12.08) — прячем и
+         показываем мобильную версию-аккордеон ниже, без JS-состояний по
+         брейкпоинту дублируем разметку, тот же приём, что и .support-mobile -->
+    <div class="preview-block">
+      <h2 style="margin-top:18px">Вот что появится на сайте</h2>
+      <div class="dark-footer" style="margin-top:12px">
+        <div class="lbl">подвал сайта после установки</div>
+        <div class="body">
+          <div class="row2">
+            <div>
+              <div class="org">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">119019, Москва, ул. Воздвиженка, д. 10 · buh@alfa-school.ru</div>
+              <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
+            </div>
+            <div class="badge">Документы <b>Слеза</b></div>
           </div>
-          <div class="badge">Документы <b>Слеза</b></div>
         </div>
       </div>
     </div>
+    <details class="preview-accordion">
+      <summary>Вот что появится на сайте</summary>
+      <div class="dark-footer" style="margin-top:12px">
+        <div class="lbl">подвал сайта после установки</div>
+        <div class="body">
+          <div class="row2">
+            <div>
+              <div class="org">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">119019, Москва, ул. Воздвиженка, д. 10 · buh@alfa-school.ru</div>
+              <div class="links"><span>Политика конфиденциальности</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
+            </div>
+            <div class="badge">Документы <b>Слеза</b></div>
+          </div>
+        </div>
+      </div>
+    </details>
 
     <div class="card pad" style="margin-top:16px">
       <div class="row" style="justify-content:space-between"><span class="small muted">Подписка</span><span style="font-size:19px;font-weight:800">2 990 ₽/мес</span></div>
@@ -930,6 +1063,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <button type="button" class="btn solid wide" data-go="s-pay">Перейти к оплате →</button>
     <p class="tiny" style="text-align:center;margin-top:10px">Дальше — установка скрипта, 2 минуты. Без оплаты и установки баннер и реквизиты на сайте не появятся</p>
   </div>
+  <div class="sticky-cta"><span class="ctx">2 990 ₽/мес</span><button type="button" class="btn solid" data-go="s-pay">К оплате →</button></div>
 </section>
 
 <!-- ══════════════════ ВОРОНКА: 4/5 · ОПЛАТА ═══════════════════════════
@@ -977,7 +1111,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
          списке (когда провайдера выберут, встанет на своё место), но
          не должна быть первым впечатлением от экрана оплаты. -->
     <div class="card pad" style="margin-top:12px">
-      <div class="seg" style="margin-bottom:14px">
+      <div class="seg" id="pm-tabs" style="margin-bottom:14px">
         <button type="button" data-swap="pmpartner">Платёжный партнёр</button>
         <button type="button" class="on" data-swap="pmsbp">СБП</button>
         <button type="button" data-swap="pminvoice">По счёту</button>
@@ -1010,13 +1144,13 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
         <label class="f" style="margin-top:10px">Телефон</label>
         <input class="inp mono" placeholder="+7 (___) ___-__-__">
         <label class="f" style="margin-top:10px">Расчётный счёт</label>
-        <input class="inp mono" placeholder="40702810...">
-        <div class="row" style="margin-top:10px;gap:10px">
+        <input class="inp mono" inputmode="numeric" placeholder="40702810...">
+        <div class="row field-row" style="margin-top:10px;gap:10px">
           <div style="flex:1"><label class="f">Банк</label><input class="inp" placeholder="ПАО «...»"></div>
-          <div style="flex:1"><label class="f">БИК</label><input class="inp mono" placeholder="044525225"></div>
+          <div style="flex:1"><label class="f">БИК</label><input class="inp mono" inputmode="numeric" placeholder="044525225"></div>
         </div>
         <label class="f" style="margin-top:10px">Корр. счёт</label>
-        <input class="inp mono" placeholder="30101810...">
+        <input class="inp mono" inputmode="numeric" placeholder="30101810...">
         <p class="tiny" style="margin-top:10px">Счёт на 2 990 ₽ придёт на почту в PDF, оплатить можно переводом с расчётного счёта.</p>
         <div class="hr" style="margin-top:16px"></div>
         <button type="button" class="btn solid wide" data-set-status="pending" data-go="s-install">Выставить счёт → к установке</button>
@@ -1026,6 +1160,9 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <p class="tiny" style="margin-top:14px;text-align:center;color:rgba(17,17,16,.5)">🔒 Платёж обрабатывает защищённый шлюз · ваши данные под защитой</p>
     </div>
   </div>
+  <!-- следует за активной вкладкой способа оплаты — партнёр ещё пустая
+       заглушка без формы, там плашке нечего запускать, поэтому скрыта -->
+  <div class="sticky-cta" id="pay-sticky"><span class="ctx">2 990 ₽/мес</span><button type="button" class="btn solid" id="pay-sticky-btn" data-go="s-install" data-set-status="paid">Оплатить →</button></div>
 </section>
 
 <!-- ══════════════════ ВОРОНКА: 5/5 · УСТАНОВКА (онбординг после оплаты) ═
@@ -1052,11 +1189,21 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <label class="f">Почта разработчика</label><input class="inp mono" placeholder="dev@studio.ru"><button class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
     </div>
 
-    <h2 style="margin-top:18px">Сделать самому</h2>
+    <!-- только мобильный (разд.3.6 ТЗ 12.08) — на телефоне лезть в
+         админку чужого сайта нереалистично, честный сценарий это переслать
+         себе и доделать с компьютера; на десктопе это и так тот компьютер -->
+    <h2 class="mail-self-h2" style="margin-top:18px">Отправить себе на почту</h2>
+    <div class="card pad mail-self">
+      <p class="tiny" style="margin-bottom:10px">Сделаю с компьютера — пришлём код и инструкцию на вашу почту.</p>
+      <label class="f">Почта</label><input class="inp mono" value="director@alfa-school.ru"><button class="btn solid sm" style="margin-top:10px">Отправить себе</button>
+    </div>
+
+    <details class="acc" open style="margin-top:18px">
+    <summary class="acc-title">Сделать самому</summary>
     <div class="card pad">
       <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
-      <button class="btn sm" style="margin-top:10px">Скопировать код</button>
+      <button class="btn sm copy-code-btn" style="margin-top:10px">Скопировать код</button>
       <div class="hr"></div>
       <div class="tabs"><button class="on" data-swap="t1">Тильда</button><button data-swap="t2">WordPress</button><button data-swap="t3">Битрикс</button><button data-swap="t4">Другой сайт</button></div>
       <div class="small" data-swapped="t1">Настройки сайта → Ещё → HTML-код для вставки внутрь HEAD → вставить строку → Опубликовать все страницы.</div>
@@ -1064,6 +1211,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="small" data-swapped="t3" style="display:none">Настройки → Настройки продукта → Сайты → шаблон сайта → вставить в секцию HEAD.</div>
       <div class="small" data-swapped="t4" style="display:none">Вставьте строку в HTML любой страницы перед закрывающим тегом &lt;/head&gt;.</div>
     </div>
+    </details>
 
     <div class="card pad" style="margin-top:14px">
       <div class="b red">✕ Скрипт на сайте не найден</div>
@@ -1074,6 +1222,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <div class="hr" style="margin-top:20px"></div>
     <button type="button" class="btn solid wide" data-go="s-project-paid">Готово → в кабинет</button>
   </div>
+  <div class="sticky-cta"><span class="ctx">Скрипт не найден</span><button type="button" class="btn solid">↻ Проверить установку</button></div>
 </section>
 
 <!-- ══════════════════ КАБИНЕТ — ОБЗОР+ДОКУМЕНТЫ+ВИДЖЕТ, ОДНА СТРАНИЦА ═══
@@ -1221,7 +1370,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
            нужно больше места под превью. -->
       <div class="settings-grid" style="margin-top:16px">
         <div>
-          <h2>Контакты</h2>
+          <details class="acc" open>
+          <summary class="acc-title">Контакты</summary>
           <div class="card pad">
             <label class="f">Имя</label><input class="inp" value="Кирилл">
             <label class="f" style="margin-top:10px">Почта</label><input class="inp mono" value="director@alfa-school.ru">
@@ -1229,17 +1379,21 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
             <div class="row" style="justify-content:space-between"><span class="small">Пароль</span><button class="btn sm" data-go-modal="modal-pass">Изменить</button></div>
           </div>
           <button class="btn solid" style="margin-top:12px">Сохранить</button>
+          </details>
 
-          <h2 style="margin-top:24px">Реквизиты</h2>
+          <details class="acc" open style="margin-top:24px">
+          <summary class="acc-title">Реквизиты</summary>
           <div class="card pad row" style="justify-content:space-between">
             <div><div style="font-weight:700;font-size:14.5px" id="req-name-set">ООО «Альфа Образование»</div><div class="tiny mono" id="req-inn-set">ИНН 7701234567</div></div>
             <button class="btn sm" data-go-modal="modal-req-set">Проверить и изменить</button>
           </div>
           <p class="tiny" style="margin-top:7px">Сверено с ЕГРЮЛ — используются в документах и в подвале сайта.</p>
+          </details>
         </div>
 
         <div>
-          <h2>Подписка</h2>
+          <details class="acc" open>
+          <summary class="acc-title">Подписка</summary>
           <div class="card pad">
             <label class="f">Способ продления</label>
             <div class="seg" style="margin:6px 0 12px">
@@ -1258,6 +1412,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
             <div class="hr"></div>
             <button class="btn text sm" style="color:var(--danger);padding:0" data-go-modal="modal-cancel">Отменить подписку</button>
           </div>
+          </details>
         </div>
       </div>
 
@@ -1267,7 +1422,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
            одного вида превью (зависит от темы браузера посетителя),
            поэтому вместо картинки — поясняющий текст, а не додуманная
            третья картинка. -->
-      <h2 style="margin-top:28px">Виджет</h2>
+      <details class="acc" open style="margin-top:28px">
+      <summary class="acc-title">Виджет</summary>
       <div class="card pad">
         <span class="b green">✓ Работает</span>
         <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
@@ -1324,6 +1480,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <button class="btn sm" style="margin-top:10px">↻ Проверить установку</button>
         </div>
       </div>
+      </details>
     </main>
   </div>
 </section>
@@ -1459,7 +1616,10 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         </div>
       </div>
 
-      <h2 style="margin-top:24px">Написать в поддержку</h2>
+      <!-- на мобильном свёрнута до тапа (разд.3.8 ТЗ 12.08) — тот же
+           приём <details class="acc">, что и в s-settings -->
+      <details class="acc" open style="margin-top:24px">
+      <summary class="acc-title">Написать в поддержку</summary>
       <div class="card pad" style="margin-top:10px;max-width:520px">
         <div class="state on" data-state="form">
           <label class="f">Опишите, что случилось</label>
@@ -1472,6 +1632,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <p class="small" style="margin-top:6px;color:var(--ink-2)">Заявка №1043 · появится выше в «Моих обращениях», когда ответим.</p>
         </div>
       </div>
+      </details>
     </main>
   </div>
 </section>
@@ -1483,6 +1644,7 @@ var SCREENS = ['s-login','s-forgot','s-register','s-verify','s-confirm','s-add',
 var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
 
 var nav = document.getElementById('scr-nav');
+var navMobile = document.getElementById('scr-nav-mobile');
 SCREENS.forEach(function(id){
   var b = document.createElement('button');
   b.textContent = LABELS[id];
@@ -1490,13 +1652,20 @@ SCREENS.forEach(function(id){
   b.addEventListener('click', function(){ goScreen(id); });
   b.dataset.navFor = id;
   nav.appendChild(b);
+
+  var o = document.createElement('option');
+  o.value = id;
+  o.textContent = LABELS[id];
+  navMobile.appendChild(o);
 });
+navMobile.addEventListener('change', function(){ goScreen(navMobile.value); });
 
 function paintNav(id){
   document.querySelectorAll('[data-nav-for]').forEach(function(b){
     b.style.background = (b.dataset.navFor === id) ? 'var(--ink)' : 'none';
     b.style.color = (b.dataset.navFor === id) ? '#fff' : 'inherit';
   });
+  navMobile.value = id;
 }
 
 /* тулбар макета переносится по строкам (зависит от ширины окна) и перекрывал
@@ -1509,6 +1678,13 @@ function syncToolbarHeight(){
 }
 syncToolbarHeight();
 window.addEventListener('resize', syncToolbarHeight);
+
+/* аккордеон настроек (разд.3.7) — <details open> в разметке держит
+   десктоп как раньше; на мобильном сворачиваем при загрузке, раскрывать
+   дальше — обычное поведение <details>, JS больше не нужен */
+if (window.innerWidth <= 640) {
+  document.querySelectorAll('details.acc[open]').forEach(function(d){ d.open = false; });
+}
 
 var siteStatus = 'unpaid'; // 'unpaid' | 'pending' (счёт выставлен) | 'paid'
 
@@ -1554,6 +1730,21 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
     });
   });
 });
+
+/* липкая плашка на s-pay повторяет действие активной вкладки способа
+   оплаты — «партнёр» ещё заглушка без формы, там плашку прячем */
+var pmTabs = document.getElementById('pm-tabs');
+if (pmTabs) {
+  pmTabs.querySelectorAll('[data-swap]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var bar = document.getElementById('pay-sticky');
+      var btn = document.getElementById('pay-sticky-btn');
+      if (b.dataset.swap === 'pmsbp') { btn.textContent = 'Оплатить →'; btn.dataset.setStatus = 'paid'; bar.style.display = ''; }
+      else if (b.dataset.swap === 'pminvoice') { btn.textContent = 'Выставить счёт →'; btn.dataset.setStatus = 'pending'; bar.style.display = ''; }
+      else { bar.style.display = 'none'; }
+    });
+  });
+}
 
 /* состояния внутри экрана */
 document.querySelectorAll('[data-state-to]').forEach(function(b){
