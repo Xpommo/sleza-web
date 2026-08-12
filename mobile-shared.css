@@ -44,3 +44,16 @@
   .scr-nav-mobile{display:inline-block;margin-left:6px;max-width:150px;font:inherit;letter-spacing:inherit;
     border:1px solid var(--line-2);border-radius:6px;padding:2px 4px;background:var(--paper);color:inherit}
 }
+/* на iPhone SE и подобных узких экранах бейдж «макет · вариант А/Б» —
+   длиннее, чем у MVP («макет · MVP») — вместе с select не помещались
+   в 375px и переносили строку тулбара на две. Проверено на реальном
+   375×667. */
+@media(max-width:400px){
+  .scr-nav-mobile{max-width:108px}
+}
+/* 320px (iPhone SE 1-го поколения и подобные) — ещё теснее */
+@media(max-width:340px){
+  .micro{padding-left:10px !important;padding-right:10px !important}
+  .scr-nav-mobile{max-width:80px;margin-left:4px}
+  .seg button{padding:8px 4px;font-size:12px}
+}
