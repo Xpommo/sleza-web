@@ -653,11 +653,29 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 <div class="state" data-state="closed" id="modal-req-fa" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Реквизиты</h3><button class="btn text sm" data-modal-close="modal-req-fa">✕</button></div>
-    <p class="tiny" style="margin-top:6px">Впишите наименование и ИНН — сверим с ЕГРЮЛ.</p>
-    <label class="f" style="margin-top:14px">Наименование</label>
+    <p class="tiny" style="margin-top:6px">Сайт не сканировали — впишите наименование и ИНН сами, дальше сверим с ЕГРЮЛ и подставим остальное.</p>
+    <label class="f" style="margin-top:14px">Наименование <span style="color:var(--danger)">*</span></label>
     <input class="inp" id="modal-req-name-fa" value="ООО «Альфа Образование»">
-    <label class="f" style="margin-top:10px">ИНН</label>
+    <label class="f" style="margin-top:10px">ИНН <span style="color:var(--danger)">*</span></label>
     <input class="inp mono" id="modal-req-inn-fa" value="7701234567">
+
+    <div class="hr" style="margin-top:16px"></div>
+    <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--danger)">нужно заполнить самостоятельно — ЕГРЮЛ этого не даёт</div>
+    <label class="f" style="margin-top:8px">Адрес для переписки <span style="color:var(--danger)">*</span></label>
+    <input class="inp" placeholder="Индекс, город, улица, дом">
+    <label class="f" style="margin-top:10px">Email для счёта <span style="color:var(--danger)">*</span></label>
+    <input class="inp" placeholder="buh@alfa-school.ru">
+    <label class="f" style="margin-top:10px">Телефон <span style="color:var(--danger)">*</span></label>
+    <input class="inp mono" placeholder="+7 (___) ___-__-__">
+    <label class="f" style="margin-top:10px">Расчётный счёт <span style="color:var(--danger)">*</span></label>
+    <input class="inp mono" placeholder="40702810...">
+    <div class="row" style="margin-top:10px;gap:10px">
+      <div style="flex:1"><label class="f">Банк <span style="color:var(--danger)">*</span></label><input class="inp" placeholder="ПАО «...»"></div>
+      <div style="flex:1"><label class="f">БИК <span style="color:var(--danger)">*</span></label><input class="inp mono" placeholder="044525225"></div>
+    </div>
+    <label class="f" style="margin-top:10px">Корр. счёт <span style="color:var(--danger)">*</span></label>
+    <input class="inp mono" placeholder="30101810...">
+
     <div class="row" style="margin-top:16px"><button class="btn solid" data-save-req="fa" data-modal-close="modal-req-fa">Сохранить</button><button class="btn text" data-modal-close="modal-req-fa">Отмена</button></div>
   </div>
 </div>
@@ -883,11 +901,32 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 <div class="state" data-state="closed" id="modal-req-b" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Реквизиты</h3><button class="btn text sm" data-modal-close="modal-req-b">✕</button></div>
-    <p class="tiny" style="margin-top:6px">Подставили из ЕГРЮЛ — проверьте и поправьте, если нужно.</p>
-    <label class="f" style="margin-top:14px">Наименование</label>
+
+    <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ok);margin-top:14px">✓ заполним сами — вам нужно только проверить</div>
+    <label class="f" style="margin-top:8px">Наименование</label>
     <input class="inp" id="modal-req-name-b" value="ООО «Альфа Образование»">
+    <label class="f" style="margin-top:10px">ОГРН</label>
+    <input class="inp mono" value="1157746112233">
     <label class="f" style="margin-top:10px">ИНН</label>
     <input class="inp mono" id="modal-req-inn-b" value="7701234567">
+
+    <div class="hr" style="margin-top:16px"></div>
+    <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--danger)">нужно заполнить самостоятельно</div>
+    <label class="f" style="margin-top:8px">Адрес для переписки <span style="color:var(--danger)">*</span></label>
+    <input class="inp" placeholder="Индекс, город, улица, дом">
+    <label class="f" style="margin-top:10px">Email для счёта <span style="color:var(--danger)">*</span></label>
+    <input class="inp" placeholder="buh@alfa-school.ru">
+    <label class="f" style="margin-top:10px">Телефон <span style="color:var(--danger)">*</span></label>
+    <input class="inp mono" placeholder="+7 (___) ___-__-__">
+    <label class="f" style="margin-top:10px">Расчётный счёт <span style="color:var(--danger)">*</span></label>
+    <input class="inp mono" placeholder="40702810...">
+    <div class="row" style="margin-top:10px;gap:10px">
+      <div style="flex:1"><label class="f">Банк <span style="color:var(--danger)">*</span></label><input class="inp" placeholder="ПАО «...»"></div>
+      <div style="flex:1"><label class="f">БИК <span style="color:var(--danger)">*</span></label><input class="inp mono" placeholder="044525225"></div>
+    </div>
+    <label class="f" style="margin-top:10px">Корр. счёт <span style="color:var(--danger)">*</span></label>
+    <input class="inp mono" placeholder="30101810...">
+
     <div class="row" style="margin-top:16px"><button class="btn solid" data-save-req="b" data-modal-close="modal-req-b">Сохранить</button><button class="btn text" data-modal-close="modal-req-b">Отмена</button></div>
   </div>
 </div>
@@ -948,7 +987,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <!-- Появляется, потому что на анкете (s-anketa) ответили «да» —
            звоните/пишете по базе клиентов. Без этого документа ответ
            «да» на анкете ничем не подкреплён в выдаче. -->
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на рекламную рассылку</div><div class="tiny mono">alfa-school.ru/legal/marketing-consent</div></div><button class="btn sm">Открыть</button></div>
+      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на получение рекламных сообщений</div><div class="tiny mono">alfa-school.ru/legal/marketing-consent</div></div><button class="btn sm">Открыть</button></div>
       <div class="row" style="padding:11px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика в отношении cookie</div><div class="tiny mono">alfa-school.ru/legal/cookies</div></div><button class="btn sm">Открыть</button></div>
     </div>
 
@@ -1105,7 +1144,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="card" style="overflow:hidden">
         <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика конфиденциальности</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
         <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на обработку ПДн</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
-        <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на рекламную рассылку</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
+        <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
         <div class="row" style="padding:11px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика в отношении cookie</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
       </div>
       <h2 style="margin-top:18px">История</h2>
@@ -1143,7 +1182,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <span class="chip green">актуальна</span><button class="btn sm">Открыть</button>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на рекламную рассылку</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
           <span class="chip green">актуальна</span><button class="btn sm">Открыть</button>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
