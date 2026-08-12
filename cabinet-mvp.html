@@ -372,7 +372,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <div style="margin-top:16px">
       <div class="row" style="justify-content:space-between;margin-bottom:6px">
         <label class="f" for="l-pass" style="margin:0">Пароль</label>
-        <button type="button" class="btn text sm" style="padding:0">Забыли пароль?</button>
+        <button type="button" class="btn text sm" style="padding:0" data-go="s-forgot">Забыли пароль?</button>
       </div>
       <div class="pass-wrap">
         <input class="inp" id="l-pass" type="password" placeholder="••••••••">
@@ -389,6 +389,35 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
     <p class="tiny" style="text-align:center;margin-top:28px">Нет аккаунта? <button type="button" class="btn text sm" style="padding:0" data-go="s-register">Создать</button></p>
     <p class="tiny" style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)">Политика конфиденциальности · Оферта</p>
+  </div>
+</section>
+
+<!-- ══════════════════ 01б · ВОССТАНОВЛЕНИЕ ПАРОЛЯ ══════════════════════
+     «Забыли пароль?» на s-login раньше никуда не вела — тупиковая кнопка
+     на первом экране флоу. Тот же паттерн, что s-verify (запрос →
+     демо-подтверждение), не отдельный сложный флоу с реальным письмом. -->
+<section class="screen" id="s-forgot">
+  <div class="startwrap" style="max-width:400px;padding-top:56px">
+    <div class="row" style="gap:9px;margin-bottom:28px">
+      <svg width="26" height="17" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg>
+      <b class="mono" style="font-size:15px;font-weight:800">ШтрафКонтроль</b>
+      <span class="chip out">макет</span>
+    </div>
+
+    <div class="state on" data-state="request">
+      <h1>Восстановление пароля</h1>
+      <p class="lead" style="margin-top:8px">Укажите почту, на которую регистрировались — пришлём ссылку для смены пароля.</p>
+      <div style="margin-top:20px"><label class="f" for="f-mail">Email</label><input class="inp" id="f-mail" type="email" placeholder="you@company.ru"></div>
+      <button type="button" class="btn solid wide" style="margin-top:20px" data-state-to="sent">Отправить ссылку</button>
+      <p class="tiny" style="text-align:center;margin-top:24px">Вспомнили пароль? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
+    </div>
+
+    <div class="state" data-state="sent" style="text-align:center">
+      <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:22px">✉️</div>
+      <h1>Проверьте почту</h1>
+      <p class="lead" style="margin-top:10px">Если аккаунт с этой почтой есть — прислали ссылку для смены пароля. Ссылка действует 30 минут.</p>
+      <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-login">Вернуться ко входу</button>
+    </div>
   </div>
 </section>
 
@@ -871,19 +900,25 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
          это не тот цикл, а self-serve документ. Оплата счётом не мгновенна
          (перевод идёт 1–3 рабочих дня) — в кабинет ведёт сразу, как СБП,
          но статус сайта отмечается «ожидает оплаты» (siteStatus,
-         см. script) до тех пор, пока деньги не поступят. -->
+         см. script) до тех пор, пока деньги не поступят.
+
+         Открывается по умолчанию на СБП, не на «Платёжный партнёр» —
+         иначе первое, что видно на шаге оплаты, это пустая заглушка
+         «интеграция ещё не выбрана». Вкладка партнёра осталась в
+         списке (когда провайдера выберут, встанет на своё место), но
+         не должна быть первым впечатлением от экрана оплаты. -->
     <div class="card pad" style="margin-top:12px">
       <div class="seg" style="margin-bottom:14px">
-        <button type="button" class="on" data-swap="pmpartner">Платёжный партнёр</button>
-        <button type="button" data-swap="pmsbp">СБП</button>
+        <button type="button" data-swap="pmpartner">Платёжный партнёр</button>
+        <button type="button" class="on" data-swap="pmsbp">СБП</button>
         <button type="button" data-swap="pminvoice">По счёту</button>
       </div>
 
-      <div data-swapped="pmpartner" style="text-align:center;padding:24px 0">
+      <div data-swapped="pmpartner" style="display:none;text-align:center;padding:24px 0">
         <p class="tiny" style="color:rgba(17,17,16,.5)">Виджет платёжного партнёра — интеграция ещё не выбрана.</p>
       </div>
 
-      <div data-swapped="pmsbp" style="display:none;text-align:center">
+      <div data-swapped="pmsbp" style="text-align:center">
         <div style="width:120px;height:120px;margin:0 auto 12px;border:1.5px solid var(--line-2);border-radius:10px;background:repeating-linear-gradient(45deg,var(--ink) 0 3px,transparent 3px 6px),repeating-linear-gradient(-45deg,var(--ink) 0 3px,transparent 3px 6px);background-blend-mode:multiply;opacity:.85"></div>
         <p class="tiny">Отсканируйте в приложении банка или введите номер телефона</p>
         <input class="inp mono" placeholder="+7 (___) ___-__-__" style="margin-top:8px;max-width:260px">
@@ -1106,7 +1141,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
             <label class="f">Имя</label><input class="inp" value="Кирилл">
             <label class="f" style="margin-top:10px">Почта</label><input class="inp mono" value="director@alfa-school.ru">
             <div class="hr"></div>
-            <div class="row" style="justify-content:space-between"><span class="small">Пароль</span><button class="btn sm">Изменить</button></div>
+            <div class="row" style="justify-content:space-between"><span class="small">Пароль</span><button class="btn sm" data-go-modal="modal-pass">Изменить</button></div>
           </div>
           <button class="btn solid" style="margin-top:12px">Сохранить</button>
 
@@ -1134,9 +1169,9 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
               <p class="tiny" style="margin-top:5px">Следующий счёт придёт на почту за неделю до окончания оплаченного периода.</p>
             </div>
             <div class="hr"></div>
-            <div class="row" style="justify-content:space-between"><span class="small muted">alfa-school.ru</span><span class="chip green">оплачено до 05.09.2026</span></div>
+            <div class="row" style="justify-content:space-between"><span class="small muted">alfa-school.ru</span><span class="chip green" id="sub-chip">оплачено до 05.09.2026</span></div>
             <div class="hr"></div>
-            <button class="btn text sm" style="color:var(--danger);padding:0">Отменить подписку</button>
+            <button class="btn text sm" style="color:var(--danger);padding:0" data-go-modal="modal-cancel">Отменить подписку</button>
           </div>
         </div>
       </div>
@@ -1212,6 +1247,34 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <label class="f" style="margin-top:10px">ИНН</label>
     <input class="inp mono" id="modal-req-inn-set" value="7701234567">
     <div class="row" style="margin-top:16px"><button class="btn solid" data-save-req="set" data-modal-close="modal-req-set">Сохранить</button><button class="btn text" data-modal-close="modal-req-set">Отмена</button></div>
+  </div>
+</div>
+
+<!-- модалка смены пароля — «Изменить» в Настройках раньше никуда не вела -->
+<div class="state" data-state="closed" id="modal-pass" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
+    <div class="row" style="justify-content:space-between"><h3>Смена пароля</h3><button class="btn text sm" data-modal-close="modal-pass">✕</button></div>
+    <label class="f" style="margin-top:14px">Текущий пароль</label>
+    <input class="inp" type="password" placeholder="••••••••">
+    <label class="f" style="margin-top:10px">Новый пароль</label>
+    <input class="inp" type="password" placeholder="Минимум 8 символов">
+    <div class="row" style="margin-top:16px"><button class="btn solid" data-modal-close="modal-pass">Сохранить</button><button class="btn text" data-modal-close="modal-pass">Отмена</button></div>
+  </div>
+</div>
+
+<!-- модалка отмены подписки — раньше срабатывала мгновенно по клику,
+     без подтверждения и без опоры на текст последствий, который уже
+     есть на s-project-paid («баннер и документы останутся, но
+     обновление приостановится»). Теперь этот же текст закрепляется
+     здесь, на шаге, где решение реально принимается. -->
+<div class="state" data-state="closed" id="modal-cancel" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
+    <div class="row" style="justify-content:space-between"><h3>Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
+    <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 05.09.2026. После этого баннер и документы останутся на сайте, но обновление при смене закона приостановится.</p>
+    <div class="row" style="margin-top:16px">
+      <button class="btn solid" id="cancel-confirm" style="background:var(--danger);border-color:var(--danger)" data-modal-close="modal-cancel">Да, отменить</button>
+      <button class="btn text" data-modal-close="modal-cancel">Оставить подписку</button>
+    </div>
   </div>
 </div>
 
@@ -1304,8 +1367,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-register','s-verify','s-confirm','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-pay','s-install','s-project-paid','s-docs','s-settings','s-support'];
-var LABELS = {'s-login':'вход','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
+var SCREENS = ['s-login','s-forgot','s-register','s-verify','s-confirm','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-pay','s-install','s-project-paid','s-docs','s-settings','s-support'];
+var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
 
 var nav = document.getElementById('scr-nav');
 SCREENS.forEach(function(id){
@@ -1441,6 +1504,16 @@ document.querySelectorAll('[data-save-req]').forEach(function(b){
     if (innEl) innEl.textContent = 'ИНН ' + inn;
   });
 });
+
+/* подтверждение отмены подписки — статус на карточке меняется сразу,
+   без перезагрузки экрана, чтобы решение в модалке было видно на месте */
+var cancelConfirm = document.getElementById('cancel-confirm');
+if (cancelConfirm) {
+  cancelConfirm.addEventListener('click', function(){
+    var chip = document.getElementById('sub-chip');
+    if (chip) { chip.textContent = 'отменена · доступ до 05.09.2026'; chip.className = 'chip amber'; }
+  });
+}
 
 /* новый тикет — добавляется в «Мои обращения» со статусом «открыто»,
    ответ появляется там же, когда поддержка ответит (не только на почту) */
