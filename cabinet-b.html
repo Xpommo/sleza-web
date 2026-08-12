@@ -194,10 +194,19 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   .js .appwrap.sidebar{display:block}
   .side{position:static;min-height:0;flex-direction:row;flex-wrap:wrap;padding:12px 14px;border-right:0;border-bottom:1px solid var(--line)}
   .logo{margin-bottom:0}
-  .backlink{display:none}
   .navlist{flex-direction:row;flex-wrap:wrap}
   .side .acct{margin-top:0;padding-top:0;border-top:0;margin-left:auto}
   .main{padding:20px 16px 80px}
+
+  /* Разбор сайдбара на мобильном — построчный перенос логотипа/бэклинка/
+     навигации/аккаунта съедал половину экрана. Навигация (Обзор/Документы/
+     Виджет) — компактный сегмент-переключатель, не список в столбик.
+     «← Мои сайты» вернули (раньше просто прятали) — без него некуда
+     возвращаться. Меню аккаунта у верха экрана (было — внизу длинного
+     сайдбара) открывалось вверх и упиралось в край — теперь вниз. */
+  .navlist{display:inline-flex;gap:2px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
+  .navlist a,.navlist button,.navlist span.stub{padding:7px 11px;border-radius:7px;font-size:13px}
+  .acct-menu{bottom:auto;top:calc(100% + 6px)}
 }
 
 .projgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}

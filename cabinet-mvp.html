@@ -208,6 +208,9 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   font-size:13.5px;font-weight:600;color:var(--ink-2);background:none;border:0;cursor:pointer;text-align:left}
 .acct-menu a:hover,.acct-menu button:hover{background:var(--paper);color:var(--ink)}
 .acct-menu .div{height:1px;background:var(--line);margin:5px 2px}
+/* «Поддержка» дублируется сюда только на мобильном — см. @media 820px ниже,
+   раздел про сайдбар. На десктопе у неё свой пункт в сайдбаре, здесь она лишняя. */
+.support-mobile{display:none}
 
 /* ── «Мои сайты» — карточки/таблица, портировано из cabinet-b.html (s-list) ── */
 .strip{display:flex;gap:4px}
@@ -271,10 +274,28 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   .js .appwrap.sidebar{display:block}
   .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;padding:12px 14px;border-right:0;border-bottom:1px solid var(--line)}
   .logo{margin-bottom:0}
-  .backlink{display:none}
   .navlist{flex-direction:row;flex-wrap:wrap}
   .side .acct{margin-top:0;padding-top:0;border-top:0;margin-left:auto}
   .main{padding:20px 16px 80px}
+
+  /* Разбор сайдбара на мобильном — три ряда (лого/бэклинк/навигация/
+     Поддержка/аккаунт) читались только строчным переносом и съедали
+     половину экрана. Решение по частоте действия: «где я» (Обзор/
+     Документы) — часто, всегда на виду, но компактно, как сегмент-
+     переключатель, а не построчный список. «← Мои сайты» вернули
+     (раньше просто прятали) — без него было бы некуда возвращаться,
+     когда Поддержка уехала из сайдбара. «Поддержка» — редко, уходит в
+     меню аккаунта (см. .support-mobile выше и data-acct-menu в разметке),
+     там уже Настройки/Выйти — тот же уровень частоты, то же место. */
+  .navlist:not(.support){display:inline-flex;gap:2px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
+  .navlist:not(.support) a,.navlist:not(.support) button{padding:7px 11px;border-radius:7px;font-size:13px}
+  .navlist.support{display:none}
+  .support-mobile{display:flex}
+
+  /* Аккаунт теперь у верха экрана (был внизу длинного сайдбара), а меню
+     всё ещё открывалось вверх — упиралось в край экрана. На мобильном
+     логичнее вниз, там и есть свободное место. */
+  .acct-menu{bottom:auto;top:calc(100% + 6px)}
 }
 
 /* ── шаги воронки ── */
@@ -493,7 +514,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -528,7 +549,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <div class="acct">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -569,10 +590,10 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist"><a class="on">▤ Обзор</a></div>
-      <div class="navlist" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -641,10 +662,10 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <div class="navlist"><a class="on">📁 Мои сайты</a></div>
-      <div class="navlist" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -1066,10 +1087,10 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist"><a class="on">▤ Обзор</a><button type="button" data-go="s-docs">▤ Документы</button></div>
-      <div class="navlist" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -1131,10 +1152,10 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist"><button type="button" data-go="s-project-paid">▤ Обзор</button><a class="on">▤ Документы</a></div>
-      <div class="navlist" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -1182,10 +1203,10 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <button type="button" class="backlink" data-go="s-project-paid">← Обзор</button>
       <div class="navlist"><a class="on">⚙ Настройки</a></div>
-      <div class="navlist" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -1382,10 +1403,10 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>ШтрафКонтроль</b></div>
       <button type="button" class="backlink" data-go="s-project-paid">← Обзор</button>
-      <div class="navlist" style="margin-top:auto"><a class="on">💬 Поддержка</a></div>
+      <div class="navlist support" style="margin-top:auto"><a class="on">💬 Поддержка</a></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
       </div>
     </aside>
     <main class="main narrow">
