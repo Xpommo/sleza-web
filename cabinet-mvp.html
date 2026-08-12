@@ -382,6 +382,12 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   }
   .sticky-cta .ctx{font-size:13px;font-weight:700;color:rgba(17,17,16,.6);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sticky-cta .btn{flex:none}
+  /* s-install: «Скрипт не найден» + длинный текст кнопки не помещались
+     вдвоём на 390px — обрезалось до «Скрипт не н…», без смысла. Контекст
+     тут и не нужен, статус уже виден в карточке над плашкой — только
+     кнопка, прижатая вправо (без .ctx justify-content:space-between
+     иначе прижал бы кнопку в начало ряда). */
+  .sticky-cta.solo{justify-content:flex-end}
 }
 
 /* ── s-project, разд.3.1 ТЗ 12.08 — только мобильный, десктоп не трогаем ── */
@@ -407,11 +413,16 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   .proj-recheck-bottom{display:inline-flex;margin-top:12px}
 
   /* бейдж «закроем сами» ломал заголовок находки на три строки —
-     переносим на отдельную строку под заголовком */
+     переносим на отдельную строку под заголовком. flex-basis:100% прямо
+     на чипе тянул его на всю ширину карточки (стал похож на прогресс-бар,
+     не на метку) — перенос строки делает отдельный пустой ::after с
+     flex-basis:100%, а чип после него сидит на новой строке своим
+     естественным размером, ничего не растягивая. */
   .find button.hd{flex-wrap:wrap}
   .find button.hd .st{order:2}
   .find button.hd .chev{order:3}
-  .find button.hd .chip{order:4;flex-basis:100%;margin:4px 0 0 19px}
+  .find button.hd::after{content:"";order:3;flex-basis:100%}
+  .find button.hd .chip{order:4;margin:4px 0 0 19px}
 }
 
 /* разд.0.1 (зоны нажатия 44×44 — .seg/.check/.pass-eye) — в mobile-shared.css */
@@ -1222,7 +1233,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <div class="hr" style="margin-top:20px"></div>
     <button type="button" class="btn solid wide" data-go="s-project-paid">Готово → в кабинет</button>
   </div>
-  <div class="sticky-cta"><span class="ctx">Скрипт не найден</span><button type="button" class="btn solid">↻ Проверить установку</button></div>
+  <div class="sticky-cta solo"><button type="button" class="btn solid">↻ Проверить установку</button></div>
 </section>
 
 <!-- ══════════════════ КАБИНЕТ — ОБЗОР+ДОКУМЕНТЫ+ВИДЖЕТ, ОДНА СТРАНИЦА ═══
