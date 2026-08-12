@@ -347,7 +347,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <div style="margin-top:16px">
       <div class="row" style="justify-content:space-between;margin-bottom:6px">
         <label class="f" for="l-pass" style="margin:0">Пароль</label>
-        <button type="button" class="btn text sm" style="padding:0">Забыли пароль?</button>
+        <button type="button" class="btn text sm" style="padding:0" data-go="s-forgot">Забыли пароль?</button>
       </div>
       <div class="pass-wrap">
         <input class="inp" id="l-pass" type="password" placeholder="••••••••">
@@ -371,6 +371,35 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
     <p class="tiny" style="text-align:center;margin-top:28px">Нет аккаунта? <button type="button" class="btn text sm" style="padding:0" data-go="s-register">Создать</button></p>
     <p class="tiny" style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)">Политика конфиденциальности · Оферта</p>
+  </div>
+</section>
+
+<!-- ══════════════════ 00б · ВОССТАНОВЛЕНИЕ ПАРОЛЯ ══════════════════════
+     «Забыли пароль?» на s-login раньше никуда не вела — тупиковая кнопка
+     на первом экране флоу. Тот же паттерн запрос → демо-подтверждение,
+     не отдельный сложный флоу с реальным письмом. -->
+<section class="screen" id="s-forgot">
+  <div class="startwrap" style="max-width:400px;padding-top:56px">
+    <div class="row" style="gap:9px;margin-bottom:28px">
+      <svg width="26" height="17" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg>
+      <b class="mono" style="font-size:15px;font-weight:800">ШтрафКонтроль</b>
+      <span class="chip out">макет</span>
+    </div>
+
+    <div class="state on" data-state="request">
+      <h1>Восстановление пароля</h1>
+      <p class="lead" style="margin-top:8px">Укажите почту, на которую регистрировались — пришлём ссылку для смены пароля.</p>
+      <div style="margin-top:20px"><label class="f" for="f-mail">Email</label><input class="inp" id="f-mail" type="email" placeholder="you@company.ru"></div>
+      <button type="button" class="btn solid wide" style="margin-top:20px" data-state-to="sent">Отправить ссылку</button>
+      <p class="tiny" style="text-align:center;margin-top:24px">Вспомнили пароль? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
+    </div>
+
+    <div class="state" data-state="sent" style="text-align:center">
+      <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:22px">✉️</div>
+      <h1>Проверьте почту</h1>
+      <p class="lead" style="margin-top:10px">Если аккаунт с этой почтой есть — прислали ссылку для смены пароля. Ссылка действует 30 минут.</p>
+      <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-login">Вернуться ко входу</button>
+    </div>
   </div>
 </section>
 
@@ -765,11 +794,12 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
            браузерный отчёт. -->
       <div class="card pad" style="margin-top:16px;border-color:rgba(214,56,22,.3)">
         <span class="b red" style="font-size:16px">⛔ 2 нарушения <span style="color:var(--warn);font-weight:500">· 1 замечание</span> <span class="muted" style="font-weight:500">· риск до 300 000 ₽</span></span>
-        <p class="lead" style="margin-top:8px">К работе 3 пункта — закроем сами, от вас нужны только данные для анкеты.</p>
+        <p class="lead" style="margin-top:8px">Соберём документы под ООО «Альфа Образование» (ИНН 7701234567) — закроем сами, от вас нужны только данные для анкеты.</p>
         <div class="row" style="margin-top:12px">
           <button type="button" class="btn solid" data-go="s-prepare">💳 Подключить за 2 990 ₽/мес</button>
           <span class="tiny mono">3 из 3 закроем сразу · документы будут готовы за 2 рабочих дня</span>
         </div>
+        <p class="tiny" style="margin-top:10px;color:rgba(17,17,16,.5)">Реквизиты сверяем с ЕГРЮЛ, документы собираем под конкретную компанию — не общий шаблон.</p>
       </div>
 
       <h2 style="margin-top:22px">Что нашли</h2>
@@ -791,7 +821,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
         <button class="hd" data-find><span class="dot amber"></span><span class="nm" style="flex:1">149-ФЗ · реквизиты владельца</span><span class="st amber">замечание</span><span class="chip fill">закроем сами</span><span class="chev">›</span></button>
         <div class="bd">
           <div class="lbl">что нашли</div><div class="txt">В подвале нет ИНН и ОГРН. Наименование указано, но не совпадает с ЕГРЮЛ по форме собственности.</div>
-          <div class="lbl">чем грозит</div><div class="txt" style="color:var(--warn);font-weight:600">КоАП 13.11 ч.1 · рекомендация, штраф не предусмотрен</div>
+          <div class="lbl">чем грозит</div><div class="txt" style="color:var(--warn);font-weight:600">Требование к прозрачности продавца · рекомендация, штраф не предусмотрен</div>
         </div>
       </div>
       <button class="btn text sm" data-fold="ok-p">✓ 2 проверки в норме — ЕРИР, оферта ⌄</button>
@@ -895,6 +925,10 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <div class="card" style="overflow:hidden">
       <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика конфиденциальности</div><div class="tiny mono">alfa-school.ru/legal/privacy</div></div><button class="btn sm">Открыть</button></div>
       <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на обработку ПДн</div><div class="tiny mono">alfa-school.ru/legal/consent</div></div><button class="btn sm">Открыть</button></div>
+      <!-- Появляется, потому что на анкете (s-anketa) ответили «да» —
+           звоните/пишете по базе клиентов. Без этого документа ответ
+           «да» на анкете ничем не подкреплён в выдаче. -->
+      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на рекламную рассылку</div><div class="tiny mono">alfa-school.ru/legal/marketing-consent</div></div><button class="btn sm">Открыть</button></div>
       <div class="row" style="padding:11px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика в отношении cookie</div><div class="tiny mono">alfa-school.ru/legal/cookies</div></div><button class="btn sm">Открыть</button></div>
     </div>
 
@@ -1013,7 +1047,20 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <h1>Установить скрипт</h1>
       <p class="lead" style="margin-top:8px">Одна строчка кода. Она подтянет баннер, реквизиты и ссылки на документы — дальше мы обновляем их сами.</p>
 
-      <h2 style="margin-top:20px">Сделать самому</h2>
+      <!-- «Поручить» теперь первым блоком, «Сделать самому» — последним: для
+           основной персоны (не технарь, сайт делали давно и не он) это
+           экран, где выше всего риск упереться в «я сайт не трогаю» —
+           сначала показываем варианты, которые снимают этот страх, а не код. -->
+      <h2 style="margin-top:20px">Поручить тому, кто делает сайт</h2>
+      <div class="card pad">
+        <p class="tiny" style="margin-bottom:10px">Не нужно разбираться самим — перешлите тому, кто ведёт сайт. Без регистрации и входа в кабинет, только вставить одну строку кода.</p>
+        <label class="f">Почта разработчика</label><input class="inp mono" placeholder="dev@studio.ru"><button class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
+      </div>
+
+      <h2 style="margin-top:18px">Поручить нам</h2>
+      <div class="card pad row" style="justify-content:space-between"><div><div class="small">Подключимся к сайту и поставим сами.</div><div class="tiny" style="margin-top:3px">Разово, обычно в течение рабочего дня</div></div><b style="font-size:16px">1 500 ₽</b></div>
+
+      <h2 style="margin-top:18px">Сделать самому</h2>
       <div class="card pad">
         <div class="code">&lt;script src="https://cdn.shtrafkontrol.ru/w.js"
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
@@ -1025,12 +1072,6 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="small" data-swapped="t3" style="display:none">Настройки → Настройки продукта → Сайты → шаблон сайта → вставить в секцию HEAD.</div>
         <div class="small" data-swapped="t4" style="display:none">Вставьте строку в HTML любой страницы перед закрывающим тегом &lt;/head&gt;.</div>
       </div>
-
-      <h2 style="margin-top:18px">Поручить тому, кто делает сайт</h2>
-      <div class="card pad"><label class="f">Почта разработчика</label><input class="inp mono" placeholder="dev@studio.ru"><button class="btn sm" style="margin-top:10px">Отправить инструкцию</button></div>
-
-      <h2 style="margin-top:18px">Поручить нам</h2>
-      <div class="card pad row" style="justify-content:space-between"><div><div class="small">Подключимся к сайту и поставим сами.</div><div class="tiny" style="margin-top:3px">Разово, обычно в течение рабочего дня</div></div><b style="font-size:16px">1 500 ₽</b></div>
 
       <div class="card pad" style="margin-top:14px">
         <div class="b red">✕ Скрипт на сайте не найден</div>
@@ -1073,6 +1114,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="card" style="overflow:hidden">
         <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика конфиденциальности</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
         <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на обработку ПДн</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
+        <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на рекламную рассылку</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
         <div class="row" style="padding:11px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика в отношении cookie</div><div class="tiny mono">v1 · 05.08.2026</div></div><button class="btn sm">Открыть</button></div>
       </div>
       <h2 style="margin-top:18px">История</h2>
@@ -1107,6 +1149,10 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на обработку ПДн</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <span class="chip green">актуальна</span><button class="btn sm">Открыть</button>
+        </div>
+        <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на рекламную рассылку</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
           <span class="chip green">актуальна</span><button class="btn sm">Открыть</button>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
@@ -1174,7 +1220,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div><button class="btn sm" 
         <label class="f">Имя</label><input class="inp" value="Кирилл">
         <label class="f" style="margin-top:10px">Почта</label><input class="inp mono" value="director@alfa-school.ru">
         <div class="hr"></div>
-        <div class="row" style="justify-content:space-between"><span class="small">Пароль и вход через Telegram/ВК/MAX</span><button class="btn sm">Изменить способ входа</button></div>
+        <div class="row" style="justify-content:space-between"><span class="small">Пароль и вход через Telegram/ВК/MAX</span><button class="btn sm" data-go-modal="modal-pass">Изменить способ входа</button></div>
       </div>
       <button class="btn solid" style="margin-top:16px">Сохранить</button>
     </main>
@@ -1203,7 +1249,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div><button class="btn sm" 
       <h2 style="margin-top:20px">Сайты</h2>
       <div class="card" style="overflow:hidden">
         <div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line)"><span class="mono" style="flex:1">alfa-school.ru</span><span class="chip green">оплачено до 05.09.2026</span></div>
-        <div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line)"><span class="mono" style="flex:1">delta-service.ru</span><span class="chip green">оплачено до 03.11.2026</span></div>
+        <div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line)"><span class="mono" style="flex:1">delta-service.ru</span><span class="chip green" id="pause-chip">оплачено до 03.11.2026</span></div>
         <div class="row" style="padding:12px 16px"><span class="mono" style="flex:1">zeta-logistic.ru</span><span class="chip green">оплачено до 30.12.2026</span></div>
       </div>
 
@@ -1215,16 +1261,43 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div><button class="btn sm" 
       </div>
 
       <div class="hr" style="margin-top:16px"></div>
-      <button class="btn text sm" style="color:var(--danger)">Поставить delta-service.ru на паузу</button>
+      <button class="btn text sm" style="color:var(--danger)" data-go-modal="modal-pause">Поставить delta-service.ru на паузу</button>
     </main>
   </div>
 </section>
 
+<!-- модалка смены пароля/входа — «Изменить способ входа» в Настройках раньше никуда не вела -->
+<div class="state" data-state="closed" id="modal-pass" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
+    <div class="row" style="justify-content:space-between"><h3>Пароль и вход</h3><button class="btn text sm" data-modal-close="modal-pass">✕</button></div>
+    <label class="f" style="margin-top:14px">Текущий пароль</label>
+    <input class="inp" type="password" placeholder="••••••••">
+    <label class="f" style="margin-top:10px">Новый пароль</label>
+    <input class="inp" type="password" placeholder="Минимум 8 символов">
+    <div class="hr" style="margin-top:16px"></div>
+    <p class="tiny" style="margin-bottom:10px">Подключённые способы входа: Telegram ✓ · ВК — · MAX —</p>
+    <div class="row"><button class="btn solid" data-modal-close="modal-pass">Сохранить</button><button class="btn text" data-modal-close="modal-pass">Отмена</button></div>
+  </div>
+</div>
+
+<!-- модалка паузы подписки — раньше срабатывала мгновенно по клику, без
+     подтверждения и без объяснения последствий. -->
+<div class="state" data-state="closed" id="modal-pause" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
+    <div class="row" style="justify-content:space-between"><h3>Поставить delta-service.ru на паузу?</h3><button class="btn text sm" data-modal-close="modal-pause">✕</button></div>
+    <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 03.11.2026. После этого баннер и документы останутся на сайте, но обновление при смене закона приостановится.</p>
+    <div class="row" style="margin-top:16px">
+      <button class="btn solid" id="pause-confirm" style="background:var(--danger);border-color:var(--danger)" data-modal-close="modal-pause">Да, поставить на паузу</button>
+      <button class="btn text" data-modal-close="modal-pause">Не сейчас</button>
+    </div>
+  </div>
+</div>
+
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-register','s-empty','s-add','s-fullanketa','s-list','s-project','s-prepare','s-anketa','s-ready','s-pay','s-install','s-project-paid','s-docs','s-widget','s-settings','s-billing'];
-var LABELS = {'s-login':'вход','s-register':'регистрация','s-empty':'пусто','s-add':'добавить','s-fullanketa':'полная анкета','s-list':'список','s-project':'проект','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'оплачен','s-docs':'документы','s-widget':'виджет','s-settings':'настройки','s-billing':'подписка'};
+var SCREENS = ['s-login','s-forgot','s-register','s-empty','s-add','s-fullanketa','s-list','s-project','s-prepare','s-anketa','s-ready','s-pay','s-install','s-project-paid','s-docs','s-widget','s-settings','s-billing'];
+var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-empty':'пусто','s-add':'добавить','s-fullanketa':'полная анкета','s-list':'список','s-project':'проект','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'оплачен','s-docs':'документы','s-widget':'виджет','s-settings':'настройки','s-billing':'подписка'};
 
 var nav = document.getElementById('scr-nav');
 SCREENS.forEach(function(id){
@@ -1337,6 +1410,16 @@ document.querySelectorAll('[data-save-req]').forEach(function(b){
     if (innEl) innEl.textContent = 'ИНН ' + inn;
   });
 });
+
+/* подтверждение паузы подписки — статус на карточке меняется сразу,
+   без перезагрузки экрана, чтобы решение в модалке было видно на месте */
+var pauseConfirm = document.getElementById('pause-confirm');
+if (pauseConfirm) {
+  pauseConfirm.addEventListener('click', function(){
+    var chip = document.getElementById('pause-chip');
+    if (chip) { chip.textContent = 'на паузе · доступ до 03.11.2026'; chip.className = 'chip amber'; }
+  });
+}
 </script>
 </body>
 </html>
