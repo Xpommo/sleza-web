@@ -1259,17 +1259,22 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <button type="button" data-swap="bthemeauto">Авто</button>
         </div>
 
+        <!-- Дословный текст реального виджета (по скриншоту пользователя,
+             design-export/HANDOFF.md) — отдельной кнопки «Отказаться» у
+             баннера нет и не было: «убрать текст "баннер с реальным
+             отказом"... у нас нет реального отказа и он не нужен». Отказ —
+             через настройки браузера, крестик просто закрывает баннер. -->
         <div data-swapped="bthemelight" style="border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <div class="small" style="flex:1;min-width:220px">Используем cookie для аналитики. Подробнее — <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">Политика cookie</span>.</div>
+          <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">условиями обработки cookie</span>. Запретить обработку можно в настройках браузера.</div>
           <div class="row" style="flex:none;gap:8px">
-            <button class="btn sm" style="flex:none">Отклонить</button>
+            <button type="button" aria-label="Закрыть" style="flex:none;width:32px;height:32px;border:0;background:none;color:rgba(17,17,16,.4);font-size:16px;cursor:pointer">✕</button>
             <button class="btn sm solid" style="flex:none">Принять</button>
           </div>
         </div>
         <div data-swapped="bthemedark" style="display:none;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:14px 16px;background:var(--ink);align-items:center;gap:16px;flex-wrap:wrap">
-          <div class="small" style="flex:1;min-width:220px;color:rgba(255,255,255,.82)">Используем cookie для аналитики. Подробнее — <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(255,255,255,.4);color:#fff">Политика cookie</span>.</div>
+          <div class="small" style="flex:1;min-width:220px;color:rgba(255,255,255,.82)">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(255,255,255,.4);color:#fff">условиями обработки cookie</span>. Запретить обработку можно в настройках браузера.</div>
           <div class="row" style="flex:none;gap:8px">
-            <button class="btn sm" style="flex:none;background:transparent;border-color:rgba(255,255,255,.3);color:#fff">Отклонить</button>
+            <button type="button" aria-label="Закрыть" style="flex:none;width:32px;height:32px;border:0;background:none;color:rgba(255,255,255,.4);font-size:16px;cursor:pointer">✕</button>
             <button class="btn sm solid" style="flex:none;background:#fff;border-color:#fff;color:var(--ink)">Принять</button>
           </div>
         </div>

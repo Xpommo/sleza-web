@@ -610,7 +610,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <h2 style="margin-top:22px">Трекинг</h2>
       <div class="card pad" style="margin-top:10px">
         <h3>Используете Яндекс.Метрику или похожие счётчики?</h3>
-        <p class="tiny" style="margin:6px 0 12px">Без баннера с реальным отказом — это трекинг до согласия посетителя.</p>
+        <p class="tiny" style="margin:6px 0 12px">Без баннера согласия — это трекинг до согласия посетителя.</p>
         <div class="seg"><button class="on">Да</button><button>Нет</button></div>
       </div>
 
@@ -618,7 +618,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="card" style="margin-top:12px;overflow:hidden">
         <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Политика конфиденциальности + согласие на ПДн</div><div class="w">Раз собираете контакты — нужно согласие на обработку и сама политика.</div></div></div>
         <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Публичная оферта</div><div class="w">Раз принимаете оплату на сайте — нужны условия продажи и возврата.</div></div></div>
-        <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Cookie-баннер и политика</div><div class="w">Раз используете Метрику — баннер с реальным отказом и cookie-политика.</div></div></div>
+        <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Cookie-баннер и политика</div><div class="w">Раз используете Метрику — баннер согласия и cookie-политика.</div></div></div>
       </div>
       <p class="tiny" style="margin-top:8px">Ответите иначе — список пересоберётся: часть документов может не понадобиться.</p>
 
@@ -857,7 +857,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <div class="card" style="margin-top:16px;overflow:hidden">
       <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">152-ФЗ · персональные данные</div><div class="w">Соберём политику и текст согласия по вашим данным, подключим через виджет.</div></div></div>
       <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">149-ФЗ · реквизиты владельца</div><div class="w">Выведем реквизиты в подвал через виджет — сверенные с ЕГРЮЛ.</div></div></div>
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Куки · согласие на трекинг</div><div class="w">Подключим баннер с реальным отказом и cookie-политику.</div></div></div>
+      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Куки · согласие на трекинг</div><div class="w">Подключим баннер согласия и cookie-политику.</div></div></div>
     </div>
 
     <h2 style="margin-top:20px">Реквизиты</h2>
@@ -1253,9 +1253,17 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <h2 style="margin-top:18px">Оформление баннера</h2>
       <div class="card pad">
         <div class="seg" style="margin-bottom:14px"><button class="on">Строгая</button><button>Мягкая</button><button>Тёмная</button></div>
-        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px;background:var(--paper)">
-          <div class="small">Мы используем куки, чтобы сайт работал. Аналитика включается только с вашего согласия.</div>
-          <div class="row" style="margin-top:10px"><button class="btn sm">Отказаться</button><button class="btn sm solid">Принять</button></div>
+        <!-- Дословный текст реального виджета (по скриншоту пользователя,
+             design-export/HANDOFF.md) — отдельной кнопки «Отказаться» у
+             баннера нет и не было: «убрать текст "баннер с реальным
+             отказом"... у нас нет реального отказа и он не нужен». Отказ —
+             через настройки браузера, крестик просто закрывает баннер. -->
+        <div style="border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--paper)">
+          <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">условиями обработки cookie</span>. Запретить обработку можно в настройках браузера.</div>
+          <div class="row" style="flex:none;gap:8px">
+            <button type="button" aria-label="Закрыть" style="flex:none;width:32px;height:32px;border:0;background:none;color:rgba(17,17,16,.4);font-size:16px;cursor:pointer">✕</button>
+            <button class="btn sm solid" style="flex:none">Принять</button>
+          </div>
         </div>
       </div>
       <h2 style="margin-top:18px">Код на сайте</h2>
