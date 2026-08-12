@@ -653,28 +653,19 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 <div class="state" data-state="closed" id="modal-req-fa" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Реквизиты</h3><button class="btn text sm" data-modal-close="modal-req-fa">✕</button></div>
-    <p class="tiny" style="margin-top:6px">Сайт не сканировали — впишите наименование и ИНН сами, дальше сверим с ЕГРЮЛ и подставим остальное.</p>
+    <p class="tiny" style="margin-top:6px">Сайт не сканировали — впишите наименование и ИНН сами, дальше сверим с ЕГРЮЛ и подставим ОГРН и адрес.</p>
     <label class="f" style="margin-top:14px">Наименование <span style="color:var(--danger)">*</span></label>
     <input class="inp" id="modal-req-name-fa" value="ООО «Альфа Образование»">
     <label class="f" style="margin-top:10px">ИНН <span style="color:var(--danger)">*</span></label>
     <input class="inp mono" id="modal-req-inn-fa" value="7701234567">
-
-    <div class="hr" style="margin-top:16px"></div>
-    <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--danger)">нужно заполнить самостоятельно — ЕГРЮЛ этого не даёт</div>
-    <label class="f" style="margin-top:8px">Адрес для переписки <span style="color:var(--danger)">*</span></label>
-    <input class="inp" placeholder="Индекс, город, улица, дом">
-    <label class="f" style="margin-top:10px">Email для счёта <span style="color:var(--danger)">*</span></label>
-    <input class="inp" placeholder="buh@alfa-school.ru">
-    <label class="f" style="margin-top:10px">Телефон <span style="color:var(--danger)">*</span></label>
-    <input class="inp mono" placeholder="+7 (___) ___-__-__">
-    <label class="f" style="margin-top:10px">Расчётный счёт <span style="color:var(--danger)">*</span></label>
-    <input class="inp mono" placeholder="40702810...">
-    <div class="row" style="margin-top:10px;gap:10px">
-      <div style="flex:1"><label class="f">Банк <span style="color:var(--danger)">*</span></label><input class="inp" placeholder="ПАО «...»"></div>
-      <div style="flex:1"><label class="f">БИК <span style="color:var(--danger)">*</span></label><input class="inp mono" placeholder="044525225"></div>
-    </div>
-    <label class="f" style="margin-top:10px">Корр. счёт <span style="color:var(--danger)">*</span></label>
-    <input class="inp mono" placeholder="30101810...">
+    <label class="f" style="margin-top:10px">ОГРН</label>
+    <input class="inp mono" value="1157746112233">
+    <label class="f" style="margin-top:10px">Адрес</label>
+    <input class="inp" value="119019, Москва, ул. Воздвиженка, д. 10">
+    <!-- Email/телефон/банковские реквизиты сюда не переносим — они нужны
+         только счёту на оплату, не документам, и только тем, кто платит по
+         счёту. Спрашиваем их там, на шаге оплаты, не здесь. -->
+    <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.5)">Email, телефон и банковские реквизиты для счёта спросим отдельно на шаге оплаты — только если выберете оплату по счёту.</p>
 
     <div class="row" style="margin-top:16px"><button class="btn solid" data-save-req="fa" data-modal-close="modal-req-fa">Сохранить</button><button class="btn text" data-modal-close="modal-req-fa">Отмена</button></div>
   </div>
@@ -902,6 +893,13 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Реквизиты</h3><button class="btn text sm" data-modal-close="modal-req-b">✕</button></div>
 
+    <!-- Раньше здесь же стояли email/телефон/банковские реквизиты — семь
+         обязательных полей на первом шаге воронки. Для документов (политика,
+         согласия) нужны только эти четыре — остальное нужно только счёту,
+         и только тем, кто платит по счёту, поэтому спрашиваем это на шаге
+         оплаты, не здесь. БИК наизусть никто не помнит — заставлять искать
+         его, чтобы просто посмотреть политику конфиденциальности, означало
+         почти наверняка потерять человека на первом шаге. -->
     <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ok);margin-top:14px">✓ заполним сами — вам нужно только проверить</div>
     <label class="f" style="margin-top:8px">Наименование</label>
     <input class="inp" id="modal-req-name-b" value="ООО «Альфа Образование»">
@@ -909,23 +907,9 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <input class="inp mono" value="1157746112233">
     <label class="f" style="margin-top:10px">ИНН</label>
     <input class="inp mono" id="modal-req-inn-b" value="7701234567">
-
-    <div class="hr" style="margin-top:16px"></div>
-    <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--danger)">нужно заполнить самостоятельно</div>
-    <label class="f" style="margin-top:8px">Адрес для переписки <span style="color:var(--danger)">*</span></label>
-    <input class="inp" placeholder="Индекс, город, улица, дом">
-    <label class="f" style="margin-top:10px">Email для счёта <span style="color:var(--danger)">*</span></label>
-    <input class="inp" placeholder="buh@alfa-school.ru">
-    <label class="f" style="margin-top:10px">Телефон <span style="color:var(--danger)">*</span></label>
-    <input class="inp mono" placeholder="+7 (___) ___-__-__">
-    <label class="f" style="margin-top:10px">Расчётный счёт <span style="color:var(--danger)">*</span></label>
-    <input class="inp mono" placeholder="40702810...">
-    <div class="row" style="margin-top:10px;gap:10px">
-      <div style="flex:1"><label class="f">Банк <span style="color:var(--danger)">*</span></label><input class="inp" placeholder="ПАО «...»"></div>
-      <div style="flex:1"><label class="f">БИК <span style="color:var(--danger)">*</span></label><input class="inp mono" placeholder="044525225"></div>
-    </div>
-    <label class="f" style="margin-top:10px">Корр. счёт <span style="color:var(--danger)">*</span></label>
-    <input class="inp mono" placeholder="30101810...">
+    <label class="f" style="margin-top:10px">Адрес</label>
+    <input class="inp" value="119019, Москва, ул. Воздвиженка, д. 10">
+    <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.5)">Email, телефон и банковские реквизиты для счёта спросим отдельно на шаге оплаты — только если выберете оплату по счёту.</p>
 
     <div class="row" style="margin-top:16px"><button class="btn solid" data-save-req="b" data-modal-close="modal-req-b">Сохранить</button><button class="btn text" data-modal-close="modal-req-b">Отмена</button></div>
   </div>
@@ -980,15 +964,34 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="row" style="justify-content:space-between;padding:9px 16px;font-size:13.5px"><span>149-ФЗ · реквизиты владельца</span><span><span class="was">замечание</span> → <span class="now">закрыто</span></span></div>
     </div>
 
+    <!-- Раньше «Открыть» стояла кнопкой рядом с рабочей на вид ссылкой —
+         до оплаты документа ещё нет, кнопка обещала то, чего нет. Теперь
+         до оплаты только превью первых строк по клику; рабочая ссылка —
+         в кабинете после оплаты и установки (см. s-docs). -->
     <h2 style="margin-top:18px">Документы</h2>
-    <div class="card" style="overflow:hidden">
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика конфиденциальности</div><div class="tiny mono">alfa-school.ru/legal/privacy</div></div><button class="btn sm">Открыть</button></div>
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на обработку ПДн</div><div class="tiny mono">alfa-school.ru/legal/consent</div></div><button class="btn sm">Открыть</button></div>
-      <!-- Появляется, потому что на анкете (s-anketa) ответили «да» —
-           звоните/пишете по базе клиентов. Без этого документа ответ
-           «да» на анкете ничем не подкреплён в выдаче. -->
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на получение рекламных сообщений</div><div class="tiny mono">alfa-school.ru/legal/marketing-consent</div></div><button class="btn sm">Открыть</button></div>
-      <div class="row" style="padding:11px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика в отношении cookie</div><div class="tiny mono">alfa-school.ru/legal/cookies</div></div><button class="btn sm">Открыть</button></div>
+    <p class="tiny" style="margin-top:-6px;margin-bottom:10px;color:rgba(17,17,16,.5)">Превью — по ссылкам откроется после оплаты и установки</p>
+    <div class="find">
+      <button class="hd" data-find><span class="nm" style="flex:1">Политика конфиденциальности</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящая Политика определяет порядок обработки персональных данных и меры по обеспечению их безопасности Оператором: ООО «Альфа Образование»…</div>
+      <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/privacy — откроется после оплаты</p></div>
+    </div>
+    <div class="find">
+      <button class="hd" data-find><span class="nm" style="flex:1">Согласие на обработку ПДн</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящим я свободно, своей волей и в своём интересе даю согласие на обработку моих персональных данных Оператору…</div>
+      <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/consent — откроется после оплаты</p></div>
+    </div>
+    <!-- Появляется, потому что на анкете (s-anketa) ответили «да» —
+         звоните/пишете по базе клиентов. Без этого документа ответ
+         «да» на анкете ничем не подкреплён в выдаче. -->
+    <div class="find">
+      <button class="hd" data-find><span class="nm" style="flex:1">Согласие на получение рекламных сообщений</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящим я даю согласие на получение рекламных и информационных сообщений о товарах, работах, услугах и специальных предложениях…</div>
+      <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/marketing-consent — откроется после оплаты</p></div>
+    </div>
+    <div class="find">
+      <button class="hd" data-find><span class="nm" style="flex:1">Политика в отношении cookie</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте…</div>
+      <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/cookies — откроется после оплаты</p></div>
     </div>
 
     <h2 style="margin-top:18px">Вот что появится на сайте</h2>
@@ -1099,13 +1102,30 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <p class="tiny" style="text-align:center;margin-top:10px">Автопродление раз в месяц · отменить можно в любой момент</p>
       </div>
 
+      <!-- Контакты и банковские реквизиты — их сознательно нет на шаге
+           «Реквизиты» (см. modal-req-b/fa), там только то, что нужно
+           документам. Счёту нужно больше — спрашиваем здесь, и только у
+           тех, кто выбрал «по счёту»: карта и СБП это не требуют вовсе. -->
       <div data-swapped="pminvoice" style="display:none">
         <label class="f">Организация</label>
         <input class="inp" value="ООО «Альфа Образование»">
-        <div class="row" style="margin-top:10px"><div style="flex:1"><label class="f">ИНН</label><input class="inp mono" value="7701234567"></div></div>
+        <div class="row" style="margin-top:10px">
+          <div style="flex:1"><label class="f">ИНН</label><input class="inp mono" value="7701234567"></div>
+          <div style="flex:1"><label class="f">ОГРН</label><input class="inp mono" value="1157746112233"></div>
+        </div>
         <label class="f" style="margin-top:10px">Почта для счёта</label>
         <input class="inp" placeholder="buh@alfa-school.ru">
-        <p class="tiny" style="margin-top:8px">Реквизиты подставили из тех, что вы уже вводили. Счёт с закрывающими документами придёт на почту.</p>
+        <label class="f" style="margin-top:10px">Телефон</label>
+        <input class="inp mono" placeholder="+7 (___) ___-__-__">
+        <label class="f" style="margin-top:10px">Расчётный счёт</label>
+        <input class="inp mono" placeholder="40702810...">
+        <div class="row" style="margin-top:10px;gap:10px">
+          <div style="flex:1"><label class="f">Банк</label><input class="inp" placeholder="ПАО «...»"></div>
+          <div style="flex:1"><label class="f">БИК</label><input class="inp mono" placeholder="044525225"></div>
+        </div>
+        <label class="f" style="margin-top:10px">Корр. счёт</label>
+        <input class="inp mono" placeholder="30101810...">
+        <p class="tiny" style="margin-top:10px">Счёт с закрывающими документами придёт на почту.</p>
         <div class="hr" style="margin-top:16px"></div>
         <button type="button" class="btn solid wide" data-go="s-project-paid">Выставить счёт и войти в кабинет →</button>
         <p class="tiny" style="text-align:center;margin-top:10px">Новый счёт — каждый месяц на почту, отменить можно в любой момент</p>

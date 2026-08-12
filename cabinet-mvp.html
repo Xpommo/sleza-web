@@ -772,6 +772,13 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Реквизиты</h3><button class="btn text sm" data-modal-close="modal-req-b">✕</button></div>
 
+    <!-- Раньше здесь же стояли email/телефон/банковские реквизиты — семь
+         обязательных полей на первом шаге воронки. Для документов (политика,
+         согласия) нужны только эти четыре — остальное нужно только счёту,
+         и только тем, кто платит по счёту, поэтому спрашиваем это на шаге
+         оплаты (s-pay), не здесь. БИК наизусть никто не помнит — заставлять
+         искать его, чтобы просто посмотреть политику конфиденциальности,
+         означало почти наверняка потерять человека на первом шаге. -->
     <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ok);margin-top:14px">✓ заполним сами — вам нужно только проверить</div>
     <label class="f" style="margin-top:8px">Наименование</label>
     <input class="inp" id="modal-req-name-b" value="ООО «Альфа Образование»">
@@ -779,26 +786,9 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
     <input class="inp mono" value="1157746112233">
     <label class="f" style="margin-top:10px">ИНН</label>
     <input class="inp mono" id="modal-req-inn-b" value="7701234567">
-
-    <div class="hr" style="margin-top:16px"></div>
-    <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--danger)">нужно заполнить самостоятельно</div>
-    <!-- ЕГРЮЛ отдаёт наименование/ОГРН/ИНН, но не банковские реквизиты и не
-         адрес для переписки (он не обязан совпадать с юридическим) — это
-         видно только из настоящего шаблона реквизитов, не из скана. -->
-    <label class="f" style="margin-top:8px">Адрес для переписки <span style="color:var(--danger)">*</span></label>
-    <input class="inp" placeholder="Индекс, город, улица, дом">
-    <label class="f" style="margin-top:10px">Email для счёта <span style="color:var(--danger)">*</span></label>
-    <input class="inp" placeholder="buh@alfa-school.ru">
-    <label class="f" style="margin-top:10px">Телефон <span style="color:var(--danger)">*</span></label>
-    <input class="inp mono" placeholder="+7 (___) ___-__-__">
-    <label class="f" style="margin-top:10px">Расчётный счёт <span style="color:var(--danger)">*</span></label>
-    <input class="inp mono" placeholder="40702810...">
-    <div class="row" style="margin-top:10px;gap:10px">
-      <div style="flex:1"><label class="f">Банк <span style="color:var(--danger)">*</span></label><input class="inp" placeholder="ПАО «...»"></div>
-      <div style="flex:1"><label class="f">БИК <span style="color:var(--danger)">*</span></label><input class="inp mono" placeholder="044525225"></div>
-    </div>
-    <label class="f" style="margin-top:10px">Корр. счёт <span style="color:var(--danger)">*</span></label>
-    <input class="inp mono" placeholder="30101810...">
+    <label class="f" style="margin-top:10px">Адрес</label>
+    <input class="inp" value="119019, Москва, ул. Воздвиженка, д. 10">
+    <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.5)">Email, телефон и банковские реквизиты для счёта спросим отдельно на шаге оплаты — только если выберете оплату по счёту.</p>
 
     <div class="row" style="margin-top:16px"><button class="btn solid" data-save-req="b" data-modal-close="modal-req-b">Сохранить</button><button class="btn text" data-modal-close="modal-req-b">Отмена</button></div>
   </div>
@@ -849,17 +839,45 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <div class="row" style="justify-content:space-between;padding:9px 16px;font-size:13.5px"><span>149-ФЗ · реквизиты владельца</span><span><span class="was">замечание</span> → <span class="now">закрыто</span></span></div>
     </div>
 
+    <!-- Раньше «Открыть» вело на настоящую ссылку до оплаты — если она
+         правда работала, платить незачем, если нет — обещание ложное.
+         Теперь до оплаты только превью первых строк, разворачивается по
+         клику; рабочая ссылка появляется в «Документах» после оплаты
+         и установки (см. s-docs) — там документ правда есть. -->
     <h2 style="margin-top:18px">Документы</h2>
-    <div class="card" style="overflow:hidden">
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Реквизиты</div><div class="tiny mono">alfa-school.ru/legal/requisites</div></div><a class="btn sm" href="https://alfa-school.ru/legal/requisites" target="_blank" rel="noopener">Открыть</a></div>
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика конфиденциальности</div><div class="tiny mono">alfa-school.ru/legal/privacy</div></div><a class="btn sm" href="https://alfa-school.ru/legal/privacy" target="_blank" rel="noopener">Открыть</a></div>
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика обработки персональных данных</div><div class="tiny mono">alfa-school.ru/legal/pd-policy</div></div><a class="btn sm" href="https://alfa-school.ru/legal/pd-policy" target="_blank" rel="noopener">Открыть</a></div>
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на обработку ПДн</div><div class="tiny mono">alfa-school.ru/legal/consent</div></div><a class="btn sm" href="https://alfa-school.ru/legal/consent" target="_blank" rel="noopener">Открыть</a></div>
-      <!-- Появляется, потому что на анкете (s-anketa) ответили «да» —
-           звоните/пишете по базе клиентов. Без этого документа ответ
-           «да» на анкете ничем не подкреплён в выдаче. -->
-      <div class="row" style="padding:11px 16px;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-size:14px;font-weight:600">Согласие на получение рекламных сообщений</div><div class="tiny mono">alfa-school.ru/legal/marketing-consent</div></div><a class="btn sm" href="https://alfa-school.ru/legal/marketing-consent" target="_blank" rel="noopener">Открыть</a></div>
-      <div class="row" style="padding:11px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">Политика в отношении cookie</div><div class="tiny mono">alfa-school.ru/legal/cookies</div></div><a class="btn sm" href="https://alfa-school.ru/legal/cookies" target="_blank" rel="noopener">Открыть</a></div>
+    <p class="tiny" style="margin-top:-6px;margin-bottom:10px;color:rgba(17,17,16,.5)">Превью — по ссылкам откроется после оплаты и установки</p>
+    <div class="find">
+      <button class="hd" data-find><span class="nm" style="flex:1">Реквизиты</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233 · 119019, Москва, ул. Воздвиженка, д. 10…</div>
+      <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/requisites — откроется после оплаты</p></div>
+    </div>
+    <div class="find">
+      <button class="hd" data-find><span class="nm" style="flex:1">Политика конфиденциальности</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящая Политика определяет порядок обработки персональных данных и меры по обеспечению их безопасности Оператором: ООО «Альфа Образование»…</div>
+      <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/privacy — откроется после оплаты</p></div>
+    </div>
+    <div class="find">
+      <button class="hd" data-find><span class="nm" style="flex:1">Политика обработки персональных данных</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящая Политика разработана в соответствии с Федеральным законом № 152-ФЗ «О персональных данных» и определяет порядок обработки…</div>
+      <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/pd-policy — откроется после оплаты</p></div>
+    </div>
+    <div class="find">
+      <button class="hd" data-find><span class="nm" style="flex:1">Согласие на обработку ПДн</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящим я свободно, своей волей и в своём интересе даю согласие на обработку моих персональных данных Оператору…</div>
+      <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/consent — откроется после оплаты</p></div>
+    </div>
+    <!-- Появляется, потому что на анкете (s-anketa) ответили «да» —
+         звоните/пишете по базе клиентов. Без этого документа ответ
+         «да» на анкете ничем не подкреплён в выдаче. -->
+    <div class="find">
+      <button class="hd" data-find><span class="nm" style="flex:1">Согласие на получение рекламных сообщений</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящим я даю согласие на получение рекламных и информационных сообщений о товарах, работах, услугах и специальных предложениях…</div>
+      <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/marketing-consent — откроется после оплаты</p></div>
+    </div>
+    <div class="find">
+      <button class="hd" data-find><span class="nm" style="flex:1">Политика в отношении cookie</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте…</div>
+      <p class="tiny" style="margin-top:8px">docs.shtrafkontrol.ru/alfa-school-ru/cookies — откроется после оплаты</p></div>
     </div>
 
     <h2 style="margin-top:18px">Вот что появится на сайте</h2>
@@ -882,8 +900,13 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
       <p class="tiny" style="margin-top:5px">Спишем при оплате, дальше — раз в месяц. Отменить можно в любой момент.</p>
     </div>
 
+    <!-- Раньше кнопка называлась «Оплатить 2 990 ₽» — но клик по ней не
+         списывает деньги, а ведёт на отдельный шаг оплаты (s-pay) с тем же
+         резюме цены и формой способа оплаты. Кнопка с надписью «оплатить»,
+         которая не платит, читается как обман в момент, когда доверие и
+         так на нуле. -->
     <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-go="s-pay">Оплатить 2 990 ₽ →</button>
+    <button type="button" class="btn solid wide" data-go="s-pay">Перейти к оплате →</button>
     <p class="tiny" style="text-align:center;margin-top:10px">Дальше — установка скрипта, 2 минуты. Без оплаты и установки баннер и реквизиты на сайте не появятся</p>
   </div>
 </section>
@@ -952,12 +975,28 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
         <p class="tiny" style="text-align:center;margin-top:10px">Автопродление раз в месяц · отменить можно в любой момент</p>
       </div>
 
+      <!-- Контакты и банковские реквизиты — их сознательно нет на шаге
+           «Реквизиты» (см. modal-req-b), там только то, что нужно документам.
+           Счёту нужно больше — спрашиваем здесь, и только у тех, кто выбрал
+           «по счёту»: карта и СБП это не требуют вовсе. -->
       <div data-swapped="pminvoice" style="display:none">
         <div class="card pad" style="border-color:var(--line)">
           <div style="font-weight:700;font-size:14.5px">ООО «Альфа Образование»</div>
-          <div class="tiny mono" style="margin-top:2px">ИНН 7701234567</div>
+          <div class="tiny mono" style="margin-top:2px">ИНН 7701234567 · ОГРН 1157746112233</div>
         </div>
-        <p class="tiny" style="margin-top:10px">Реквизиты — те, что вы подтвердили на шаге «Реквизиты». Счёт на 2 990 ₽ придёт на почту в PDF, оплатить можно переводом с расчётного счёта.</p>
+        <label class="f" style="margin-top:12px">Email для счёта</label>
+        <input class="inp" placeholder="buh@alfa-school.ru">
+        <label class="f" style="margin-top:10px">Телефон</label>
+        <input class="inp mono" placeholder="+7 (___) ___-__-__">
+        <label class="f" style="margin-top:10px">Расчётный счёт</label>
+        <input class="inp mono" placeholder="40702810...">
+        <div class="row" style="margin-top:10px;gap:10px">
+          <div style="flex:1"><label class="f">Банк</label><input class="inp" placeholder="ПАО «...»"></div>
+          <div style="flex:1"><label class="f">БИК</label><input class="inp mono" placeholder="044525225"></div>
+        </div>
+        <label class="f" style="margin-top:10px">Корр. счёт</label>
+        <input class="inp mono" placeholder="30101810...">
+        <p class="tiny" style="margin-top:10px">Счёт на 2 990 ₽ придёт на почту в PDF, оплатить можно переводом с расчётного счёта.</p>
         <div class="hr" style="margin-top:16px"></div>
         <button type="button" class="btn solid wide" data-set-status="pending" data-go="s-install">Выставить счёт → к установке</button>
         <p class="tiny" style="text-align:center;margin-top:10px">Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня. Установить скрипт можно уже сейчас</p>
@@ -1107,27 +1146,27 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="card" style="margin-top:16px;overflow:hidden">
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><a class="btn sm" href="https://alfa-school.ru/legal/requisites" target="_blank" rel="noopener">Открыть</a>
+          <span class="chip green">актуальна</span><a class="btn sm" href="https://docs.shtrafkontrol.ru/alfa-school-ru/requisites" target="_blank" rel="noopener">Открыть</a>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика конфиденциальности</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><a class="btn sm" href="https://alfa-school.ru/legal/privacy" target="_blank" rel="noopener">Открыть</a>
+          <span class="chip green">актуальна</span><a class="btn sm" href="https://docs.shtrafkontrol.ru/alfa-school-ru/privacy" target="_blank" rel="noopener">Открыть</a>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки персональных данных</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><a class="btn sm" href="https://alfa-school.ru/legal/pd-policy" target="_blank" rel="noopener">Открыть</a>
+          <span class="chip green">актуальна</span><a class="btn sm" href="https://docs.shtrafkontrol.ru/alfa-school-ru/pd-policy" target="_blank" rel="noopener">Открыть</a>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на обработку ПДн</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><a class="btn sm" href="https://alfa-school.ru/legal/consent" target="_blank" rel="noopener">Открыть</a>
+          <span class="chip green">актуальна</span><a class="btn sm" href="https://docs.shtrafkontrol.ru/alfa-school-ru/consent" target="_blank" rel="noopener">Открыть</a>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><a class="btn sm" href="https://alfa-school.ru/legal/marketing-consent" target="_blank" rel="noopener">Открыть</a>
+          <span class="chip green">актуальна</span><a class="btn sm" href="https://docs.shtrafkontrol.ru/alfa-school-ru/marketing-consent" target="_blank" rel="noopener">Открыть</a>
         </div>
         <div class="row" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика в отношении cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><a class="btn sm" href="https://alfa-school.ru/legal/cookies" target="_blank" rel="noopener">Открыть</a>
+          <span class="chip green">актуальна</span><a class="btn sm" href="https://docs.shtrafkontrol.ru/alfa-school-ru/cookies" target="_blank" rel="noopener">Открыть</a>
         </div>
       </div>
     </main>
