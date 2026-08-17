@@ -194,26 +194,25 @@ p{margin:0}
 .faq-item.open .a{display:block}
 .faq-item.open .sign{content:'−'}
 
-/* подвал сайта — портировано 1:1 из cabinet-mvp.html (.dark-footer), раскладка
-   подсмотрена у sleza.media (реальный партнёр), в наших цветах — см. комментарий там же.
-   Используется буквально как футер этой страницы, не как демо-превью: свой бренд, не
-   вымышленная компания — сама страница показывает, как выглядит собственный подвал. */
-.dark-footer{border-radius:10px;overflow:hidden;border:1px solid var(--line-2)}
-.dark-footer .body{background:var(--ink);padding:16px}
-.dark-footer .row2{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
-.dark-footer .org{font-size:12.5px;font-weight:700;color:#fff}
-.dark-footer .addr{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
-.dark-footer .addr a{color:inherit}
-.dark-footer .links{margin-top:9px;display:flex;flex-wrap:wrap;gap:14px}
-.dark-footer .links span,.dark-footer .links a{font-size:11px;color:rgba(255,255,255,.7);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)}
-.dark-footer .links a:hover{color:#fff}
+/* подвал сайта — стиль подсмотрен у sleza.media (реальный партнёр) в наших цветах, но
+   уложен как настоящий футер (во всю ширину, без плавающей карточки), а не демо-превью
+   виджета в рамке — см. cabinet-mvp.html .dark-footer для сравнения, это другая вёрстка
+   той же идеи, без ссылок и контактов, только состав документов. */
+.dark-footer{background:var(--ink)}
+.dark-footer .in{max-width:880px;margin:0 auto;padding:28px 20px 32px;display:flex;
+  justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.dark-footer .org{font-size:13.5px;font-weight:700;color:#fff}
+.dark-footer .doclist{font-size:11px;color:rgba(255,255,255,.55);margin-top:8px;line-height:1.7;max-width:56ch}
+.dark-footer .legal{font-size:10.5px;color:rgba(255,255,255,.35);margin-top:8px}
 .dark-footer .badge{display:inline-flex;align-items:center;gap:5px;flex:none;white-space:nowrap;
   background:var(--brand);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.01em;
   padding:7px 14px;border-radius:999px}
 .dark-footer .badge b{font-weight:800}
 
 /* футер */
-footer{max-width:880px;margin:0 auto;padding:36px 20px 40px}
+footer{margin-top:40px}
+footer .back{text-align:center;padding:14px 20px}
+footer .back a{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.4)}
 
 .state{display:none}
 .state.on{display:block}
@@ -428,18 +427,16 @@ footer{max-width:880px;margin:0 auto;padding:36px 20px 40px}
 
 <footer>
   <div class="dark-footer">
-    <div class="body">
-      <div class="row2">
-        <div>
-          <div class="org">ШтрафКонтроль</div>
-          <div class="addr">Проверяем обязательные документы и маркировки на российских сайтах · <a href="mailto:kirillmash99@gmail.com">kirillmash99@gmail.com</a></div>
-          <div class="links"><a href="https://fonarik-web.vercel.app/privacy">Политика конфиденциальности</a><span>не является юридической консультацией</span></div>
-        </div>
-        <div class="badge">Документы <b>Белый Сайт</b></div>
+    <div class="in">
+      <div>
+        <div class="org">ШтрафКонтроль</div>
+        <div class="doclist">Политика обработки персональных данных · Согласие на обработку ПД на форме сбора · Cookie-баннер · Политика cookie · Согласие на рекламные рассылки · Реквизиты владельца сайта</div>
+        <div class="legal">не является юридической консультацией</div>
       </div>
+      <div class="badge">Документы <b>Слеза</b></div>
     </div>
   </div>
-  <div style="text-align:center;margin-top:14px"><a class="mono" href="./index.html" style="font-size:11px;color:rgba(17,17,16,.4)">← все макеты</a></div>
+  <div class="back"><a href="./index.html">← все макеты</a></div>
 </footer>
 
 <script>
