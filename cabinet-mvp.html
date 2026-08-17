@@ -498,36 +498,6 @@ details.acc:first-child{margin-top:0}
   <select id="scr-nav-mobile" class="scr-nav-mobile"></select>
 </div>
 
-<!-- ══════════════════ 00 · ВЫ ПРОДОЛЖАЕТЕ (пришли со скана ШтрафКонтроля) ═
-     ШтрафКонтроль — отдельный продукт-сканер, лидген без своего ЛК (см.
-     обсуждение с партнёром 13.08). Раньше первым экраном для всех был
-     s-register — общий питч без привязки к домену, из-за чего человек,
-     уже увидевший находки на ШтрафКонтроле, читал регистрацию как старт
-     с нуля, а не продолжение. Этот экран — специально для них: сразу
-     домен и находки, ведёт в ту же регистрацию (s-register остаётся,
-     она нужна тем, кто пришёл не со скана — прямой заход, реферал). -->
-<section class="screen on" id="s-continue">
-  <div class="startwrap" style="max-width:480px;padding-top:56px">
-    <div class="row" style="gap:9px;margin-bottom:24px">
-      <svg width="26" height="17" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg>
-      <b class="mono" style="font-size:15px;font-weight:800">Слеза Белый Сайт</b>
-      <span class="chip out">макет</span>
-    </div>
-    <p class="tiny" style="color:rgba(17,17,16,.5)">Проверили на ШтрафКонтроле</p>
-    <h1 style="margin-top:6px">alfa-school.ru — нашли, что закрыть</h1>
-    <div class="card pad" style="margin-top:16px">
-      <div class="row" style="justify-content:space-between">
-        <span class="dom mono" style="font-size:17px;font-weight:700">alfa-school.ru</span>
-        <span class="b red">⛔ 2 нарушения</span>
-      </div>
-      <p class="tiny" style="margin-top:5px">1 замечание · риск до 200 000 ₽</p>
-    </div>
-    <p class="lead" style="margin-top:16px">Соберём документы под вашу компанию, подключим виджет на сайт и будем обновлять всё при смене закона. Нужен только аккаунт.</p>
-    <button type="button" class="btn solid wide" style="margin-top:20px" data-go="s-register">Продолжить →</button>
-    <p class="tiny" style="text-align:center;margin-top:16px">Уже есть аккаунт? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
-  </div>
-</section>
-
 <!-- ══════════════════ 01 · ВХОД ═══════════════════════════════════════ -->
 <section class="screen" id="s-login">
   <div class="startwrap" style="max-width:400px;padding-top:56px">
@@ -593,13 +563,13 @@ details.acc:first-child{margin-top:0}
 </section>
 
 <!-- ══════════════════ 02 · РЕГИСТРАЦИЯ ═════════════════════════════════ -->
-<section class="screen" id="s-register">
+<section class="screen on" id="s-register">
   <div class="split">
     <div class="split-value">
       <span class="kicker">слеза белый сайт</span>
-      <h2>Аккаунт — и мы закрываем находки сами</h2>
-      <div class="why"><div><b>Документы под вашу компанию</b><span>Политика, согласия, куки-баннер — из данных ООО, без вашего участия.</span></div></div>
-      <div class="why"><div><b>Виджет на сайт</b><span>Одна строка кода — баннер и реквизиты появятся в подвале сами.</span></div></div>
+      <h2>Проверим сайт на 152-ФЗ, 149-ФЗ и ЕРИР — и закроем найденное документами</h2>
+      <div class="why"><div><b>Проверка за 5 минут</b><span>Сканируем сайт по пяти требованиям закона, показываем что не так и чем это грозит.</span></div></div>
+      <div class="why"><div><b>Документы и виджет</b><span>Политика, согласия, куки-баннер — соберём из данных вашей компании и подключим сами.</span></div></div>
       <div class="why"><div><b>Обновления при смене закона</b><span>Требования изменятся — документы обновим сами. Платите подписку, а не за разовый пакет, который устареет.</span></div></div>
     </div>
     <div class="split-form">
@@ -1646,8 +1616,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-continue','s-login','s-forgot','s-register','s-verify','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-pay','s-install','s-project-paid','s-docs','s-settings','s-support'];
-var LABELS = {'s-continue':'вы продолжаете','s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
+var SCREENS = ['s-login','s-forgot','s-register','s-verify','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-pay','s-install','s-project-paid','s-docs','s-settings','s-support'];
+var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
 
 var nav = document.getElementById('scr-nav');
 var navMobile = document.getElementById('scr-nav-mobile');
@@ -1712,7 +1682,7 @@ document.querySelectorAll('[data-go]').forEach(function(b){
     goScreen(b.dataset.go);
   });
 });
-goScreen('s-continue');
+goScreen('s-register');
 
 /* раскрывашки-находки */
 document.querySelectorAll('[data-find]').forEach(function(b){
