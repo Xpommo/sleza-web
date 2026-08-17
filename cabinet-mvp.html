@@ -522,7 +522,7 @@ details.acc:first-child{margin-top:0}
       </div>
       <p class="tiny" style="margin-top:5px">1 замечание · риск до 200 000 ₽</p>
     </div>
-    <p class="lead" style="margin-top:16px">Дальше сами: соберём документы под вашу компанию, подключим виджет на сайт и будем обновлять всё при смене закона. Понадобится аккаунт.</p>
+    <p class="lead" style="margin-top:16px">Соберём документы под вашу компанию, подключим виджет на сайт и будем обновлять всё при смене закона. Нужен только аккаунт.</p>
     <button type="button" class="btn solid wide" style="margin-top:20px" data-go="s-register">Продолжить →</button>
     <p class="tiny" style="text-align:center;margin-top:16px">Уже есть аккаунт? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
   </div>
@@ -556,7 +556,7 @@ details.acc:first-child{margin-top:0}
 
     <label class="remember"><input type="checkbox"><span>Запомнить меня на этом устройстве</span></label>
 
-    <button type="button" class="btn solid wide" style="margin-top:20px" data-go="s-confirm">Войти →</button>
+    <button type="button" class="btn solid wide" style="margin-top:20px" data-go="s-project">Войти →</button>
 
     <p class="tiny" style="text-align:center;margin-top:28px">Нет аккаунта? <button type="button" class="btn text sm" style="padding:0" data-go="s-register">Создать</button></p>
     <p class="tiny" style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)">Политика конфиденциальности · Оферта</p>
@@ -597,10 +597,10 @@ details.acc:first-child{margin-top:0}
   <div class="split">
     <div class="split-value">
       <span class="kicker">слеза белый сайт</span>
-      <h2>Проверка сайта на 152-ФЗ, 149-ФЗ и ЕРИР — и документы, которые её закрывают</h2>
-      <div class="why"><div><b>Найдём нарушения за 5 минут</b><span>Сканируем сайт по пяти требованиям, показываем что не так и чем это грозит.</span></div></div>
-      <div class="why"><div><b>Соберём документы и подключим виджет</b><span>Политика, согласия, куки-баннер — без вашего участия, из данных вашей организации.</span></div></div>
-      <div class="why"><div><b>Будем следить за законом</b><span>Меняются требования — обновляем документы сами, вы просто платите подписку.</span></div></div>
+      <h2>Аккаунт — и мы закрываем находки сами</h2>
+      <div class="why"><div><b>Документы под вашу компанию</b><span>Политика, согласия, куки-баннер — из данных ООО, без вашего участия.</span></div></div>
+      <div class="why"><div><b>Виджет на сайт</b><span>Одна строка кода — баннер и реквизиты появятся в подвале сами.</span></div></div>
+      <div class="why"><div><b>Обновления при смене закона</b><span>Требования изменятся — документы обновим сами. Платите подписку, а не за разовый пакет, который устареет.</span></div></div>
     </div>
     <div class="split-form">
       <div class="authbox">
@@ -648,51 +648,21 @@ details.acc:first-child{margin-top:0}
     <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:22px">✉️</div>
     <h1>Подтвердите почту</h1>
     <p class="lead" style="margin-top:10px">Отправили письмо со ссылкой на адрес, который вы указали. Перейдите по ней, чтобы продолжить — это займёт минуту.</p>
-    <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-confirm">Ссылка подтверждена (демо) →</button>
+    <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-project">Ссылка подтверждена (демо) →</button>
     <p class="tiny" style="margin-top:16px">Не пришло письмо? <button type="button" class="btn text sm" style="padding:0">Отправить ещё раз</button></p>
   </div>
 </section>
 
-<!-- ══════════════════ 03 · ЭТО ВАШ САЙТ? ═══════════════════════════════
-     Единственный шаг «добавления» сайта во всём MVP: сайт уже известен
-     из скана до регистрации, здесь только явное подтверждение владения —
-     без него владение предполагалось бы молча. «Нет» — честный тупик:
-     self-serve пути на другой сайт в MVP нет, это следующая версия. -->
-<section class="screen" id="s-confirm">
-  <div class="appwrap sidebar">
-    <aside class="side">
-      <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
-      <div class="acct">
-        <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
-      </div>
-    </aside>
-    <main class="main narrow">
-      <h1>С возвращением</h1>
-      <p class="lead" style="margin-top:8px">Перед регистрацией вы проверяли этот сайт — это он?</p>
-      <div class="card pad" style="margin-top:18px;max-width:460px">
-        <div class="row" style="justify-content:space-between">
-          <span class="dom mono" style="font-size:17px;font-weight:700">alfa-school.ru</span>
-          <span class="b red">⛔ 2 нарушения</span>
-        </div>
-        <p class="tiny" style="margin-top:5px">1 замечание · риск до 200 000 ₽</p>
-        <div class="row" style="margin-top:16px">
-          <button class="btn solid" data-go="s-project">Да, это мой сайт</button>
-          <button class="btn text" data-go="s-add">Нет, у меня другой</button>
-        </div>
-      </div>
-      <p class="tiny" style="margin-top:12px;max-width:52ch">Домен не переспрашиваем — просто подтвердите, что работать нужно именно с ним. Не проверяли сайт заранее? То же «Нет» приведёт туда, где можно добавить свой.</p>
-    </main>
-  </div>
-</section>
-
-<!-- ══════════════════ 03б · ДОБАВИТЬ СВОЙ САЙТ ═══════════════════════════
-     Ветка для тех, кто не проверял сайт заранее (пришёл не со скана,
-     ошибся доменом на предыдущем экране) — без этого «Нет, у меня другой»
-     на s-confirm вело в тупик. Только скан — без анкеты: без него нет
-     находок, а MVP не должен уметь собирать документы вслепую. Сайт,
-     который правда нельзя просканировать (закрыт паролем и т.п.) — не
-     сценарий запуска, решаем позже, если появится спрос. -->
+<!-- ══════════════════ 03 · ДОБАВИТЬ СВОЙ САЙТ ═══════════════════════════
+     Раньше вход/регистрация вели сюда через промежуточный экран
+     «С возвращением — это ваш сайт?»; шаг убрали как лишний — сайт уже
+     известен из скана до регистрации, переспрашивать нечего. Вход и
+     подтверждение почты теперь ведут прямо в s-project. s-add остался
+     как путь для второго сайта — доступен из «Мои сайты» (s-status).
+     Только скан — без анкеты: без него нет находок, а MVP не должен
+     уметь собирать документы вслепую. Сайт, который правда нельзя
+     просканировать (закрыт паролем и т.п.) — не сценарий запуска,
+     решаем позже, если появится спрос. -->
 <section class="screen" id="s-add">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -703,7 +673,7 @@ details.acc:first-child{margin-top:0}
       </div>
     </aside>
     <main class="main narrow">
-      <button class="btn text sm" data-go="s-confirm" style="margin-bottom:14px">← назад</button>
+      <button class="btn text sm" data-go="s-status" style="margin-bottom:14px">← Мои сайты</button>
       <h1>Добавить сайт</h1>
 
       <div class="state on" data-state="input">
@@ -1676,8 +1646,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-continue','s-login','s-forgot','s-register','s-verify','s-confirm','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-pay','s-install','s-project-paid','s-docs','s-settings','s-support'];
-var LABELS = {'s-continue':'вы продолжаете','s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-confirm':'ваш сайт?','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
+var SCREENS = ['s-continue','s-login','s-forgot','s-register','s-verify','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-pay','s-install','s-project-paid','s-docs','s-settings','s-support'];
+var LABELS = {'s-continue':'вы продолжаете','s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
 
 var nav = document.getElementById('scr-nav');
 var navMobile = document.getElementById('scr-nav-mobile');
