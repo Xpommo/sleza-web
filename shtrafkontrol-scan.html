@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>ШтрафКонтроль — лёгкий скан, кликабельный макет</title>
+
+<!--
+  КЛИКАБЕЛЬНЫЙ МАКЕТ ЛЁГКОГО СКАНЕРА. Данные выдуманы, бэкенда нет.
+
+  Это НЕ то же самое, что client.html/cabinet-mvp.html на этой же ветке — те описывают
+  полную воронку «ШтрафКонтроль» (6 проверок: 152-ФЗ/149-ФЗ/ЕРИР/оферта/куки/ГА + подписка
+  2 990 ₽/мес + личный кабинет). Здесь — отдельный, более лёгкий прототип: 9 детерминированных
+  проверок (без ИИ, без оферты и ЕРИР, вместо них — Google Analytics/англицизмы/маркировка
+  иноагентов отдельной группой «закрываете сами»), без подписки и кабинета — самостоятельный
+  лидген-сканер. Один бренд «ШтрафКонтроль», две разные концепции — сделано отдельным файлом
+  осознанно, чтобы не выглядеть противоречием поверх уже утверждённой воронки.
+
+  Источник содержимого — реальный React-прототип (frontend/app/shtrafkontrol/ в этом же
+  репозитории, ветка master, не закоммичен). Этот файл — статичная копия того же макета
+  для публикации на gh-pages, без сборки Next.js/Tailwind.
+
+  Палитра и шрифты — как в client.html/cabinet-mvp.html: это одна макет-система.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#111110; --ink-2:#2a2825;
+  --paper:#faf8f4; --warm:#f4f1ec; --white:#fff;
+  --brand:#1f1fe6; --brand-tint:rgba(31,31,230,.10);
+  --danger:#d63816; --danger-tint:rgba(214,56,22,.10);
+  --ok:#1a7a52;     --ok-tint:rgba(26,122,82,.10);     --ok-panel:rgba(26,122,82,.06);     --ok-border:rgba(26,122,82,.25);
+  --warn:#b87900;   --warn-tint:rgba(184,121,0,.12);   --warn-panel:rgba(184,121,0,.06);   --warn-border:rgba(184,121,0,.25);
+  --line:#e8e4dd; --line-2:#dcd6cc;
+  --sans:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --ring:0 0 0 4px rgba(31,31,230,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--warm);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+button{font-family:inherit}
+a{color:inherit}
+:focus-visible{outline:none;box-shadow:var(--ring);border-radius:8px}
+
+/* ── панель режимов (макет-тулбар) ──────────────────────────────────── */
+.modes{position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:1px solid var(--line);padding:9px 18px}
+.modes-in{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.45)}
+.modes .grp{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap}
+.modes button{background:none;border:0;color:inherit;font-family:inherit;font-size:inherit;letter-spacing:inherit;
+  text-transform:inherit;padding:3px 7px;border-radius:6px;cursor:pointer}
+.modes button:hover{color:var(--ink)}
+.modes button.on{background:var(--ink);color:#fff}
+.modes .tag{border:1px solid var(--line-2);border-radius:999px;padding:2px 8px}
+
+/* ── шапка продукта ──────────────────────────────────────────────────── */
+.topnav{border-bottom:1px solid var(--line);background:rgba(244,241,236,.85);backdrop-filter:blur(6px)}
+.topnav-in{max-width:880px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink)}
+.brand svg{color:var(--brand)}
+.brand b{font-size:16px;font-weight:800;letter-spacing:-.03em}
+.status{margin-left:auto;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.6)}
+.status i{width:6px;height:6px;border-radius:999px;background:var(--ok);display:inline-block}
+
+/* ── общее ───────────────────────────────────────────────────────────── */
+.wrap{max-width:880px;margin:0 auto;padding:32px 20px 40px}
+h1{font-size:32px;font-weight:800;letter-spacing:-.04em;line-height:1;margin:0 0 20px}
+h2{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:0}
+h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:0 0 12px}
+p{margin:0}
+.lead{font-size:16px;color:rgba(17,17,16,.65);max-width:58ch;line-height:1.6}
+.micro{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.5)}
+.card{background:var(--white);border:1px solid var(--line-2);border-radius:10px}
+.sec{margin-top:40px}
+.hr{height:1px;background:var(--line);margin:20px 0}
+
+/* кнопки */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:700;
+  border:0;background:var(--ink);color:#fff;padding:16px 22px;border-radius:8px;cursor:pointer;width:100%}
+.btn:hover{background:var(--brand)}
+.btn:disabled{opacity:.6;cursor:progress}
+.btn-text{background:none;border:0;color:rgba(17,17,16,.4);font-family:var(--mono);font-size:11px;
+  text-transform:uppercase;letter-spacing:.05em;cursor:pointer;padding:0}
+.btn-text:hover{color:var(--danger)}
+
+/* ── скан-форма ──────────────────────────────────────────────────────── */
+.scan-card{background:var(--paper);border:1px solid var(--line-2);border-radius:10px;padding:28px}
+.scan-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.scan-head .line{flex:1;height:1px;background:linear-gradient(to right,var(--line-2),transparent)}
+.url-row{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--line-2);border-radius:8px;padding:16px}
+.url-row:focus-within{border-color:var(--brand);box-shadow:var(--ring)}
+.url-row span{font-family:var(--mono);font-size:15px;color:rgba(17,17,16,.4);font-weight:500}
+.url-row input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-family:var(--mono);font-size:16px;color:var(--ink);font-weight:500}
+.trust{display:flex;flex-wrap:wrap;gap:18px 20px;margin-top:16px;font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.4)}
+.trust span{display:inline-flex;align-items:center;gap:6px}
+.trust b{color:var(--ok)}
+
+/* прогресс */
+.progress-card{margin-top:20px;background:var(--paper);border:1px solid var(--line-2);border-radius:10px;padding:24px}
+.progress-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.pulse{width:6px;height:6px;border-radius:999px;background:var(--brand);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.bar{height:3px;background:var(--line);border-radius:999px;overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;background:var(--brand);border-radius:999px;transition:width .3s;width:0%}
+.term{background:var(--ink);color:#fff;border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:12px;line-height:1.9;max-height:200px;overflow:hidden}
+.term .ln{opacity:0;animation:fade .3s forwards}
+@keyframes fade{to{opacity:1}}
+.term .t{color:rgba(255,255,255,.3);margin-right:10px}
+.term .m{color:#8a8aff}
+
+/* результат */
+.res-top{background:var(--white);border:1px solid var(--line-2);border-radius:10px;padding:24px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center}
+.res-score{text-align:right}
+.res-score b{display:block;font-size:26px;font-weight:800;letter-spacing:-.02em}
+.res-list{margin-top:20px;background:var(--white);border:1px solid var(--line-2);border-radius:10px;padding:0 24px}
+.res-row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.res-row:last-child{border-bottom:0}
+.res-row .lbl{font-size:13.5px;font-weight:700}
+.res-row .code{font-family:var(--mono);font-size:10.5px;color:rgba(17,17,16,.4);margin-top:2px}
+.res-row .txt{font-size:12px;color:rgba(17,17,16,.6);margin-top:6px;max-width:52ch}
+.st{font-family:var(--mono);font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.st i{width:6px;height:6px;border-radius:999px}
+.st.ok{color:var(--ok)} .st.ok i{background:var(--ok)}
+.st.warn{color:var(--warn)} .st.warn i{background:var(--warn)}
+.st.danger{color:var(--danger)} .st.danger i{background:var(--danger)}
+.st.off{color:rgba(17,17,16,.4)} .st.off i{background:var(--line-2)}
+
+/* карточки-квадраты (как-работает / что-проверяем) */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.grid3{grid-template-columns:repeat(2,1fr)}}
+.sqcard{background:var(--white);border:1px solid var(--line-2);border-radius:10px;padding:16px;display:flex;flex-direction:column}
+.sqcard .ico{width:36px;height:36px;border-radius:8px;background:var(--warm);color:rgba(17,17,16,.7);display:flex;align-items:center;justify-content:center;flex:none}
+.sqcard .top-row{display:flex;align-items:center;justify-content:space-between}
+.sqcard .n{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:rgba(17,17,16,.35)}
+.sqcard .t{font-size:13.5px;font-weight:700;margin-top:12px;line-height:1.25}
+.sqcard .d{font-size:12px;color:rgba(17,17,16,.6);margin-top:6px;line-height:1.5;flex:1}
+.sqcard .foot{border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
+.sqcard .foot .fl{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:rgba(17,17,16,.35)}
+.sqcard .foot .fv{font-weight:800;font-size:15px;color:var(--danger);letter-spacing:-.01em}
+
+/* группы проверок */
+.grp-panel{border-radius:14px;border:1px solid var(--line-2);padding:20px;margin-bottom:20px}
+.grp-panel.doc{border-color:var(--ok-border);background:var(--ok-panel)}
+.grp-panel.mrk{border-color:var(--warn-border);background:var(--warn-panel)}
+.grp-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.grp-head i{width:6px;height:6px;border-radius:999px}
+.grp-panel.doc .grp-head i{background:var(--ok)} .grp-panel.doc .grp-head span{color:var(--ok)}
+.grp-panel.mrk .grp-head i{background:var(--warn)} .grp-panel.mrk .grp-head span{color:var(--warn)}
+.grp-head span{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.grp-panel .sqcard .ico{background:var(--ok-tint);color:var(--ok)}
+.grp-panel.mrk .sqcard .ico{background:var(--warn-tint);color:var(--warn)}
+
+/* типичные ошибки */
+.cases{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line-2);border-radius:10px;overflow:hidden}
+@media(max-width:700px){.cases{grid-template-columns:1fr}}
+.case{background:#fff;padding:20px;display:flex;flex-direction:column;gap:12px}
+.case .tags{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.case .viol{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:var(--danger-tint);color:var(--danger);padding:2px 8px;border-radius:4px}
+.case .reg{font-family:var(--mono);font-size:10px;color:rgba(17,17,16,.35)}
+.case .name{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.case .found{font-size:13px;color:rgba(17,17,16,.65);line-height:1.4;flex:1}
+.case .fine-wrap{border-top:1px dashed var(--line-2);padding-top:12px}
+.case .law{font-family:var(--mono);font-size:10px;color:rgba(17,17,16,.4)}
+.case .fine{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--danger);margin-top:2px}
+
+/* статистика */
+.stat-list{background:#fff;border:1px solid var(--line-2);border-radius:10px}
+.stat-row{padding:14px 20px;border-bottom:1px solid var(--line)}
+.stat-row:last-child{border-bottom:0}
+.stat-row .top{display:flex;justify-content:space-between;gap:12px}
+.stat-row .lbl{font-size:13.5px;font-weight:700}
+.stat-row .code{font-family:var(--mono);font-size:10.5px;color:rgba(17,17,16,.4);margin-top:2px}
+.stat-row .pct{font-family:var(--mono);font-size:16px;font-weight:800;color:rgba(17,17,16,.25);flex:none}
+.stat-row .bar-bg{margin-top:10px;height:6px;border-radius:999px;background:var(--warm);overflow:hidden}
+.stat-row .bar-fill{width:50%;height:100%;border-radius:999px;
+  background-image:repeating-linear-gradient(45deg,rgba(214,56,22,.45) 0,rgba(214,56,22,.45) 5px,transparent 5px,transparent 10px)}
+
+/* FAQ */
+.faq{background:#fff;border:1px solid var(--line-2);border-radius:10px;overflow:hidden}
+.faq-item{border-bottom:1px solid var(--line)}
+.faq-item:last-child{border-bottom:0}
+.faq-item button{width:100%;text-align:left;background:none;border:0;padding:16px 20px;font-size:14px;font-weight:500;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
+.faq-item button:hover{background:rgba(244,241,236,.6)}
+.faq-item .q{display:flex;align-items:center;gap:12px}
+.faq-item .n{font-family:var(--mono);font-size:10px;color:rgba(17,17,16,.3)}
+.faq-item .sign{font-size:18px;color:rgba(17,17,16,.3);flex:none}
+.faq-item .a{display:none;padding:0 20px 16px 60px;font-size:13.5px;color:rgba(17,17,16,.65);line-height:1.55}
+.faq-item.open .a{display:block}
+.faq-item.open .sign{content:'−'}
+
+/* футер */
+footer{max-width:880px;margin:0 auto;padding:28px 20px 32px;border-top:1px solid var(--line);
+  display:flex;flex-direction:column;gap:20px;font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:rgba(17,17,16,.45)}
+footer .f-brand{display:flex;align-items:center;gap:9px}
+footer .f-brand b{color:rgba(17,17,16,.7);font-weight:700}
+footer .f-lines{display:flex;flex-direction:column;gap:5px}
+footer a{text-decoration:underline;text-underline-offset:2px}
+footer a:hover{color:var(--ink)}
+
+.state{display:none}
+.state.on{display:block}
+
+@media(max-width:700px){
+  h1{font-size:26px}
+  .res-top{flex-direction:column;align-items:flex-start}
+  .res-score{text-align:left}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ ПАНЕЛЬ РЕЖИМОВ (только для просмотра макета) ═══════════════════ -->
+<div class="modes">
+  <div class="modes-in">
+    <span class="tag">макет</span>
+    <span class="grp">состояние:
+      <button class="on" data-state-to="idle">форма</button>
+      <button data-state-to="scanning">скан идёт</button>
+      <button data-state-to="done">результат</button>
+    </span>
+  </div>
+</div>
+
+<!-- ══ ШАПКА ═══════════════════════════════════════════════════════════ -->
+<div class="topnav">
+  <div class="topnav-in">
+    <a class="brand" href="./shtrafkontrol-scan.html">
+      <svg width="22" height="15" viewBox="0 0 24 16" fill="none" aria-hidden="true">
+        <rect x="2" y="5" width="8" height="6" rx="1.4" fill="currentColor"/>
+        <rect x="10" y="4" width="3" height="8" rx="0.6" fill="currentColor"/>
+        <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/>
+        </g>
+      </svg>
+      <b>ШтрафКонтроль</b>
+    </a>
+    <span class="status"><i></i>сервис активен</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- ══ HERO ══════════════════════════════════════════════════════════ -->
+  <header style="border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:28px">
+    <div class="micro" style="margin-bottom:20px">бесплатно · без регистрации</div>
+    <h1>Проверьте сайт на <span style="color:var(--brand)">9 обязательных требований</span> — штрафуют уже сейчас</h1>
+    <p class="lead">Согласие на обработку данных, cookie-баннер, реквизиты, Google Analytics — 9 пунктов, за отсутствие которых в 2025-м реально начали наказывать. Проверьте, чего не хватает именно у вас.</p>
+    <div style="margin-top:16px;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.5)">
+      <i style="width:6px;height:6px;border-radius:999px;background:var(--ok);display:inline-block"></i>
+      проверено ∞ сайтов
+    </div>
+  </header>
+
+  <!-- ══ СКАН: форма / прогресс / результат ═══════════════════════════ -->
+  <div class="state on" data-state="idle">
+    <div class="scan-card">
+      <div class="scan-head">
+        <span class="micro">проверить сайт</span>
+        <span class="line"></span>
+      </div>
+      <div class="url-row">
+        <span>https://</span>
+        <input type="text" id="urlInput" placeholder="example.ru" autocomplete="off" spellcheck="false">
+      </div>
+      <div style="margin-top:20px">
+        <button class="btn" onclick="startScan()">Проверить сайт →</button>
+      </div>
+      <div class="trust">
+        <span><b>✓</b> бесплатно</span>
+        <span><b>✓</b> 9 проверок</span>
+        <span><b>✓</b> без регистрации</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="state" data-state="scanning">
+    <div class="progress-card">
+      <div class="progress-top">
+        <span class="pulse"></span>
+        <span class="micro" style="color:rgba(17,17,16,.6)">проверка</span>
+        <span class="mono" id="progressCount" style="font-size:11px;color:rgba(17,17,16,.4)">0 / 9 · 0%</span>
+        <button class="btn-text" style="margin-left:auto" onclick="setState('idle')">✕ остановить</button>
+      </div>
+      <div class="bar"><i id="progressBar"></i></div>
+      <div class="term" id="term">
+        <div style="color:rgba(255,255,255,.4)">[init] открываем сайт…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="state" data-state="done">
+    <div class="res-top">
+      <div>
+        <div class="micro">результат проверки</div>
+        <div class="mono" style="font-size:16px;font-weight:600;margin-top:4px">delta-service.ru</div>
+      </div>
+      <div class="res-score">
+        <b>54 / 100</b>
+        <div class="mono" style="font-size:11px;color:rgba(17,17,16,.45)">54% обязательных требований выполнено</div>
+      </div>
+    </div>
+    <div class="res-list" id="resList"></div>
+  </div>
+
+  <!-- ══ КАК ЭТО РАБОТАЕТ ═════════════════════════════════════════════ -->
+  <section class="sec">
+    <div style="margin-bottom:20px">
+      <div class="micro">как это работает</div>
+      <h2 style="margin-top:8px">Что происходит после «Проверить сайт»</h2>
+      <p class="lead" style="margin-top:8px;font-size:14px">Без регистрации и без ожидания в очереди — три шага на одной странице.</p>
+    </div>
+    <div class="grid3">
+      <div class="sqcard">
+        <div class="top-row">
+          <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6"/><path d="M8 8H7a4 4 0 000 8h1"/><path d="M16 8h1a4 4 0 010 8h-1"/></svg></span>
+          <span class="n">шаг 01</span>
+        </div>
+        <div class="t">вставляете адрес</div>
+        <p class="d">Ссылка — единственное, что нужно ввести. Не нужно указывать тип сайта или заполнять анкету — применимость каждого пункта сканер определяет сам.</p>
+        <div class="foot"><span class="fl">ваше действие</span></div>
+      </div>
+      <div class="sqcard">
+        <div class="top-row">
+          <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M5 11h14"/></svg></span>
+          <span class="n">шаг 02</span>
+        </div>
+        <div class="t">смотрим на факты, не на догадки</div>
+        <p class="d">Не языковая модель, а точечные детекторы: есть ли раздел в тексте политики, стоит ли чекбокс рядом с формой, загружается ли скрипт Google Analytics. Один и тот же сайт — один и тот же результат.</p>
+        <div class="foot"><span class="fl">без ИИ</span></div>
+      </div>
+      <div class="sqcard">
+        <div class="top-row">
+          <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a8 8 0 0116 0"/><path d="M12 16l4-5"/><circle cx="12" cy="16" r="1" fill="currentColor" stroke="none"/></svg></span>
+          <span class="n">шаг 03</span>
+        </div>
+        <div class="t">получаете счёт и план</div>
+        <p class="d">Балл из 100 и разбор по всем 9 пунктам — отдельно то, что мы готовим за вас документом, и то, что нужно закрыть самостоятельно.</p>
+        <div class="foot"><span class="fl">на этой странице</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ЧТО ПРОВЕРЯЕМ ════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div style="margin-bottom:20px">
+      <div class="micro">что и почему проверяем</div>
+      <h2 style="margin-top:8px">Что мы находим на сайте</h2>
+      <p class="lead" style="margin-top:8px;font-size:14px">Баллы распределены не по формальной вилке КоАП, а по тому, насколько активно норму применяют на практике.</p>
+    </div>
+
+    <div class="grp-panel doc">
+      <div class="grp-head"><i></i><span>Документы, которые мы готовим для вас</span></div>
+      <div class="grid3" id="docChecks"></div>
+    </div>
+
+    <div class="grp-panel mrk">
+      <div class="grp-head"><i></i><span>Дополнительные проверки — закрываете сами</span></div>
+      <div class="grid3" id="markerChecks"></div>
+    </div>
+  </section>
+
+  <!-- ══ ТИПИЧНЫЕ ОШИБКИ ══════════════════════════════════════════════ -->
+  <section class="sec">
+    <div style="margin-bottom:20px">
+      <div class="micro">реальные кейсы</div>
+      <h2 style="margin-top:8px">Типичные ошибки на российских сайтах</h2>
+      <p class="lead" style="margin-top:8px;font-size:14px">Обезличенные примеры из базы проверок — домены скрыты, нарушения реальные.</p>
+    </div>
+    <div class="cases">
+      <div class="case">
+        <div class="tags"><span class="viol">нарушение</span><span class="reg">Новосибирск</span></div>
+        <div class="name">Интернет-магазин</div>
+        <p class="found">Google Analytics установлен на всех страницах, включая форму оформления заказа — данные покупателей уходят на серверы в США.</p>
+        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 18 ч. 5 · локализация ПДн</div><div class="fine">до 6 000 000 ₽</div></div>
+      </div>
+      <div class="case">
+        <div class="tags"><span class="viol">нарушение</span><span class="reg">Регионы</span></div>
+        <div class="name">Новостной портал</div>
+        <p class="found">Политика конфиденциальности есть, но не содержит 4 из 7 обязательных разделов: нет целей обработки, сроков хранения, категорий субъектов, порядка отзыва согласия.</p>
+        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 18.1 · неполная политика ПД</div><div class="fine">до 300 000 ₽</div></div>
+      </div>
+      <div class="case">
+        <div class="tags"><span class="viol">нарушение</span><span class="reg">Санкт-Петербург</span></div>
+        <div class="name">Онлайн-школа</div>
+        <p class="found">Форма записи на занятие собирает телефон и email, но согласия на обработку данных рядом нет — ни галочки, ни ссылки на политику.</p>
+        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 9 · согласие на форме сбора</div><div class="fine">до 700 000 ₽</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ СТАТИСТИКА ═══════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div style="margin-bottom:20px">
+      <div class="micro">статистика</div>
+      <h2 style="margin-top:8px">Самые частые нарушения</h2>
+      <p class="lead" style="margin-top:8px;font-size:14px">Копится по мере реальных проверок — сейчас сервис только запускается.</p>
+    </div>
+    <div class="stat-list" id="statList"></div>
+  </section>
+
+  <!-- ══ FAQ ══════════════════════════════════════════════════════════ -->
+  <section class="sec" style="margin-bottom:8px">
+    <div style="margin-bottom:20px">
+      <div class="micro">частые вопросы</div>
+      <h2 style="margin-top:8px">Вопросы о проверке</h2>
+    </div>
+    <div class="faq" id="faqList"></div>
+  </section>
+</div>
+
+<footer>
+  <div class="f-brand">
+    <svg width="20" height="14" viewBox="0 0 24 16" fill="none" aria-hidden="true" style="color:var(--brand)">
+      <rect x="2" y="5" width="8" height="6" rx="1.4" fill="currentColor"/>
+      <rect x="10" y="4" width="3" height="8" rx="0.6" fill="currentColor"/>
+      <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/>
+      </g>
+    </svg>
+    <b>ШтрафКонтроль</b>
+  </div>
+  <div class="f-lines">
+    <span><b style="color:rgba(17,17,16,.65)">© 2026</b> · Проверяем обязательные документы и маркировки на российских сайтах</span>
+    <a href="mailto:kirillmash99@gmail.com">kirillmash99@gmail.com</a>
+    <span>не является юридической консультацией</span>
+    <span style="margin-top:6px">← <a href="./index.html">все макеты</a></span>
+  </div>
+</footer>
+
+<script>
+// ── данные (1:1 с frontend/lib/skScanMock.js и skFaq.js) ────────────────
+var CHECK_META = {
+  privacy_policy:    {group:'document', label:'Политика обработки персональных данных', lawCode:'152-ФЗ п.2 ст.18.1'},
+  data_consent:      {group:'document', label:'Согласие на обработку ПД на форме сбора', lawCode:'152-ФЗ ст.3,6,9'},
+  cookie_policy:     {group:'document', label:'Политика cookie', lawCode:'152-ФЗ ст.3,6,9'},
+  cookie_banner:     {group:'document', label:'Cookie-баннер (верная формулировка)', lawCode:'152-ФЗ ст.3,6,9'},
+  marketing_consent: {group:'document', label:'Согласие на рекламные рассылки', lawCode:'38-ФЗ п.1 ст.18'},
+  requisites:        {group:'document', label:'Реквизиты владельца сайта', lawCode:'149-ФЗ ст.10'},
+  ga_presence:       {group:'marker', label:'Google Analytics на сайте', lawCode:'152-ФЗ ст.18 ч.5'},
+  inoagent_marking:  {group:'marker', label:'Маркировка иноагентов/террористов', lawCode:'ст.13.15 КоАП'},
+  anglicisms:        {group:'marker', label:'Иностранный текст без перевода', lawCode:'ЗоЗПП ст.10.1'}
+};
+var CHECK_ORDER = ['privacy_policy','data_consent','cookie_policy','cookie_banner','requisites','marketing_consent','ga_presence','inoagent_marking','anglicisms'];
+var ICONS = {
+  privacy_policy: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M9.5 9h2M9.5 12h5M9.5 15h5"/>',
+  data_consent: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12.5l2.5 2.5L16 9.5"/>',
+  cookie_banner: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  cookie_policy: '<circle cx="12" cy="12" r="8"/><circle cx="9" cy="10" r="0.9" fill="currentColor" stroke="none"/><circle cx="14" cy="9" r="0.9" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="0.9" fill="currentColor" stroke="none"/><circle cx="10" cy="15" r="0.9" fill="currentColor" stroke="none"/>',
+  marketing_consent: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  requisites: '<rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M6.5 16c.5-2 2-3 2.5-3s2 1 2.5 3"/><path d="M14 9h4M14 12h4M14 15h3"/>',
+  ga_presence: '<path d="M4 20V10M11 20V4M18 20v-7"/><path d="M3 20h18"/>',
+  inoagent_marking: '<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M12 8v5"/><circle cx="12" cy="16" r="0.9" fill="currentColor" stroke="none"/>',
+  anglicisms: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.2 2.3 3.4 5.3 3.4 8.5s-1.2 6.2-3.4 8.5c-2.2-2.3-3.4-5.3-3.4-8.5S9.8 5.8 12 3.5z"/>'
+};
+var CHECK_INFO = [
+  {id:'privacy_policy', why:'Объясняет, какие данные вы собираете и зачем. Без неё нельзя законно получить согласие.', fine:'до 60 000 ₽'},
+  {id:'data_consent', why:'Любая форма — заявка, звонок, подписка — должна спрашивать согласие на сбор данных.', fine:'до 700 000 ₽'},
+  {id:'cookie_banner', why:'С 2025 года cookie — тоже персональные данные. Нужен баннер до включения трекеров.', fine:'до 300 000 ₽'},
+  {id:'cookie_policy', why:'Отдельный документ или раздел, который объясняет, какие cookie и зачем собирает сайт.', fine:'до 300 000 ₽'},
+  {id:'marketing_consent', why:'Рассылки требуют отдельного согласия — его нельзя совмещать с согласием на обработку данных.', fine:'до 1 000 000 ₽'},
+  {id:'requisites', why:'Любой сайт обязан показывать, кто его ведёт: ИНН, ОГРН, адрес, контакты.', fine:'до 10 000 ₽'},
+  {id:'ga_presence', why:'Google Analytics передаёт данные посетителей на серверы в США — нарушение локализации ПДн, даже если это раскрыто в политике.', fine:'до 6 000 000 ₽'},
+  {id:'inoagent_marking', why:'Упоминание иноагента без маркировки — нарушение. Проверяем, установлен ли виджет, который расставляет пометки автоматически — содержимое сайта не сканируем.', fine:'до 50 000 ₽'},
+  {id:'anglicisms', why:'Если сайт продаёт товары или услуги физлицам, текст на иностранном языке без перевода — нарушение прав потребителя.', fine:'до 10 000 ₽'}
+];
+var DEMO_CHECKS = [
+  {id:'data_consent', status:'ok', applicable:true, evidence:'Явного нарушения на формах сбора контактов не найдено.'},
+  {id:'privacy_policy', status:'risk', applicable:true, evidence:'Найдено 4/7 обязательных разделов политики.'},
+  {id:'cookie_policy', status:'ok', applicable:true, evidence:'Обработка cookie описана внутри политики конфиденциальности.'},
+  {id:'cookie_banner', status:'violation', applicable:true, evidence:'Сайт использует трекинг (Яндекс.Метрика), но cookie-баннер не найден.'},
+  {id:'marketing_consent', status:'ok', applicable:false, evidence:'Признаков рекламных рассылок не обнаружено — согласие не требуется.'},
+  {id:'requisites', status:'ok', applicable:true, evidence:'Найдено 5/5 обязательных реквизитов.'},
+  {id:'ga_presence', status:'violation', applicable:true, evidence:'Google Analytics найден — данные посетителей уходят на серверы в США.'},
+  {id:'inoagent_marking', status:'violation', applicable:true, evidence:'Виджет ШтрафКонтроль не найден.'},
+  {id:'anglicisms', status:'ok', applicable:true, evidence:'Протяжённых нерусскоязычных фрагментов не найдено.'}
+];
+var STATUS_WORD = {ok:'есть', risk:'частично', violation:'нет'};
+var STATUS_TONE = {ok:'ok', risk:'warn', violation:'danger'};
+var TOP_VIOLATIONS = [
+  {id:'data_consent', label:'форма собирает данные без согласия'},
+  {id:'cookie_banner', label:'нет cookie-баннера или неверная формулировка'},
+  {id:'ga_presence', label:'Google Analytics передаёт данные за рубеж'},
+  {id:'privacy_policy', label:'политика ПД неполная или не найдена'},
+  {id:'inoagent_marking', label:'иноагент упомянут без маркировки'}
+];
+var SK_FAQ = [
+  {q:'Это правда бесплатно и без регистрации?', a:'Да. Вводите адрес — результат на этой же странице, без формы, почты или пароля.'},
+  {q:'Вы используете ИИ для проверки?', a:'Нет. Каждый из 9 пунктов — конкретный детерминированный признак: раздел в тексте политики, чекбокс на форме, скрипт в html. Один и тот же сайт даёт один и тот же результат при повторной проверке.'},
+  {q:'Почему нет проверки публичной оферты?', a:'Оферта у каждого бизнеса своя — шаблон под неё нельзя корректно собрать не глядя на конкретные условия продажи. Показывать проверку, за которой не стоит нормальный документ, было бы враньём — поэтому её пока нет в списке.'},
+  {q:'Что вы делаете с содержимым моего сайта?', a:'Смотрим только то, что нужно для этих 9 пунктов: текст политики, форму сбора данных, скрипты в html. Ничего сверх этого не сохраняем и не анализируем.'},
+  {q:'Вы поможете исправить найденные нарушения?', a:'По-разному, в зависимости от группы. «Документы» (политика ПД, согласия, cookie-баннер, реквизиты) — да, это и есть продукт: готовим их за вас. «Дополнительные проверки» (Google Analytics, англицизмы, маркировка иноагентов) мы только находим — эти три чинятся не документом, а вашими действиями.'},
+  {q:'Это юридическая консультация?', a:'Нет. Результат — сигнал, что и где проверить, а не юридическое заключение. Для спорных случаев и оценки конкретного риска нужен юрист.'}
+];
+
+function icon(id){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+ICONS[id]+'</svg>'; }
+
+function renderChecks(){
+  var doc = document.getElementById('docChecks'), mrk = document.getElementById('markerChecks');
+  CHECK_INFO.forEach(function(info){
+    var meta = CHECK_META[info.id];
+    var html = '<div class="sqcard"><span class="ico">'+icon(info.id)+'</span>'+
+      '<div class="t" style="margin-top:12px">'+meta.label+'</div>'+
+      '<p class="d">'+info.why+'</p>'+
+      '<div class="foot"><span class="fl">штраф</span><div class="fv">'+info.fine+'</div></div></div>';
+    (meta.group === 'document' ? doc : mrk).insertAdjacentHTML('beforeend', html);
+  });
+}
+
+function renderResults(){
+  var el = document.getElementById('resList');
+  DEMO_CHECKS.forEach(function(c){
+    var meta = CHECK_META[c.id];
+    if(!c.applicable){
+      el.insertAdjacentHTML('beforeend', '<div class="res-row" style="opacity:.55"><div><div class="lbl">'+meta.label+'</div><div class="code">'+meta.lawCode+'</div></div><span class="mono" style="font-size:11px;color:rgba(17,17,16,.4)">не требуется</span></div>');
+      return;
+    }
+    el.insertAdjacentHTML('beforeend', '<div class="res-row"><div><div class="lbl">'+meta.label+'</div><div class="code">'+meta.lawCode+'</div><div class="txt">'+c.evidence+'</div></div><span class="st '+STATUS_TONE[c.status]+'"><i></i>'+STATUS_WORD[c.status]+'</span></div>');
+  });
+}
+
+function renderStats(){
+  var el = document.getElementById('statList');
+  TOP_VIOLATIONS.forEach(function(v){
+    var meta = CHECK_META[v.id];
+    el.insertAdjacentHTML('beforeend', '<div class="stat-row"><div class="top"><div><div class="lbl">'+v.label+'</div><div class="code">'+meta.lawCode+'</div></div><div class="pct">∞%</div></div><div class="bar-bg"><div class="bar-fill"></div></div></div>');
+  });
+}
+
+function renderFaq(){
+  var el = document.getElementById('faqList');
+  SK_FAQ.forEach(function(item, i){
+    var n = i === 0 ? ' open' : '';
+    el.insertAdjacentHTML('beforeend',
+      '<div class="faq-item'+n+'"><button onclick="this.parentElement.classList.toggle(\'open\')">'+
+      '<span class="q"><span class="n">'+String(i+1).padStart(2,'0')+'</span><span>'+item.q+'</span></span>'+
+      '<span class="sign">'+(i===0?'−':'+')+'</span></button><div class="a">'+item.a+'</div></div>');
+  });
+}
+
+function setState(name){
+  document.querySelectorAll('.state').forEach(function(s){ s.classList.toggle('on', s.dataset.state === name); });
+  document.querySelectorAll('.modes button[data-state-to]').forEach(function(b){ b.classList.toggle('on', b.dataset.stateTo === name); });
+}
+document.querySelectorAll('.modes button[data-state-to]').forEach(function(b){
+  b.addEventListener('click', function(){ setState(b.dataset.stateTo); });
+});
+
+var scanTimer = null;
+function startScan(){
+  setState('scanning');
+  var term = document.getElementById('term');
+  term.innerHTML = '<div style="color:rgba(255,255,255,.4)">[init] открываем сайт…</div>';
+  var i = 0;
+  clearInterval(scanTimer);
+  scanTimer = setInterval(function(){
+    if(i >= CHECK_ORDER.length){ clearInterval(scanTimer); setTimeout(function(){ setState('done'); }, 400); return; }
+    var id = CHECK_ORDER[i];
+    var d = new Date();
+    var stamp = '['+String(d.getMinutes()).padStart(2,'0')+'.'+String(d.getSeconds()).padStart(2,'0')+']';
+    term.insertAdjacentHTML('beforeend', '<div class="ln"><span class="t">'+stamp+'</span><span class="m">['+id+'] '+CHECK_META[id].label+'</span></div>');
+    term.scrollTop = term.scrollHeight;
+    i++;
+    document.getElementById('progressCount').textContent = i+' / '+CHECK_ORDER.length+' · '+Math.round(i/CHECK_ORDER.length*100)+'%';
+    document.getElementById('progressBar').style.width = Math.round(i/CHECK_ORDER.length*100)+'%';
+  }, 480);
+}
+
+renderChecks();
+renderResults();
+renderStats();
+renderFaq();
+</script>
+</body>
+</html>
