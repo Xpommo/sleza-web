@@ -21,130 +21,162 @@
   репозитории, ветка master, не закоммичен). Этот файл — статичная копия того же макета
   для публикации на gh-pages, без сборки Next.js/Tailwind.
 
-  Палитра и шрифты — как в client.html/cabinet-mvp.html: это одна макет-система.
+  Визуальный слой (цвета/типографика/отступы/радиусы/кнопки/motion) — по хендоффу
+  design_handoff_shtrafkontrol/README.md (design-tokens дизайн-системы «Фонарик»),
+  наложен поверх этой же разметки и той же JS-логики, без замены контента/структуры —
+  см. README раздел «About the Design Files»: он образец ВИЗУАЛА, не код для копирования.
+  Секции, где у нас содержимого больше, чем в примере хендоффа (9 карточек проверок с
+  иконками и штрафами вместо голого списка, 5 строк статистики вместо пустого стейта,
+  6 вопросов FAQ вместо 3, тёмный виджет-подвал вместо простой строки) — оставлены как
+  есть: хендофф прямо просит сохранить содержание, меняя только стиль.
 -->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
+  --bg:#f4f1ec; --bg-paper:#faf8f4; --bg-elev:#fff;
   --ink:#111110; --ink-2:#2a2825;
-  --paper:#faf8f4; --warm:#f4f1ec; --white:#fff;
-  --brand:#1f1fe6; --brand-tint:rgba(31,31,230,.10);
-  --danger:#d63816; --danger-tint:rgba(214,56,22,.10);
-  --ok:#1a7a52;     --ok-tint:rgba(26,122,82,.10);     --ok-panel:rgba(26,122,82,.06);     --ok-border:rgba(26,122,82,.25);
-  --warn:#b87900;   --warn-tint:rgba(184,121,0,.12);   --warn-panel:rgba(184,121,0,.06);   --warn-border:rgba(184,121,0,.25);
-  --line:#e8e4dd; --line-2:#dcd6cc;
+  --ink-soft:rgba(17,17,16,.62); --ink-faint:rgba(17,17,16,.34); --ink-trace:rgba(17,17,16,.14);
+  --line:rgba(17,17,16,.09); --line-strong:rgba(17,17,16,.18);
+  --brand:#1f1fe6; --brand-soft:rgba(31,31,230,.08);
+  --danger:#d63816; --warn:#b87900; --ok:#1a7a52;
+  --danger-tint:rgba(214,56,22,.10); --warn-tint:rgba(184,121,0,.12); --ok-tint:rgba(26,122,82,.10);
+  --ok-panel:rgba(26,122,82,.06); --ok-border:rgba(26,122,82,.25);
+  --warn-panel:rgba(184,121,0,.06); --warn-border:rgba(184,121,0,.25);
   --sans:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
-  --ring:0 0 0 4px rgba(31,31,230,.08);
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --ease-out:cubic-bezier(.2,.8,.2,1); --ease-inout:cubic-bezier(.4,0,.2,1);
+  --ring:0 0 0 4px var(--brand-soft);
+  --maxw:768px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--warm);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+::selection{background:var(--brand);color:#fff}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 button{font-family:inherit}
 a{color:inherit}
 :focus-visible{outline:none;box-shadow:var(--ring);border-radius:8px}
 
-/* ── панель режимов (макет-тулбар) ──────────────────────────────────── */
-.modes{position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:1px solid var(--line);padding:9px 18px}
+/* ── панель режимов (макет-тулбар, не часть продукта) ─────────────────── */
+.modes{position:sticky;top:0;z-index:41;background:var(--bg-paper);border-bottom:1px solid var(--line);padding:9px 18px}
 .modes-in{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.45)}
+  font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint)}
 .modes .grp{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap}
 .modes button{background:none;border:0;color:inherit;font-family:inherit;font-size:inherit;letter-spacing:inherit;
   text-transform:inherit;padding:3px 7px;border-radius:6px;cursor:pointer}
 .modes button:hover{color:var(--ink)}
 .modes button.on{background:var(--ink);color:#fff}
-.modes .tag{border:1px solid var(--line-2);border-radius:999px;padding:2px 8px}
+.modes .tag{border:1px solid var(--line-strong);border-radius:999px;padding:2px 8px}
 
 /* ── шапка продукта ──────────────────────────────────────────────────── */
-.topnav{border-bottom:1px solid var(--line);background:rgba(244,241,236,.85);backdrop-filter:blur(6px)}
-.topnav-in{max-width:880px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:28px}
+.topnav{position:sticky;top:40px;z-index:40;border-bottom:1px solid var(--line);background:rgba(244,241,236,.85);backdrop-filter:blur(14px)}
+.topnav-in{max-width:var(--maxw);margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
 .brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink)}
 .brand svg{color:var(--brand)}
-.brand b{font-size:16px;font-weight:800;letter-spacing:-.03em}
-.status{margin-left:auto;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.6)}
-.status i{width:6px;height:6px;border-radius:999px;background:var(--ok);display:inline-block}
+.brand b{font-size:18px;font-weight:900;letter-spacing:-.04em}
+.status{margin-left:auto;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+.status i{width:6px;height:6px;border-radius:999px;background:var(--ok);display:inline-block;animation:pulseDot 1.8s ease-in-out infinite}
 
 /* ── общее ───────────────────────────────────────────────────────────── */
-.wrap{max-width:880px;margin:0 auto;padding:32px 20px 40px}
-h1{font-size:32px;font-weight:800;letter-spacing:-.04em;line-height:1;margin:0 0 20px}
-h2{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:0}
-h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:0 0 12px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+h1{font-size:clamp(34px,5.4vw,60px);font-weight:800;letter-spacing:-.045em;line-height:.98;margin:0 0 16px;max-width:22ch;text-wrap:balance}
+h1 .accent{color:var(--brand)}
+h2{font-size:clamp(28px,3.6vw,40px);font-weight:800;letter-spacing:-.04em;line-height:1.05;margin:0 0 10px;text-wrap:balance}
 p{margin:0}
-.lead{font-size:16px;color:rgba(17,17,16,.65);max-width:58ch;line-height:1.6}
-.micro{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.5)}
-.card{background:var(--white);border:1px solid var(--line-2);border-radius:10px}
-.sec{margin-top:40px}
+.lead{font-size:17px;color:var(--ink-soft);max-width:58ch;line-height:1.5}
+.lead b{color:var(--ink);font-weight:600}
+.micro{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);font-weight:500}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--brand);font-weight:600;margin-bottom:10px}
+.card{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px}
+.sh{margin-bottom:26px}
+.sh p{font-size:14.5px;color:var(--ink-soft);line-height:1.55;max-width:56ch}
 .hr{height:1px;background:var(--line);margin:20px 0}
 
+/* секции — во всю ширину, разделитель-волосок edge-to-edge, контент внутри .wrap */
+.hero{padding:44px 0 28px;border-bottom:1px solid var(--line)}
+section.block{padding:52px 0;border-bottom:1px solid var(--line)}
+section.block:last-of-type{border-bottom:0}
+
+/* бейдж-строка hero */
+.badge-row{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.free-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ok);background:rgba(26,122,82,.08);border:1px solid rgba(26,122,82,.2);
+  padding:5px 10px;border-radius:999px}
+
 /* кнопки */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:700;
-  border:0;background:var(--ink);color:#fff;padding:16px 22px;border-radius:8px;cursor:pointer;width:100%}
-.btn:hover{background:var(--brand)}
-.btn:disabled{opacity:.6;cursor:progress}
-.btn-text{background:none;border:0;color:rgba(17,17,16,.4);font-family:var(--mono);font-size:11px;
-  text-transform:uppercase;letter-spacing:.05em;cursor:pointer;padding:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14.5px;font-weight:700;
+  border:1px solid transparent;background:var(--ink);color:#fff;padding:16px 22px;border-radius:8px;cursor:pointer;width:100%;
+  transition:background .15s var(--ease-inout),transform .15s,color .15s,border-color .15s}
+.btn:hover{background:var(--brand);transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:progress;transform:none}
+.btn-text{background:none;border:0;color:var(--ink-faint);font-family:var(--mono);font-size:11px;
+  text-transform:uppercase;letter-spacing:.05em;cursor:pointer;padding:0;transition:color .15s}
 .btn-text:hover{color:var(--danger)}
 
 /* ── скан-форма ──────────────────────────────────────────────────────── */
-.scan-card{background:var(--paper);border:1px solid var(--line-2);border-radius:10px;padding:28px}
-.scan-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-.scan-head .line{flex:1;height:1px;background:linear-gradient(to right,var(--line-2),transparent)}
-.url-row{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--line-2);border-radius:8px;padding:16px}
+.scan-card{background:var(--bg-paper);border:1px solid var(--line-strong);border-radius:10px;padding:22px}
+.scan-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.scan-head .line{flex:1;height:1px;background:linear-gradient(to right,var(--line-strong),transparent)}
+.url-row{display:flex;align-items:center;gap:10px;background:var(--bg-elev);border:1.5px solid var(--line-strong);
+  border-radius:8px;padding:16px;transition:border-color .15s,box-shadow .15s}
 .url-row:focus-within{border-color:var(--brand);box-shadow:var(--ring)}
-.url-row span{font-family:var(--mono);font-size:15px;color:rgba(17,17,16,.4);font-weight:500}
+.url-row span{font-family:var(--mono);font-size:15px;color:var(--ink-faint);font-weight:500}
 .url-row input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-family:var(--mono);font-size:16px;color:var(--ink);font-weight:500}
-.trust{display:flex;flex-wrap:wrap;gap:18px 20px;margin-top:16px;font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.4)}
+.url-row input::placeholder{color:var(--ink-trace)}
+.trust{display:flex;flex-wrap:wrap;gap:18px 20px;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
 .trust span{display:inline-flex;align-items:center;gap:6px}
 .trust b{color:var(--ok)}
 
 /* прогресс */
-.progress-card{margin-top:20px;background:var(--paper);border:1px solid var(--line-2);border-radius:10px;padding:24px}
-.progress-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.progress-card{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:18px 20px}
+.progress-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
 .pulse{width:6px;height:6px;border-radius:999px;background:var(--brand);animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.bar{height:3px;background:var(--line);border-radius:999px;overflow:hidden;margin-bottom:16px}
-.bar i{display:block;height:100%;background:var(--brand);border-radius:999px;transition:width .3s;width:0%}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;background:var(--brand);border-radius:3px;transition:width .5s var(--ease-out);width:0%}
 .term{background:var(--ink);color:#fff;border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:12px;line-height:1.9;max-height:200px;overflow:hidden}
-.term .ln{opacity:0;animation:fade .3s forwards}
-@keyframes fade{to{opacity:1}}
+.term .ln{opacity:0;transform:translateY(3px);transition:opacity .3s,transform .3s}
+.term .ln.in{opacity:1;transform:none}
 .term .t{color:rgba(255,255,255,.3);margin-right:10px}
 .term .m{color:#8a8aff}
 
 /* результат */
-.res-top{background:var(--white);border:1px solid var(--line-2);border-radius:10px;padding:24px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center}
+.res-top{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:22px 24px;
+  display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center}
 .res-score{text-align:right}
-.res-score b{display:block;font-size:26px;font-weight:800;letter-spacing:-.02em}
-.res-list{margin-top:20px;background:var(--white);border:1px solid var(--line-2);border-radius:10px;padding:0 24px}
+.res-score b{display:block;font-weight:800;font-size:40px;letter-spacing:-.03em;line-height:.95;font-variant-numeric:tabular-nums}
+.res-score b.danger{color:var(--danger)} .res-score b.warn{color:var(--warn)} .res-score b.ok{color:var(--ok)}
+.res-list{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:0 24px}
 .res-row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .res-row:last-child{border-bottom:0}
 .res-row .lbl{font-size:13.5px;font-weight:700}
-.res-row .code{font-family:var(--mono);font-size:10.5px;color:rgba(17,17,16,.4);margin-top:2px}
-.res-row .txt{font-size:12px;color:rgba(17,17,16,.6);margin-top:6px;max-width:52ch}
+.res-row .code{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);margin-top:2px}
+.res-row .txt{font-size:12px;color:var(--ink-soft);margin-top:6px;max-width:52ch}
 .st{font-family:var(--mono);font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .st i{width:6px;height:6px;border-radius:999px}
 .st.ok{color:var(--ok)} .st.ok i{background:var(--ok)}
 .st.warn{color:var(--warn)} .st.warn i{background:var(--warn)}
 .st.danger{color:var(--danger)} .st.danger i{background:var(--danger)}
-.st.off{color:rgba(17,17,16,.4)} .st.off i{background:var(--line-2)}
+.st.off{color:var(--ink-faint)} .st.off i{background:var(--ink-trace)}
 
-/* карточки-квадраты (как-работает / что-проверяем) */
+/* карточки-плитки (как-работает / что-проверяем) */
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:700px){.grid3{grid-template-columns:repeat(2,1fr)}}
-.sqcard{background:var(--white);border:1px solid var(--line-2);border-radius:10px;padding:16px;display:flex;flex-direction:column}
-.sqcard .ico{width:36px;height:36px;border-radius:8px;background:var(--warm);color:rgba(17,17,16,.7);display:flex;align-items:center;justify-content:center;flex:none}
+.sqcard{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:16px;display:flex;flex-direction:column}
+.sqcard .ico{width:36px;height:36px;border-radius:8px;background:var(--bg);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex:none}
 .sqcard .top-row{display:flex;align-items:center;justify-content:space-between}
-.sqcard .n{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:rgba(17,17,16,.35)}
+.sqcard .n{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-trace)}
 .sqcard .t{font-size:13.5px;font-weight:700;margin-top:12px;line-height:1.25}
-.sqcard .d{font-size:12px;color:rgba(17,17,16,.6);margin-top:6px;line-height:1.5;flex:1}
+.sqcard .d{font-size:12px;color:var(--ink-soft);margin-top:6px;line-height:1.5;flex:1}
 .sqcard .foot{border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
-.sqcard .foot .fl{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:rgba(17,17,16,.35)}
+.sqcard .foot .fl{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint)}
 .sqcard .foot .fv{font-weight:800;font-size:15px;color:var(--danger);letter-spacing:-.01em}
 
 /* группы проверок */
-.grp-panel{border-radius:14px;border:1px solid var(--line-2);padding:20px;margin-bottom:20px}
+.grp-panel{border-radius:14px;border:1px solid var(--line-strong);padding:20px;margin-bottom:20px}
 .grp-panel.doc{border-color:var(--ok-border);background:var(--ok-panel)}
 .grp-panel.mrk{border-color:var(--warn-border);background:var(--warn-panel)}
 .grp-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
@@ -155,51 +187,48 @@ p{margin:0}
 .grp-panel .sqcard .ico{background:var(--ok-tint);color:var(--ok)}
 .grp-panel.mrk .sqcard .ico{background:var(--warn-tint);color:var(--warn)}
 
-/* типичные ошибки */
-.cases{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line-2);border-radius:10px;overflow:hidden}
-@media(max-width:700px){.cases{grid-template-columns:1fr}}
-.case{background:#fff;padding:20px;display:flex;flex-direction:column;gap:12px}
-.case .tags{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.case .viol{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:var(--danger-tint);color:var(--danger);padding:2px 8px;border-radius:4px}
-.case .reg{font-family:var(--mono);font-size:10px;color:rgba(17,17,16,.35)}
-.case .name{font-size:15px;font-weight:700;letter-spacing:-.01em}
-.case .found{font-size:13px;color:rgba(17,17,16,.65);line-height:1.4;flex:1}
-.case .fine-wrap{border-top:1px dashed var(--line-2);padding-top:12px}
-.case .law{font-family:var(--mono);font-size:10px;color:rgba(17,17,16,.4)}
-.case .fine{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--danger);margin-top:2px}
-
 /* статистика */
-.stat-list{background:#fff;border:1px solid var(--line-2);border-radius:10px}
+.stat-list{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px}
 .stat-row{padding:14px 20px;border-bottom:1px solid var(--line)}
 .stat-row:last-child{border-bottom:0}
 .stat-row .top{display:flex;justify-content:space-between;gap:12px}
 .stat-row .lbl{font-size:13.5px;font-weight:700}
-.stat-row .code{font-family:var(--mono);font-size:10.5px;color:rgba(17,17,16,.4);margin-top:2px}
-.stat-row .pct{font-family:var(--mono);font-size:16px;font-weight:800;color:rgba(17,17,16,.25);flex:none}
-.stat-row .bar-bg{margin-top:10px;height:6px;border-radius:999px;background:var(--warm);overflow:hidden}
+.stat-row .code{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);margin-top:2px}
+.stat-row .pct{font-family:var(--mono);font-size:16px;font-weight:800;color:var(--ink-trace);flex:none}
+.stat-row .bar-bg{margin-top:10px;height:6px;border-radius:999px;background:var(--bg);overflow:hidden}
 .stat-row .bar-fill{width:50%;height:100%;border-radius:999px;
   background-image:repeating-linear-gradient(45deg,rgba(214,56,22,.45) 0,rgba(214,56,22,.45) 5px,transparent 5px,transparent 10px)}
 
+/* типичные ошибки */
+.cases{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line-strong);border-radius:10px;overflow:hidden}
+@media(max-width:700px){.cases{grid-template-columns:1fr}}
+.case{background:var(--bg-elev);padding:20px;display:flex;flex-direction:column;gap:12px}
+.case .tags{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.case .viol{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:var(--danger-tint);color:var(--danger);padding:2px 8px;border-radius:4px}
+.case .reg{font-family:var(--mono);font-size:10px;color:var(--ink-trace)}
+.case .name{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.case .found{font-size:14px;color:var(--ink-2);line-height:1.5;flex:1}
+.case .fine-wrap{border-top:1px dashed var(--line-strong);padding-top:12px}
+.case .law{font-family:var(--mono);font-size:11px;color:var(--brand)}
+.case .fine{font-weight:700;font-size:15px;color:var(--danger)}
+
 /* FAQ */
-.faq{background:#fff;border:1px solid var(--line-2);border-radius:10px;overflow:hidden}
+.faq{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;overflow:hidden}
 .faq-item{border-bottom:1px solid var(--line)}
 .faq-item:last-child{border-bottom:0}
-.faq-item button{width:100%;text-align:left;background:none;border:0;padding:16px 20px;font-size:14px;font-weight:500;
+.faq-item button{width:100%;text-align:left;background:none;border:0;padding:16px 20px;font-size:14.5px;font-weight:500;
   display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
-.faq-item button:hover{background:rgba(244,241,236,.6)}
+.faq-item button:hover{background:var(--bg-paper)}
 .faq-item .q{display:flex;align-items:center;gap:12px}
-.faq-item .n{font-family:var(--mono);font-size:10px;color:rgba(17,17,16,.3)}
-.faq-item .sign{font-size:18px;color:rgba(17,17,16,.3);flex:none}
-.faq-item .a{display:none;padding:0 20px 16px 60px;font-size:13.5px;color:rgba(17,17,16,.65);line-height:1.55}
+.faq-item .n{font-family:var(--mono);font-size:10px;color:var(--ink-trace)}
+.faq-item .sign{font-size:17px;color:var(--ink-faint);flex:none;display:inline-block;transition:transform .15s,color .15s}
+.faq-item .a{display:none;padding:0 20px 16px 20px;font-size:13.5px;color:var(--ink-soft);line-height:1.55}
 .faq-item.open .a{display:block}
-.faq-item.open .sign{content:'−'}
+.faq-item.open .sign{transform:rotate(45deg);color:var(--ink)}
 
-/* подвал сайта — стиль подсмотрен у sleza.media (реальный партнёр) в наших цветах, но
-   уложен как настоящий футер (во всю ширину, без плавающей карточки), а не демо-превью
-   виджета в рамке — см. cabinet-mvp.html .dark-footer для сравнения, это другая вёрстка
-   той же идеи, без ссылок и контактов, только состав документов. */
+/* подвал сайта — превью виджета «Слеза», в стиле sleza.media (реальный партнёр), полноширинный */
 .dark-footer{background:var(--ink)}
-.dark-footer .in{max-width:880px;margin:0 auto;padding:28px 20px 32px;display:flex;
+.dark-footer .in{max-width:var(--maxw);margin:0 auto;padding:28px 24px 32px;display:flex;
   justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
 .dark-footer .org{font-size:13.5px;font-weight:700;color:#fff}
 .dark-footer .doclist{font-size:11px;color:rgba(255,255,255,.55);margin-top:8px;line-height:1.7;max-width:56ch}
@@ -208,17 +237,21 @@ p{margin:0}
   background:var(--brand);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.01em;
   padding:7px 14px;border-radius:999px}
 .dark-footer .badge b{font-weight:800}
-
-/* футер */
-footer{margin-top:40px}
 footer .back{text-align:center;padding:14px 20px}
-footer .back a{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.4)}
+footer .back a{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
 
 .state{display:none}
 .state.on{display:block}
 
+@keyframes pulseDot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(26,122,82,.4)}50%{opacity:.55;box-shadow:0 0 0 4px rgba(26,122,82,0)}}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
 @media(max-width:700px){
-  h1{font-size:26px}
+  .hero{padding:32px 0 20px}
+  section.block{padding:36px 0}
   .res-top{flex-direction:column;align-items:flex-start}
   .res-score{text-align:left}
 }
@@ -239,7 +272,7 @@ footer .back a{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.4)}
 </div>
 
 <!-- ══ ШАПКА ═══════════════════════════════════════════════════════════ -->
-<div class="topnav">
+<nav class="topnav">
   <div class="topnav-in">
     <a class="brand" href="./shtrafkontrol-scan.html">
       <svg width="22" height="15" viewBox="0 0 24 16" fill="none" aria-hidden="true">
@@ -253,77 +286,77 @@ footer .back a{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.4)}
     </a>
     <span class="status"><i></i>сервис активен</span>
   </div>
-</div>
+</nav>
 
-<div class="wrap">
-  <!-- ══ HERO ══════════════════════════════════════════════════════════ -->
-  <header style="border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:28px">
-    <div class="micro" style="margin-bottom:20px">бесплатно · без регистрации</div>
-    <h1>Проверьте сайт на <span style="color:var(--brand)">9 обязательных требований</span> — штрафуют уже сейчас</h1>
-    <p class="lead">Согласие на обработку данных, cookie-баннер, реквизиты, Google Analytics — 9 пунктов, за отсутствие которых в 2025-м реально начали наказывать. Проверьте, чего не хватает именно у вас.</p>
-    <div style="margin-top:16px;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.5)">
-      <i style="width:6px;height:6px;border-radius:999px;background:var(--ok);display:inline-block"></i>
-      проверено ∞ сайтов
+<!-- ══ HERO + СКАН ═══════════════════════════════════════════════════ -->
+<header class="hero">
+  <div class="wrap">
+    <div class="badge-row">
+      <span class="free-badge">✓ бесплатно · без регистрации</span>
+      <span class="micro">проверено ∞ сайтов</span>
     </div>
-  </header>
+    <h1>Проверьте сайт на <span class="accent">9 обязательных требований</span> — штрафуют уже сейчас</h1>
+    <p class="lead">Согласие на обработку данных, cookie-баннер, реквизиты, Google Analytics — 9 пунктов, за отсутствие которых в 2025-м реально начали наказывать. <b>Проверьте, чего не хватает именно у вас.</b></p>
 
-  <!-- ══ СКАН: форма / прогресс / результат ═══════════════════════════ -->
-  <div class="state on" data-state="idle">
-    <div class="scan-card">
-      <div class="scan-head">
-        <span class="micro">проверить сайт</span>
-        <span class="line"></span>
+    <div class="state on" data-state="idle" style="margin-top:28px">
+      <div class="scan-card">
+        <div class="scan-head">
+          <span class="micro">проверить сайт</span>
+          <span class="line"></span>
+        </div>
+        <div class="url-row">
+          <span>https://</span>
+          <input type="text" id="urlInput" placeholder="example.ru" autocomplete="off" spellcheck="false">
+        </div>
+        <div style="margin-top:20px">
+          <button class="btn" onclick="startScan()">Проверить сайт →</button>
+        </div>
+        <div class="trust">
+          <span><b>✓</b> бесплатно</span>
+          <span><b>✓</b> 9 проверок</span>
+          <span><b>✓</b> без регистрации</span>
+        </div>
       </div>
-      <div class="url-row">
-        <span>https://</span>
-        <input type="text" id="urlInput" placeholder="example.ru" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="state" data-state="scanning" style="margin-top:28px">
+      <div class="progress-card">
+        <div class="progress-top">
+          <span class="pulse"></span>
+          <span>проверка</span>
+          <span class="mono" id="progressCount" style="color:var(--ink-faint)">0 / 9 · 0%</span>
+          <button class="btn-text" style="margin-left:auto" onclick="setState('idle')">✕ остановить</button>
+        </div>
+        <div class="bar"><i id="progressBar"></i></div>
+        <div class="term" id="term">
+          <div style="color:rgba(255,255,255,.4)">[init] открываем сайт…</div>
+        </div>
       </div>
-      <div style="margin-top:20px">
-        <button class="btn" onclick="startScan()">Проверить сайт →</button>
+    </div>
+
+    <div class="state" data-state="done" style="margin-top:28px">
+      <div class="res-top">
+        <div>
+          <div class="micro">результат проверки</div>
+          <div class="mono" style="font-size:16px;font-weight:600;margin-top:4px;color:var(--ink)">delta-service.ru</div>
+        </div>
+        <div class="res-score">
+          <b class="warn">54 / 100</b>
+          <div class="mono" style="font-size:11px;color:var(--ink-faint)">54% обязательных требований выполнено</div>
+        </div>
       </div>
-      <div class="trust">
-        <span><b>✓</b> бесплатно</span>
-        <span><b>✓</b> 9 проверок</span>
-        <span><b>✓</b> без регистрации</span>
-      </div>
+      <div class="res-list" id="resList"></div>
     </div>
   </div>
+</header>
 
-  <div class="state" data-state="scanning">
-    <div class="progress-card">
-      <div class="progress-top">
-        <span class="pulse"></span>
-        <span class="micro" style="color:rgba(17,17,16,.6)">проверка</span>
-        <span class="mono" id="progressCount" style="font-size:11px;color:rgba(17,17,16,.4)">0 / 9 · 0%</span>
-        <button class="btn-text" style="margin-left:auto" onclick="setState('idle')">✕ остановить</button>
-      </div>
-      <div class="bar"><i id="progressBar"></i></div>
-      <div class="term" id="term">
-        <div style="color:rgba(255,255,255,.4)">[init] открываем сайт…</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="state" data-state="done">
-    <div class="res-top">
-      <div>
-        <div class="micro">результат проверки</div>
-        <div class="mono" style="font-size:16px;font-weight:600;margin-top:4px">delta-service.ru</div>
-      </div>
-      <div class="res-score">
-        <b>54 / 100</b>
-        <div class="mono" style="font-size:11px;color:rgba(17,17,16,.45)">54% обязательных требований выполнено</div>
-      </div>
-    </div>
-    <div class="res-list" id="resList"></div>
-  </div>
-
-  <!-- ══ КАК ЭТО РАБОТАЕТ ═════════════════════════════════════════════ -->
-  <section class="sec">
-    <div style="margin-bottom:20px">
-      <div class="micro">как это работает</div>
-      <h2 style="margin-top:8px">Что происходит после «Проверить сайт»</h2>
-      <p class="lead" style="margin-top:8px;font-size:14px">Без регистрации и без ожидания в очереди — три шага на одной странице.</p>
+<!-- ══ КАК ЭТО РАБОТАЕТ ═════════════════════════════════════════════ -->
+<section class="block">
+  <div class="wrap">
+    <div class="sh">
+      <div class="kicker">// как это работает</div>
+      <h2>Что происходит после «Проверить сайт»</h2>
+      <p>Без регистрации и без ожидания в очереди — три шага на одной странице.</p>
     </div>
     <div class="grid3">
       <div class="sqcard">
@@ -354,14 +387,16 @@ footer .back a{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.4)}
         <div class="foot"><span class="fl">на этой странице</span></div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ══ ЧТО ПРОВЕРЯЕМ ════════════════════════════════════════════════ -->
-  <section class="sec">
-    <div style="margin-bottom:20px">
-      <div class="micro">что и почему проверяем</div>
-      <h2 style="margin-top:8px">Что мы находим на сайте</h2>
-      <p class="lead" style="margin-top:8px;font-size:14px">Баллы распределены не по формальной вилке КоАП, а по тому, насколько активно норму применяют на практике.</p>
+<!-- ══ ЧТО ПРОВЕРЯЕМ ════════════════════════════════════════════════ -->
+<section class="block">
+  <div class="wrap">
+    <div class="sh">
+      <div class="kicker">// что и почему проверяем</div>
+      <h2>Что мы находим на сайте</h2>
+      <p>Баллы распределены не по формальной вилке КоАП, а по тому, насколько активно норму применяют на практике.</p>
     </div>
 
     <div class="grp-panel doc">
@@ -373,14 +408,28 @@ footer .back a{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.4)}
       <div class="grp-head"><i></i><span>Дополнительные проверки — закрываете сами</span></div>
       <div class="grid3" id="markerChecks"></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ══ ТИПИЧНЫЕ ОШИБКИ ══════════════════════════════════════════════ -->
-  <section class="sec">
-    <div style="margin-bottom:20px">
-      <div class="micro">реальные кейсы</div>
-      <h2 style="margin-top:8px">Типичные ошибки на российских сайтах</h2>
-      <p class="lead" style="margin-top:8px;font-size:14px">Обезличенные примеры из базы проверок — домены скрыты, нарушения реальные.</p>
+<!-- ══ СТАТИСТИКА ═══════════════════════════════════════════════════ -->
+<section class="block">
+  <div class="wrap">
+    <div class="sh">
+      <div class="kicker">// статистика</div>
+      <h2>Самые частые нарушения</h2>
+      <p>Копится по мере реальных проверок — сейчас сервис только запускается.</p>
+    </div>
+    <div class="stat-list" id="statList"></div>
+  </div>
+</section>
+
+<!-- ══ ТИПИЧНЫЕ ОШИБКИ ══════════════════════════════════════════════ -->
+<section class="block">
+  <div class="wrap">
+    <div class="sh">
+      <div class="kicker">// реальные кейсы</div>
+      <h2>Типичные ошибки на российских сайтах</h2>
+      <p>Обезличенные примеры из базы проверок — домены скрыты, нарушения реальные.</p>
     </div>
     <div class="cases">
       <div class="case">
@@ -402,28 +451,19 @@ footer .back a{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.4)}
         <div class="fine-wrap"><div class="law">152-ФЗ · ст. 9 · согласие на форме сбора</div><div class="fine">до 700 000 ₽</div></div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ══ СТАТИСТИКА ═══════════════════════════════════════════════════ -->
-  <section class="sec">
-    <div style="margin-bottom:20px">
-      <div class="micro">статистика</div>
-      <h2 style="margin-top:8px">Самые частые нарушения</h2>
-      <p class="lead" style="margin-top:8px;font-size:14px">Копится по мере реальных проверок — сейчас сервис только запускается.</p>
-    </div>
-    <div class="stat-list" id="statList"></div>
-  </section>
-
-  <!-- ══ FAQ ══════════════════════════════════════════════════════════ -->
-  <section class="sec" style="margin-bottom:8px">
-    <div style="margin-bottom:20px">
-      <div class="micro">частые вопросы</div>
-      <h2 style="margin-top:8px">Вопросы о проверке</h2>
+<!-- ══ FAQ ══════════════════════════════════════════════════════════ -->
+<section class="block">
+  <div class="wrap">
+    <div class="sh">
+      <div class="kicker">// частые вопросы</div>
+      <h2>Вопросы о проверке</h2>
     </div>
     <div class="faq" id="faqList"></div>
-  </section>
-
-</div>
+  </div>
+</section>
 
 <footer>
   <div class="dark-footer">
@@ -523,7 +563,7 @@ function renderResults(){
   DEMO_CHECKS.forEach(function(c){
     var meta = CHECK_META[c.id];
     if(!c.applicable){
-      el.insertAdjacentHTML('beforeend', '<div class="res-row" style="opacity:.55"><div><div class="lbl">'+meta.label+'</div><div class="code">'+meta.lawCode+'</div></div><span class="mono" style="font-size:11px;color:rgba(17,17,16,.4)">не требуется</span></div>');
+      el.insertAdjacentHTML('beforeend', '<div class="res-row" style="opacity:.55"><div><div class="lbl">'+meta.label+'</div><div class="code">'+meta.lawCode+'</div></div><span class="mono" style="font-size:11px;color:var(--ink-faint)">не требуется</span></div>');
       return;
     }
     el.insertAdjacentHTML('beforeend', '<div class="res-row"><div><div class="lbl">'+meta.label+'</div><div class="code">'+meta.lawCode+'</div><div class="txt">'+c.evidence+'</div></div><span class="st '+STATUS_TONE[c.status]+'"><i></i>'+STATUS_WORD[c.status]+'</span></div>');
@@ -570,6 +610,8 @@ function startScan(){
     var d = new Date();
     var stamp = '['+String(d.getMinutes()).padStart(2,'0')+'.'+String(d.getSeconds()).padStart(2,'0')+']';
     term.insertAdjacentHTML('beforeend', '<div class="ln"><span class="t">'+stamp+'</span><span class="m">['+id+'] '+CHECK_META[id].label+'</span></div>');
+    var lastLn = term.lastElementChild;
+    requestAnimationFrame(function(){ lastLn.classList.add('in'); });
     term.scrollTop = term.scrollHeight;
     i++;
     document.getElementById('progressCount').textContent = i+' / '+CHECK_ORDER.length+' · '+Math.round(i/CHECK_ORDER.length*100)+'%';
