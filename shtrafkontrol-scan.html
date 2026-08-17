@@ -194,30 +194,26 @@ p{margin:0}
 .faq-item.open .a{display:block}
 .faq-item.open .sign{content:'−'}
 
-/* превью виджета — портировано 1:1 из cabinet-mvp.html (.dark-footer), раскладка
-   подсмотрена у sleza.media (реальный партнёр), в наших цветах — см. комментарий там же */
+/* подвал сайта — портировано 1:1 из cabinet-mvp.html (.dark-footer), раскладка
+   подсмотрена у sleza.media (реальный партнёр), в наших цветах — см. комментарий там же.
+   Используется буквально как футер этой страницы, не как демо-превью: свой бренд, не
+   вымышленная компания — сама страница показывает, как выглядит собственный подвал. */
 .dark-footer{border-radius:10px;overflow:hidden;border:1px solid var(--line-2)}
-.dark-footer .lbl{background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;
-  text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.45);border-bottom:1px solid var(--line-2)}
 .dark-footer .body{background:var(--ink);padding:16px}
 .dark-footer .row2{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .dark-footer .org{font-size:12.5px;font-weight:700;color:#fff}
 .dark-footer .addr{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
+.dark-footer .addr a{color:inherit}
 .dark-footer .links{margin-top:9px;display:flex;flex-wrap:wrap;gap:14px}
-.dark-footer .links span{font-size:11px;color:rgba(255,255,255,.7);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)}
+.dark-footer .links span,.dark-footer .links a{font-size:11px;color:rgba(255,255,255,.7);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)}
+.dark-footer .links a:hover{color:#fff}
 .dark-footer .badge{display:inline-flex;align-items:center;gap:5px;flex:none;white-space:nowrap;
   background:var(--brand);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.01em;
   padding:7px 14px;border-radius:999px}
 .dark-footer .badge b{font-weight:800}
 
 /* футер */
-footer{max-width:880px;margin:0 auto;padding:28px 20px 32px;border-top:1px solid var(--line);
-  display:flex;flex-direction:column;gap:20px;font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:rgba(17,17,16,.45)}
-footer .f-brand{display:flex;align-items:center;gap:9px}
-footer .f-brand b{color:rgba(17,17,16,.7);font-weight:700}
-footer .f-lines{display:flex;flex-direction:column;gap:5px}
-footer a{text-decoration:underline;text-underline-offset:2px}
-footer a:hover{color:var(--ink)}
+footer{max-width:880px;margin:0 auto;padding:36px 20px 40px}
 
 .state{display:none}
 .state.on{display:block}
@@ -428,46 +424,22 @@ footer a:hover{color:var(--ink)}
     <div class="faq" id="faqList"></div>
   </section>
 
-  <!-- ══ ВИДЖЕТ ═══════════════════════════════════════════════════════ -->
-  <section class="sec" style="margin-bottom:8px">
-    <div style="margin-bottom:20px">
-      <div class="micro">виджет</div>
-      <h2 style="margin-top:8px">Вот что проверяет пункт «Маркировка иноагентов»</h2>
-      <p class="lead" style="margin-top:8px;font-size:14px">Виджет ставится одной строкой кода и сам расставляет пометки об иноагентах, добавляет ссылки на документы и бейдж в подвале сайта.</p>
-    </div>
-    <div class="dark-footer">
-      <div class="lbl">подвал сайта после установки</div>
-      <div class="body">
-        <div class="row2">
-          <div>
-            <div class="org">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233</div>
-            <div class="addr">119019, Москва, ул. Воздвиженка, д. 10 · buh@alfa-school.ru</div>
-            <div class="links"><span>Политика обработки ПДн</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
-          </div>
-          <div class="badge">Документы <b>Белый Сайт</b></div>
-        </div>
-      </div>
-    </div>
-  </section>
 </div>
 
 <footer>
-  <div class="f-brand">
-    <svg width="20" height="14" viewBox="0 0 24 16" fill="none" aria-hidden="true" style="color:var(--brand)">
-      <rect x="2" y="5" width="8" height="6" rx="1.4" fill="currentColor"/>
-      <rect x="10" y="4" width="3" height="8" rx="0.6" fill="currentColor"/>
-      <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-        <line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/>
-      </g>
-    </svg>
-    <b>ШтрафКонтроль</b>
+  <div class="dark-footer">
+    <div class="body">
+      <div class="row2">
+        <div>
+          <div class="org">ШтрафКонтроль</div>
+          <div class="addr">Проверяем обязательные документы и маркировки на российских сайтах · <a href="mailto:kirillmash99@gmail.com">kirillmash99@gmail.com</a></div>
+          <div class="links"><a href="https://fonarik-web.vercel.app/privacy">Политика конфиденциальности</a><span>не является юридической консультацией</span></div>
+        </div>
+        <div class="badge">Документы <b>Белый Сайт</b></div>
+      </div>
+    </div>
   </div>
-  <div class="f-lines">
-    <span><b style="color:rgba(17,17,16,.65)">© 2026</b> · Проверяем обязательные документы и маркировки на российских сайтах</span>
-    <a href="mailto:kirillmash99@gmail.com">kirillmash99@gmail.com</a>
-    <span>не является юридической консультацией</span>
-    <span style="margin-top:6px">← <a href="./index.html">все макеты</a></span>
-  </div>
+  <div style="text-align:center;margin-top:14px"><a class="mono" href="./index.html" style="font-size:11px;color:rgba(17,17,16,.4)">← все макеты</a></div>
 </footer>
 
 <script>
