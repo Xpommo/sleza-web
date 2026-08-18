@@ -50,6 +50,8 @@
   --ease-out:cubic-bezier(.2,.8,.2,1); --ease-inout:cubic-bezier(.4,0,.2,1);
   --ring:0 0 0 4px var(--brand-soft);
   --maxw:768px;
+  /* алиасы под handoff_footer/README.md — те же значения, что уже есть выше под другими именами */
+  --font-mono:var(--mono); --fw-black:900; --fw-semibold:600; --radius-pill:999px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -231,19 +233,23 @@ section.block:last-of-type{border-bottom:0}
 .faq-item.open .a{display:block}
 .faq-item.open .sign{transform:rotate(45deg);color:var(--ink)}
 
-/* подвал сайта — превью виджета «Слеза», в стиле sleza.media (реальный партнёр), полноширинный */
-.dark-footer{background:var(--ink)}
-.dark-footer .in{max-width:var(--maxw);margin:0 auto;padding:28px 24px 32px;display:flex;
-  justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
-.dark-footer .org{font-size:13.5px;font-weight:700;color:#fff}
-.dark-footer .doclist{font-size:11px;color:rgba(255,255,255,.55);margin-top:8px;line-height:1.7;max-width:56ch}
-.dark-footer .legal{font-size:10.5px;color:rgba(255,255,255,.35);margin-top:8px}
-.dark-footer .badge{display:inline-flex;align-items:center;gap:5px;flex:none;white-space:nowrap;
-  background:var(--brand);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.01em;
-  padding:7px 14px;border-radius:999px}
-.dark-footer .badge b{font-weight:800}
-footer .back{text-align:center;padding:14px 20px}
-footer .back a{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
+/* подвал сайта — из handoff_footer/ (README.md + footer.html + footer.css), вставлено как есть */
+footer{background:var(--ink);color:rgba(255,255,255,.86);margin-top:8px}
+.foot-top{padding:48px 0 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:40px;flex-wrap:wrap}
+.foot-brand{display:flex;flex-direction:column;gap:8px}
+.foot-brand .brand-row{display:inline-flex;align-items:center;gap:9px}
+.foot-brand .brand-row svg{color:var(--brand)}
+.foot-brand .brand-row .name{font-weight:var(--fw-black);font-size:18px;letter-spacing:-0.04em;color:#fff}
+.foot-docs{padding:16px 0 32px;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px;line-height:1.7;color:rgba(255,255,255,.5)}
+.foot-docs a{color:rgba(255,255,255,.5);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.18);transition:color .15s,border-color .15s}
+.foot-docs a:hover{color:#fff;border-color:rgba(255,255,255,.5)}
+.foot-sep{color:rgba(255,255,255,.22)}
+.foot-cta{display:inline-flex;align-items:center;justify-content:flex-start;gap:10px;flex-shrink:0;align-self:flex-start;background:var(--brand);color:#fff;text-decoration:none;font-family:var(--font-mono);font-size:12px;font-weight:var(--fw-semibold);letter-spacing:.04em;padding:13px 20px;border-radius:var(--radius-pill);transition:filter .15s,transform .15s}
+.foot-cta:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.foot-cta svg{flex-shrink:0}
+.foot-bottom{padding:18px 0 28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.04em;color:rgba(255,255,255,.34)}
+.back-link{text-align:center;padding:14px 20px;background:var(--bg)}
+.back-link a{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
 
 .state{display:none}
 .state.on{display:block}
@@ -475,18 +481,38 @@ footer .back a{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
 </section>
 
 <footer>
-  <div class="dark-footer">
-    <div class="in">
-      <div>
-        <div class="org">ШтрафКонтроль</div>
-        <div class="doclist">Политика обработки персональных данных · Согласие на обработку ПД на форме сбора · Cookie-баннер · Политика cookie · Согласие на рекламные рассылки · Реквизиты владельца сайта</div>
-        <div class="legal">не является юридической консультацией</div>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <span class="brand-row">
+          <svg width="20" height="14" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="5" width="6" height="6" rx="1.5" fill="currentColor"/>
+            <path d="M7 4.5L11 3V13L7 11.5V4.5Z" fill="currentColor"/>
+            <g class="rays" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <line x1="13.5" y1="8" x2="19.5" y2="8"/>
+              <line x1="13" y1="5.2" x2="18" y2="2.6"/>
+              <line x1="13" y1="10.8" x2="18" y2="13.4"/>
+            </g>
+          </svg>
+          <span class="name">ШтрафКонтроль</span>
+        </span>
+        <b class="label-micro" style="color:rgba(255,255,255,.34)">не является юридической консультацией</b>
       </div>
-      <div class="badge">Документы <b>Слеза</b></div>
+      <a class="foot-cta" href="#" target="_blank" rel="noopener">
+        Документы подготовлены сервисом Слеза
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 9L9 3M9 3H4M9 3V8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+    <div class="foot-docs">
+      <u>Политика обработки персональных данных</u> <span class="foot-sep">·</span> <u>Согласие на обработку ПД на форме сбора</u> <span class="foot-sep">·</span> <u>Cookie‑баннер</u> <span class="foot-sep">·</span> <u>Политика cookie</u> <span class="foot-sep">·</span> <u>Согласие на рекламные рассылки</u> <span class="foot-sep">·</span> <u>Реквизиты владельца сайта</u>
+    </div>
+    <div class="foot-bottom">
+      <span>© слеза · сервис юридического комплаенса для сайтов</span>
+      <span>сгенерировано Слеза - Белый Сайт</span>
     </div>
   </div>
-  <div class="back"><a href="./index.html">← все макеты</a></div>
 </footer>
+<div class="back-link"><a href="./index.html">← все макеты</a></div>
 
 <script>
 // ── данные (1:1 с frontend/lib/skScanMock.js и skFaq.js) ────────────────
