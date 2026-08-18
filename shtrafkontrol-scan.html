@@ -236,11 +236,11 @@ section.block:last-of-type{border-bottom:0}
 /* подвал сайта — из handoff_footer/ (README.md + footer.html + footer.css), вставлено как есть */
 footer{background:var(--ink);color:rgba(255,255,255,.86);margin-top:8px}
 .foot-top{padding:48px 0 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:40px;flex-wrap:wrap}
-.foot-brand{display:flex;flex-direction:column;gap:8px}
-.foot-brand .brand-row{display:inline-flex;align-items:center;gap:9px}
-.foot-brand .brand-row svg{color:var(--brand)}
-.foot-brand .brand-row .name{font-weight:var(--fw-black);font-size:18px;letter-spacing:-0.04em;color:#fff}
+.brand-row{display:inline-flex;align-items:center;gap:9px}
+.brand-row svg{color:var(--brand)}
+.brand-row .name{font-weight:var(--fw-black);font-size:18px;letter-spacing:-0.04em;color:#fff}
 .foot-docs{padding:16px 0 32px;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px;line-height:1.7;color:rgba(255,255,255,.5)}
+.foot-legal{margin-top:12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.34)}
 .foot-docs a{color:rgba(255,255,255,.5);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.18);transition:color .15s,border-color .15s}
 .foot-docs a:hover{color:#fff;border-color:rgba(255,255,255,.5)}
 .foot-sep{color:rgba(255,255,255,.22)}
@@ -483,21 +483,18 @@ footer{background:var(--ink);color:rgba(255,255,255,.86);margin-top:8px}
 <footer>
   <div class="wrap">
     <div class="foot-top">
-      <div class="foot-brand">
-        <span class="brand-row">
-          <svg width="20" height="14" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="5" width="6" height="6" rx="1.5" fill="currentColor"/>
-            <path d="M7 4.5L11 3V13L7 11.5V4.5Z" fill="currentColor"/>
-            <g class="rays" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-              <line x1="13.5" y1="8" x2="19.5" y2="8"/>
-              <line x1="13" y1="5.2" x2="18" y2="2.6"/>
-              <line x1="13" y1="10.8" x2="18" y2="13.4"/>
-            </g>
-          </svg>
-          <span class="name">ШтрафКонтроль</span>
-        </span>
-        <b class="label-micro" style="color:rgba(255,255,255,.34)">не является юридической консультацией</b>
-      </div>
+      <span class="brand-row">
+        <svg width="20" height="14" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="5" width="6" height="6" rx="1.5" fill="currentColor"/>
+          <path d="M7 4.5L11 3V13L7 11.5V4.5Z" fill="currentColor"/>
+          <g class="rays" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <line x1="13.5" y1="8" x2="19.5" y2="8"/>
+            <line x1="13" y1="5.2" x2="18" y2="2.6"/>
+            <line x1="13" y1="10.8" x2="18" y2="13.4"/>
+          </g>
+        </svg>
+        <span class="name">ШтрафКонтроль</span>
+      </span>
       <a class="foot-cta" href="#" target="_blank" rel="noopener">
         Документы подготовлены сервисом Белый Сайт
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 9L9 3M9 3H4M9 3V8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -505,6 +502,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.86);margin-top:8px}
     </div>
     <div class="foot-docs">
       <u>Политика обработки персональных данных</u> <span class="foot-sep">·</span> <u>Согласие на обработку ПД на форме сбора</u> <span class="foot-sep">·</span> <u>Cookie‑баннер</u> <span class="foot-sep">·</span> <u>Политика cookie</u> <span class="foot-sep">·</span> <u>Согласие на рекламные рассылки</u> <span class="foot-sep">·</span> <u>Реквизиты владельца сайта</u>
+      <div class="foot-legal">не является юридической консультацией</div>
     </div>
     <div class="foot-bottom">
       <span>© слеза · сервис юридического комплаенса для сайтов</span>
