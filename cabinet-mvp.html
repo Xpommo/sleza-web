@@ -526,7 +526,7 @@ details.acc:first-child{margin-top:0}
 
     <label class="remember"><input type="checkbox"><span>Запомнить меня на этом устройстве</span></label>
 
-    <button type="button" class="btn solid wide" style="margin-top:20px" data-go="s-project">Войти →</button>
+    <button type="button" class="btn solid wide" style="margin-top:20px" data-go="s-status">Войти →</button>
 
     <p class="tiny" style="text-align:center;margin-top:28px">Нет аккаунта? <button type="button" class="btn text sm" style="padding:0" data-go="s-register">Создать</button></p>
     <p class="tiny" style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)">Политика конфиденциальности · Оферта</p>
@@ -567,10 +567,10 @@ details.acc:first-child{margin-top:0}
   <div class="split">
     <div class="split-value">
       <span class="kicker">слеза белый сайт</span>
-      <h2>Документы для сайта, о которых можно забыть</h2>
-      <div class="why"><div><b>Соберём под вашу компанию</b><span>Формы и счётчики на сайте мы уже увидели. Спросим только то, чего снаружи не видно.</span></div></div>
-      <div class="why"><div><b>Одна строка кода</b><span>Вставили скрипт, и в подвале появились ссылки и баннер согласия.</span></div></div>
-      <div class="why"><div><b>Раз в месяц проверяем сайт</b><span>Поставили новую форму и забыли про галочку? Напишем, что поправить.</span></div></div>
+      <h2>Документы для сайта — готовим и держим в порядке</h2>
+      <div class="why"><div><b>Соберём под вашу компанию</b><span>Заполните анкету о сайте и компании — документы соберём индивидуально под вас, не по шаблону.</span></div></div>
+      <div class="why"><div><b>Виджет на сайт</b><span>Установили один раз — виджет держит документы и согласия на сайте в порядке.</span></div></div>
+      <div class="why"><div><b>Следим, что всё работает</b><span>Проверяем, что виджет и документы на сайте работают исправно — не нужно проверять это самим.</span></div></div>
       <div class="why"><div><b>Когда поменяется закон, перепишем сами</b><span>Вам придёт письмо, что документы уже обновлены.</span></div></div>
     </div>
     <div class="split-form">
@@ -619,21 +619,20 @@ details.acc:first-child{margin-top:0}
     <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:22px">✉️</div>
     <h1>Подтвердите почту</h1>
     <p class="lead" style="margin-top:10px">Отправили письмо со ссылкой на адрес, который вы указали. Перейдите по ней, чтобы продолжить — это займёт минуту.</p>
-    <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-project">Ссылка подтверждена (демо) →</button>
+    <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-status" data-set-hassite="false">Ссылка подтверждена (демо) →</button>
     <p class="tiny" style="margin-top:16px">Не пришло письмо? <button type="button" class="btn text sm" style="padding:0">Отправить ещё раз</button></p>
   </div>
 </section>
 
-<!-- ══════════════════ 03 · ДОБАВИТЬ СВОЙ САЙТ ═══════════════════════════
-     Раньше вход/регистрация вели сюда через промежуточный экран
-     «С возвращением — это ваш сайт?»; шаг убрали как лишний — сайт уже
-     известен из скана до регистрации, переспрашивать нечего. Вход и
-     подтверждение почты теперь ведут прямо в s-project. s-add остался
-     как путь для второго сайта — доступен из «Мои сайты» (s-status).
-     Только скан — без анкеты: без него нет находок, а MVP не должен
-     уметь собирать документы вслепую. Сайт, который правда нельзя
-     просканировать (закрыт паролем и т.п.) — не сценарий запуска,
-     решаем позже, если появится спрос. -->
+<!-- ══════════════════ 03 · ДОБАВИТЬ САЙТ ═══════════════════════════════
+     Сканирования в ЛК больше нет вообще — прямая правка пользователя
+     (18.08): задача сервиса — готовить документы и виджет по данным,
+     которые сообщает сам клиент, не оценивать его сайт. Раньше здесь
+     была кнопка «Проверить сайт у нас» (сканирующий стейт) — убрана,
+     как и текст «если раньше уже сканировали». Единственное действие —
+     домен + название, дальше сразу в анкету (s-anketa): это теперь
+     единственный источник данных о сайте и компании, скану замену
+     искать не нужно, анкета и есть основной канал. -->
 <section class="screen" id="s-add">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -646,108 +645,35 @@ details.acc:first-child{margin-top:0}
     <main class="main narrow">
       <button class="btn text sm" data-go="s-status" style="margin-bottom:14px">← Мои сайты</button>
       <h1>Добавить сайт</h1>
+      <p class="lead" style="margin-top:8px">Дальше — короткая анкета о сайте и компании, дальше сами соберём документы.</p>
 
-      <div class="state on" data-state="input">
-        <div class="card pad" style="margin-top:16px;max-width:440px">
-          <label class="f" for="add-domain">Домен сайта</label>
-          <input class="inp mono" id="add-domain" value="alfa-school.ru">
-          <p class="tiny" style="margin-top:6px">Если раньше уже сканировали этот сайт у нас — покажем готовый результат.</p>
-          <button class="btn solid wide" style="margin-top:14px" data-state-to="scanning">Проверить сайт у нас</button>
-        </div>
-      </div>
-
-      <div class="state" data-state="scanning">
-        <div class="card pad" style="margin-top:16px;max-width:440px">
-          <div class="row"><span class="chip amber">идёт проверка</span></div>
-          <div class="mono" style="font-size:17px;font-weight:700;margin-top:10px">alfa-school.ru</div>
-          <p class="lead" style="margin-top:6px">Обычно 2–5 минут.</p>
-          <div class="small" style="line-height:2;margin-top:10px">
-            <div><span style="color:var(--ok)">●</span> Открываем страницы сайта</div>
-            <div><span style="color:var(--ok)">●</span> Ищем политику и согласия</div>
-            <div><span style="color:var(--warn)">●</span> Сверяем реквизиты с ЕГРЮЛ <span class="tiny">— идёт</span></div>
-            <div><span style="color:var(--line-2)">●</span> Проверяем трекинг и рекламу</div>
-          </div>
-          <button class="btn sm" style="margin-top:14px" data-state-to="input" data-go="s-project">Показать результат (демо)</button>
-        </div>
+      <div class="card pad" style="margin-top:16px;max-width:440px">
+        <label class="f" for="add-name">Название компании или сайта</label>
+        <input class="inp" id="add-name" value="Альфа Образование">
+        <label class="f" style="margin-top:10px" for="add-domain">Домен сайта</label>
+        <input class="inp mono" id="add-domain" value="alfa-school.ru">
+        <button class="btn solid wide" style="margin-top:14px" data-go="s-anketa" data-set-hassite="true">Далее →</button>
       </div>
     </main>
   </div>
-</section>
-
-<!-- ══════════════════ 04 · НАХОДКИ ═════════════════════════════════════ -->
-<section class="screen" id="s-project">
-  <div class="appwrap sidebar">
-    <aside class="side">
-      <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
-      <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><a class="on">▤ Обзор</a></div>
-      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
-      <div class="acct" style="margin-top:0">
-        <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
-      </div>
-    </aside>
-    <main class="main narrow">
-      <div class="row" style="justify-content:space-between;align-items:flex-start">
-        <div class="proj-head-info">
-          <div class="mono proj-title" style="font-size:24px;font-weight:700">alfa-school.ru</div>
-          <p class="tiny proj-oper" style="margin-top:3px">ООО «Альфа Образование» · ИНН 7701234567</p>
-          <div class="row proj-status" style="margin-top:6px;gap:14px">
-            <span class="tiny mono">проверен 7 дней назад</span>
-            <span class="small" style="color:var(--warn);font-weight:600">⚠ подписка не подключена</span>
-          </div>
-        </div>
-        <button class="btn sm proj-recheck-top">↻ Проверить сейчас</button>
-      </div>
-
-      <div class="card pad" style="margin-top:16px;border-color:rgba(214,56,22,.3)">
-        <div class="verdict-line"><span class="b red" style="font-size:16px">⛔ 2 нарушения <span style="color:var(--warn);font-weight:500">· 1 замечание</span></span><span class="muted verdict-risk" style="font-weight:500;font-size:16px">риск до 200 000 ₽</span></div>
-        <p class="lead" style="margin-top:8px">Соберём документы под ООО «Альфа Образование» (ИНН 7701234567) — закроем сами, от вас нужны только данные для анкеты.</p>
-        <div class="row" style="margin-top:12px">
-          <button type="button" class="btn solid" data-go="s-prepare">💳 Подключить за 2 990 ₽/мес</button>
-          <span class="tiny mono">Закроем все три пункта, документы придут сразу после оплаты</span>
-        </div>
-        <p class="tiny" style="margin-top:10px;color:rgba(17,17,16,.5)">Реквизиты сверяем с ЕГРЮЛ, документы собираем под конкретную компанию — не общий шаблон.</p>
-        <button class="btn sm proj-recheck-bottom" type="button">↻ Проверить сейчас</button>
-      </div>
-
-      <h2 style="margin-top:22px">Что нашли</h2>
-      <div class="find open">
-        <button class="hd" data-find><span class="dot red"></span><span class="nm" style="flex:1">152-ФЗ · персональные данные</span><span class="st red">нарушение</span><span class="chip fill">закроем сами</span><span class="chev">›</span></button>
-        <div class="bd">
-          <div class="lbl">что нашли</div><div class="txt">На /contacts форма заявки отправляется без согласия на обработку данных. Политики обработки персональных данных на сайте нет.</div>
-          <div class="lbl">чем грозит</div><div class="txt" style="color:var(--danger);font-weight:600">КоАП 13.11 ч.1 · до 100 000 ₽</div>
-        </div>
-      </div>
-      <div class="find">
-        <button class="hd" data-find><span class="dot red"></span><span class="nm" style="flex:1">Куки · согласие на трекинг</span><span class="st red">нарушение</span><span class="chip fill">закроем сами</span><span class="chev">›</span></button>
-        <div class="bd">
-          <div class="lbl">что нашли</div><div class="txt">Яндекс.Метрика ставит _ym_uid до того, как посетитель что-либо выбрал. Баннера с отказом нет.</div>
-          <div class="lbl">чем грозит</div><div class="txt" style="color:var(--danger);font-weight:600">152-ФЗ ст. 9 · до 100 000 ₽</div>
-        </div>
-      </div>
-      <div class="find">
-        <button class="hd" data-find><span class="dot amber"></span><span class="nm" style="flex:1">149-ФЗ · реквизиты владельца</span><span class="st amber">замечание</span><span class="chip fill">закроем сами</span><span class="chev">›</span></button>
-        <div class="bd">
-          <div class="lbl">что нашли</div><div class="txt">В подвале нет ИНН и ОГРН. Наименование указано, но не совпадает с ЕГРЮЛ по форме собственности.</div>
-          <div class="lbl">чем грозит</div><div class="txt" style="color:var(--warn);font-weight:600">Требование к прозрачности продавца · рекомендация, штраф не предусмотрен</div>
-        </div>
-      </div>
-    </main>
-  </div>
-  <div class="sticky-cta"><span class="ctx">риск до 200 000 ₽</span><button type="button" class="btn solid" data-go="s-prepare">Подключить</button></div>
 </section>
 
 <!-- ══════════════════ 04б · МОИ САЙТЫ — портировано из cabinet-b.html (s-list) ═
      Верхнеуровневый хаб сайдбара («Обзор» у конкретного проекта ведёт сюда
-     через «← Мои сайты», не наоборот) — чтобы вернуться к статусу после
-     «Находки» можно было не листая воронку назад. Карточка сайта берёт
-     содержимое из siteStatus (глобальная переменная unpaid/pending/paid,
-     см. script): не оплачено — «Устранить →» в «Находки», счёт выставлен —
-     «⏳ Ожидает оплаты», оплачено — «Обновить документы →» в кабинет.
-     «+ Добавить сайт» вверху скрыт в виде карточек (там уже есть addcard
-     в сетке) и появляется только в виде таблицы, где своей плашки для
-     добавления нет — оба вида переключает viewbar (data-swap=pvcards/pvtable). -->
+     через «← Мои сайты», не наоборот). Карточка сайта берёт содержимое из
+     siteStatus (глобальная переменная unpaid/pending/paid, см. script) —
+     без скана/находок статусы теперь просто про прогресс оформления и
+     оплату, не про риск. «+ Добавить сайт» вверху скрыт в виде карточек
+     (там уже есть addcard в сетке) и появляется только в виде таблицы —
+     оба вида переключает viewbar (data-swap=pvcards/pvtable).
+
+     Новое здесь: настоящее пустое состояние (data-has-site="false"/"true",
+     hasSite в script, тот же паттерн, что siteStatus/data-pay-state) —
+     сразу после s-verify свежий аккаунт правда пустой, «Мои сайты» больше
+     не показывает демо-сайт, которого ещё не было. Дефолт hasSite=true
+     сохраняет остальной макет и dev-тулбар как есть (переход по нему
+     сюда напрямую по-прежнему показывает сайт) — только явный переход
+     s-verify→s-status выставляет hasSite=false. -->
 <section class="screen" id="s-status">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -760,11 +686,19 @@ details.acc:first-child{margin-top:0}
       </div>
     </aside>
     <main class="main narrow">
-      <div class="row" style="justify-content:space-between;align-items:flex-start">
-        <div>
-          <h1>Мои сайты</h1>
-          <p class="lead" style="margin-top:4px">1 сайт</p>
+      <h1>Мои сайты</h1>
+
+      <div class="state" data-has-site="false" style="margin-top:18px">
+        <div class="card pad" style="max-width:440px;text-align:center;padding:36px 28px">
+          <p class="lead">Пока нет ни одного сайта</p>
+          <p class="tiny" style="margin-top:6px;color:rgba(17,17,16,.5)">Добавьте сайт — дальше короткая анкета, и мы подготовим документы под него.</p>
+          <button type="button" class="btn solid wide" style="margin-top:16px" data-go="s-add">+ Добавить сайт</button>
         </div>
+      </div>
+
+      <div class="state on" data-has-site="true">
+      <div class="row" style="justify-content:space-between;align-items:flex-start;margin-top:14px">
+        <p class="lead">1 сайт</p>
         <div class="row" style="gap:8px">
           <button class="btn sm" data-go="s-add" data-swapped="pvtable" style="display:none">+ Добавить сайт</button>
           <div class="viewbar" role="group" aria-label="Вид списка">
@@ -783,7 +717,7 @@ details.acc:first-child{margin-top:0}
           <button type="button" class="addcard" data-go="s-add">
             <span class="plus">+</span>
             <b>Добавить сайт</b>
-            <span>Ещё один сайт для проверки</span>
+            <span>Ещё один сайт</span>
           </button>
 
           <div class="projcard">
@@ -792,16 +726,14 @@ details.acc:first-child{margin-top:0}
                 <div class="dom">alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
               </div>
-              <div class="strip"><i class="red"></i><i class="blue"></i><i></i><i></i><i class="red"></i><i></i></div>
-              <div class="meta">⛔ 2 нарушения · 1 замечание<br>ООО «Альфа Образование» · ИНН 7701234567<br>подписка не подключена</div>
-              <div class="act"><button type="button" class="actbtn solid" data-go="s-project">Устранить →</button></div>
+              <div class="meta">Документы не готовы<br>ООО «Альфа Образование» · ИНН 7701234567<br>подписка не подключена</div>
+              <div class="act"><button type="button" class="actbtn solid" data-go="s-anketa">Продолжить →</button></div>
             </div>
             <div class="state" data-pay-state="pending">
               <div>
                 <div class="dom">alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
               </div>
-              <div class="strip"><i class="amber"></i><i></i><i></i><i></i><i></i><i></i></div>
               <div class="meta">⏳ Ожидает оплаты<br>ООО «Альфа Образование» · ИНН 7701234567<br>счёт выставлен · обычно 1–3 рабочих дня</div>
               <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
             </div>
@@ -810,8 +742,7 @@ details.acc:first-child{margin-top:0}
                 <div class="dom">alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
               </div>
-              <div class="strip"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-              <div class="meta">✓ Нарушений не найдено<br>ООО «Альфа Образование» · ИНН 7701234567<br>оплачено до 05.09.2026</div>
+              <div class="meta">✓ Документы актуальны<br>ООО «Альфа Образование» · ИНН 7701234567<br>оплачено до 05.09.2026</div>
               <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Обновить документы →</button></div>
             </div>
           </div>
@@ -821,45 +752,112 @@ details.acc:first-child{margin-top:0}
       <div data-swapped="pvtable" style="display:none;margin-top:18px">
         <div style="overflow-x:auto">
         <table class="projtable">
-          <thead><tr><th>Сайт</th><th>Статус</th><th>Оплата</th><th>Проверен</th><th></th></tr></thead>
+          <thead><tr><th>Сайт</th><th>Статус</th><th>Оплата</th><th></th></tr></thead>
           <tbody>
             <tr class="state on" data-pay-state="unpaid">
               <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
-              <td><span class="b red">⛔ 2 нарушения · 1 замечание</span></td>
+              <td><span class="small muted">Документы не готовы</span></td>
               <td class="meta">подписка не подключена</td>
-              <td class="meta">7 дней назад</td>
-              <td class="act"><button type="button" class="actbtn outline" data-go="s-project">Устранить →</button></td>
+              <td class="act"><button type="button" class="actbtn outline" data-go="s-anketa">Продолжить →</button></td>
             </tr>
             <tr class="state" data-pay-state="pending">
               <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="b amber">⏳ Ожидает оплаты</span></td>
               <td class="meta">счёт выставлен</td>
-              <td class="meta">сегодня</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
             <tr class="state" data-pay-state="paid">
               <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
-              <td><span class="b green">✓ Нарушений не найдено</span></td>
+              <td><span class="b green">✓ Документы актуальны</span></td>
               <td class="meta">оплачено до 05.09.2026</td>
-              <td class="meta">сегодня</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Обновить →</button></td>
             </tr>
           </tbody>
         </table>
         </div>
       </div>
+      </div>
     </main>
   </div>
 </section>
 
-<!-- ══════════════════ ВОРОНКА: 1/4 · ГОТОВИМ ДОКУМЕНТЫ ═══════════════ -->
-<section class="screen" id="s-prepare">
+<!-- ══════════════════ ВОРОНКА: 1/4 · АНКЕТА ═══════════════════════════
+     Теперь первый шаг воронки, не второй — прямая правка пользователя
+     (18.08): скана в ЛК больше нет вообще, значит анкета не «пара
+     уточнений» вдогонку к находкам, а единственный источник данных о
+     сайте и компании. Расширена: помимо того, что нужно для текста
+     документов (зачем собираете контакты, нужны ли рассылки), добавлены
+     вопросы для внутренней статистики — кто заполняет, сфера, платформа
+     сайта, что предлагаете. Платформа не просто для статистики — она
+     же определит, какую инструкцию показать на установке (s-install
+     уже разводит Тильду/WordPress/Битрикс по вкладкам), вопрос это
+     явно объясняет, а не молча собирает данные. -->
+<section class="screen" id="s-anketa">
   <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 1 из 5</span></div><div class="prog"><i style="width:20%"></i></div></div>
-  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
+  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
   <div class="startwrap">
-    <button class="btn text sm" data-go="s-project" style="margin-bottom:10px">← результат проверки</button>
+    <button class="btn text sm" data-go="s-add" style="margin-bottom:10px">← добавить сайт</button>
+    <h1>Расскажите о сайте и компании</h1>
+    <p class="lead" style="margin-top:8px">Пять минут — и документы соберём точно под ваш случай, не по шаблону.</p>
+
+    <div class="card pad" style="margin-top:16px">
+      <h3>Кто заполняет анкету?</h3>
+      <p class="tiny" style="margin:6px 0 12px">Чтобы понимать, к кому обращаться, если что-то нужно будет уточнить.</p>
+      <div class="seg"><button class="on">Я сам(а)</button><button>Сотрудник</button><button>Подрядчик</button></div>
+    </div>
+
+    <div class="card pad" style="margin-top:10px">
+      <h3>Какая у вас сфера?</h3>
+      <p class="tiny" style="margin:6px 0 12px">У школы, магазина и сервиса услуг разные обязательные пункты в политике.</p>
+      <div class="seg"><button class="on">Онлайн-школа</button><button>Услуги</button><button>Интернет-магазин</button><button>Другое</button></div>
+    </div>
+
+    <div class="card pad" style="margin-top:10px">
+      <h3>На какой платформе сайт?</h3>
+      <p class="tiny" style="margin:6px 0 12px">Пригодится на шаге установки — покажем инструкцию именно под неё.</p>
+      <div class="seg"><button class="on">Тильда</button><button>WordPress</button><button>Битрикс</button><button>Другое</button></div>
+    </div>
+
+    <div class="card pad" style="margin-top:10px">
+      <h3>Что вы предлагаете на сайте?</h3>
+      <p class="tiny" style="margin:6px 0 10px">Коротко — это попадёт в политику как цель обработки данных.</p>
+      <input class="inp" value="Курсы и занятия для детей и взрослых">
+    </div>
+
+    <div class="card pad" style="margin-top:10px">
+      <h3>Звоните, пишете в мессенджеры или на почту по базе клиентов?</h3>
+      <p class="tiny" style="margin:6px 0 12px">От этого зависит, нужно ли отдельное согласие на рекламные рассылки.</p>
+      <div class="seg"><button class="on">Да</button><button>Нет</button></div>
+    </div>
+
+    <div class="card pad" style="margin-top:10px">
+      <h3>Для чего вы собираете контакты?</h3>
+      <p class="tiny" style="margin:6px 0 10px">Это попадёт в политику — цели должны совпадать с тем, что вы делаете на самом деле.</p>
+      <label class="check"><input type="checkbox" checked><span class="t">Записать на занятие</span></label>
+      <label class="check"><input type="checkbox" checked><span class="t">Ответить на обращение</span></label>
+      <label class="check"><input type="checkbox" checked><span class="t">Рассказывать об акциях и наборах</span></label>
+    </div>
+
+    <div class="hr" style="margin-top:20px"></div>
+    <button type="button" class="btn solid wide" data-go="s-prepare">Далее</button>
+  </div>
+</section>
+
+<!-- ══════════════════ ВОРОНКА: 2/4 · ГОТОВИМ ДОКУМЕНТЫ ═══════════════
+     Раньше шёл первым, до анкеты — переставлен на второй, следом за
+     ней (правка вместе с 1/4 выше): теперь порядок «сначала расскажите
+     о сайте, потом подтвердите реквизиты и посмотрите, что подготовим»
+     — анкета уже дала данные, реквизиты подтверждаются следом. Текст
+     больше не привязан к «находкам»/«отчёту» — взять их было неоткуда
+     без скана — это фиксированный набор документов, который продукт
+     готовит под любой сайт. -->
+<section class="screen" id="s-prepare">
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 2 из 5</span></div><div class="prog"><i style="width:40%"></i></div></div>
+  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
+  <div class="startwrap">
+    <button class="btn text sm" data-go="s-anketa" style="margin-bottom:10px">← анкета</button>
     <h1>Готовим документы для вас</h1>
-    <p class="lead" style="margin-top:8px">По находкам на alfa-school.ru подготовим документы — каждый закрывает конкретную проблему из отчёта.</p>
+    <p class="lead" style="margin-top:8px">По данным анкеты подготовим документы под alfa-school.ru — индивидуально под вашу компанию.</p>
 
     <div class="card" style="margin-top:16px;overflow:hidden">
       <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">152-ФЗ · персональные данные</div><div class="w">Соберём политику конфиденциальности, политику обработки ПДн и текст согласия — подключим через виджет.</div></div></div>
@@ -875,7 +873,7 @@ details.acc:first-child{margin-top:0}
     <p class="tiny" style="margin-top:7px">Подставили из ЕГРЮЛ — станет первым документом в «Документах».</p>
 
     <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-go="s-anketa">Далее</button>
+    <button type="button" class="btn solid wide" data-go="s-ready">Далее</button>
   </div>
 </section>
 
@@ -906,49 +904,21 @@ details.acc:first-child{margin-top:0}
   </div>
 </div>
 
-<!-- ══════════════════ ВОРОНКА: 2/4 · АНКЕТА ═══════════════════════════ -->
-<section class="screen" id="s-anketa">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 2 из 5</span></div><div class="prog"><i style="width:40%"></i></div></div>
-  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
-  <div class="startwrap">
-    <button class="btn text sm" data-go="s-prepare" style="margin-bottom:10px">← что подготовим</button>
-    <h1>Пара уточнений, которые со стороны не видно</h1>
-    <p class="lead" style="margin-top:8px">Сканер видит сайт, но не видит, что вы делаете с собранными контактами.</p>
-
-    <div class="card pad" style="margin-top:16px">
-      <h3>Звоните, пишете в мессенджеры или на почту по базе клиентов?</h3>
-      <p class="tiny" style="margin:6px 0 12px">От этого зависит, нужно ли отдельное согласие на рекламные рассылки.</p>
-      <div class="seg"><button class="on">Да</button><button>Нет</button></div>
-    </div>
-
-    <div class="card pad" style="margin-top:10px">
-      <h3>Для чего вы собираете контакты?</h3>
-      <p class="tiny" style="margin:6px 0 10px">Это попадёт в политику — цели должны совпадать с тем, что вы делаете на самом деле.</p>
-      <label class="check"><input type="checkbox" checked><span class="t">Записать на занятие</span></label>
-      <label class="check"><input type="checkbox" checked><span class="t">Ответить на обращение</span></label>
-      <label class="check"><input type="checkbox" checked><span class="t">Рассказывать об акциях и наборах</span></label>
-    </div>
-
-    <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-go="s-ready">Далее</button>
-  </div>
-</section>
-
 <!-- ══════════════════ ВОРОНКА: 3/4 · ДОКУМЕНТЫ ГОТОВЫ ═════════════════ -->
 <section class="screen" id="s-ready">
   <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 3 из 5</span></div><div class="prog"><i style="width:60%"></i></div></div>
-  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
+  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
   <div class="startwrap">
-    <button class="btn text sm" data-go="s-anketa" style="margin-bottom:10px">← уточнения</button>
+    <button class="btn text sm" data-go="s-prepare" style="margin-bottom:10px">← что подготовим</button>
     <div class="b green" style="font-size:15px">✓ Пакет документов готов</div>
     <h1 style="margin-top:6px">Осталось поставить на сайт</h1>
     <p class="lead" style="margin-top:8px">Собрали пакет документов под alfa-school.ru — уже доступны по ссылкам ниже, можно открыть и поставить виджет прямо сейчас.</p>
 
-    <h2 style="margin-top:20px">Что изменится</h2>
+    <h2 style="margin-top:20px">Что подготовили</h2>
     <div class="card" style="margin-top:12px;overflow:hidden">
-      <div class="row" style="justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13.5px"><span>152-ФЗ · персональные данные</span><span><span class="was">нарушение</span> → <span class="now">закрыто</span></span></div>
-      <div class="row" style="justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13.5px"><span>Куки · согласие на трекинг</span><span><span class="was">нарушение</span> → <span class="now">закрыто</span></span></div>
-      <div class="row" style="justify-content:space-between;padding:9px 16px;font-size:13.5px"><span>149-ФЗ · реквизиты владельца</span><span><span class="was">замечание</span> → <span class="now">закрыто</span></span></div>
+      <div class="row" style="justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13.5px"><span>152-ФЗ · персональные данные</span><span class="now">готово</span></div>
+      <div class="row" style="justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13.5px"><span>Куки · согласие на трекинг</span><span class="now">готово</span></div>
+      <div class="row" style="justify-content:space-between;padding:9px 16px;font-size:13.5px"><span>149-ФЗ · реквизиты владельца</span><span class="now">готово</span></div>
     </div>
 
     <!-- Раньше «Открыть» вело на настоящую ссылку до оплаты — если она
@@ -1054,7 +1024,7 @@ details.acc:first-child{margin-top:0}
      шаг 4, установка — шаг 5, уже как онбординг оплатившего клиента. -->
 <section class="screen" id="s-pay">
   <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 4 из 5</span></div><div class="prog"><i style="width:80%"></i></div></div>
-  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
+  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-ready" style="margin-bottom:10px">← документы</button>
     <h1>Оплата</h1>
@@ -1151,7 +1121,7 @@ details.acc:first-child{margin-top:0}
      включить», а не как условие допуска к оплате. -->
 <section class="screen" id="s-install">
   <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 5 из 5</span></div><div class="prog"><i style="width:100%"></i></div></div>
-  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span><span class="b red">⛔ 2 нарушения · 1 замечание</span></div></div>
+  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-pay" style="margin-bottom:10px">← оплата</button>
     <div class="b green" style="font-size:15px">✓ Оплата прошла</div>
@@ -1227,14 +1197,14 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <div class="mono" style="font-size:24px;font-weight:700">alfa-school.ru</div>
           <p class="tiny" style="margin-top:3px">ООО «Альфа Образование» · ИНН 7701234567</p>
           <div class="row" style="margin-top:6px">
-            <span class="tiny mono">проверен сегодня</span>
+            <span class="tiny mono">установка проверена сегодня</span>
           </div>
         </div>
-        <button class="btn sm">↻ Проверить сейчас</button>
+        <button class="btn sm">↻ Проверить установку</button>
       </div>
       <div class="card pad" style="margin-top:16px;border-color:rgba(26,122,82,.3)">
-        <span class="b green" style="font-size:16px">✓ Нарушений не найдено</span>
-        <p class="lead" style="margin-top:8px">Все три пункта закрыты автоматически — документы актуальны. Следим за законом и обновим сами, если что-то изменится.</p>
+        <span class="b green" style="font-size:16px">✓ Документы актуальны</span>
+        <p class="lead" style="margin-top:8px">Документы подготовлены и подключены через виджет. Следим за законом и обновим сами, если что-то изменится.</p>
         <div class="hr"></div>
         <p class="tiny" style="color:rgba(17,17,16,.5)">Сегодня, 09:14 — сверили реквизиты с ЕГРЮЛ и текст баннера с действующей редакцией 152-ФЗ. Изменений в законе с последней проверки не было.</p>
       </div>
@@ -1615,8 +1585,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-forgot','s-register','s-verify','s-add','s-project','s-status','s-prepare','s-anketa','s-ready','s-pay','s-install','s-project-paid','s-docs','s-settings','s-support'];
-var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-add':'добавить сайт','s-project':'находки','s-status':'мои сайты','s-prepare':'1/5','s-anketa':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
+var SCREENS = ['s-login','s-forgot','s-register','s-verify','s-add','s-status','s-anketa','s-prepare','s-ready','s-pay','s-install','s-project-paid','s-docs','s-settings','s-support'];
+var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-add':'добавить сайт','s-status':'мои сайты','s-anketa':'1/5','s-prepare':'2/5','s-ready':'3/5','s-pay':'4/5','s-install':'5/5','s-project-paid':'кабинет','s-docs':'документы','s-settings':'настройки','s-support':'поддержка'};
 
 var nav = document.getElementById('scr-nav');
 var navMobile = document.getElementById('scr-nav-mobile');
@@ -1662,10 +1632,14 @@ if (window.innerWidth <= 640) {
 }
 
 var siteStatus = 'unpaid'; // 'unpaid' | 'pending' (счёт выставлен) | 'paid'
+var hasSite = true; // false только сразу после s-verify — реальный «пустой» первый заход
 
 function syncPayState(){
   document.querySelectorAll('[data-pay-state]').forEach(function(s){
     s.classList.toggle('on', s.dataset.payState === siteStatus);
+  });
+  document.querySelectorAll('[data-has-site]').forEach(function(s){
+    s.classList.toggle('on', (s.dataset.hasSite === 'true') === hasSite);
   });
 }
 
@@ -1678,6 +1652,7 @@ function goScreen(id){
 document.querySelectorAll('[data-go]').forEach(function(b){
   b.addEventListener('click', function(){
     if (b.dataset.setStatus) siteStatus = b.dataset.setStatus;
+    if (b.dataset.setHassite) hasSite = (b.dataset.setHassite === 'true');
     goScreen(b.dataset.go);
   });
 });
