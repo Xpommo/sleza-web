@@ -164,7 +164,12 @@ section.block:last-of-type{border-bottom:0}
 
 /* карточки-плитки (как-работает / что-проверяем) */
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media(max-width:700px){.grid3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){
+  .grid3{grid-template-columns:repeat(2,1fr)}
+  /* нечётная последняя карточка (3 шага, 3 marker-проверки) иначе сиротой висит слева
+     с пустотой справа — растягиваем её на всю ширину вместо орфана в сетке из 2 колонок */
+  .grid3 > *:last-child:nth-child(odd){grid-column:1 / -1}
+}
 .sqcard{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:16px;display:flex;flex-direction:column}
 .sqcard .ico{width:36px;height:36px;border-radius:8px;background:var(--bg);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex:none}
 .sqcard .top-row{display:flex;align-items:center;justify-content:space-between}
