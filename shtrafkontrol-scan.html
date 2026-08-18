@@ -346,6 +346,10 @@ footer .back a{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
         </div>
       </div>
       <div class="res-list" id="resList"></div>
+      <div class="grp-panel mrk" id="resAttention" style="margin-top:16px;display:none">
+        <div class="grp-head"><i></i><span>Требует вашего внимания</span></div>
+        <div id="resAttentionList"></div>
+      </div>
     </div>
   </div>
 </header>
@@ -485,7 +489,7 @@ var CHECK_META = {
   privacy_policy:    {group:'document', label:'Политика обработки персональных данных', lawCode:'152-ФЗ п.2 ст.18.1'},
   data_consent:      {group:'document', label:'Согласие на обработку ПД на форме сбора', lawCode:'152-ФЗ ст.3,6,9'},
   cookie_policy:     {group:'document', label:'Политика cookie', lawCode:'152-ФЗ ст.3,6,9'},
-  cookie_banner:     {group:'document', label:'Cookie-баннер (верная формулировка)', lawCode:'152-ФЗ ст.3,6,9'},
+  cookie_banner:     {group:'document', label:'Cookie-баннер', lawCode:'152-ФЗ ст.3,6,9'},
   marketing_consent: {group:'document', label:'Согласие на рекламные рассылки', lawCode:'38-ФЗ п.1 ст.18'},
   requisites:        {group:'document', label:'Реквизиты владельца сайта', lawCode:'149-ФЗ ст.10'},
   ga_presence:       {group:'marker', label:'Google Analytics на сайте', lawCode:'152-ФЗ ст.18 ч.5'},
@@ -558,16 +562,24 @@ function renderChecks(){
   });
 }
 
+function resRow(c, meta){
+  return '<div class="res-row"><div><div class="lbl">'+meta.label+'</div><div class="code">'+meta.lawCode+'</div><div class="txt">'+c.evidence+'</div></div><span class="st '+STATUS_TONE[c.status]+'"><i></i>'+STATUS_WORD[c.status]+'</span></div>';
+}
+
 function renderResults(){
+  // Проверки с applicable:false (вопрос не по адресу этому сайту) в результате не
+  // показываем вообще — строка «не требуется» только путала.
   var el = document.getElementById('resList');
+  var attnPanel = document.getElementById('resAttention');
+  var attnList = document.getElementById('resAttentionList');
+  var hasAttn = false;
   DEMO_CHECKS.forEach(function(c){
+    if(!c.applicable) return;
     var meta = CHECK_META[c.id];
-    if(!c.applicable){
-      el.insertAdjacentHTML('beforeend', '<div class="res-row" style="opacity:.55"><div><div class="lbl">'+meta.label+'</div><div class="code">'+meta.lawCode+'</div></div><span class="mono" style="font-size:11px;color:var(--ink-faint)">не требуется</span></div>');
-      return;
-    }
-    el.insertAdjacentHTML('beforeend', '<div class="res-row"><div><div class="lbl">'+meta.label+'</div><div class="code">'+meta.lawCode+'</div><div class="txt">'+c.evidence+'</div></div><span class="st '+STATUS_TONE[c.status]+'"><i></i>'+STATUS_WORD[c.status]+'</span></div>');
+    if(meta.group === 'marker'){ attnList.insertAdjacentHTML('beforeend', resRow(c, meta)); hasAttn = true; return; }
+    el.insertAdjacentHTML('beforeend', resRow(c, meta));
   });
+  if(hasAttn) attnPanel.style.display = 'block';
 }
 
 function renderStats(){
