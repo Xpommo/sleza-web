@@ -294,6 +294,10 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
   section.block{padding:36px 0}
   .res-top{flex-direction:column;align-items:flex-start}
   .res-score{text-align:left}
+  /* .foot-cta держал flex-shrink:0 и не переносил текст — на узких экранах кнопка
+     не сжималась и вылезала за карточку, утягивая всю страницу в горизонтальный скролл */
+  .foot-top{flex-direction:column;align-items:flex-start;gap:20px}
+  .foot-cta{flex-shrink:1;white-space:normal;text-align:left}
 }
 </style>
 </head>
