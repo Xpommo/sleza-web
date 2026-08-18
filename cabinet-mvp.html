@@ -788,10 +788,19 @@ details.acc:first-child{margin-top:0}
      сайте и компании. Расширена: помимо того, что нужно для текста
      документов (зачем собираете контакты, нужны ли рассылки), добавлены
      вопросы для внутренней статистики — кто заполняет, сфера, платформа
-     сайта, что предлагаете. Платформа не просто для статистики — она
-     же определит, какую инструкцию показать на установке (s-install
-     уже разводит Тильду/WordPress/Битрикс по вкладкам), вопрос это
-     явно объясняет, а не молча собирает данные. -->
+     сайта. Платформа не просто для статистики — она же определит, какую
+     инструкцию показать на установке (s-install уже разводит
+     Тильду/WordPress/Битрикс по вкладкам), вопрос это явно объясняет, а
+     не молча собирает данные.
+
+     Тем же вечером — правка пользователя: убрать открытые вопросы,
+     объяснять «зачем» у каждого вопроса, сферу деятельности — выпадающим
+     списком (закрытых 4 кнопок мало, категорий бизнеса реально больше).
+     «Что вы предлагаете на сайте» (был открытый текстовый инпут) убран
+     целиком — с более детальным списком сфер ниже отдельный вопрос об
+     офере избыточен. Сфера деятельности переведена с `.seg` на `<select
+     class="inp">` — 13 категорий вместо 4, тот же класс, что у текстовых
+     полей, нативный список не ломает вёрстку карточки на любую длину. -->
 <section class="screen" id="s-anketa">
   <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 1 из 5</span></div><div class="prog"><i style="width:20%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
@@ -808,20 +817,28 @@ details.acc:first-child{margin-top:0}
 
     <div class="card pad" style="margin-top:10px">
       <h3>Какая у вас сфера?</h3>
-      <p class="tiny" style="margin:6px 0 12px">У школы, магазина и сервиса услуг разные обязательные пункты в политике.</p>
-      <div class="seg"><button type="button" class="on" data-swap="sphere-school">Онлайн-школа</button><button type="button" data-swap="sphere-services">Услуги</button><button type="button" data-swap="sphere-shop">Интернет-магазин</button><button type="button" data-swap="sphere-other">Другое</button></div>
+      <p class="tiny" style="margin:6px 0 12px">У образования, медицины, услуг и интернет-магазина разные обязательные пункты в политике — без точной сферы часть требований может остаться незакрытой.</p>
+      <select class="inp">
+        <option>Онлайн-школа, курсы, репетиторство</option>
+        <option>Детский центр, кружки, секции</option>
+        <option>Услуги для бизнеса (консалтинг, бухгалтерия, юр. услуги)</option>
+        <option>Бытовые услуги (ремонт, клининг)</option>
+        <option>Красота и здоровье (салон, барбершоп, фитнес)</option>
+        <option>Медицина, клиники</option>
+        <option>Интернет-магазин</option>
+        <option>Кафе, ресторан, доставка еды</option>
+        <option>Недвижимость</option>
+        <option>Финансы, страхование</option>
+        <option>IT, SaaS, разработка</option>
+        <option>Производство</option>
+        <option>Другое</option>
+      </select>
     </div>
 
     <div class="card pad" style="margin-top:10px">
       <h3>На какой платформе сайт?</h3>
       <p class="tiny" style="margin:6px 0 12px">Пригодится на шаге установки — покажем инструкцию именно под неё.</p>
       <div class="seg"><button type="button" class="on" data-swap="cms-tilda">Тильда</button><button type="button" data-swap="cms-wp">WordPress</button><button type="button" data-swap="cms-bitrix">Битрикс</button><button type="button" data-swap="cms-other">Другое</button></div>
-    </div>
-
-    <div class="card pad" style="margin-top:10px">
-      <h3>Что вы предлагаете на сайте?</h3>
-      <p class="tiny" style="margin:6px 0 10px">Коротко — это попадёт в политику как цель обработки данных.</p>
-      <input class="inp" value="Курсы и занятия для детей и взрослых">
     </div>
 
     <div class="card pad" style="margin-top:10px">
