@@ -148,10 +148,9 @@ section.block:last-of-type{border-bottom:0}
 .res-top{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:22px 24px;
   display:flex;flex-direction:column;gap:16px}
 .res-meta-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.res-figures{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
-.res-figures b{display:block;font-weight:800;font-size:32px;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
-.res-figures .fine{text-align:right}
-.res-figures .fine b{font-size:22px;color:var(--danger)}
+.res-hero-fine b{display:block;font-weight:800;letter-spacing:-.02em;margin-top:6px;line-height:1;
+  font-size:clamp(38px,6vw,60px);color:var(--danger);font-variant-numeric:tabular-nums}
+.res-fine-note{font-size:12px;color:var(--ink-soft);margin-top:10px;max-width:52ch;line-height:1.5}
 .res-list{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:0 24px}
 .res-row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .res-row:last-child{border-bottom:0}
@@ -359,15 +358,10 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
           <span class="st" id="resStatus"><i></i></span>
         </div>
         <div class="hr" style="margin:0"></div>
-        <div class="res-figures">
-          <div>
-            <div class="micro">риск-скор</div>
-            <b id="resRiskScore"></b>
-          </div>
-          <div class="fine">
-            <div class="micro">потенциальный штраф</div>
-            <b id="resFineSum"></b>
-          </div>
+        <div class="res-hero-fine">
+          <div class="micro">потенциальный штраф по найденным нарушениям</div>
+          <b id="resFineSum"></b>
+          <p class="res-fine-note">Считаем по верхней границе санкции для юрлиц, только по подтверждённым нарушениям (без спорных «risk»-пунктов). Реальная сумма зависит от региона и числа эпизодов.</p>
         </div>
       </div>
       <div class="res-list" id="resList"></div>
@@ -568,11 +562,14 @@ function fmtDate(d){
 }
 
 function computeSummary(){
+  // сумма штрафов — только по подтверждённым violation, не по risk (спорный/неполный
+  // сигнал не должен раздувать итоговую цифру, как на ФОНАРИКе: там та же дисциплина).
   var applicable = 0, ok = 0, fineSum = 0;
   DEMO_CHECKS.forEach(function(c){
     if(!c.applicable) return;
     applicable++;
     if(c.status === 'ok'){ ok++; return; }
+    if(c.status !== 'violation') return;
     var info = CHECK_INFO.filter(function(i){ return i.id === c.id; })[0];
     fineSum += info.fineNum;
   });
@@ -583,17 +580,12 @@ function computeSummary(){
   return {riskScore:riskScore, fineSum:fineSum, tone:tone, word:word};
 }
 
-var TONE_COLOR = {danger:'var(--danger)', warn:'var(--warn)', ok:'var(--ok)'};
-
 function renderSummary(){
   var s = computeSummary();
   document.getElementById('resDate').textContent = fmtDate(new Date());
   var statusEl = document.getElementById('resStatus');
   statusEl.className = 'st ' + s.tone;
-  statusEl.innerHTML = '<i></i>' + s.word;
-  var riskEl = document.getElementById('resRiskScore');
-  riskEl.textContent = s.riskScore + ' / 100';
-  riskEl.style.color = TONE_COLOR[s.tone];
+  statusEl.innerHTML = '<i></i>' + s.word + ' · ' + s.riskScore + '/100';
   var fineMoney = fmtMoney(s.fineSum) + ' ₽';
   document.getElementById('resFineSum').textContent = s.fineSum > 0 ? 'до ' + fineMoney : '0 ₽';
   document.getElementById('offerRisk').textContent = s.riskScore;
