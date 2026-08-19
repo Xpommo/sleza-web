@@ -114,6 +114,7 @@ section.block:last-of-type{border-bottom:0}
 .btn-text{background:none;border:0;color:var(--ink-faint);font-family:var(--mono);font-size:11px;
   text-transform:uppercase;letter-spacing:.05em;cursor:pointer;padding:0;transition:color .15s}
 .btn-text:hover{color:var(--danger)}
+.btn-text.alt:hover{color:var(--brand)}
 
 /* ── скан-форма ──────────────────────────────────────────────────────── */
 .scan-card{background:var(--bg-paper);border:1px solid var(--line-strong);border-radius:10px;padding:22px}
@@ -149,7 +150,6 @@ section.block:last-of-type{border-bottom:0}
 .res-hero-fine b{display:block;font-weight:800;letter-spacing:-.02em;margin-top:6px;line-height:1;
   font-size:clamp(38px,6vw,60px);color:var(--danger);font-variant-numeric:tabular-nums}
 .res-fine-note{font-size:12px;color:var(--ink-soft);margin-top:10px;max-width:52ch;line-height:1.5}
-.res-ga-note{font-size:12px;color:var(--ink-soft);margin-top:10px;padding-top:10px;border-top:1px dashed var(--line-strong);max-width:52ch;line-height:1.5}
 .res-legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line-strong)}
 .res-list{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:0 24px}
 .res-row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
@@ -358,7 +358,6 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
           <div class="micro">потенциальный штраф по найденным нарушениям</div>
           <b id="resFineSum"></b>
           <p class="res-fine-note">Сумма ориентировочная и считается только по подтверждённым нарушениям. Точный размер штрафа зависит от региона, отягчающих обстоятельств и числа эпизодов.</p>
-          <p class="res-ga-note" id="resGaNote"></p>
         </div>
         <div class="res-legend">
           <span class="st ok"><i></i>всё в порядке</span>
@@ -379,6 +378,10 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
         </form>
         <p class="legal">Отправляя, соглашаетесь на обработку персональных данных для связи по результату проверки.</p>
         <div class="thanks"><b>Спасибо!</b><p id="offerThanksText"></p></div>
+      </div>
+
+      <div style="text-align:center;margin-top:20px">
+        <button class="btn-text alt" onclick="setState('idle')">← проверить другой сайт</button>
       </div>
     </div>
   </div>
@@ -487,7 +490,8 @@ var CHECK_META = {
 // группировка по закону — только для краткой сводки на экране результата;
 // в блоке «что проверяем» разделения больше нет, все 9 пунктов в одном списке
 var LAW_GROUPS = [
-  {law:'152-ФЗ', title:'Персональные данные', checks:['privacy_policy','data_consent','cookie_policy','cookie_banner','ga_presence']},
+  {law:'152-ФЗ', title:'Персональные данные', checks:['privacy_policy','data_consent','cookie_policy','cookie_banner']},
+  {law:'152-ФЗ ст.18 ч.5', title:'Трансграничная передача данных', checks:['ga_presence']},
   {law:'149-ФЗ', title:'Реквизиты сайта', checks:['requisites']},
   {law:'38-ФЗ', title:'Рекламные рассылки', checks:['marketing_consent']},
   {law:'ст.13.15 КоАП', title:'Маркировка иноагентов', checks:['inoagent_marking']},
@@ -617,14 +621,6 @@ function renderSummary(){
   document.getElementById('offerScore').textContent = s.score;
   document.getElementById('offerFine').textContent = fineText;
   document.getElementById('offerGaClause').textContent = s.gaViolation ? ', включая риск по Google Analytics' : '';
-
-  var gaNote = document.getElementById('resGaNote');
-  if(s.gaViolation){
-    gaNote.style.display = 'block';
-    gaNote.textContent = 'Отдельно: Google Analytics передаёт данные посетителей в США — риск локализации ПДн, ' + s.gaViolation.text + '.';
-  } else {
-    gaNote.style.display = 'none';
-  }
 }
 
 function renderResults(){
