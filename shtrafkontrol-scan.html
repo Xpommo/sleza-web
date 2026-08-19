@@ -369,7 +369,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
       <div class="res-list" id="resList"></div>
 
       <div class="offer" id="offer">
-        <div class="t">У вас <span id="offerScore"></span> из 100 — есть нарушения на сумму <span id="offerFine"></span></div>
+        <div class="t">У вас <span id="offerScore"></span> из 100 — есть нарушения на сумму <span id="offerFine"></span><span id="offerGaClause"></span></div>
         <p class="d">Полный отчёт со всеми найденными нарушениями и что с ними делать — пришлём в Telegram.</p>
         <a href="#" class="btn" style="margin-top:14px;text-decoration:none" onclick="return sendOfferTelegram()">Получить полный отчёт в Telegram →</a>
         <div class="micro" style="margin-top:14px">или оставьте контакт, если удобнее</div>
@@ -416,13 +416,13 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
         <div class="tags"><span class="viol">нарушение</span><span class="reg">Регионы</span></div>
         <div class="name">Новостной портал</div>
         <p class="found">Политика конфиденциальности есть, но не содержит 4 из 7 обязательных разделов: нет целей обработки, сроков хранения, категорий субъектов, порядка отзыва согласия.</p>
-        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 18.1 · неполная политика ПД</div><div class="fine">до 300 000 ₽</div></div>
+        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 18.1 · неполная политика ПД</div><div class="fine">до 60 000 ₽</div></div>
       </div>
       <div class="case">
         <div class="tags"><span class="viol">нарушение</span><span class="reg">Санкт-Петербург</span></div>
         <div class="name">Онлайн-школа</div>
         <p class="found">Форма записи на занятие собирает телефон и email, но согласия на обработку данных рядом нет — ни галочки, ни ссылки на политику.</p>
-        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 9 · согласие на форме сбора</div><div class="fine">до 700 000 ₽</div></div>
+        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 9 · согласие на форме сбора</div><div class="fine">от 300 000 ₽</div></div>
       </div>
     </div>
   </div>
@@ -516,7 +516,7 @@ var CHECK_INFO = [
   {id:'marketing_consent', why:'Рассылки требуют отдельного согласия — его нельзя совмещать с согласием на обработку данных.', fineFloor:300000, fineCeil:1000000},
   {id:'requisites', why:'Любой сайт обязан показывать, кто его ведёт: ИНН, ОГРН, адрес, контакты.', fineFloor:5000, fineCeil:10000},
   {id:'ga_presence', why:'Google Analytics передаёт данные посетителей на серверы в США — нарушение локализации ПДн, даже если это раскрыто в политике.', fineFloor:6000000, fineCeil:18000000},
-  {id:'inoagent_marking', why:'Упоминания иноагентов нужно сопровождать плашкой-предупреждением — вручную это легко пропустить. Мы проверяем не текст сайта, а установлен ли автоматический виджет маркировки.', fineFloor:40000, fineCeil:50000},
+  {id:'inoagent_marking', why:'Упоминания иноагентов нужно сопровождать плашкой-предупреждением — вручную это легко пропустить. Проверяем, установлен ли автоматический виджет маркировки.', fineFloor:40000, fineCeil:50000},
   {id:'anglicisms', why:'Если сайт продаёт товары или услуги физлицам, текст на иностранном языке без перевода — нарушение прав потребителя.', fineFloor:5000, fineCeil:10000}
 ];
 var DEMO_CHECKS = [
@@ -537,7 +537,7 @@ var SK_FAQ = [
   {q:'Почему нет проверки публичной оферты?', a:'Оферта у каждого бизнеса своя — шаблон под неё нельзя корректно собрать не глядя на конкретные условия продажи. Показывать проверку, за которой не стоит нормальный документ, было бы враньём — поэтому её пока нет в списке.'},
   {q:'Что вы делаете с содержимым моего сайта?', a:'Смотрим только то, что нужно для этих 9 пунктов: текст политики, форму сбора данных, скрипты в html. Ничего сверх этого не сохраняем и не анализируем.'},
   {q:'Вы поможете исправить найденные нарушения?', a:'Сканер только показывает, чего не хватает — ничего не пишет и не устанавливает автоматически. Полный список находок и с чего начинать — в развёрнутом отчёте после проверки.'},
-  {q:'Это юридическая консультация?', a:'Нет. Результат — сигнал, что и где проверить, а не юридическое заключение. Для спорных случаев и оценки конкретного риска нужен юрист.'}
+  {q:'Это юридическая консультация?', a:'Нет. Результат — сигнал, что и где проверить. Для спорных случаев и оценки конкретного риска нужен юрист.'}
 ];
 
 function icon(id){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+ICONS[id]+'</svg>'; }
@@ -616,11 +616,12 @@ function renderSummary(){
   document.getElementById('resFineSum').textContent = fineText;
   document.getElementById('offerScore').textContent = s.score;
   document.getElementById('offerFine').textContent = fineText;
+  document.getElementById('offerGaClause').textContent = s.gaViolation ? ', включая риск по Google Analytics' : '';
 
   var gaNote = document.getElementById('resGaNote');
   if(s.gaViolation){
     gaNote.style.display = 'block';
-    gaNote.textContent = 'Отдельно: Google Analytics передаёт данные посетителей в США — риск локализации ПДн, ' + s.gaViolation.text + '. Не входит в сумму выше.';
+    gaNote.textContent = 'Отдельно: Google Analytics передаёт данные посетителей в США — риск локализации ПДн, ' + s.gaViolation.text + '.';
   } else {
     gaNote.style.display = 'none';
   }
