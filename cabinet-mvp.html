@@ -838,7 +838,7 @@ details.acc:first-child{margin-top:0}
     <div class="card pad" style="margin-top:10px">
       <h3>На какой платформе сайт?</h3>
       <p class="tiny" style="margin:6px 0 12px">Пригодится на шаге установки — покажем инструкцию именно под неё.</p>
-      <div class="seg"><button type="button" class="on" data-swap="cms-tilda">Тильда</button><button type="button" data-swap="cms-wp">WordPress</button><button type="button" data-swap="cms-bitrix">Битрикс</button><button type="button" data-swap="cms-other">Другое</button></div>
+      <div class="seg"><button type="button" class="on" data-swap="cms-tilda" data-set-platform="tilda">Тильда</button><button type="button" data-swap="cms-wp" data-set-platform="wp">WordPress</button><button type="button" data-swap="cms-bitrix" data-set-platform="bitrix">Битрикс</button><button type="button" data-swap="cms-other" data-set-platform="other">Другое</button></div>
     </div>
 
     <div class="card pad" style="margin-top:10px">
@@ -1050,9 +1050,9 @@ details.acc:first-child{margin-top:0}
     <h2 style="margin-top:20px">Осталось оплатить</h2>
     <div class="card pad" style="margin-top:12px">
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3,rgba(17,17,16,.5))">Сразу</h3>
-      <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваши формы и трекеры<br>· Виджет: куки-баннер и реквизиты в подвале<br>· Постоянные ссылки на документы</div>
+      <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: куки-баннер и реквизиты в подвале<br>· Постоянные ссылки на документы</div>
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3,rgba(17,17,16,.5));margin-top:14px">Каждый месяц</h3>
-      <div class="small" style="line-height:1.9;margin-top:6px">· Проверка сайта и обновление документов при смене закона<br>· Уведомления, если что-то изменилось</div>
+      <div class="small" style="line-height:1.9;margin-top:6px">· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
       <div class="hr"></div>
       <p class="tiny" style="margin-bottom:10px"><b style="color:var(--ink)">Это подписка, не разовая покупка</b> — меняется закон, вместе с ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.</p>
       <div class="row" style="justify-content:space-between"><span class="small muted">Итого</span><b style="font-size:19px">2 990 ₽/мес</b></div>
@@ -1171,7 +1171,7 @@ details.acc:first-child{margin-top:0}
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <button class="btn sm copy-code-btn" style="margin-top:10px">Скопировать код</button>
       <div class="hr"></div>
-      <div class="tabs"><button class="on" data-swap="t1">Тильда</button><button data-swap="t2">WordPress</button><button data-swap="t3">Битрикс</button><button data-swap="t4">Другой сайт</button></div>
+      <div class="tabs" id="install-cms-tabs"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
       <div class="small" data-swapped="t1">Настройки сайта → Ещё → HTML-код для вставки внутрь HEAD → вставить строку → Опубликовать все страницы.</div>
       <div class="small" data-swapped="t2" style="display:none">Внешний вид → Редактор тем → header.php → вставить перед &lt;/head&gt;.</div>
       <div class="small" data-swapped="t3" style="display:none">Настройки → Настройки продукта → Сайты → шаблон сайта → вставить в секцию HEAD.</div>
@@ -1191,11 +1191,13 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
   <div class="sticky-cta solo"><button type="button" class="btn solid">↻ Проверить установку</button></div>
 </section>
 
-<!-- ══════════════════ КАБИНЕТ — ОБЗОР+ДОКУМЕНТЫ+ВИДЖЕТ, ОДНА СТРАНИЦА ═══
-     Без вкладок и без отдельных экранов «Документы»/«Виджет»: с одним
-     сайтом на аккаунт переключаться некуда, значит и разводить по
-     страницам нечего. Без истории событий и без Telegram-уведомлений —
-     не нужны, чтобы понять, будет ли вообще первая оплата. -->
+<!-- ══════════════════ КАБИНЕТ — ОБЗОР, ОДНА СТРАНИЦА ═══════════════════
+     «Виджет» сюда не выведен отдельным блоком — он в Настройках (там же,
+     где смена темы баннера и код установки). «Документы» — отдельный
+     пункт сайдбара (см. ниже, s-docs), не подраздел «Обзора»: список
+     документов сам по себе достаточно самостоятельная задача. Без
+     истории событий и без Telegram-уведомлений — не нужны, чтобы понять,
+     будет ли вообще первая оплата. -->
 <section class="screen" id="s-project-paid">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -1285,7 +1287,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <span class="chip green">актуальна</span><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/requisites" target="_blank" rel="noopener">Открыть</a>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки персональных данных</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки персональных данных</div><div class="tiny mono">v2 · 15.08.2026 · обновили формулировки под изменения 152-ФЗ</div></div>
           <span class="chip green">актуальна</span><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/pd-policy" target="_blank" rel="noopener">Открыть</a>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
@@ -1650,6 +1652,7 @@ if (window.innerWidth <= 640) {
 
 var siteStatus = 'unpaid'; // 'unpaid' | 'pending' (счёт выставлен) | 'paid'
 var hasSite = true; // false только сразу после s-verify — реальный «пустой» первый заход
+var sitePlatform = 'tilda'; // 'tilda'|'wp'|'bitrix'|'other' — из анкеты (s-anketa), решает вкладку на s-install
 
 function syncPayState(){
   document.querySelectorAll('[data-pay-state]').forEach(function(s){
@@ -1658,6 +1661,15 @@ function syncPayState(){
   document.querySelectorAll('[data-has-site]').forEach(function(s){
     s.classList.toggle('on', (s.dataset.hasSite === 'true') === hasSite);
   });
+  var installTabs = document.getElementById('install-cms-tabs');
+  if (installTabs) {
+    installTabs.querySelectorAll('[data-platform]').forEach(function(b){
+      var match = b.dataset.platform === sitePlatform;
+      b.classList.toggle('on', match);
+      var panel = document.querySelector('[data-swapped="' + b.dataset.swap + '"]');
+      if (panel) panel.style.display = match ? '' : 'none';
+    });
+  }
 }
 
 function goScreen(id){
@@ -1695,6 +1707,7 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
     scope.querySelectorAll('[data-swapped]').forEach(function(p){
       p.style.display = (p.dataset.swapped === b.dataset.swap) ? '' : 'none';
     });
+    if (b.dataset.setPlatform) sitePlatform = b.dataset.setPlatform;
   });
 });
 
