@@ -151,6 +151,7 @@ section.block:last-of-type{border-bottom:0}
 .res-hero-fine b{display:block;font-weight:800;letter-spacing:-.02em;margin-top:6px;line-height:1;
   font-size:clamp(38px,6vw,60px);color:var(--danger);font-variant-numeric:tabular-nums}
 .res-fine-note{font-size:12px;color:var(--ink-soft);margin-top:10px;max-width:52ch;line-height:1.5}
+.res-legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line-strong)}
 .res-list{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:0 24px}
 .res-row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .res-row:last-child{border-bottom:0}
@@ -361,13 +362,18 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
         <div class="res-hero-fine">
           <div class="micro">потенциальный штраф по найденным нарушениям</div>
           <b id="resFineSum"></b>
-          <p class="res-fine-note">Считаем по верхней границе санкции для юрлиц, только по подтверждённым нарушениям (без спорных «risk»-пунктов). Реальная сумма зависит от региона и числа эпизодов.</p>
+          <p class="res-fine-note">Для сумм от 200 000 ₽ берём нижнюю границу вилки, для мелких — верхнюю: так честнее, чем пугать максимумом. Считаем только по подтверждённым нарушениям (без спорных «risk»-пунктов). Реальная сумма зависит от региона и числа эпизодов.</p>
+        </div>
+        <div class="res-legend">
+          <span class="st ok"><i></i>100 — всё в порядке</span>
+          <span class="st warn"><i></i>50–99 — нужно обратить внимание</span>
+          <span class="st danger"><i></i>0–49 — высокая вероятность штрафа</span>
         </div>
       </div>
       <div class="res-list" id="resList"></div>
 
       <div class="offer" id="offer">
-        <div class="t">Риск-скор <span id="offerRisk"></span> — есть нарушения на сумму до <span id="offerFine"></span></div>
+        <div class="t">У вас <span id="offerScore"></span> из 100 — есть нарушения на сумму <span id="offerFine"></span></div>
         <p class="d">Полный отчёт со всеми найденными нарушениями и что с ними делать — пришлём в Telegram.</p>
         <a href="#" class="btn" style="margin-top:14px;text-decoration:none" onclick="return sendOfferTelegram()">Получить полный отчёт в Telegram →</a>
         <div class="micro" style="margin-top:14px">или оставьте контакт, если удобнее</div>
@@ -408,7 +414,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
         <div class="tags"><span class="viol">нарушение</span><span class="reg">Новосибирск</span></div>
         <div class="name">Интернет-магазин</div>
         <p class="found">Google Analytics установлен на всех страницах, включая форму оформления заказа — данные покупателей уходят на серверы в США.</p>
-        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 18 ч. 5 · локализация ПДн</div><div class="fine">до 6 000 000 ₽</div></div>
+        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 18 ч. 5 · локализация ПДн</div><div class="fine">от 6 000 000 ₽</div></div>
       </div>
       <div class="case">
         <div class="tags"><span class="viol">нарушение</span><span class="reg">Регионы</span></div>
@@ -502,16 +508,19 @@ var ICONS = {
   inoagent_marking: '<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M12 8v5"/><circle cx="12" cy="16" r="0.9" fill="currentColor" stroke="none"/>',
   anglicisms: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.2 2.3 3.4 5.3 3.4 8.5s-1.2 6.2-3.4 8.5c-2.2-2.3-3.4-5.3-3.4-8.5S9.8 5.8 12 3.5z"/>'
 };
+// fineFloor/fineCeil — реальная вилка санкции по КоАП (не одна цифра). Какую границу
+// показывать — решает fineDisplay(): для сумм от 200 т.р. честнее «от» (нижняя граница,
+// не пугающий максимум), для мелких — «до» (там верхняя граница и не выглядит фейково).
 var CHECK_INFO = [
-  {id:'privacy_policy', why:'Объясняет, какие данные вы собираете и зачем. Без неё нельзя законно получить согласие.', fine:'до 60 000 ₽', fineNum:60000},
-  {id:'data_consent', why:'Любая форма — заявка, звонок, подписка — должна спрашивать согласие на сбор данных.', fine:'до 700 000 ₽', fineNum:700000},
-  {id:'cookie_banner', why:'С 2025 года cookie — тоже персональные данные. Нужен баннер до включения трекеров.', fine:'до 300 000 ₽', fineNum:300000},
-  {id:'cookie_policy', why:'Отдельный документ или раздел, который объясняет, какие cookie и зачем собирает сайт.', fine:'до 300 000 ₽', fineNum:300000},
-  {id:'marketing_consent', why:'Рассылки требуют отдельного согласия — его нельзя совмещать с согласием на обработку данных.', fine:'до 1 000 000 ₽', fineNum:1000000},
-  {id:'requisites', why:'Любой сайт обязан показывать, кто его ведёт: ИНН, ОГРН, адрес, контакты.', fine:'до 10 000 ₽', fineNum:10000},
-  {id:'ga_presence', why:'Google Analytics передаёт данные посетителей на серверы в США — нарушение локализации ПДн, даже если это раскрыто в политике.', fine:'до 6 000 000 ₽', fineNum:6000000},
-  {id:'inoagent_marking', why:'Упоминание иноагента без маркировки — нарушение. Проверяем, установлен ли виджет, который расставляет пометки автоматически — содержимое сайта не сканируем.', fine:'до 50 000 ₽', fineNum:50000},
-  {id:'anglicisms', why:'Если сайт продаёт товары или услуги физлицам, текст на иностранном языке без перевода — нарушение прав потребителя.', fine:'до 10 000 ₽', fineNum:10000}
+  {id:'privacy_policy', why:'Объясняет, какие данные вы собираете и зачем. Без неё нельзя законно получить согласие.', fineFloor:30000, fineCeil:60000},
+  {id:'data_consent', why:'Любая форма — заявка, звонок, подписка — должна спрашивать согласие на сбор данных.', fineFloor:300000, fineCeil:700000},
+  {id:'cookie_banner', why:'С 2025 года cookie — тоже персональные данные. Нужен баннер до включения трекеров.', fineFloor:150000, fineCeil:300000},
+  {id:'cookie_policy', why:'Отдельный документ или раздел, который объясняет, какие cookie и зачем собирает сайт.', fineFloor:150000, fineCeil:300000},
+  {id:'marketing_consent', why:'Рассылки требуют отдельного согласия — его нельзя совмещать с согласием на обработку данных.', fineFloor:300000, fineCeil:1000000},
+  {id:'requisites', why:'Любой сайт обязан показывать, кто его ведёт: ИНН, ОГРН, адрес, контакты.', fineFloor:5000, fineCeil:10000},
+  {id:'ga_presence', why:'Google Analytics передаёт данные посетителей на серверы в США — нарушение локализации ПДн, даже если это раскрыто в политике.', fineFloor:6000000, fineCeil:18000000},
+  {id:'inoagent_marking', why:'Упоминание иноагента без маркировки — нарушение. Проверяем, установлен ли виджет, который расставляет пометки автоматически — содержимое сайта не сканируем.', fineFloor:40000, fineCeil:50000},
+  {id:'anglicisms', why:'Если сайт продаёт товары или услуги физлицам, текст на иностранном языке без перевода — нарушение прав потребителя.', fineFloor:5000, fineCeil:10000}
 ];
 var DEMO_CHECKS = [
   {id:'data_consent', status:'ok', applicable:true, evidence:'Явного нарушения на формах сбора контактов не найдено.'},
@@ -540,11 +549,12 @@ function renderChecks(){
   var el = document.getElementById('allChecks');
   CHECK_INFO.forEach(function(info){
     var meta = CHECK_META[info.id];
+    var fd = fineDisplay(info);
     var html = '<div class="sqcard"><span class="ico">'+icon(info.id)+'</span>'+
       '<div class="t" style="margin-top:12px">'+meta.label+'</div>'+
       '<div class="code">'+meta.lawCode+'</div>'+
       '<p class="d">'+info.why+'</p>'+
-      '<div class="foot"><span class="fl">штраф</span><div class="fv">'+info.fine+'</div></div></div>';
+      '<div class="foot"><span class="fl">штраф</span><div class="fv">'+fd.text+'</div></div></div>';
     el.insertAdjacentHTML('beforeend', html);
   });
 }
@@ -561,23 +571,39 @@ function fmtDate(d){
   return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
 }
 
+// от 200 т.р. и выше честнее показывать нижнюю границу вилки («от X») — верхняя на таких
+// суммах выглядит как запугивание. Для мелких сумм, наоборот, верхняя («до X») не пугает.
+function fineDisplay(info){
+  var big = info.fineCeil >= 200000;
+  return big
+    ? {mode:'from', amount:info.fineFloor, text:'от '+fmtMoney(info.fineFloor)+' ₽'}
+    : {mode:'to', amount:info.fineCeil, text:'до '+fmtMoney(info.fineCeil)+' ₽'};
+}
+
 function computeSummary(){
-  // сумма штрафов — только по подтверждённым violation, не по risk (спорный/неполный
-  // сигнал не должен раздувать итоговую цифру, как на ФОНАРИКе: там та же дисциплина).
-  var applicable = 0, ok = 0, fineSum = 0;
+  // сумма — только по подтверждённым violation, не по risk (спорный/неполный сигнал не
+  // должен раздувать итоговую цифру, как на ФОНАРИКе). Каждый пункт даёт свою честную
+  // границу (fineDisplay) — если хоть один крупный, итог тоже подписываем «от», не «до».
+  var applicable = 0, ok = 0, fineSum = 0, usedFloor = false;
   DEMO_CHECKS.forEach(function(c){
     if(!c.applicable) return;
     applicable++;
     if(c.status === 'ok'){ ok++; return; }
     if(c.status !== 'violation') return;
     var info = CHECK_INFO.filter(function(i){ return i.id === c.id; })[0];
-    fineSum += info.fineNum;
+    var fd = fineDisplay(info);
+    fineSum += fd.amount;
+    if(fd.mode === 'from') usedFloor = true;
   });
-  var compliancePct = Math.round(ok / applicable * 100);
-  var riskScore = 100 - compliancePct;
-  var tone = riskScore >= 50 ? 'danger' : (riskScore >= 20 ? 'warn' : 'ok');
-  var word = riskScore >= 50 ? 'высокий риск' : (riskScore >= 20 ? 'есть риски' : 'в норме');
-  return {riskScore:riskScore, fineSum:fineSum, tone:tone, word:word};
+  var score = Math.round(ok / applicable * 100);
+  // границы по договорённости: 100 — всё в порядке, 50–99 — внимание, 0–49 — высокая
+  // вероятность штрафа (не «риск-скор» — число растёт вместе с выполненными пунктами,
+  // как и написано рядом — «X из 100», а не наоборот).
+  var tone, word;
+  if(score === 100){ tone = 'ok'; word = 'всё в порядке'; }
+  else if(score >= 50){ tone = 'warn'; word = 'нужно обратить внимание'; }
+  else { tone = 'danger'; word = 'высокая вероятность штрафа'; }
+  return {score:score, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word};
 }
 
 function renderSummary(){
@@ -585,11 +611,12 @@ function renderSummary(){
   document.getElementById('resDate').textContent = fmtDate(new Date());
   var statusEl = document.getElementById('resStatus');
   statusEl.className = 'st ' + s.tone;
-  statusEl.innerHTML = '<i></i>' + s.word + ' · ' + s.riskScore + '/100';
+  statusEl.innerHTML = '<i></i>' + s.word + ' · ' + s.score + '/100';
   var fineMoney = fmtMoney(s.fineSum) + ' ₽';
-  document.getElementById('resFineSum').textContent = s.fineSum > 0 ? 'до ' + fineMoney : '0 ₽';
-  document.getElementById('offerRisk').textContent = s.riskScore;
-  document.getElementById('offerFine').textContent = fineMoney;
+  var fineText = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
+  document.getElementById('resFineSum').textContent = fineText;
+  document.getElementById('offerScore').textContent = s.score;
+  document.getElementById('offerFine').textContent = fineText;
 }
 
 function renderResults(){
