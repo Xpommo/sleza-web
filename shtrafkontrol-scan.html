@@ -482,7 +482,7 @@ var CHECK_META = {
   requisites:        {label:'Реквизиты владельца сайта', lawCode:'149-ФЗ ст.10'},
   ga_presence:       {label:'Google Analytics на сайте', lawCode:'152-ФЗ ст.18 ч.5'},
   inoagent_marking:  {label:'Маркировка иноагентов/террористов', lawCode:'ст.13.15 КоАП'},
-  anglicisms:        {label:'Иностранный текст без перевода', lawCode:'ЗоЗПП ст.10.1'}
+  anglicisms:        {label:'Англицизмы', lawCode:'ЗоЗПП ст.10.1'}
 };
 // группировка по закону — только для краткой сводки на экране результата;
 // в блоке «что проверяем» разделения больше нет, все 9 пунктов в одном списке
@@ -509,26 +509,26 @@ var ICONS = {
 // показывать — решает fineDisplay(): для сумм от 200 т.р. честнее «от» (нижняя граница,
 // не пугающий максимум), для мелких — «до» (там верхняя граница и не выглядит фейково).
 var CHECK_INFO = [
-  {id:'privacy_policy', why:'Объясняет, какие данные вы собираете и зачем. Без неё нельзя законно получить согласие.', fineFloor:30000, fineCeil:60000},
+  {id:'privacy_policy', why:'Главный документ о работе с данными: что собираете, зачем и как храните. Без него нельзя законно получить согласие.', fineFloor:30000, fineCeil:60000},
   {id:'data_consent', why:'Любая форма — заявка, звонок, подписка — должна спрашивать согласие на сбор данных.', fineFloor:300000, fineCeil:700000},
   {id:'cookie_banner', why:'Cookie, которые идентифицируют посетителя, — тоже персональные данные по 152-ФЗ. Нужен баннер до включения трекеров.', fineFloor:150000, fineCeil:300000},
-  {id:'cookie_policy', why:'Отдельный документ или раздел, который объясняет, какие cookie и зачем собирает сайт.', fineFloor:150000, fineCeil:300000},
+  {id:'cookie_policy', why:'Отдельно про cookie и счётчики — какие используете и зачем. Не обязательно отдельным документом: подойдёт и раздел внутри политики ПД.', fineFloor:150000, fineCeil:300000},
   {id:'marketing_consent', why:'Рассылки требуют отдельного согласия — его нельзя совмещать с согласием на обработку данных.', fineFloor:300000, fineCeil:1000000},
-  {id:'requisites', why:'Любой сайт обязан показывать, кто его ведёт: ИНН, ОГРН, адрес, контакты.', fineFloor:5000, fineCeil:10000},
-  {id:'ga_presence', why:'Google Analytics передаёт данные посетителей на серверы в США — нарушение локализации ПДн, даже если это раскрыто в политике.', fineFloor:6000000, fineCeil:18000000},
-  {id:'inoagent_marking', why:'Упоминания иноагентов нужно сопровождать плашкой-предупреждением — вручную это легко пропустить. Проверяем, установлен ли автоматический виджет маркировки.', fineFloor:40000, fineCeil:50000},
+  {id:'requisites', why:'Любой сайт обязан показывать, кому он принадлежит: ИНН, ОГРН, адрес, контакты.', fineFloor:5000, fineCeil:10000},
+  {id:'ga_presence', why:'Данные пользователей нельзя передавать за рубеж — Google Analytics делает это, отправляя их на серверы в США.', fineFloor:6000000, fineCeil:18000000},
+  {id:'inoagent_marking', why:'Упоминания иноагентов, террористов и нежелательных организаций нужно сопровождать предупреждением — за отсутствие маркировки штрафуют реально.', fineFloor:40000, fineCeil:50000},
   {id:'anglicisms', why:'Если сайт продаёт товары или услуги физлицам, текст на иностранном языке без перевода — нарушение прав потребителя.', fineFloor:5000, fineCeil:10000}
 ];
 var DEMO_CHECKS = [
-  {id:'data_consent', status:'ok', applicable:true, evidence:'Явного нарушения на формах сбора контактов не найдено.'},
-  {id:'privacy_policy', status:'risk', applicable:true, evidence:'Найдено 4/7 обязательных разделов политики.'},
-  {id:'cookie_policy', status:'ok', applicable:true, evidence:'Обработка cookie описана внутри политики конфиденциальности.'},
-  {id:'cookie_banner', status:'violation', applicable:true, evidence:'Сайт использует трекинг (Яндекс.Метрика), но cookie-баннер не найден.'},
-  {id:'marketing_consent', status:'ok', applicable:false, evidence:'Признаков рекламных рассылок не обнаружено — согласие не требуется.'},
-  {id:'requisites', status:'ok', applicable:true, evidence:'Найдено 5/5 обязательных реквизитов.'},
-  {id:'ga_presence', status:'violation', applicable:true, evidence:'Google Analytics найден — данные посетителей уходят на серверы в США.'},
-  {id:'inoagent_marking', status:'violation', applicable:true, evidence:'Виджет ШтрафКонтроль не найден.'},
-  {id:'anglicisms', status:'ok', applicable:true, evidence:'Протяжённых нерусскоязычных фрагментов не найдено.'}
+  {id:'data_consent', status:'ok', applicable:true},
+  {id:'privacy_policy', status:'risk', applicable:true},
+  {id:'cookie_policy', status:'ok', applicable:true},
+  {id:'cookie_banner', status:'violation', applicable:true},
+  {id:'marketing_consent', status:'ok', applicable:false},
+  {id:'requisites', status:'ok', applicable:true},
+  {id:'ga_presence', status:'violation', applicable:true},
+  {id:'inoagent_marking', status:'violation', applicable:true},
+  {id:'anglicisms', status:'ok', applicable:true}
 ];
 var STATUS_TONE = {ok:'ok', risk:'warn', violation:'danger'};
 var SK_FAQ = [
