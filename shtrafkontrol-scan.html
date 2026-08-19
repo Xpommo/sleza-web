@@ -78,8 +78,6 @@ a{color:inherit}
 .brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink)}
 .brand svg{color:var(--brand)}
 .brand b{font-size:18px;font-weight:900;letter-spacing:-.04em}
-.status{margin-left:auto;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
-.status i{width:6px;height:6px;border-radius:999px;background:var(--ok);display:inline-block;animation:pulseDot 1.8s ease-in-out infinite}
 
 /* ── общее ───────────────────────────────────────────────────────────── */
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
@@ -260,8 +258,6 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
 .state{display:none}
 .state.on{display:block}
 
-@keyframes pulseDot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(26,122,82,.4)}50%{opacity:.55;box-shadow:0 0 0 4px rgba(26,122,82,0)}}
-
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -299,7 +295,6 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
       </svg>
       <b>ШтрафКонтроль</b>
     </a>
-    <span class="status"><i></i>сервис активен</span>
   </div>
 </nav>
 
@@ -326,9 +321,8 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
           <button class="btn" onclick="startScan()">Проверить сайт →</button>
         </div>
         <div class="trust">
-          <span><b>✓</b> бесплатно</span>
           <span><b>✓</b> 9 проверок</span>
-          <span><b>✓</b> без регистрации</span>
+          <span><b>✓</b> результат за 2 минуты</span>
         </div>
       </div>
     </div>
@@ -362,7 +356,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
         <div class="res-hero-fine">
           <div class="micro">потенциальный штраф по найденным нарушениям</div>
           <b id="resFineSum"></b>
-          <p class="res-fine-note">Нижняя граница вилки — для сумм от 200 000 ₽, верхняя — для меньших. Только подтверждённые нарушения, без спорных «risk»-пунктов. Точная сумма зависит от региона и числа эпизодов.</p>
+          <p class="res-fine-note">Сумма ориентировочная и считается только по подтверждённым нарушениям. Точный размер штрафа зависит от региона, отягчающих обстоятельств и числа эпизодов.</p>
         </div>
         <div class="res-legend">
           <span class="st ok"><i></i>всё в порядке</span>
@@ -382,7 +376,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
           <button type="submit">Написать нам</button>
         </form>
         <p class="legal">Отправляя, соглашаетесь на обработку персональных данных для связи по результату проверки.</p>
-        <div class="thanks"><b>Спасибо!</b><p>Напишем в течение дня — разберём результат вместе.</p></div>
+        <div class="thanks"><b>Спасибо!</b><p id="offerThanksText"></p></div>
       </div>
     </div>
   </div>
@@ -405,9 +399,9 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
 <section class="block">
   <div class="wrap">
     <div class="sh">
-      <div class="kicker">// реальные кейсы</div>
+      <div class="kicker">// частые нарушения</div>
       <h2>Типичные ошибки на российских сайтах</h2>
-      <p>Обезличенные примеры из базы проверок — домены скрыты, нарушения реальные.</p>
+      <p>Три показательных примера того, как это выглядит на практике — без привязки к конкретному сайту.</p>
     </div>
     <div class="cases">
       <div class="case">
@@ -464,6 +458,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
       </a>
     </div>
     <div class="foot-docs">
+      <div class="foot-legal" style="margin-top:0;margin-bottom:10px">какие документы готовит белый сайт</div>
       <u>Политика обработки персональных данных</u> <span class="foot-sep">·</span> <u>Согласие на обработку ПД на форме сбора</u> <span class="foot-sep">·</span> <u>Cookie‑баннер</u> <span class="foot-sep">·</span> <u>Политика cookie</u> <span class="foot-sep">·</span> <u>Согласие на рекламные рассылки</u> <span class="foot-sep">·</span> <u>Реквизиты владельца сайта</u>
       <div class="foot-legal">не является юридической консультацией</div>
     </div>
@@ -514,12 +509,12 @@ var ICONS = {
 var CHECK_INFO = [
   {id:'privacy_policy', why:'Объясняет, какие данные вы собираете и зачем. Без неё нельзя законно получить согласие.', fineFloor:30000, fineCeil:60000},
   {id:'data_consent', why:'Любая форма — заявка, звонок, подписка — должна спрашивать согласие на сбор данных.', fineFloor:300000, fineCeil:700000},
-  {id:'cookie_banner', why:'С 2025 года cookie — тоже персональные данные. Нужен баннер до включения трекеров.', fineFloor:150000, fineCeil:300000},
+  {id:'cookie_banner', why:'Cookie, которые идентифицируют посетителя, — тоже персональные данные по 152-ФЗ. Нужен баннер до включения трекеров.', fineFloor:150000, fineCeil:300000},
   {id:'cookie_policy', why:'Отдельный документ или раздел, который объясняет, какие cookie и зачем собирает сайт.', fineFloor:150000, fineCeil:300000},
   {id:'marketing_consent', why:'Рассылки требуют отдельного согласия — его нельзя совмещать с согласием на обработку данных.', fineFloor:300000, fineCeil:1000000},
   {id:'requisites', why:'Любой сайт обязан показывать, кто его ведёт: ИНН, ОГРН, адрес, контакты.', fineFloor:5000, fineCeil:10000},
   {id:'ga_presence', why:'Google Analytics передаёт данные посетителей на серверы в США — нарушение локализации ПДн, даже если это раскрыто в политике.', fineFloor:6000000, fineCeil:18000000},
-  {id:'inoagent_marking', why:'Упоминание иноагента без маркировки — нарушение. Проверяем, установлен ли виджет, который расставляет пометки автоматически — содержимое сайта не сканируем.', fineFloor:40000, fineCeil:50000},
+  {id:'inoagent_marking', why:'Упоминания иноагентов нужно сопровождать плашкой-предупреждением — вручную это легко пропустить. Мы проверяем не текст сайта, а установлен ли автоматический виджет маркировки.', fineFloor:40000, fineCeil:50000},
   {id:'anglicisms', why:'Если сайт продаёт товары или услуги физлицам, текст на иностранном языке без перевода — нарушение прав потребителя.', fineFloor:5000, fineCeil:10000}
 ];
 var DEMO_CHECKS = [
@@ -656,17 +651,22 @@ document.querySelectorAll('.modes button[data-state-to]').forEach(function(b){
   b.addEventListener('click', function(){ setState(b.dataset.stateTo); });
 });
 
+function showOfferThanks(text){
+  document.getElementById('offerThanksText').textContent = text;
+  document.getElementById('offer').classList.add('sent');
+}
+
 function submitOffer(e){
   e.preventDefault();
   var v = document.getElementById('offerContact').value.trim();
   if(!v) return false;
-  document.getElementById('offer').classList.add('sent');
+  showOfferThanks('Напишем в течение дня — разберём результат вместе.');
   return false;
 }
 
 function sendOfferTelegram(e){
   if(e) e.preventDefault();
-  document.getElementById('offer').classList.add('sent');
+  showOfferThanks('Отчёт придёт в Telegram в течение нескольких минут.');
   return false;
 }
 
