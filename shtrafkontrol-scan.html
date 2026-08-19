@@ -246,6 +246,10 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
 .brand-row .name{font-weight:var(--fw-black);font-size:18px;letter-spacing:-0.04em;color:#fff}
 .foot-docs{padding:16px 0 32px;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px;line-height:1.7;color:rgba(255,255,255,.5)}
 .foot-legal{margin-top:12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.34)}
+/* НЕ финальный текст — маркер «на обсуждение», намеренно кричащий и выбивающийся из стиля,
+   чтобы не потерялся при следующем ревью макета. Убрать вместе с flag-mark, когда решится. */
+.review-flag{color:#fff200}
+.review-flag .flag-mark{color:#ff2e2e;font-weight:900;font-size:14px}
 .foot-docs a{color:rgba(255,255,255,.5);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.18);transition:color .15s,border-color .15s}
 .foot-docs a:hover{color:#fff;border-color:rgba(255,255,255,.5)}
 .foot-sep{color:rgba(255,255,255,.22)}
@@ -357,7 +361,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
         <div class="res-hero-fine">
           <div class="micro">потенциальный штраф по найденным нарушениям</div>
           <b id="resFineSum"></b>
-          <p class="res-fine-note">Сумма ориентировочная и считается только по подтверждённым нарушениям. Точный размер штрафа зависит от региона, отягчающих обстоятельств и числа эпизодов.</p>
+          <p class="res-fine-note">Сумма ориентировочная, для юрлиц, и считается только по подтверждённым нарушениям. У ИП и самозанятых вилки по КоАП обычно меньше. Точный размер штрафа зависит от региона, отягчающих обстоятельств и числа эпизодов.</p>
         </div>
         <div class="res-legend">
           <span class="st ok"><i></i>всё в порядке</span>
@@ -370,7 +374,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
       <div class="offer" id="offer">
         <div class="t">У вас <span id="offerScore"></span> из 100 — есть нарушения на сумму <span id="offerFine"></span><span id="offerGaClause"></span></div>
         <p class="d">Полный отчёт со всеми найденными нарушениями и что с ними делать — пришлём в Telegram.</p>
-        <a href="#" class="btn" style="margin-top:14px;text-decoration:none" onclick="return sendOfferTelegram()">Получить полный отчёт в Telegram →</a>
+        <a href="#" class="btn" style="margin-top:14px;text-decoration:none" onclick="return sendOfferTelegram()">Получить отчёт и чек-лист в Telegram →</a>
         <div class="micro" style="margin-top:14px">или оставьте контакт, если удобнее</div>
         <form onsubmit="return submitOffer(event)" style="margin-top:8px">
           <input type="text" id="offerContact" placeholder="email или телефон" autocomplete="off">
@@ -466,6 +470,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
       <div class="foot-legal" style="margin-top:0;margin-bottom:10px">какие документы готовит белый сайт</div>
       <u>Политика обработки персональных данных</u> <span class="foot-sep">·</span> <u>Согласие на обработку ПД на форме сбора</u> <span class="foot-sep">·</span> <u>Cookie‑баннер</u> <span class="foot-sep">·</span> <u>Политика cookie</u> <span class="foot-sep">·</span> <u>Согласие на рекламные рассылки</u> <span class="foot-sep">·</span> <u>Реквизиты владельца сайта</u>
       <div class="foot-legal">не является юридической консультацией</div>
+      <div class="foot-legal review-flag"><span class="flag-mark">?</span> методология проверки разработана при участии юристов, специализирующихся на it-праве и защите пдн <span class="flag-mark">?</span></div>
     </div>
     <div class="foot-bottom">
       <span>© слеза · сервис юридического комплаенса для сайтов</span>
