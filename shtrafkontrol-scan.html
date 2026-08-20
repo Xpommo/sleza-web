@@ -338,7 +338,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
           <span class="pulse"></span>
           <span>проверка</span>
           <span class="mono" id="progressCount" style="color:var(--ink-faint)">0 / 9 · 0%</span>
-          <button class="btn-text" style="margin-left:auto" onclick="setState('idle')">✕ остановить</button>
+          <button class="btn-text" style="margin-left:auto" onclick="stopScan()">✕ остановить</button>
         </div>
         <div class="bar"><i id="progressBar"></i></div>
         <div class="term" id="term">
@@ -355,13 +355,16 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
             <div class="mono" style="font-size:16px;font-weight:600;margin-top:4px;color:var(--ink)">delta-service.ru</div>
             <div class="mono" style="font-size:11px;color:var(--ink-faint);margin-top:6px">отчёт от <span id="resDate"></span></div>
           </div>
-          <span class="st" id="resStatus"><i></i></span>
+          <div style="text-align:right">
+            <span class="st" id="resStatus"><i></i></span>
+            <div class="mono" id="resMainReason" style="font-size:10.5px;color:var(--ink-faint);margin-top:5px"></div>
+          </div>
         </div>
         <div class="hr" style="margin:0"></div>
         <div class="res-hero-fine">
           <div class="micro">потенциальный штраф по найденным нарушениям</div>
           <b id="resFineSum"></b>
-          <p class="res-fine-note">Сумма ориентировочная, для юрлиц, и считается только по подтверждённым нарушениям. У ИП и самозанятых вилки по КоАП обычно меньше. Точный размер штрафа зависит от региона, отягчающих обстоятельств и числа эпизодов.</p>
+          <p class="res-fine-note">Сумма ориентировочная, для юрлиц, и считается только по подтверждённым нарушениям. У ИП и самозанятых вилки по КоАП обычно меньше. Точный размер штрафа внутри вилки зависит от обстоятельств дела и числа эпизодов — норма КоАП едина по стране, не различается по регионам.</p>
         </div>
         <div class="res-legend">
           <span class="st ok"><i></i>всё в порядке</span>
@@ -604,14 +607,29 @@ function computeSummary(){
     if(fd.mode === 'from') usedFloor = true;
   });
   var score = Math.round(ok / applicable * 100);
-  // границы по договорённости: 100 — всё в порядке, 50–99 — внимание, 0–49 — высокая
-  // вероятность штрафа (не «риск-скор» — число растёт вместе с выполненными пунктами,
-  // как и написано рядом — «X из 100», а не наоборот).
+  // Статус/цвет — не по проценту (сайт с 1 нарушением из 9 и сайт с 5 из 9 получали бы
+  // одинаковый жёлтый, а нарушение на 6+ млн ₽ тонуло в «в целом неплохо»). Берём максимум
+  // по тяжести среди самих проверок (тот же словарь ok/risk/violation, что и в сводке ниже,
+  // никаких отдельных весов) — цвет вверху и цвета строк внизу теперь не могут разойтись.
+  // «X из 100» остаётся, но как вторичная подпись, не как то, что красит статус.
+  var applicableChecks = DEMO_CHECKS.filter(function(c){ return c.applicable; });
+  var overallStatus = worstStatus(applicableChecks);
   var tone, word;
-  if(score === 100){ tone = 'ok'; word = 'всё в порядке'; }
-  else if(score >= 50){ tone = 'warn'; word = 'есть пробелы в требованиях'; }
-  else { tone = 'danger'; word = 'высокая вероятность штрафа'; }
-  return {score:score, fineSum:fineSum, usedFloor:usedFloor, gaViolation:gaViolation, tone:tone, word:word};
+  if(overallStatus === 'violation'){ tone = 'danger'; word = 'высокая вероятность штрафа'; }
+  else if(overallStatus === 'risk'){ tone = 'warn'; word = 'есть пробелы в требованиях'; }
+  else { tone = 'ok'; word = 'всё в порядке'; }
+  // главная причина при красном статусе — нарушение с самым большим штрафом, не первое по списку
+  var mainReason = null;
+  if(overallStatus === 'violation'){
+    var violations = applicableChecks.filter(function(c){ return c.status === 'violation'; });
+    var worst = violations.reduce(function(a, c){
+      var info = CHECK_INFO.filter(function(i){ return i.id === c.id; })[0];
+      var best = CHECK_INFO.filter(function(i){ return i.id === a.id; })[0];
+      return info.fineCeil > best.fineCeil ? c : a;
+    });
+    mainReason = CHECK_META[worst.id].label;
+  }
+  return {score:score, fineSum:fineSum, usedFloor:usedFloor, gaViolation:gaViolation, tone:tone, word:word, mainReason:mainReason};
 }
 
 function renderSummary(){
@@ -620,12 +638,19 @@ function renderSummary(){
   var statusEl = document.getElementById('resStatus');
   statusEl.className = 'st ' + s.tone;
   statusEl.innerHTML = '<i></i>' + s.word + ' · ' + s.score + '/100';
+  var reasonEl = document.getElementById('resMainReason');
+  if(s.mainReason){
+    reasonEl.style.display = 'block';
+    reasonEl.textContent = 'Главная причина: ' + s.mainReason;
+  } else {
+    reasonEl.style.display = 'none';
+  }
   var fineMoney = fmtMoney(s.fineSum) + ' ₽';
   var fineText = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
   document.getElementById('resFineSum').textContent = fineText;
   document.getElementById('offerScore').textContent = s.score;
   document.getElementById('offerFine').textContent = fineText;
-  document.getElementById('offerGaClause').textContent = s.gaViolation ? ', включая риск по Google Analytics' : '';
+  document.getElementById('offerGaClause').textContent = s.gaViolation ? '; отдельно риск по Google Analytics' : '';
 }
 
 function renderResults(){
@@ -685,14 +710,21 @@ function sendOfferTelegram(e){
 }
 
 var scanTimer = null;
+var scanDoneTimeout = null;
+function stopScan(){
+  clearInterval(scanTimer);
+  clearTimeout(scanDoneTimeout);
+  setState('idle');
+}
 function startScan(){
   setState('scanning');
   var term = document.getElementById('term');
   term.innerHTML = '<div style="color:rgba(255,255,255,.4)">[init] открываем сайт…</div>';
   var i = 0;
   clearInterval(scanTimer);
+  clearTimeout(scanDoneTimeout);
   scanTimer = setInterval(function(){
-    if(i >= CHECK_ORDER.length){ clearInterval(scanTimer); setTimeout(function(){ setState('done'); }, 400); return; }
+    if(i >= CHECK_ORDER.length){ clearInterval(scanTimer); scanDoneTimeout = setTimeout(function(){ setState('done'); }, 400); return; }
     var id = CHECK_ORDER[i];
     var d = new Date();
     var stamp = '['+String(d.getMinutes()).padStart(2,'0')+'.'+String(d.getSeconds()).padStart(2,'0')+']';
