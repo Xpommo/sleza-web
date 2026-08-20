@@ -355,16 +355,13 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
             <div class="mono" style="font-size:16px;font-weight:600;margin-top:4px;color:var(--ink)">delta-service.ru</div>
             <div class="mono" style="font-size:11px;color:var(--ink-faint);margin-top:6px">отчёт от <span id="resDate"></span></div>
           </div>
-          <div style="text-align:right">
-            <span class="st" id="resStatus"><i></i></span>
-            <div class="mono" id="resMainReason" style="font-size:10.5px;color:var(--ink-faint);margin-top:5px"></div>
-          </div>
+          <span class="st" id="resStatus"><i></i></span>
         </div>
         <div class="hr" style="margin:0"></div>
         <div class="res-hero-fine">
           <div class="micro">потенциальный штраф по найденным нарушениям</div>
           <b id="resFineSum"></b>
-          <p class="res-fine-note">Сумма ориентировочная, для юрлиц, и считается только по подтверждённым нарушениям. У ИП и самозанятых вилки по КоАП обычно меньше. Точный размер штрафа внутри вилки зависит от обстоятельств дела и числа эпизодов — норма КоАП едина по стране, не различается по регионам.</p>
+          <p class="res-fine-note">Сумма — по вилке для юрлиц и считается только по подтверждённым нарушениям. У ИП и самозанятых цифры по тем же статьям КоАП обычно меньше, но сами требования не зависят от формы собственности — эти 9 пунктов актуальны и для вас. Точный размер внутри вилки зависит от обстоятельств дела и числа эпизодов, не от региона.</p>
         </div>
         <div class="res-legend">
           <span class="st ok"><i></i>всё в порядке</span>
@@ -375,7 +372,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
       <div class="res-list" id="resList"></div>
 
       <div class="offer" id="offer">
-        <div class="t">У вас <span id="offerScore"></span> из 100 — есть нарушения на сумму <span id="offerFine"></span><span id="offerGaClause"></span></div>
+        <div class="t">У вас <span id="offerScore"></span> из 100 — есть нарушения на сумму <span id="offerFine"></span></div>
         <p class="d">Полный отчёт со всеми найденными нарушениями и что с ними делать — пришлём в Telegram.</p>
         <a href="#" class="btn" style="margin-top:14px;text-decoration:none" onclick="return sendOfferTelegram()">Получить отчёт и чек-лист в Telegram →</a>
         <div class="micro" style="margin-top:14px">или оставьте контакт, если удобнее</div>
@@ -592,17 +589,18 @@ function fineDisplay(info){
 function computeSummary(){
   // сумма — только по подтверждённым violation, не по risk (спорный/неполный сигнал не
   // должен раздувать итоговую цифру, как на ФОНАРИКе). ГА в общую сумму не входит —
-  // его вилка (6–18 млн ₽, КоАП 13.11 ч.8) на порядок больше остальных 8 пунктов и
-  // одна перекрывает/обесценивает всю сумму; показываем её отдельной строкой (gaViolation).
-  var applicable = 0, ok = 0, fineSum = 0, usedFloor = false, gaViolation = null;
+  // его вилка (6–18 млн ₽, КоАП 13.11 ч.8) на порядок больше остальных 8 пунктов и одна
+  // перекрывает/обесценивает всю сумму. Статус вверху (см. ниже) всё равно станет
+  // красным из-за ГА через worstStatus — этого достаточно, отдельно её не проговариваем.
+  var applicable = 0, ok = 0, fineSum = 0, usedFloor = false;
   DEMO_CHECKS.forEach(function(c){
     if(!c.applicable) return;
     applicable++;
     if(c.status === 'ok'){ ok++; return; }
     if(c.status !== 'violation') return;
+    if(c.id === 'ga_presence') return;
     var info = CHECK_INFO.filter(function(i){ return i.id === c.id; })[0];
     var fd = fineDisplay(info);
-    if(c.id === 'ga_presence'){ gaViolation = fd; return; }
     fineSum += fd.amount;
     if(fd.mode === 'from') usedFloor = true;
   });
@@ -610,26 +608,14 @@ function computeSummary(){
   // Статус/цвет — не по проценту (сайт с 1 нарушением из 9 и сайт с 5 из 9 получали бы
   // одинаковый жёлтый, а нарушение на 6+ млн ₽ тонуло в «в целом неплохо»). Берём максимум
   // по тяжести среди самих проверок (тот же словарь ok/risk/violation, что и в сводке ниже,
-  // никаких отдельных весов) — цвет вверху и цвета строк внизу теперь не могут разойтись.
-  // «X из 100» остаётся, но как вторичная подпись, не как то, что красит статус.
-  var applicableChecks = DEMO_CHECKS.filter(function(c){ return c.applicable; });
-  var overallStatus = worstStatus(applicableChecks);
+  // никаких отдельных весов) — цвет вверху и цвета строк внизу теперь не могут разойтись,
+  // и какое именно нарушение самое тяжёлое — видно в самой сводке, повторять не нужно.
+  var overallStatus = worstStatus(DEMO_CHECKS.filter(function(c){ return c.applicable; }));
   var tone, word;
   if(overallStatus === 'violation'){ tone = 'danger'; word = 'высокая вероятность штрафа'; }
   else if(overallStatus === 'risk'){ tone = 'warn'; word = 'есть пробелы в требованиях'; }
   else { tone = 'ok'; word = 'всё в порядке'; }
-  // главная причина при красном статусе — нарушение с самым большим штрафом, не первое по списку
-  var mainReason = null;
-  if(overallStatus === 'violation'){
-    var violations = applicableChecks.filter(function(c){ return c.status === 'violation'; });
-    var worst = violations.reduce(function(a, c){
-      var info = CHECK_INFO.filter(function(i){ return i.id === c.id; })[0];
-      var best = CHECK_INFO.filter(function(i){ return i.id === a.id; })[0];
-      return info.fineCeil > best.fineCeil ? c : a;
-    });
-    mainReason = CHECK_META[worst.id].label;
-  }
-  return {score:score, fineSum:fineSum, usedFloor:usedFloor, gaViolation:gaViolation, tone:tone, word:word, mainReason:mainReason};
+  return {score:score, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word};
 }
 
 function renderSummary(){
@@ -638,19 +624,11 @@ function renderSummary(){
   var statusEl = document.getElementById('resStatus');
   statusEl.className = 'st ' + s.tone;
   statusEl.innerHTML = '<i></i>' + s.word + ' · ' + s.score + '/100';
-  var reasonEl = document.getElementById('resMainReason');
-  if(s.mainReason){
-    reasonEl.style.display = 'block';
-    reasonEl.textContent = 'Главная причина: ' + s.mainReason;
-  } else {
-    reasonEl.style.display = 'none';
-  }
   var fineMoney = fmtMoney(s.fineSum) + ' ₽';
   var fineText = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
   document.getElementById('resFineSum').textContent = fineText;
   document.getElementById('offerScore').textContent = s.score;
   document.getElementById('offerFine').textContent = fineText;
-  document.getElementById('offerGaClause').textContent = s.gaViolation ? '; отдельно риск по Google Analytics' : '';
 }
 
 function renderResults(){
