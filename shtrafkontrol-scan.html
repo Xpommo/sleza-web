@@ -146,7 +146,12 @@ section.block:last-of-type{border-bottom:0}
 /* результат */
 .res-top{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:22px 24px;
   display:flex;flex-direction:column;gap:16px}
-.res-meta-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.res-meta-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.res-meta-cols{display:flex;gap:26px;flex-wrap:wrap}
+.res-meta-cols .val{font-size:14px;font-weight:600;color:var(--ink);margin-top:4px}
+.st-pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;
+  letter-spacing:.02em;padding:7px 14px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
+.st-pill.ok{color:var(--ok)} .st-pill.warn{color:var(--warn)} .st-pill.danger{color:var(--danger)}
 .res-hero-fine b{display:block;font-weight:800;letter-spacing:-.02em;margin-top:6px;line-height:1;
   font-size:clamp(38px,6vw,60px);color:var(--danger);font-variant-numeric:tabular-nums}
 .res-fine-note{font-size:12px;color:var(--ink-soft);margin-top:10px;max-width:52ch;line-height:1.5}
@@ -351,12 +356,21 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
     <div class="state" data-state="done" style="margin-top:28px">
       <div class="res-top">
         <div class="res-meta-row">
-          <div>
-            <div class="micro">результат проверки</div>
-            <div class="mono" style="font-size:16px;font-weight:600;margin-top:4px;color:var(--ink)">delta-service.ru</div>
-            <div class="mono" style="font-size:11px;color:var(--ink-faint);margin-top:6px">отчёт от <span id="resDate"></span></div>
+          <div class="res-meta-cols">
+            <div class="res-meta-col">
+              <div class="micro">домен</div>
+              <div class="mono val">delta-service.ru</div>
+            </div>
+            <div class="res-meta-col">
+              <div class="micro">отчёт от</div>
+              <div class="mono val" id="resDate"></div>
+            </div>
+            <div class="res-meta-col">
+              <div class="micro">проверок</div>
+              <div class="mono val" id="resCheckCount"></div>
+            </div>
           </div>
-          <span class="st" id="resStatus"><i></i></span>
+          <span class="st-pill" id="resStatus"></span>
         </div>
         <div class="hr" style="margin:0"></div>
         <div class="res-hero-fine">
@@ -580,6 +594,10 @@ function fmtDate(d){
   return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
 }
 
+function fmtDateTime(d){
+  return fmtDate(d)+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
 // от 200 т.р. и выше честнее показывать нижнюю границу вилки («от X») — верхняя на таких
 // суммах выглядит как запугивание. Для мелких сумм, наоборот, верхняя («до X») не пугает.
 function fineDisplay(info){
@@ -618,15 +636,16 @@ function computeSummary(){
   if(overallStatus === 'violation'){ tone = 'danger'; word = 'высокая вероятность штрафа'; riskWord = 'высокий'; }
   else if(overallStatus === 'risk'){ tone = 'warn'; word = 'есть пробелы в требованиях'; riskWord = 'средний'; }
   else { tone = 'ok'; word = 'всё в порядке'; riskWord = 'низкий'; }
-  return {score:score, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word, riskWord:riskWord};
+  return {score:score, applicable:applicable, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word, riskWord:riskWord};
 }
 
 function renderSummary(){
   var s = computeSummary();
-  document.getElementById('resDate').textContent = fmtDate(new Date());
+  document.getElementById('resDate').textContent = fmtDateTime(new Date());
+  document.getElementById('resCheckCount').textContent = s.applicable + ' / ' + CHECK_ORDER.length;
   var statusEl = document.getElementById('resStatus');
-  statusEl.className = 'st ' + s.tone;
-  statusEl.innerHTML = '<i></i>' + s.word + ' · ' + s.score + '/100';
+  statusEl.className = 'st-pill ' + s.tone;
+  statusEl.textContent = s.word + ' · ' + s.score + '/100';
   var fineMoney = fmtMoney(s.fineSum) + ' ₽';
   var fineText = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
   document.getElementById('resFineSum').textContent = fineText;
