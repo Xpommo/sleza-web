@@ -366,11 +366,11 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
         </div>
         <div class="risk-gauge">
           <div class="risk-gauge-top">
-            <span class="micro">уровень риска</span>
+            <span class="micro">риск получения штрафа</span>
             <span class="risk-gauge-value" id="riskGaugeValue"></span>
           </div>
           <div class="risk-gauge-track"><div class="risk-gauge-mask" id="riskGaugeMask"></div></div>
-          <div class="risk-gauge-ticks"><span>0</span><span>5</span><span>10</span></div>
+          <div class="risk-gauge-ticks"><span>0</span><span>50</span><span>100</span></div>
         </div>
         <div class="res-legend">
           <span class="st ok"><i></i>всё в порядке</span>
@@ -633,11 +633,11 @@ function renderSummary(){
   document.getElementById('offerScore').textContent = s.score;
   document.getElementById('offerFine').textContent = fineText;
 
-  // гейдж «уровень риска» — визуальное дополнение к уже посчитанному score, без новой
-  // формулы: риск = 10 − score/10, маска справа открывает столько трека, сколько 100-score.
-  var riskLevel10 = ((100 - s.score) / 10).toFixed(1);
+  // гейдж «риск получения штрафа» — на той же 100-балльной шкале, что и весь остальной
+  // скор на странице, без новой формулы: риск = 100 − score (прямое дополнение).
+  var riskValue = 100 - s.score;
   var valueEl = document.getElementById('riskGaugeValue');
-  valueEl.textContent = riskLevel10 + ' / 10 · ' + s.riskWord;
+  valueEl.textContent = riskValue + ' из 100 · ' + s.riskWord;
   valueEl.style.color = 'var(--' + s.tone + ')';
   document.getElementById('riskGaugeMask').style.width = s.score + '%';
 }
