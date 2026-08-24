@@ -151,6 +151,17 @@ section.block:last-of-type{border-bottom:0}
   font-size:clamp(38px,6vw,60px);color:var(--danger);font-variant-numeric:tabular-nums}
 .res-fine-note{font-size:12px;color:var(--ink-soft);margin-top:10px;max-width:52ch;line-height:1.5}
 .res-legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line-strong)}
+/* визуальный гейдж поверх уже посчитанного статуса (см. computeSummary) — новой формулы
+   тут нет, риск = 10 − score/10 (просто дополнение к скору соответствия), чтобы бар
+   заполнялся сильнее там, где статус хуже. Ровно то же самое число, что и в бейдже
+   выше, только в перевёрнутом виде и другой шкале для этого конкретного визуала. */
+.risk-gauge{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.risk-gauge-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.risk-gauge-value{font-family:var(--mono);font-weight:800;font-size:15px}
+.risk-gauge-track{height:6px;border-radius:999px;overflow:hidden;margin-top:10px;position:relative;
+  background:linear-gradient(to right,var(--ok),var(--warn) 55%,var(--danger))}
+.risk-gauge-mask{position:absolute;top:0;right:0;height:100%;background:var(--line);transition:width .5s var(--ease-out)}
+.risk-gauge-ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-trace);margin-top:5px}
 .res-list{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:0 24px}
 .res-row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .res-row:last-child{border-bottom:0}
@@ -352,6 +363,14 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
           <div class="micro">потенциальный штраф по найденным нарушениям</div>
           <b id="resFineSum"></b>
           <p class="res-fine-note">Сумма — по вилке для юрлиц и считается только по подтверждённым нарушениям. У ИП и самозанятых цифры по тем же статьям КоАП обычно меньше, но сами требования не зависят от формы собственности — эти 9 пунктов актуальны и для вас. Точный размер внутри вилки зависит от обстоятельств дела и числа эпизодов, не от региона.</p>
+        </div>
+        <div class="risk-gauge">
+          <div class="risk-gauge-top">
+            <span class="micro">уровень риска</span>
+            <span class="risk-gauge-value" id="riskGaugeValue"></span>
+          </div>
+          <div class="risk-gauge-track"><div class="risk-gauge-mask" id="riskGaugeMask"></div></div>
+          <div class="risk-gauge-ticks"><span>0</span><span>5</span><span>10</span></div>
         </div>
         <div class="res-legend">
           <span class="st ok"><i></i>всё в порядке</span>
@@ -595,11 +614,11 @@ function computeSummary(){
   // никаких отдельных весов) — цвет вверху и цвета строк внизу теперь не могут разойтись,
   // и какое именно нарушение самое тяжёлое — видно в самой сводке, повторять не нужно.
   var overallStatus = worstStatus(DEMO_CHECKS.filter(function(c){ return c.applicable; }));
-  var tone, word;
-  if(overallStatus === 'violation'){ tone = 'danger'; word = 'высокая вероятность штрафа'; }
-  else if(overallStatus === 'risk'){ tone = 'warn'; word = 'есть пробелы в требованиях'; }
-  else { tone = 'ok'; word = 'всё в порядке'; }
-  return {score:score, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word};
+  var tone, word, riskWord;
+  if(overallStatus === 'violation'){ tone = 'danger'; word = 'высокая вероятность штрафа'; riskWord = 'высокий'; }
+  else if(overallStatus === 'risk'){ tone = 'warn'; word = 'есть пробелы в требованиях'; riskWord = 'средний'; }
+  else { tone = 'ok'; word = 'всё в порядке'; riskWord = 'низкий'; }
+  return {score:score, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word, riskWord:riskWord};
 }
 
 function renderSummary(){
@@ -613,6 +632,14 @@ function renderSummary(){
   document.getElementById('resFineSum').textContent = fineText;
   document.getElementById('offerScore').textContent = s.score;
   document.getElementById('offerFine').textContent = fineText;
+
+  // гейдж «уровень риска» — визуальное дополнение к уже посчитанному score, без новой
+  // формулы: риск = 10 − score/10, маска справа открывает столько трека, сколько 100-score.
+  var riskLevel10 = ((100 - s.score) / 10).toFixed(1);
+  var valueEl = document.getElementById('riskGaugeValue');
+  valueEl.textContent = riskLevel10 + ' / 10 · ' + s.riskWord;
+  valueEl.style.color = 'var(--' + s.tone + ')';
+  document.getElementById('riskGaugeMask').style.width = s.score + '%';
 }
 
 function renderResults(){
