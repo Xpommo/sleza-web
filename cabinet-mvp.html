@@ -513,6 +513,14 @@ details.acc:first-child{margin-top:0}
 .cl-item.done .cl-mark{border:none;background:var(--ok-tint);color:var(--ok);animation:clPop .4s cubic-bezier(.34,1.56,.64,1)}
 @keyframes clPop{0%{transform:scale(.3)}55%{transform:scale(1.2)}100%{transform:scale(1)}}
 .cl-item[hidden]{display:none}
+/* строка «отраслевой блок — не входит» — появляется только для
+   регулируемых сфер (медицина/финансы/детские центры, см. data-regulated
+   на s-anketa), никогда не становится .done — это не пункт пакета, а
+   честное предупреждение, что для этой сферы часть требований пакет не
+   закрывает (дыра #3 из независимого ревью, 24.08). */
+.cl-item-na .cl-mark{border-style:solid;border-color:rgba(184,121,0,.4);color:var(--warn)}
+.cl-item-na .cl-mark::before{content:"–"}
+.cl-item-na{color:var(--warn)}
 
 /* «зачем это спрашиваем» — короткая .tiny-фраза всегда видна под каждым
    из 6 вопросов (уже есть по разметке вопроса); опциональный разворот
@@ -616,7 +624,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <div class="split-value">
       <span class="kicker">слеза белый сайт</span>
       <h2>Документы для сайта — готовим и держим в порядке</h2>
-      <div class="why"><div><b>Соберём под вашу компанию</b><span>Заполните анкету о сайте и компании — документы соберём индивидуально под вас, не по шаблону.</span></div></div>
+      <div class="why"><div><b>Соберём под вашу компанию</b><span>Заполните анкету о сайте и компании — документы соберём под ваши данные и вашу сферу деятельности.</span></div></div>
       <div class="why"><div><b>Виджет на сайт</b><span>Установили один раз — виджет держит документы и согласия на сайте в порядке.</span></div></div>
       <div class="why"><div><b>Следим, что всё работает</b><span>Проверяем, что виджет и документы на сайте работают исправно — не нужно проверять это самим.</span></div></div>
       <div class="why"><div><b>Когда поменяется закон, перепишем сами</b><span>Вам придёт письмо, что документы уже обновлены.</span></div></div>
@@ -832,7 +840,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <main class="main narrow">
       <div class="anketa-step">Анкета · шаг 1 из 2</div>
       <h1>Расскажите о сайте и компании</h1>
-      <p class="lead" style="margin-top:8px">Пять минут — и документы соберём точно под ваш случай, не по шаблону.</p>
+      <p class="lead" style="margin-top:8px">Пять минут — и документы соберём под ваши данные и вашу сферу.</p>
 
       <div class="card pad state" data-has-identity="false" style="margin-top:16px">
         <h3>Кто заполняет анкету?</h3>
@@ -852,18 +860,18 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
       <div class="card pad" style="margin-top:10px">
         <h3>Какая у вас сфера?</h3>
-        <p class="tiny" style="margin:6px 0 12px">У образования, медицины, услуг и интернет-магазина разные обязательные пункты в политике — без точной сферы часть требований может остаться незакрытой.</p>
-        <select class="inp">
+        <p class="tiny" style="margin:6px 0 12px">Сфера влияет на формулировки в документах. Для отдельных сфер — медицина, финансы, работа с детьми — есть дополнительные отраслевые требования, которые этот пакет не покрывает; для них уточним отдельно (см. чек-лист на следующем шаге).</p>
+        <select class="inp" id="anketa-sphere-select">
           <option>Онлайн-школа, курсы, репетиторство</option>
-          <option>Детский центр, кружки, секции</option>
+          <option data-regulated="1">Детский центр, кружки, секции</option>
           <option>Услуги для бизнеса (консалтинг, бухгалтерия, юр. услуги)</option>
           <option>Бытовые услуги (ремонт, клининг)</option>
           <option>Красота и здоровье (салон, барбершоп, фитнес)</option>
-          <option>Медицина, клиники</option>
+          <option data-regulated="1">Медицина, клиники</option>
           <option>Интернет-магазин</option>
           <option>Кафе, ресторан, доставка еды</option>
           <option>Недвижимость</option>
-          <option>Финансы, страхование</option>
+          <option data-regulated="1">Финансы, страхование</option>
           <option>IT, SaaS, разработка</option>
           <option>Производство</option>
           <option>Другое</option>
@@ -959,6 +967,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Cookie-политика</span></div>
               <div class="cl-item" data-cl="clients"><span class="cl-mark"></span><span>Согласие на обработку ПДн</span></div>
               <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-mark"></span><span>Согласие на рассылки</span></div>
+              <div class="cl-item cl-item-na" data-cl-industry hidden><span class="cl-mark"></span><span>Отраслевой блок для вашей сферы — не входит, уточните у поддержки</span></div>
             </div>
           </div>
 
@@ -975,6 +984,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Cookie-политика</span></div>
             <div class="cl-item" data-cl="clients"><span class="cl-mark"></span><span>Согласие на обработку ПДн</span></div>
             <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-mark"></span><span>Согласие на рассылки</span></div>
+            <div class="cl-item cl-item-na" data-cl-industry hidden><span class="cl-mark"></span><span>Отраслевой блок для вашей сферы — не входит, уточните у поддержки</span></div>
           </div>
         </aside>
       </div>
@@ -1005,7 +1015,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <div class="startwrap">
     <button class="btn text sm" data-go="s-anketa2" style="margin-bottom:10px">← анкета</button>
     <h1>Готовим документы для вас</h1>
-    <p class="lead" style="margin-top:8px">По данным анкеты подготовим документы под alfa-school.ru — индивидуально под вашу компанию.</p>
+    <p class="lead" style="margin-top:8px">По данным анкеты подготовим документы под alfa-school.ru — с вашими данными и вашей сферой деятельности.</p>
 
     <div class="card" style="margin-top:16px;overflow:hidden">
       <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">149-ФЗ · реквизиты владельца</div><div class="w">Выведем в подвал сайта через виджет — по данным из анкеты.</div></div></div>
@@ -1366,7 +1376,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="state" data-pay-state="expired" style="margin-top:16px">
         <div class="card pad" style="border-color:rgba(214,56,22,.35)">
           <span class="b red" style="font-size:16px">⚠ Пробный период закончился</span>
-          <p class="lead" style="margin-top:8px">Виджет на сайте отключён. Документы остаются в кабинете для просмотра — скачивание и копирование заблокированы, пока не оплатите.</p>
+          <p class="lead" style="margin-top:8px">Баннер и виджет на сайте отключены — но уже опубликованная страница политики остаётся доступной по ссылке. В кабинете документы видны для просмотра, скачивание и копирование заблокированы, пока не оплатите.</p>
           <div class="hr"></div>
           <button type="button" class="btn solid sm" data-go="s-pay">Оплатить →</button>
         </div>
@@ -1419,7 +1429,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="state on" data-pay-state="paid">
           <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">оплачено</span></div>
           <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Продление</span><span class="small" style="font-weight:700">05.09.2026 · 2 990 ₽</span></div>
-          <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.5)">Если не продлить — баннер и документы останутся на сайте, но обновление при смене закона приостановится.</p>
+          <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.5)">Если не продлить — баннер и виджет на сайте отключатся, обновление по закону остановится, как и по истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
         </div>
         <div class="state" data-pay-state="pending">
           <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">ожидает оплаты</span></div>
@@ -1683,13 +1693,28 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 
 <!-- модалка отмены подписки — раньше срабатывала мгновенно по клику,
      без подтверждения и без опоры на текст последствий, который уже
-     есть на s-project-paid («баннер и документы останутся, но
-     обновление приостановится»). Теперь этот же текст закрепляется
-     здесь, на шаге, где решение реально принимается. -->
+     есть на s-project-paid. Тот же текст закрепляется здесь, на шаге,
+     где решение реально принимается.
+
+     Текст последствий унифицирован с состоянием «пробный период
+     закончился» (независимое ревью, 24.08 — «дыра 1»): раньше
+     отменивший платный период получал мягче формулировку («баннер и
+     документы останутся на сайте»), чем никогда не плативший клиент
+     после триала (у него виджет отключался сразу) — тот, кто не дал ни
+     рубля, наказывался жёстче того, кто заплатил один раз и ушёл.
+     Теперь оба случая описаны одинаково: баннер/виджет отключается,
+     обновления по закону останавливаются. Разграничение по-другому —
+     не по тому, платил ли клиент когда-либо, а по тому, что именно
+     платное: сама страница уже опубликованной политики остаётся
+     доступной по ссылке всегда (иначе бывший клиент становится
+     нарушителем из-за нас, с нерабочей ссылкой на сайте), а баннер,
+     виджет и обновление документов при смене закона — платная часть. -->
+<!-- то же самое разграничение — s-project-paid (data-pay-state=expired
+     card) и FAQ на s-support. -->
 <div class="state" data-state="closed" id="modal-cancel" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
-    <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 05.09.2026. После этого баннер и документы останутся на сайте, но обновление при смене закона приостановится.</p>
+    <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 05.09.2026. После этого баннер и виджет на сайте отключатся, обновление по закону остановится — как при истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
     <div class="row" style="margin-top:16px">
       <button class="btn solid" id="cancel-confirm" style="background:var(--danger);border-color:var(--danger)" data-modal-close="modal-cancel">Да, отменить</button>
       <button class="btn text" data-modal-close="modal-cancel">Оставить подписку</button>
@@ -1812,7 +1837,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Что будет, если не оплатить вовремя?</span><span class="chev">›</span></button>
-        <div class="bd"><div class="txt">Документы и баннер останутся на сайте, но обновление при смене закона приостановится, пока не возобновите подписку.</div></div>
+        <div class="bd"><div class="txt">Баннер и виджет на сайте отключатся, обновление по закону остановится, пока не возобновите подписку — так же, как при истечении пробного периода без оплаты. Уже опубликованная страница политики останется доступной по ссылке, сайт не окажется с нерабочей ссылкой.</div></div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Как обновить реквизиты компании?</span><span class="chev">›</span></button>
@@ -2030,6 +2055,19 @@ if (callsSeg) {
       var show = b.dataset.swap === 'calls-yes';
       document.querySelectorAll('[data-cl-marketing]').forEach(function(el){ el.hidden = !show; });
     });
+  });
+}
+
+/* сфера на s-anketa (Блок 1) помечена data-regulated у части option —
+   медицина/финансы/детские центры имеют отраслевые требования, которых
+   пакет 1+2+2 не покрывает (дыра #3 из независимого ревью, 24.08).
+   Чек-лист живёт на s-anketa2 (Блок 2), оба экрана в одном DOM — просто
+   переключаем hidden у уже отрисованной строки, без ожидания перехода. */
+var sphereSelect = document.getElementById('anketa-sphere-select');
+if (sphereSelect) {
+  sphereSelect.addEventListener('change', function(){
+    var regulated = sphereSelect.selectedOptions[0].hasAttribute('data-regulated');
+    document.querySelectorAll('[data-cl-industry]').forEach(function(el){ el.hidden = !regulated; });
   });
 }
 
