@@ -505,16 +505,6 @@ var CHECK_META = {
   inoagent_marking:  {label:'Маркировка иноагентов/террористов', lawCode:'ст.13.15 КоАП'},
   anglicisms:        {label:'Англицизмы', lawCode:'ЗоЗПП ст.10.1'}
 };
-// группировка по закону — только для краткой сводки на экране результата;
-// в блоке «что проверяем» разделения больше нет, все 9 пунктов в одном списке
-var LAW_GROUPS = [
-  {law:'152-ФЗ', title:'Персональные данные', checks:['privacy_policy','data_consent','cookie_policy','cookie_banner']},
-  {law:'152-ФЗ ст.18 ч.5', title:'Трансграничная передача данных', checks:['ga_presence']},
-  {law:'149-ФЗ', title:'Реквизиты сайта', checks:['requisites']},
-  {law:'38-ФЗ', title:'Рекламные рассылки', checks:['marketing_consent']},
-  {law:'ст.13.15 КоАП', title:'Маркировка иноагентов', checks:['inoagent_marking']},
-  {law:'ЗоЗПП', title:'Права потребителя', checks:['anglicisms']}
-];
 var CHECK_ORDER = ['privacy_policy','data_consent','cookie_policy','cookie_banner','requisites','marketing_consent','ga_presence','inoagent_marking','anglicisms'];
 var ICONS = {
   privacy_policy: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M9.5 9h2M9.5 12h5M9.5 15h5"/>',
@@ -657,20 +647,18 @@ function renderSummary(){
 }
 
 function renderResults(){
-  // краткая сводка по законам, не по отдельным проверкам — детали по каждому пункту
-  // уходят в полный отчёт (см. оффер). Закон, неприменимый к этому сайту целиком
-  // (все его пункты applicable:false), в сводке не показываем — «не требуется» только путает.
+  // построчно по всем применимым проверкам (не сгруппировано по закону) — так число строк
+  // совпадает с «9 требований» из заголовка. Только светофор + закон, без текста находки
+  // и без суммы — детали уходят в «Что мы находим» и в полный отчёт (см. оффер). Проверка,
+  // неприменимая к этому сайту (applicable:false), в сводке не показывается — «не требуется»
+  // только путает.
   var el = document.getElementById('resList');
-  LAW_GROUPS.forEach(function(g){
-    var items = DEMO_CHECKS.filter(function(c){ return g.checks.indexOf(c.id) !== -1 && c.applicable; });
-    if(!items.length) return;
-    var status = worstStatus(items);
-    var bad = items.filter(function(c){ return c.status !== 'ok'; }).length;
-    var word;
-    if(status === 'ok') word = 'в норме';
-    else if(items.length === 1) word = (status === 'violation' ? 'нарушение' : 'риск');
-    else word = bad + ' из ' + items.length + ' — не в порядке';
-    el.insertAdjacentHTML('beforeend', '<div class="res-row"><div><div class="lbl">'+g.title+'</div><div class="code">'+g.law+'</div></div><span class="st '+STATUS_TONE[status]+'"><i></i>'+word+'</span></div>');
+  CHECK_ORDER.forEach(function(id){
+    var c = DEMO_CHECKS.filter(function(x){ return x.id === id; })[0];
+    if(!c.applicable) return;
+    var meta = CHECK_META[id];
+    var word = c.status === 'ok' ? 'в норме' : (c.status === 'violation' ? 'нарушение' : 'риск');
+    el.insertAdjacentHTML('beforeend', '<div class="res-row"><div><div class="lbl">'+meta.label+'</div><div class="code">'+meta.lawCode+'</div></div><span class="st '+STATUS_TONE[c.status]+'"><i></i>'+word+'</span></div>');
   });
 }
 
