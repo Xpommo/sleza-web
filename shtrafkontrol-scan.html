@@ -388,8 +388,8 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
         </div>
         <div class="res-legend">
           <span class="st ok"><i></i>всё в порядке</span>
-          <span class="st warn"><i></i>есть пробелы в требованиях</span>
-          <span class="st danger"><i></i>высокая вероятность штрафа</span>
+          <span class="st warn"><i></i>требует внимания</span>
+          <span class="st danger"><i></i>требует изменений</span>
         </div>
       </div>
       <div class="res-list" id="resList"></div>
@@ -633,8 +633,8 @@ function computeSummary(){
   // и какое именно нарушение самое тяжёлое — видно в самой сводке, повторять не нужно.
   var overallStatus = worstStatus(DEMO_CHECKS.filter(function(c){ return c.applicable; }));
   var tone, word, riskWord;
-  if(overallStatus === 'violation'){ tone = 'danger'; word = 'высокая вероятность штрафа'; riskWord = 'высокий'; }
-  else if(overallStatus === 'risk'){ tone = 'warn'; word = 'есть пробелы в требованиях'; riskWord = 'средний'; }
+  if(overallStatus === 'violation'){ tone = 'danger'; word = 'требует изменений'; riskWord = 'высокий'; }
+  else if(overallStatus === 'risk'){ tone = 'warn'; word = 'требует внимания'; riskWord = 'средний'; }
   else { tone = 'ok'; word = 'всё в порядке'; riskWord = 'низкий'; }
   return {score:score, applicable:applicable, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word, riskWord:riskWord};
 }
