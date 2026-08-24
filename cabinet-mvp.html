@@ -496,11 +496,22 @@ details.acc:first-child{margin-top:0}
 @media(max-width:820px){
   .checklist-reveal{display:block;margin-top:20px}
 }
-.cl-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.cl-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);
+  font-size:13.5px;color:rgba(17,17,16,.35);transition:color .2s}
 .cl-item:last-child{border-bottom:0}
-.cl-mark{flex:none;width:19px;height:19px;border-radius:999px;background:var(--ok-tint);color:var(--ok);
-  display:grid;place-items:center;font-size:11px;font-weight:800}
+.cl-item.done{color:var(--ink)}
+.cl-mark{flex:none;width:19px;height:19px;border-radius:999px;border:1.5px dashed var(--line-2);
+  display:grid;place-items:center;font-size:11px;font-weight:800;color:transparent;
+  transition:border-color .2s,background-color .2s,color .2s}
 .cl-mark::before{content:"✓"}
+/* галочка выезжает по мере заполнения вопросов слева (HANDOFF 6.15 —
+   правка «плашку справа анимировать заполнением»), не проставлена вся
+   сразу — до этого пункты .cl-item ждут своего .done неопределённо
+   долго, если вопрос вообще не тронуть (демо-макет, не строгий валидатор
+   формы — «тронуть» здесь означает клик/фокус внутри карточки вопроса,
+   см. script). */
+.cl-item.done .cl-mark{border:none;background:var(--ok-tint);color:var(--ok);animation:clPop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes clPop{0%{transform:scale(.3)}55%{transform:scale(1.2)}100%{transform:scale(1)}}
 .cl-item[hidden]{display:none}
 
 /* «зачем это спрашиваем» — короткая .tiny-фраза всегда видна под каждым
@@ -855,17 +866,20 @@ details.acc:first-child{margin-top:0}
      то отражает то, что уже решено вопросами выше, не более.
 
      Десктоп — живой список сбоку (.checklist-side, чек-лист внутри
-     .anketa-split): единственное, что в нём по-настоящему живое —
-     «Согласие на рассылки» появляется/исчезает по ответу «да/нет» на
-     «звоните-пишете»; остальные 4 пункта показаны сразу, так как поля
-     уже предзаполнены демо-данными (тот же принцип, что и везде в этом
-     макете — показываем «хороший путь», не имитируем построчную
-     валидацию формы). На мобильном для сайдбара нет места — вместо него
-     один блок-разворот после всех трёх вопросов (.checklist-reveal),
-     тот же приём двойной вёрстки под брейкпоинт, что уже даёт
-     .preview-block/.preview-accordion на s-ready — не отдельный экран
-     и не JS-роутинг по устройству, просто CSS показывает/прячет нужный
-     блок. -->
+     .anketa-split), по прямому запросу пользователя анимирован по
+     заполнению: галочка выезжает (.done + @keyframes clPop), когда
+     человек трогает карточку соответствующего вопроса (клик/фокус —
+     см. script), не проставлена вся сразу при заходе на экран. Группы:
+     «О компании» → Реквизиты владельца (1); «Платформа» → Политика
+     ПДн + Cookie-политика (2, один клик по сегменту закрывает оба);
+     «Работа с клиентами» → Согласие на обработку ПДн, плюс Согласие на
+     рассылки, если сейчас видимо (не скрыто ответом «нет»). На
+     мобильном для сайдбара нет места — вместо него один блок-разворот
+     после всех трёх вопросов (.checklist-reveal), тот же приём двойной
+     вёрстки под брейкпоинт, что уже даёт .preview-block/.preview-accordion
+     на s-ready — не отдельный экран и не JS-роутинг по устройству,
+     просто CSS показывает/прячет нужный блок; данные .cl атрибуты общие
+     для обеих копий, анимация срабатывает в обеих сразу. -->
 <section class="screen" id="s-anketa2">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -883,7 +897,7 @@ details.acc:first-child{margin-top:0}
 
       <div class="anketa-split" style="margin-top:16px">
         <div class="anketa-col">
-          <div class="card pad">
+          <div class="card pad" id="anketa-req-card">
             <h3>О компании</h3>
             <p class="tiny" style="margin:6px 0 12px">Пойдут в подвал сайта и в документы — реквизиты владельца сайта обязательны по 149-ФЗ.</p>
             <label class="f">Наименование</label>
@@ -901,10 +915,10 @@ details.acc:first-child{margin-top:0}
           <div class="card pad" style="margin-top:10px">
             <h3>На какой платформе сайт?</h3>
             <p class="tiny" style="margin:6px 0 12px">Пригодится на шаге установки — покажем инструкцию именно под неё.</p>
-            <div class="seg"><button type="button" class="on" data-swap="cms-tilda" data-set-platform="tilda">Тильда</button><button type="button" data-swap="cms-wp" data-set-platform="wp">WordPress</button><button type="button" data-swap="cms-bitrix" data-set-platform="bitrix">Битрикс</button><button type="button" data-swap="cms-other" data-set-platform="other">Другое</button></div>
+            <div class="seg" id="anketa-platform-seg"><button type="button" class="on" data-swap="cms-tilda" data-set-platform="tilda">Тильда</button><button type="button" data-swap="cms-wp" data-set-platform="wp">WordPress</button><button type="button" data-swap="cms-bitrix" data-set-platform="bitrix">Битрикс</button><button type="button" data-swap="cms-other" data-set-platform="other">Другое</button></div>
           </div>
 
-          <div class="card pad" style="margin-top:10px">
+          <div class="card pad" id="anketa-clients-card" style="margin-top:10px">
             <h3>Работа с клиентами</h3>
             <p class="tiny" style="margin:6px 0 12px">Звоните, пишете в мессенджеры или на почту по базе клиентов?</p>
             <div class="seg" id="anketa-calls-seg"><button type="button" class="on" data-swap="calls-yes">Да</button><button type="button" data-swap="calls-no">Нет</button></div>
@@ -922,11 +936,11 @@ details.acc:first-child{margin-top:0}
             <div class="card pad">
               <h3>Вот что вы получите</h3>
               <p class="tiny" style="margin:6px 0 10px">Пакет документов под alfa-school.ru — по вашим ответам выше.</p>
-              <div class="cl-item"><span class="cl-mark"></span><span>Реквизиты владельца</span></div>
-              <div class="cl-item"><span class="cl-mark"></span><span>Политика обработки ПДн</span></div>
-              <div class="cl-item"><span class="cl-mark"></span><span>Cookie-политика</span></div>
-              <div class="cl-item"><span class="cl-mark"></span><span>Согласие на обработку ПДн</span></div>
-              <div class="cl-item" data-cl-marketing><span class="cl-mark"></span><span>Согласие на рассылки</span></div>
+              <div class="cl-item" data-cl="req"><span class="cl-mark"></span><span>Реквизиты владельца</span></div>
+              <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Политика обработки ПДн</span></div>
+              <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Cookie-политика</span></div>
+              <div class="cl-item" data-cl="clients"><span class="cl-mark"></span><span>Согласие на обработку ПДн</span></div>
+              <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-mark"></span><span>Согласие на рассылки</span></div>
             </div>
           </div>
 
@@ -938,11 +952,11 @@ details.acc:first-child{margin-top:0}
           <div class="card pad">
             <h3>Вот что вы получите</h3>
             <p class="tiny" style="margin:6px 0 10px">Пакет документов под alfa-school.ru</p>
-            <div class="cl-item"><span class="cl-mark"></span><span>Реквизиты владельца</span></div>
-            <div class="cl-item"><span class="cl-mark"></span><span>Политика обработки ПДн</span></div>
-            <div class="cl-item"><span class="cl-mark"></span><span>Cookie-политика</span></div>
-            <div class="cl-item"><span class="cl-mark"></span><span>Согласие на обработку ПДн</span></div>
-            <div class="cl-item" data-cl-marketing><span class="cl-mark"></span><span>Согласие на рассылки</span></div>
+            <div class="cl-item" data-cl="req"><span class="cl-mark"></span><span>Реквизиты владельца</span></div>
+            <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Политика обработки ПДн</span></div>
+            <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Cookie-политика</span></div>
+            <div class="cl-item" data-cl="clients"><span class="cl-mark"></span><span>Согласие на обработку ПДн</span></div>
+            <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-mark"></span><span>Согласие на рассылки</span></div>
           </div>
         </aside>
       </div>
@@ -1850,11 +1864,32 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
   });
 });
 
-/* чек-лист документов на анкете, Блок 2 (HANDOFF 6.15) — единственный
-   по-настоящему живой пункт: «Согласие на рассылки» показывается только
-   если ответили «да» на «звоните/пишете по базе» — как в чек-листе
-   сбоку (desktop), так и в мобильном блоке-развороте (те же 2 элемента
-   с [data-cl-marketing], см. .checklist-side/.checklist-reveal в CSS) */
+/* чек-лист документов на анкете, Блок 2 (HANDOFF 6.15, анимация по
+   заполнению — прямая правка пользователя). «Согласие на рассылки»
+   показывается только если ответили «да» на «звоните/пишете по базе».
+   Галочка (.done, см. CSS @keyframes clPop) проставляется по группе
+   data-cl, когда человек трогает карточку соответствующего вопроса —
+   клик по сегменту/чекбоксу или фокус в текстовое поле, оба варианта,
+   так как «реквизиты» не имеют кликабельных сегментов, только инпуты.
+   markDone идемпотентна (classList.add молчит на повторе) — не важно,
+   сколько раз сработает при последующих кликах в той же карточке. */
+function markClDone(group){
+  document.querySelectorAll('[data-cl="' + group + '"]').forEach(function(el){ el.classList.add('done'); });
+}
+var reqCard = document.getElementById('anketa-req-card');
+if (reqCard) reqCard.addEventListener('focusin', function(){ markClDone('req'); });
+
+var platformSeg = document.getElementById('anketa-platform-seg');
+if (platformSeg) {
+  platformSeg.addEventListener('click', function(){ markClDone('platform'); });
+}
+
+var clientsCard = document.getElementById('anketa-clients-card');
+if (clientsCard) {
+  clientsCard.addEventListener('click', function(){ markClDone('clients'); });
+  clientsCard.addEventListener('focusin', function(){ markClDone('clients'); });
+}
+
 var callsSeg = document.getElementById('anketa-calls-seg');
 if (callsSeg) {
   callsSeg.querySelectorAll('[data-swap]').forEach(function(b){
