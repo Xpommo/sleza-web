@@ -365,10 +365,6 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
               <div class="micro">отчёт от</div>
               <div class="mono val" id="resDate"></div>
             </div>
-            <div class="res-meta-col">
-              <div class="micro">проверок</div>
-              <div class="mono val" id="resCheckCount"></div>
-            </div>
           </div>
           <span class="st-pill" id="resStatus"></span>
         </div>
@@ -642,7 +638,6 @@ function computeSummary(){
 function renderSummary(){
   var s = computeSummary();
   document.getElementById('resDate').textContent = fmtDateTime(new Date());
-  document.getElementById('resCheckCount').textContent = s.applicable + ' / ' + CHECK_ORDER.length;
   var statusEl = document.getElementById('resStatus');
   statusEl.className = 'st-pill ' + s.tone;
   statusEl.textContent = s.word + ' · ' + s.score + '/100';
