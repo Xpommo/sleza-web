@@ -775,7 +775,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                 <div class="name">Альфа Образование</div>
               </div>
               <div class="meta">✓ Документы актуальны<br>ООО «Альфа Образование» · ИНН 7701234567<br>оплачено до 05.09.2026</div>
-              <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Обновить документы →</button></div>
+              <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
             </div>
           </div>
         </div>
@@ -802,7 +802,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="b green">✓ Документы актуальны</span></td>
               <td class="meta">оплачено до 05.09.2026</td>
-              <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Обновить →</button></td>
+              <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
           </tbody>
         </table>
@@ -838,14 +838,14 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
     </aside>
     <main class="main narrow">
-      <div class="anketa-step">Анкета · шаг 1 из 2</div>
+      <div class="anketa-step">Шаг 1 из 4</div>
       <h1>Расскажите о сайте и компании</h1>
-      <p class="lead" style="margin-top:8px">Пять минут — и документы соберём под ваши данные и вашу сферу.</p>
+      <p class="lead" style="margin-top:8px">10–15 минут, с реквизитами под рукой — и документы соберём под ваши данные и вашу сферу.</p>
 
       <div class="card pad state" data-has-identity="false" style="margin-top:16px">
         <h3>Кто заполняет анкету?</h3>
         <p class="tiny" style="margin:6px 0 12px">По бизнесу и по технической стороне сайта уточняем у разных людей — сразу спросим у того, кто знает ответ. Это единственный вопрос на весь аккаунт: для следующих сайтов больше не спросим.</p>
-        <div class="seg"><button type="button" class="on" data-swap="who-owner">Директор / собственник</button><button type="button" data-swap="who-staff">Сотрудник компании</button><button type="button" data-swap="who-webmaster">Веб-мастер / разработчик</button><button type="button" data-swap="who-agency">Агентство</button></div>
+        <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник компании</button><button type="button" data-swap="who-webmaster" data-set-who="webmaster">Веб-мастер / разработчик</button><button type="button" data-swap="who-agency" data-set-who="agency">Агентство</button></div>
       </div>
 
       <div class="card pad" style="margin-top:10px">
@@ -917,7 +917,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
     </aside>
     <main class="main">
-      <div class="anketa-step">Анкета · шаг 2 из 2</div>
+      <div class="anketa-step">Шаг 2 из 4</div>
       <h1>О компании и работе с сайтом</h1>
       <p class="lead" style="margin-top:8px">По этим ответам соберём пакет документов — вот он справа, дополняется по ходу.</p>
 
@@ -925,7 +925,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <div class="anketa-col">
           <div class="card pad" id="anketa-req-card">
             <h3>О компании</h3>
-            <p class="tiny" style="margin:6px 0 12px">Пойдут в подвал сайта и в документы — реквизиты владельца сайта обязательны по 149-ФЗ.</p>
+            <p class="tiny" style="margin:6px 0 12px">Появятся внизу страниц сайта и в документах — реквизиты владельца сайта обязательны по 149-ФЗ.</p>
 
             <!-- Форма собственности первым вопросом (независимый план
                  исправлений, п.1.4, 25.08) — раньше ОГРН был безусловным
@@ -945,9 +945,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  реальный код, не разрыв в макете. -->
             <label class="f">Форма собственности</label>
             <div class="seg" id="anketa-ownership-seg" style="margin:6px 0 4px">
-              <button type="button" class="on" data-swap="own-ooo">ООО</button>
-              <button type="button" data-swap="own-ip">ИП</button>
-              <button type="button" data-swap="own-self">Самозанятый</button>
+              <button type="button" class="on" data-swap="own-ooo" data-set-ownership="ooo">ООО</button>
+              <button type="button" data-swap="own-ip" data-set-ownership="ip">ИП</button>
+              <button type="button" data-swap="own-self" data-set-ownership="self">Самозанятый</button>
             </div>
 
             <div data-swapped="own-ooo" style="margin-top:10px">
@@ -981,8 +981,20 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
             <label class="f" style="margin-top:10px">Адрес</label>
             <input class="inp" value="119019, Москва, ул. Воздвиженка, д. 10">
+
+            <!-- Куда писать по вопросам ПДн — независимый список правок,
+                 «Анкета», 25.08. Предзаполняем почтой аккаунта только для
+                 роли директор/сотрудник (via syncWhoFills) — для вебмастера
+                 и агентства поле пустое с явной подписью: они отвечают за
+                 техническую сторону, не за то, куда слать обращения
+                 субъектов ПДн. Мягкая подсказка на buh@/accounting@ — не
+                 блокирует ввод, просто предупреждает (см. script). -->
+            <label class="f" style="margin-top:10px">Куда писать по вопросам персональных данных</label>
+            <input class="inp" id="anketa-pd-contact" placeholder="Почта или телефон, куда придёт обращение">
+            <p class="tiny" id="anketa-pd-hint" style="display:none;margin-top:6px;color:var(--warn)">На бухгалтерскую почту такие обращения обычно теряются — лучше указать контакт, который точно проверяют.</p>
+
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это спрашиваем ⌄</button>
-            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Выведем в подвал через виджет.</p>
+            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Покажем внизу страниц через виджет.</p>
           </div>
 
           <div class="card pad" style="margin-top:10px">
@@ -1039,7 +1051,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   </div>
 </section>
 
-<!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 1/2 · ПАКЕТ ГОТОВ ═════
+<!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 3/4 · ПАКЕТ ГОТОВ ═════
      HANDOFF 6.15 — карточка «Реквизиты» с модалкой отсюда убрана целиком:
      реквизиты теперь собираются в самой анкете (s-anketa2, вопрос «О
      компании»), а не подтверждаются повторно здесь следом — один раз,
@@ -1053,14 +1065,20 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      построчные пояснения «зачем этот документ» — перенесена сюда, в
      список «Что подготовили»: было «готово»-чипом без объяснения, стало
      tick+название+одна строка причины (тот же `.pkg`-компонент, что был
-     у удалённого экрана). Воронка подключения сократилась с 3 шагов до
-     2 (готово/установка) — оплата по-прежнему вне этой шкалы, отдельное
-     кабинетное действие (см. s-pay). Анкета считает свои шаги отдельно
-     («Анкета · шаг 1/2» — другая chrome, appwrap.sidebar, не startwrap;
-     не сведено в один сквозной счётчик с воронкой сознательно, эти два
-     визуально разных участка не должны читаться как один прогресс-бар). -->
+     у удалённого экрана). Оплата по-прежнему вне нумерации — отдельное
+     кабинетное действие (см. s-pay, решение 6.20).
+
+     Нумерация анкеты и воронки СВЕДЕНА в одну сквозную шкалу «шаг X из 4»
+     (правка 25.08, вторая сессия того же дня) — первая версия этого
+     коммита держала их раздельными («Анкета · шаг 1/2» отдельно от
+     «шаг 1/2» воронки), рассуждая, что разная chrome (appwrap.sidebar
+     vs startwrap) сама по себе сигналит «это другой этап». На практике
+     не сработало: обе метки используют один и тот же паттерн «шаг X из
+     Y», переход «2 из 2» → «1 из 2» читался как откат назад независимо
+     от смены chrome — прямая правка пользователя. Дальше по шкале:
+     s-anketa=1, s-anketa2=2, s-ready=3, s-install=4. -->
 <section class="screen" id="s-ready">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 1 из 2</span></div><div class="prog"><i style="width:50%"></i></div></div>
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 3 из 4</span></div><div class="prog"><i style="width:75%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-anketa2" style="margin-bottom:10px">← анкета</button>
@@ -1070,7 +1088,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
     <h2 style="margin-top:20px">Что подготовили</h2>
     <div class="card" style="margin-top:12px;overflow:hidden">
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">149-ФЗ · реквизиты владельца</div><div class="w">Выведем в подвал сайта через виджет — по данным из анкеты.</div></div></div>
+      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">149-ФЗ · реквизиты владельца</div><div class="w">Покажем внизу страниц сайта через виджет — по данным из анкеты.</div></div></div>
       <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">152-ФЗ · политика обработки ПДн</div><div class="w">Соберём под вашу сферу и способ сбора контактов.</div></div></div>
       <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Куки · Cookie-политика</div><div class="w">Подключим баннер-уведомление о cookie и текст политики.</div></div></div>
       <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">152-ФЗ · согласие на обработку ПДн</div><div class="w">Текст согласия для форм на сайте.</div></div></div>
@@ -1171,7 +1189,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
     <div class="card pad" style="margin-top:16px">
       <div class="row" style="justify-content:space-between"><span class="small muted">Подписка</span><span style="font-size:19px;font-weight:800">2 990 ₽/мес</span></div>
-      <p class="tiny" style="margin-top:5px">Спишем при оплате, дальше — раз в месяц. Отменить можно в любой момент.</p>
+      <p class="tiny" style="margin-top:5px">Спишется один раз при оплате — о продлении напомним письмом. Отменить можно в любой момент.</p>
     </div>
 
     <!-- HANDOFF 6.15 п.8 — установка идёт до оплаты, не после: кнопка
@@ -1179,10 +1197,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          кнопки была бы обманом ещё раньше — здесь оплаты вообще нет,
          только запуск бесплатного 24-часового периода. -->
     <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-go="s-install">Установить → 24 часа бесплатно</button>
+    <button type="button" class="btn solid wide" data-go="s-install">Поставить код на сайт → 24 часа бесплатно</button>
     <p class="tiny" style="text-align:center;margin-top:10px">Дальше — установка скрипта, 2 минуты. Баннер и реквизиты появятся сразу, оплату можно отложить на 24 часа</p>
   </div>
-  <div class="sticky-cta"><span class="ctx">24ч бесплатно</span><button type="button" class="btn solid" data-go="s-install">Установить →</button></div>
+  <div class="sticky-cta"><span class="ctx">24ч бесплатно</span><button type="button" class="btn solid" data-go="s-install">Поставить код →</button></div>
 </section>
 
 <!-- ══════════════════ ОПЛАТА (действие из кабинета, вне воронки подключения) ═
@@ -1257,9 +1275,21 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <!-- Контакты и банковские реквизиты — их сознательно нет в анкете
            (s-anketa2, вопрос «О компании»), там только то, что нужно документам.
            Счёту нужно больше — спрашиваем здесь, и только у тех, кто выбрал
-           «по счёту»: карта и СБП это не требуют вовсе. -->
+           «по счёту»: карта и СБП это не требуют вовсе.
+
+           Подпись «реквизиты плательщика» + кнопка «Скопировать из
+           документов» — независимый список правок, «Реквизиты», 25.08:
+           без подписи это читалось как повтор реквизитов владельца сайта
+           из анкеты, хотя набор полей другой и назначение другое (счета
+           и акты, не подвал сайта). Кнопка декоративная — карточка ниже
+           и так уже показывает данные, взятые из анкеты; кнопка делает
+           это явным действием, а не молчаливым фактом. -->
       <div data-swapped="pminvoice" style="display:none">
-        <div class="card pad" style="border-color:var(--line)">
+        <div class="row" style="justify-content:space-between;align-items:baseline">
+          <label class="f" style="margin:0">Реквизиты плательщика — для счёта, не для подвала сайта</label>
+          <button type="button" class="btn text sm" style="padding:0">Скопировать из документов</button>
+        </div>
+        <div class="card pad" style="margin-top:6px;border-color:var(--line)">
           <div style="font-weight:700;font-size:14.5px">ООО «Альфа Образование»</div>
           <div class="tiny mono" style="margin-top:2px">ИНН 7701234567 · ОГРН 1157746112233</div>
         </div>
@@ -1289,7 +1319,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <div class="sticky-cta" id="pay-sticky"><span class="ctx">2 990 ₽/мес</span><button type="button" class="btn solid" id="pay-sticky-btn" data-go="s-project-paid" data-set-status="paid">Оплатить →</button></div>
 </section>
 
-<!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 2/2 · УСТАНОВКА (запуск триала) ═
+<!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 4/4 · УСТАНОВКА (запуск триала) ═
      HANDOFF 6.15 п.8 — установка теперь ПЕРЕД оплатой, не после: раньше
      этот экран стоял шагом 4 (до оплаты), потом был переставлен на 5 (после
      оплаты) с обоснованием «не проси ставить код тому, кто ещё не
@@ -1301,13 +1331,13 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      (data-set-status) — таймер 24ч в кабинете считается с этого момента,
      не с готовности документов (документы были готовы ещё на s-ready). -->
 <section class="screen" id="s-install">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 2 из 2</span></div><div class="prog"><i style="width:100%"></i></div></div>
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 4 из 4</span></div><div class="prog"><i style="width:100%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-ready" style="margin-bottom:10px">← документы</button>
     <div class="b green" style="font-size:15px">✓ Без оплаты — 24 часа бесплатно</div>
     <h1 style="margin-top:6px">Осталось установить скрипт</h1>
-    <p class="lead" style="margin-top:8px">Одна строчка кода. Она подтянет баннер, реквизиты и ссылки на документы прямо сейчас — оплатить можно в любой момент в течение суток, дальше мы обновляем всё сами.</p>
+    <p class="lead" style="margin-top:8px">Одна строчка кода. Она покажет баннер, реквизиты и ссылки на документы прямо сейчас — оплатить можно в любой момент в течение суток, дальше мы обновляем всё сами.</p>
 
     <!-- «Поручить» теперь первым блоком, «Сделать самому» — вторым: для
          основной персоны (не технарь, сайт делали давно и не он) это
@@ -1324,7 +1354,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          себе и доделать с компьютера; на десктопе это и так тот компьютер -->
     <h2 class="mail-self-h2" style="margin-top:18px">Отправить себе на почту</h2>
     <div class="card pad mail-self">
-      <p class="tiny" style="margin-bottom:10px">Сделаю с компьютера — пришлём код и инструкцию на вашу почту.</p>
+      <p class="tiny" style="margin-bottom:10px">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
       <label class="f">Почта</label><input class="inp mono" value="director@alfa-school.ru"><button class="btn solid sm" style="margin-top:10px">Отправить себе</button>
     </div>
 
@@ -1350,14 +1380,17 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
          баннер решили делать информационным (см. комментарий у ссылки на
          виджет выше и HANDOFF 6.20) — блокировки не будет, позиция тега
          больше не критична, двух исходов достаточно. `installCheck` —
-         новая переменная ('notfound' по умолчанию, реалистичнее для
-         первого захода на этот экран), реального бэкенда нет — «✓
-         найдено» недостижимо кликом, как и `expired` у siteStatus (см.
-         script): демонстрируется через dev-console
-         `installCheck='found'; syncPayState();`. Кнопка «Проверить
+         новая переменная ('found' по умолчанию, см. объявление в script —
+         согласована с дефолтом siteStatus='trial'), реального бэкенда
+         нет — «✕ не найдено» недостижимо кликом, как и `expired` у
+         siteStatus: демонстрируется через dev-console
+         `installCheck='notfound'; syncPayState();`. Кнопка «Проверить
          установку» намеренно ничего не делает — честная имитация: без
          бэкенда мы не можем правда проверить, а бутафорский «нашли!» по
-         клику соврал бы. -->
+         клику соврал бы. Инлайновый `display:none` в разметке ниже не
+         проставлен ни на одной из карточек — обе видны в no-JS фолбэке
+         (тот же принцип, что `.state` без класса `.js` на body), выбор
+         между ними целиком на `syncPayState()`. -->
     <div class="card pad" data-install="notfound" style="margin-top:14px">
       <div class="b red">✕ Скрипт на сайте не найден</div>
       <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили alfa-school.ru минуту назад. Если только что вставили — подождите минуту и проверьте ещё раз, часто дело в кеше. Публикуете через конструктор (Тильда, Битрикс) — убедитесь, что нажали «Опубликовать». Не находит и через 10 минут — напишите в поддержку.</p>
@@ -1366,14 +1399,14 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <button class="btn sm" data-go="s-support">Написать в поддержку</button>
       </div>
     </div>
-    <div class="card pad" data-install="found" style="margin-top:14px;border-color:rgba(26,122,82,.3);display:none">
+    <div class="card pad" data-install="found" style="margin-top:14px;border-color:rgba(26,122,82,.3)">
       <div class="b green">✓ Скрипт найден — виджет работает на alfa-school.ru</div>
       <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили alfa-school.ru минуту назад. Письмо с подтверждением отправили на director@alfa-school.ru.</p>
     </div>
 
     <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-install="found" style="display:none" data-go="s-project-paid" data-set-status="trial">Готово → в кабинет</button>
-    <p class="tiny" data-install="found" style="display:none;text-align:center;margin-top:10px">Отсчёт бесплатных 24 часов начался с этого момента</p>
+    <button type="button" class="btn solid wide" data-install="found" data-go="s-project-paid" data-set-status="trial">Готово → в кабинет</button>
+    <p class="tiny" data-install="found" style="text-align:center;margin-top:10px">Отсчёт бесплатных 24 часов начался с этого момента</p>
     <button type="button" class="btn wide" data-install="notfound" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button>
     <p class="tiny" data-install="notfound" style="text-align:center;margin-top:10px">В кабинете статус будет честным — «не установлено», пока проверка не найдёт скрипт</p>
   </div>
@@ -1428,7 +1461,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="state" data-pay-state="expired" style="margin-top:16px">
         <div class="card pad" style="border-color:rgba(214,56,22,.35)">
           <span class="b red" style="font-size:16px">⚠ Пробный период закончился</span>
-          <p class="lead" style="margin-top:8px">Баннер и виджет на сайте отключены — но уже опубликованная страница политики остаётся доступной по ссылке. В кабинете документы видны для просмотра, скачивание и копирование заблокированы, пока не оплатите.</p>
+          <p class="lead" style="margin-top:8px">Виджет на сайте отключён — но уже опубликованная страница политики остаётся доступной по ссылке. В кабинете документы видны для просмотра, скачивание и копирование заблокированы, пока не оплатите.</p>
           <div class="hr"></div>
           <button type="button" class="btn solid sm" data-go="s-pay">Оплатить →</button>
         </div>
@@ -1481,7 +1514,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="state on" data-pay-state="paid">
           <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">оплачено</span></div>
           <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Продление</span><span class="small" style="font-weight:700">05.09.2026 · 2 990 ₽</span></div>
-          <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.5)">Если не продлить — баннер и виджет на сайте отключатся, обновление по закону остановится, как и по истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
+          <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.5)">Если не продлить — виджет на сайте отключится, обновление по закону остановится, как и по истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
         </div>
         <div class="state" data-pay-state="pending">
           <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">ожидает оплаты</span></div>
@@ -1557,7 +1590,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <!-- Единая лента причин изменений по всем документам вместе, не по
            одному отдельно (см. HANDOFF 6.16/6.17) — сгруппировано по
            событию, а не построчно продублировано с версиями выше. -->
-      <h2 style="margin-top:24px">Статистика обновлений</h2>
+      <h2 style="margin-top:24px">История изменений</h2>
       <div class="card" style="margin-top:12px;overflow:hidden">
         <div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start">
           <span class="tiny mono" style="flex:none;width:88px;color:rgba(17,17,16,.5)">15.08.2026</span>
@@ -1641,17 +1674,28 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <main class="main narrow">
       <h1>Подписка</h1>
 
+      <!-- «Карта» была дефолтной вкладкой с показанным «···· 4417» — выглядело
+           как уже сохранённая карта, хотя карточного эквайера нет вообще
+           (см. «Партнёр» на s-pay, та же незакрытая интеграция). Дефолт
+           переключён на «По счёту» — единственный реально рабочий способ
+           продления кроме СБП, тот же приём, что уже обосновывает дефолт
+           СБП (не «Партнёр») на s-pay: не показывать недоступное первым
+           впечатлением (независимый список правок, «Деньги», 25.08). -->
       <div class="card pad" style="margin-top:16px">
         <label class="f">Способ продления</label>
         <div class="seg" style="margin:6px 0 12px">
-          <button type="button" class="on" data-swap="renewcard">Карта</button>
-          <button type="button" data-swap="renewinvoice">По счёту</button>
+          <button type="button" data-swap="renewcard">Карта</button>
+          <button type="button" class="on" data-swap="renewinvoice">По счёту</button>
         </div>
-        <div data-swapped="renewcard">
-          <div class="row" style="justify-content:space-between"><span class="mono small">···· 4417</span><button class="btn sm">Изменить карту</button></div>
+        <div data-swapped="renewcard" style="display:none">
+          <p class="tiny" style="color:rgba(17,17,16,.5)">Автосписание картой — интеграция с эквайером ещё не выбрана. Продлевайте через СБП или по счёту.</p>
         </div>
-        <div data-swapped="renewinvoice" style="display:none">
-          <div class="card pad" style="border-color:var(--line)">
+        <div data-swapped="renewinvoice">
+          <div class="row" style="justify-content:space-between;align-items:baseline">
+            <label class="f" style="margin:0">Реквизиты плательщика — для счёта, не для подвала сайта</label>
+            <button type="button" class="btn text sm" style="padding:0">Скопировать из документов</button>
+          </div>
+          <div class="card pad" style="margin-top:6px;border-color:var(--line)">
             <div style="font-weight:700;font-size:14.5px">ООО «Альфа Образование»</div>
             <div class="tiny mono" style="margin-top:2px">ИНН 7701234567 · ОГРН 1157746112233</div>
           </div>
@@ -1766,7 +1810,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <div class="state" data-state="closed" id="modal-cancel" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
-    <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 05.09.2026. После этого баннер и виджет на сайте отключатся, обновление по закону остановится — как при истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
+    <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 05.09.2026. После этого виджет на сайте отключится, обновление по закону остановится — как при истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
     <div class="row" style="margin-top:16px">
       <button class="btn solid" id="cancel-confirm" style="background:var(--danger);border-color:var(--danger)" data-modal-close="modal-cancel">Да, отменить</button>
       <button class="btn text" data-modal-close="modal-cancel">Оставить подписку</button>
@@ -1889,7 +1933,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Что будет, если не оплатить вовремя?</span><span class="chev">›</span></button>
-        <div class="bd"><div class="txt">Баннер и виджет на сайте отключатся, обновление по закону остановится, пока не возобновите подписку — так же, как при истечении пробного периода без оплаты. Уже опубликованная страница политики останется доступной по ссылке, сайт не окажется с нерабочей ссылкой.</div></div>
+        <div class="bd"><div class="txt">Виджет на сайте отключится, обновление по закону остановится, пока не возобновите подписку — так же, как при истечении пробного периода без оплаты. Уже опубликованная страница политики останется доступной по ссылке, сайт не окажется с нерабочей ссылкой.</div></div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Как обновить реквизиты компании?</span><span class="chev">›</span></button>
@@ -1905,7 +1949,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Виджет не появился на сайте — что делать?</span><span class="chev">›</span></button>
-        <div class="bd"><div class="txt">Нажмите «Проверить установку» на «Обзоре» — если код вставлен верно, статус обновится в течение минуты. Если нет, проверьте, не сбросило ли изменение кеширование сайта.</div></div>
+        <div class="bd"><div class="txt">Нажмите «Проверить установку» на «Обзоре» — если код вставлен верно, статус обновится в течение минуты. Если нет, проверьте, не мешает ли кеш сайта: иногда изменения показываются с задержкой.</div></div>
       </div>
 
       <!-- Ответ поддержки виден прямо здесь, не только по почте — email
@@ -1953,7 +1997,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 document.documentElement.className += ' js';
 
 var SCREENS = ['s-login','s-forgot','s-register','s-verify','s-status','s-anketa','s-anketa2','s-ready','s-pay','s-install','s-project-paid','s-docs','s-billing','s-widget','s-settings','s-support'];
-var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-status':'мои сайты','s-anketa':'анкета 1/2','s-anketa2':'анкета 2/2','s-ready':'подкл. 1/2','s-pay':'оплата','s-install':'подкл. 2/2','s-project-paid':'кабинет','s-docs':'документы','s-billing':'подписка','s-widget':'виджет','s-settings':'настройки','s-support':'поддержка'};
+var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-status':'мои сайты','s-anketa':'шаг 1/4','s-anketa2':'шаг 2/4','s-ready':'шаг 3/4','s-pay':'оплата','s-install':'шаг 4/4','s-project-paid':'кабинет','s-docs':'документы','s-billing':'подписка','s-widget':'виджет','s-settings':'настройки','s-support':'поддержка'};
 
 var nav = document.getElementById('scr-nav');
 var navMobile = document.getElementById('scr-nav-mobile');
@@ -2009,11 +2053,35 @@ var siteStatus = 'trial';
 var hasSite = true; // false только сразу после s-verify — реальный «пустой» первый заход
 var hasIdentity = false; // true после первого прохода Блока 1 анкеты — «Кто заполняет» на 2+ сайте больше не спрашиваем (HANDOFF 6.15)
 var sitePlatform = 'tilda'; // 'tilda'|'wp'|'bitrix'|'other' — из анкеты (s-anketa2), решает вкладку на s-install
+// 'ooo'|'ip'|'self' — форма собственности из анкеты (s-anketa2, «О компании»).
+// Единственный эффект сейчас: у самозанятого нет расчётного счёта, поэтому
+// вкладка «По счёту» на s-pay скрыта (независимый список правок, «Деньги»,
+// 25.08) — см. syncPayState.
+var siteOwnership = 'ooo';
+// 'owner'|'staff'|'webmaster'|'agency' — «Кто заполняет анкету» (s-anketa,
+// Блок 1). Единственный эффект сейчас: предзаполнение поля «куда писать
+// по вопросам ПДн» на s-anketa2 — почтой аккаунта для директора/сотрудника
+// (они внутри компании, эта почта дойдёт), пусто с явной подписью для
+// вебмастера/агентства (они отвечают за техническую сторону, не за приём
+// обращений субъектов ПДн) — независимый список правок, «Анкета», 25.08.
+var whoFills = 'owner';
+
+function syncPdContact(){
+  var input = document.getElementById('anketa-pd-contact');
+  if (!input) return;
+  input.value = (whoFills === 'owner' || whoFills === 'staff') ? 'director@alfa-school.ru' : '';
+}
 // 'notfound' | 'found' — s-install, два исхода проверки скрипта (независимый
-// план исправлений, п.1.2). 'notfound' по умолчанию — реалистичнее для
-// первого захода; 'found' недостижимо кликом (нет бэкенда), демо через
-// dev-console: installCheck='found'; syncPayState();
-var installCheck = 'notfound';
+// план исправлений, п.1.2). Дефолт 'found' — согласован с дефолтом
+// siteStatus='trial' выше: при прямом переходе (dev-навигация, минуя
+// s-install) кабинет и так показывает «уже работает», надо, чтобы это
+// было правдой, а не разошедшимся с installCheck обещанием (правка
+// 25.08 — «уже работают» на s-pay/s-billing/Обзоре не должно показываться,
+// если установка не подтверждена; настоящая not found-ветка целиком
+// проходит через siteStatus='unpaid', с которым «уже работают» и так
+// нигде не соседствует — см. кнопку «Поставлю позже →» на s-install).
+// 'notfound' — демо через dev-console: installCheck='notfound'; syncPayState();
+var installCheck = 'found';
 
 function syncPayState(){
   document.querySelectorAll('[data-pay-state]').forEach(function(s){
@@ -2043,6 +2111,19 @@ function syncPayState(){
       if (panel) panel.style.display = match ? '' : 'none';
     });
   }
+  // «По счёту» на s-pay скрыта для самозанятого — нет расчётного счёта.
+  // Если счёт был активной вкладкой на момент, когда ownership сменили на
+  // self (можно вернуться на s-anketa2 со шага оплаты и переключить форму),
+  // переключаем на СБП кликом — тот же путь, что обычный выбор вкладки,
+  // не отдельная ветка синхронизации.
+  var pminvoiceTab = document.querySelector('#pm-tabs [data-swap="pminvoice"]');
+  if (pminvoiceTab) {
+    var hideInvoice = (siteOwnership === 'self');
+    pminvoiceTab.style.display = hideInvoice ? 'none' : '';
+    if (hideInvoice && pminvoiceTab.classList.contains('on')) {
+      document.querySelector('#pm-tabs [data-swap="pmsbp"]').click();
+    }
+  }
 }
 
 function goScreen(id){
@@ -2060,6 +2141,19 @@ document.querySelectorAll('[data-go]').forEach(function(b){
   });
 });
 goScreen('s-register');
+syncPdContact();
+
+// Мягкая подсказка на buh@/accounting@ и похожих — не блокирует ввод,
+// просто предупреждает, что обращения субъектов ПДн туда обычно не
+// доходят (независимый список правок, «Анкета», 25.08).
+var pdContactInput = document.getElementById('anketa-pd-contact');
+if (pdContactInput) {
+  var pdWarnRe = /^(buh|бух|accounting|бухгалтер)/i;
+  pdContactInput.addEventListener('input', function(){
+    var hint = document.getElementById('anketa-pd-hint');
+    if (hint) hint.style.display = pdWarnRe.test(pdContactInput.value.trim()) ? 'block' : 'none';
+  });
+}
 
 /* раскрывашки-находки */
 document.querySelectorAll('[data-find]').forEach(function(b){
@@ -2082,6 +2176,8 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
       p.style.display = (p.dataset.swapped === b.dataset.swap) ? '' : 'none';
     });
     if (b.dataset.setPlatform) sitePlatform = b.dataset.setPlatform;
+    if (b.dataset.setOwnership) { siteOwnership = b.dataset.setOwnership; syncPayState(); }
+    if (b.dataset.setWho) { whoFills = b.dataset.setWho; syncPdContact(); }
   });
 });
 
