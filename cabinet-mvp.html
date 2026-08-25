@@ -1599,57 +1599,71 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         </div>
       </div>
 
-      <!-- Состояние сайта + подписка по этому сайту, с датой продления —
-           вынесено из мелкого бейджа в шапке в свою карточку, по прямому
-           запросу. Управление (смена способа оплаты, отмена) — в
-           Настройках, здесь только вид, с одной ссылкой туда. Виджет
-           отсюда убран целиком — тоже перенесён в Настройки. -->
-      <h2 style="margin-top:22px">Подписка</h2>
-      <div class="card pad">
-        <!-- unpaid-вариант — на случай прямого перехода сюда через
-             dev-навигацию макета, минуя воронку; в реальном флоу сюда
-             попадают trial/expired/pending/paid (HANDOFF 6.15 п.8). -->
-        <div class="state" data-pay-state="unpaid">
-          <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">не оплачено</span></div>
-          <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">2 990 ₽/мес</span></div>
-        </div>
-        <div class="state" data-pay-state="trial">
-          <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">пробный период</span></div>
-          <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Осталось</span><span class="small" style="font-weight:700">21 ч 43 мин</span></div>
-        </div>
-        <div class="state" data-pay-state="expired">
-          <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">пробный период закончился</span></div>
-          <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Виджет</span><span class="small" style="font-weight:700">отключён</span></div>
-        </div>
-        <div class="state on" data-pay-state="paid">
-          <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">оплачено</span></div>
-          <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Продление</span><span class="small" style="font-weight:700">05.09.2026 · 2 990 ₽</span></div>
-          <p class="tiny" style="margin-top:8px">Если не продлить — виджет на сайте отключится, обновление по закону остановится, как и по истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
-        </div>
-        <div class="state" data-pay-state="pending">
-          <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">ожидает оплаты</span></div>
-          <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Счёт</span><span class="small" style="font-weight:700">выставлен · обычно 1–3 рабочих дня</span></div>
-          <div data-payment-issue="invoice-stalled" style="display:none;margin-top:8px">
-            <p class="tiny" style="color:var(--warn)">Больше 3 дней без оплаты — если перевод завис в банке, напишите в поддержку.</p>
+      <!-- Подписка + Документы — рядом, не в столбик (прямая правка
+           пользователя). Оба одинаково короткие сводки (статус + строка +
+           ссылка), в столбик просто теряли высоту впустую при 760px
+           ширины .main.narrow. auto-fit/minmax, не жёсткий 2fr — тот же
+           приём, что .projgrid, сам схлопывается в 1 колонку на узком
+           экране, отдельный @media не нужен. Большая карточка статуса
+           сайта и лента «Последние события» остаются на всю ширину —
+           у них многострочный текст, в половину было бы тесно. -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:22px">
+        <!-- Состояние сайта + подписка по этому сайту, с датой продления —
+             вынесено из мелкого бейджа в шапке в свою карточку, по прямому
+             запросу. Управление (смена способа оплаты, отмена) — в
+             Настройках, здесь только вид, с одной ссылкой туда. Виджет
+             отсюда убран целиком — тоже перенесён в Настройки. -->
+        <div>
+        <h2>Подписка</h2>
+        <div class="card pad" style="margin-top:12px">
+          <!-- unpaid-вариант — на случай прямого перехода сюда через
+               dev-навигацию макета, минуя воронку; в реальном флоу сюда
+               попадают trial/expired/pending/paid (HANDOFF 6.15 п.8). -->
+          <div class="state" data-pay-state="unpaid">
+            <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">не оплачено</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">2 990 ₽/мес</span></div>
           </div>
+          <div class="state" data-pay-state="trial">
+            <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">пробный период</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Осталось</span><span class="small" style="font-weight:700">21 ч 43 мин</span></div>
+          </div>
+          <div class="state" data-pay-state="expired">
+            <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">пробный период закончился</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Виджет</span><span class="small" style="font-weight:700">отключён</span></div>
+          </div>
+          <div class="state on" data-pay-state="paid">
+            <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">оплачено</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Продление</span><span class="small" style="font-weight:700">05.09.2026 · 2 990 ₽</span></div>
+            <p class="tiny" style="margin-top:8px">Если не продлить — виджет на сайте отключится, обновление по закону остановится, как и по истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
+          </div>
+          <div class="state" data-pay-state="pending">
+            <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">ожидает оплаты</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Счёт</span><span class="small" style="font-weight:700">выставлен · обычно 1–3 рабочих дня</span></div>
+            <div data-payment-issue="invoice-stalled" style="display:none;margin-top:8px">
+              <p class="tiny" style="color:var(--warn)">Больше 3 дней без оплаты — если перевод завис в банке, напишите в поддержку.</p>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <button type="button" class="btn text sm" style="padding:0" data-go="s-billing">Управлять подпиской →</button>
         </div>
-        <div class="hr"></div>
-        <button type="button" class="btn text sm" style="padding:0" data-go="s-billing">Управлять подпиской →</button>
-      </div>
+        </div>
 
-      <!-- Обзор был из 2 блоков (статус + подписка) — пустое полотно ниже
-           на самом частом экране возврата клиента. +2 блока, не дублируя
-           то, что уже есть: «Документы» — компактная сводка (список по
-           одному — на s-docs), «Последние события» — 2-3 события верхнего
-           уровня по сайту (не то же самое, что «История изменений» на
-           s-docs — та только про документы; тут вперемешку установка,
-           документы, оплата, с ссылкой на полную ленту). -->
-      <h2 style="margin-top:22px">Документы</h2>
-      <div class="card pad">
-        <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">5 актуальны</span></div>
-        <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Обновлены</span><span class="small" style="font-weight:700">15.08.2026</span></div>
-        <div class="hr"></div>
-        <button type="button" class="btn text sm" style="padding:0" data-go="s-docs">Все документы →</button>
+        <!-- Обзор был из 2 блоков (статус + подписка) — пустое полотно ниже
+             на самом частом экране возврата клиента. +2 блока, не дублируя
+             то, что уже есть: «Документы» — компактная сводка (список по
+             одному — на s-docs), «Последние события» — 2-3 события верхнего
+             уровня по сайту (не то же самое, что «История изменений» на
+             s-docs — та только про документы; тут вперемешку установка,
+             документы, оплата, с ссылкой на полную ленту). -->
+        <div>
+        <h2>Документы</h2>
+        <div class="card pad" style="margin-top:12px">
+          <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">5 актуальны</span></div>
+          <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Обновлены</span><span class="small" style="font-weight:700">15.08.2026</span></div>
+          <div class="hr"></div>
+          <button type="button" class="btn text sm" style="padding:0" data-go="s-docs">Все документы →</button>
+        </div>
+        </div>
       </div>
 
       <h2 style="margin-top:22px">Последние события</h2>
