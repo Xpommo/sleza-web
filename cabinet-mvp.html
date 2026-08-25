@@ -1636,6 +1636,37 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="hr"></div>
         <button type="button" class="btn text sm" style="padding:0" data-go="s-billing">Управлять подпиской →</button>
       </div>
+
+      <!-- Обзор был из 2 блоков (статус + подписка) — пустое полотно ниже
+           на самом частом экране возврата клиента. +2 блока, не дублируя
+           то, что уже есть: «Документы» — компактная сводка (список по
+           одному — на s-docs), «Последние события» — 2-3 события верхнего
+           уровня по сайту (не то же самое, что «История изменений» на
+           s-docs — та только про документы; тут вперемешку установка,
+           документы, оплата, с ссылкой на полную ленту). -->
+      <h2 style="margin-top:22px">Документы</h2>
+      <div class="card pad">
+        <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">5 актуальны</span></div>
+        <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Обновлены</span><span class="small" style="font-weight:700">15.08.2026</span></div>
+        <div class="hr"></div>
+        <button type="button" class="btn text sm" style="padding:0" data-go="s-docs">Все документы →</button>
+      </div>
+
+      <h2 style="margin-top:22px">Последние события</h2>
+      <div class="card" style="margin-top:12px;overflow:hidden">
+        <div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start">
+          <span class="tiny mono" style="flex:none;width:88px">Сегодня</span>
+          <span class="small">Установка подтверждена — виджет и документы работают на alfa-school.ru</span>
+        </div>
+        <div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start">
+          <span class="tiny mono" style="flex:none;width:88px">15.08.2026</span>
+          <span class="small">Обновили «Политику обработки персональных данных» под изменения 152-ФЗ</span>
+        </div>
+        <div class="row" style="padding:12px 16px;align-items:flex-start">
+          <span class="tiny mono" style="flex:none;width:88px">05.08.2026</span>
+          <span class="small">Подключили виджет и оплатили первый месяц</span>
+        </div>
+      </div>
     </main>
   </div>
 </section>
@@ -2041,6 +2072,13 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-project-paid">← Обзор</button>
+      <!-- независимый обзор кабинета: у Поддержки, в отличие от Обзора/
+           Документов/Подписки/Виджета, не было общего navlist — попав
+           сюда, нельзя было напрямую перейти в другой раздел сайта, только
+           назад в Обзор. Настройки НЕ трогаем тем же приёмом — они
+           намеренно живут только в acct-menu (уровень аккаунта, не сайта),
+           это уже так и задумано. -->
+      <div class="navlist"><button type="button" data-go="s-project-paid">▤ Обзор</button><button type="button" data-go="s-docs">▤ Документы</button><button type="button" data-go="s-billing">💳 Подписка</button><button type="button" data-go="s-widget">▤ Виджет</button></div>
       <div class="navlist support" style="margin-top:auto"><a class="on">💬 Поддержка</a></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
