@@ -2164,8 +2164,21 @@ function syncPayState(){
   document.querySelectorAll('[data-pay-state]').forEach(function(s){
     s.classList.toggle('on', s.dataset.payState === siteStatus);
   });
+  // Баг, пойман визуальной проверкой (не jsdom — там некому переключить
+  // вкладку И сверить итоговый рендер за один шаг): элемент с
+  // data-payment-issue может ОДНОВРЕМЕННО быть и панелью вкладки pm-tabs
+  // (data-swapped="pmsbp" у обеих — обычной и «отказ»). Если сверять
+  // только paymentIssue, эта строка молча переоткрывала карточку отказа
+  // СБП после переключения на «По счёту» — paymentIssue оставался
+  // 'sbp-declined' в глобальной переменной, а какая вкладка активна
+  // сейчас, эта проверка не знала. Добавлена вторая проверка: если у
+  // элемента есть data-swapped, он должен ещё и совпадать с активной
+  // вкладкой #pm-tabs, иначе paymentIssue не имеет права его показать.
+  var activePmTab = document.querySelector('#pm-tabs .on');
   document.querySelectorAll('[data-payment-issue]').forEach(function(s){
-    s.style.display = (s.dataset.paymentIssue === paymentIssue) ? '' : 'none';
+    var issueMatch = (s.dataset.paymentIssue === paymentIssue);
+    if (s.dataset.swapped) issueMatch = issueMatch && !!activePmTab && (activePmTab.dataset.swap === s.dataset.swapped);
+    s.style.display = issueMatch ? '' : 'none';
   });
   // style.display, не hidden-атрибут — .btn задаёт свой display:inline-flex
   // в авторском CSS, который перебивает UA-правило [hidden]{display:none}
@@ -2385,14 +2398,19 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
       else if (a11yKind === 'radio') x.setAttribute('aria-checked', on ? 'true' : 'false');
     });
     var scope = b.closest('.card') || b.closest('.startwrap') || b.closest('.screen') || document;
-    scope.querySelectorAll('[data-swapped]').forEach(function(p){
-      p.style.display = (p.dataset.swapped === b.dataset.swap) ? '' : 'none';
-    });
     // pm-tabs: две [data-swapped="pmsbp"] панели (обычная + отказ, см.
-    // paymentIssue) обе матчатся строкой выше — сузить по paymentIssue
-    // следом, иначе клик по вкладке «СБП» показал бы обе разом.
-    scope.querySelectorAll('[data-payment-issue]').forEach(function(p){
-      p.style.display = (p.dataset.paymentIssue === paymentIssue) ? '' : 'none';
+    // paymentIssue) обе матчают data-swap строкой ниже — если элемент
+    // ещё и несёт data-payment-issue, ему этого недостаточно, нужно ещё
+    // совпадение с paymentIssue. Раньше это была ОТДЕЛЬНАЯ проверка
+    // следом — она слепо переоткрывала карточку отказа СБП при переходе
+    // на другую вкладку (paymentIssue в глобальной переменной не менялся
+    // тем, что сменилась активная вкладка). Поймано визуальной проверкой
+    // после того, как jsdom не мог увидеть — там некому переключить
+    // вкладку и сверить итоговый рендер за один шаг.
+    scope.querySelectorAll('[data-swapped]').forEach(function(p){
+      var show = (p.dataset.swapped === b.dataset.swap);
+      if (show && p.dataset.paymentIssue) show = (p.dataset.paymentIssue === paymentIssue);
+      p.style.display = show ? '' : 'none';
     });
     if (b.dataset.setPlatform) sitePlatform = b.dataset.setPlatform;
     if (b.dataset.setOwnership) { siteOwnership = b.dataset.setOwnership; syncPayState(); }
