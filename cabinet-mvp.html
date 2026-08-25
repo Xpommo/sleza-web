@@ -625,7 +625,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <span class="kicker">слеза белый сайт</span>
       <h2>Документы для сайта — готовим и держим в порядке</h2>
       <div class="why"><div><b>Соберём под вашу компанию</b><span>Заполните анкету о сайте и компании — документы соберём под ваши данные и вашу сферу деятельности.</span></div></div>
-      <div class="why"><div><b>Виджет на сайт</b><span>Установили один раз — виджет держит документы и согласия на сайте в порядке.</span></div></div>
+      <div class="why"><div><b>Виджет на сайт</b><span>Один скрипт: показывает cookie-уведомление, выводит реквизиты в подвал и держит ссылки на документы рабочими.</span></div></div>
       <div class="why"><div><b>Следим, что всё работает</b><span>Проверяем, что виджет и документы на сайте работают исправно — не нужно проверять это самим.</span></div></div>
       <div class="why"><div><b>Когда поменяется закон, перепишем сами</b><span>Вам придёт письмо, что документы уже обновлены.</span></div></div>
     </div>
@@ -926,12 +926,59 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <div class="card pad" id="anketa-req-card">
             <h3>О компании</h3>
             <p class="tiny" style="margin:6px 0 12px">Пойдут в подвал сайта и в документы — реквизиты владельца сайта обязательны по 149-ФЗ.</p>
-            <label class="f">Наименование</label>
-            <input class="inp" value="ООО «Альфа Образование»">
+
+            <!-- Форма собственности первым вопросом (независимый план
+                 исправлений, п.1.4, 25.08) — раньше ОГРН был безусловным
+                 полем, хотя у самозанятого нет ни ОГРН, ни расчётного
+                 счёта, а у ИП — ОГРНИП (другое число, другой реестр,
+                 ЕГРИП не ЕГРЮЛ), не «ОГРН». Подсказка «заполним сами»
+                 (см. modal-req-*) для них была бы неверна. Разграничение
+                 полей ниже — тот же `[data-swap]`/`[data-swapped]`
+                 приём, что уже используют «Платформа сайта» и способ
+                 продления на s-billing; scope — `.closest('.card')`,
+                 то есть эта карточка, соседние группы (платформа,
+                 работа с клиентами) не затронуты. ИНН и Адрес общие для
+                 всех трёх форм — не дублируются в панелях. Оплата
+                 «Самозанятый — карта, счёт не предлагаем» (из таблицы
+                 плана) в MVP не заведена отдельно: s-pay остаётся общим
+                 для всех форм собственности, это заметка на перенос в
+                 реальный код, не разрыв в макете. -->
+            <label class="f">Форма собственности</label>
+            <div class="seg" id="anketa-ownership-seg" style="margin:6px 0 4px">
+              <button type="button" class="on" data-swap="own-ooo">ООО</button>
+              <button type="button" data-swap="own-ip">ИП</button>
+              <button type="button" data-swap="own-self">Самозанятый</button>
+            </div>
+
+            <div data-swapped="own-ooo" style="margin-top:10px">
+              <label class="f">Наименование</label>
+              <input class="inp" value="ООО «Альфа Образование»">
+            </div>
+            <div data-swapped="own-ip" style="display:none;margin-top:10px">
+              <label class="f">ФИО</label>
+              <input class="inp" value="Иванова Мария Сергеевна">
+            </div>
+            <div data-swapped="own-self" style="display:none;margin-top:10px">
+              <label class="f">ФИО</label>
+              <input class="inp" value="Иванова Мария Сергеевна">
+            </div>
+
             <label class="f" style="margin-top:10px">ИНН</label>
             <input class="inp mono" value="7701234567">
-            <label class="f" style="margin-top:10px">ОГРН</label>
-            <input class="inp mono" value="1157746112233">
+
+            <div data-swapped="own-ooo" style="margin-top:10px">
+              <label class="f">ОГРН</label>
+              <input class="inp mono" value="1157746112233">
+              <p class="tiny" style="margin-top:6px">Подставим из ЕГРЮЛ по ИНН.</p>
+            </div>
+            <div data-swapped="own-ip" style="display:none;margin-top:10px">
+              <label class="f">ОГРНИП</label>
+              <input class="inp mono" value="304770000000123">
+              <p class="tiny" style="margin-top:6px">Подставим из ЕГРИП по ИНН.</p>
+            </div>
+            <!-- own-self: ни ОГРН, ни ОГРНИП — самозанятый регистрируется
+                 без записи в ЕГРЮЛ/ЕГРИП, поля для него попросту нет. -->
+
             <label class="f" style="margin-top:10px">Адрес</label>
             <input class="inp" value="119019, Москва, ул. Воздвиженка, д. 10">
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это спрашиваем ⌄</button>
@@ -972,7 +1019,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           </div>
 
           <div class="hr" style="margin-top:20px"></div>
-          <button type="button" class="btn solid wide" data-go="s-prepare">Далее</button>
+          <button type="button" class="btn solid wide" data-go="s-ready">Далее</button>
         </div>
 
         <aside class="checklist-side">
@@ -992,61 +1039,42 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   </div>
 </section>
 
-<!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 1/3 · ГОТОВИМ ДОКУМЕНТЫ ═════
+<!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 1/2 · ПАКЕТ ГОТОВ ═════
      HANDOFF 6.15 — карточка «Реквизиты» с модалкой отсюда убрана целиком:
      реквизиты теперь собираются в самой анкете (s-anketa2, вопрос «О
      компании»), а не подтверждаются повторно здесь следом — один раз,
-     не два. Список пакета документов обновлён под новую схему анкеты
-     1+2+2 = 5 документов (был старый набор из 3 пунктов, до
-     переработки 6.15). Заодно поправлено — «сверенные с ЕГРЮЛ» была
-     ложью (продукт с ЕГРЮЛ не интегрирован, см. HANDOFF 6.14 п.7);
-     раз уже переписываю этот блок под новую схему, не стал заново
-     печатать в свежий текст то же враньё.
+     не два. Заодно поправлено — «сверенные с ЕГРЮЛ» была ложью (продукт
+     с ЕГРЮЛ не интегрирован, см. HANDOFF 6.14 п.7).
 
-     Нумерация шагов переведена с «X из 5» на «X из 3» (HANDOFF 6.15,
-     п.8) — анкета переехала в appwrap.sidebar и считает себя отдельно
-     («Анкета · шаг 1/2», см. s-anketa/s-anketa2), а оплата вышла из
-     этой воронки совсем — теперь кабинетное действие, не шаг подряд
-     (см. s-pay). Воронка подключения — ровно готовим/пакет-готов/
-     установка, 3 шага, ей и оплате незачем делить одну шкалу прогресса. -->
-<section class="screen" id="s-prepare">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 1 из 3</span></div><div class="prog"><i style="width:33%"></i></div></div>
+     Экран s-prepare («Готовим документы для вас») удалён (независимый
+     план исправлений, п.4.5, 25.08) — дословно дублировал список из
+     пяти документов, который ниже показывает и этот экран, переход
+     между ними был мгновенным лишним кликом. Его единственная ценность —
+     построчные пояснения «зачем этот документ» — перенесена сюда, в
+     список «Что подготовили»: было «готово»-чипом без объяснения, стало
+     tick+название+одна строка причины (тот же `.pkg`-компонент, что был
+     у удалённого экрана). Воронка подключения сократилась с 3 шагов до
+     2 (готово/установка) — оплата по-прежнему вне этой шкалы, отдельное
+     кабинетное действие (см. s-pay). Анкета считает свои шаги отдельно
+     («Анкета · шаг 1/2» — другая chrome, appwrap.sidebar, не startwrap;
+     не сведено в один сквозной счётчик с воронкой сознательно, эти два
+     визуально разных участка не должны читаться как один прогресс-бар). -->
+<section class="screen" id="s-ready">
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 1 из 2</span></div><div class="prog"><i style="width:50%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-anketa2" style="margin-bottom:10px">← анкета</button>
-    <h1>Готовим документы для вас</h1>
-    <p class="lead" style="margin-top:8px">По данным анкеты подготовим документы под alfa-school.ru — с вашими данными и вашей сферой деятельности.</p>
-
-    <div class="card" style="margin-top:16px;overflow:hidden">
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">149-ФЗ · реквизиты владельца</div><div class="w">Выведем в подвал сайта через виджет — по данным из анкеты.</div></div></div>
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">152-ФЗ · политика обработки ПДн</div><div class="w">Соберём под вашу сферу и способ сбора контактов.</div></div></div>
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Куки · cookie-политика</div><div class="w">Подключим баннер согласия и текст политики.</div></div></div>
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">152-ФЗ · согласие на обработку ПДн</div><div class="w">Текст согласия для форм на сайте.</div></div></div>
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Согласие на рассылки</div><div class="w">По ответу «звоните/пишете по базе» в анкете.</div></div></div>
-    </div>
-
-    <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-go="s-ready">Далее</button>
-  </div>
-</section>
-
-<!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 2/3 · ДОКУМЕНТЫ ГОТОВЫ ═════ -->
-<section class="screen" id="s-ready">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 2 из 3</span></div><div class="prog"><i style="width:67%"></i></div></div>
-  <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
-  <div class="startwrap">
-    <button class="btn text sm" data-go="s-prepare" style="margin-bottom:10px">← что подготовим</button>
     <div class="b green" style="font-size:15px">✓ Пакет документов готов</div>
     <h1 style="margin-top:6px">Осталось поставить на сайт</h1>
-    <p class="lead" style="margin-top:8px">Собрали пакет документов под alfa-school.ru — уже доступны по ссылкам ниже, можно открыть и поставить виджет прямо сейчас, без оплаты — 24 часа бесплатно.</p>
+    <p class="lead" style="margin-top:8px">Собрали пакет документов под alfa-school.ru — превью открыто уже сейчас, ниже. Рабочие ссылки и виджет включатся после установки, без оплаты — 24 часа бесплатно.</p>
 
     <h2 style="margin-top:20px">Что подготовили</h2>
     <div class="card" style="margin-top:12px;overflow:hidden">
-      <div class="row" style="justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13.5px"><span>149-ФЗ · реквизиты владельца</span><span class="now">готово</span></div>
-      <div class="row" style="justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13.5px"><span>152-ФЗ · политика обработки ПДн</span><span class="now">готово</span></div>
-      <div class="row" style="justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13.5px"><span>Куки · cookie-политика</span><span class="now">готово</span></div>
-      <div class="row" style="justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13.5px"><span>152-ФЗ · согласие на обработку ПДн</span><span class="now">готово</span></div>
-      <div class="row" style="justify-content:space-between;padding:9px 16px;font-size:13.5px"><span>Согласие на рассылки</span><span class="now">готово</span></div>
+      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">149-ФЗ · реквизиты владельца</div><div class="w">Выведем в подвал сайта через виджет — по данным из анкеты.</div></div></div>
+      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">152-ФЗ · политика обработки ПДн</div><div class="w">Соберём под вашу сферу и способ сбора контактов.</div></div></div>
+      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Куки · Cookie-политика</div><div class="w">Подключим баннер-уведомление о cookie и текст политики.</div></div></div>
+      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">152-ФЗ · согласие на обработку ПДн</div><div class="w">Текст согласия для форм на сайте.</div></div></div>
+      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Согласие на рассылки</div><div class="w">По ответу «звоните/пишете по базе» в анкете.</div></div></div>
     </div>
 
     <!-- Раньше «Открыть» вело на настоящую ссылку до установки — если она
@@ -1059,7 +1087,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <h2 style="margin-top:18px">Документы</h2>
     <p class="tiny" style="margin-top:-6px;margin-bottom:10px;color:rgba(17,17,16,.5)">Превью — по ссылкам откроется после установки</p>
     <div class="find">
-      <button class="hd" data-find><span class="nm" style="flex:1">Реквизиты</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd" data-find><span class="nm" style="flex:1">Реквизиты владельца</span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233 · 119019, Москва, ул. Воздвиженка, д. 10…</div>
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/alfa-school-ru/requisites — откроется после установки</p></div>
     </div>
@@ -1099,7 +1127,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/alfa-school-ru/marketing-consent — откроется после установки</p></div>
     </div>
     <div class="find">
-      <button class="hd" data-find><span class="nm" style="flex:1">Политика в отношении cookie</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd" data-find><span class="nm" style="flex:1">Cookie-политика</span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте alfa-school.ru, включая аналитику и работу виджета на платформе Тильда…</div>
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/alfa-school-ru/cookies — откроется после установки</p></div>
     </div>
@@ -1223,7 +1251,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <input class="inp mono" placeholder="+7 (___) ___-__-__" style="margin-top:8px;max-width:260px">
         <div class="hr" style="margin-top:16px"></div>
         <button type="button" class="btn solid wide" data-set-status="paid" data-go="s-project-paid">Оплатить 2 990 ₽ → в кабинет</button>
-        <p class="tiny" style="text-align:center;margin-top:10px">Автопродление раз в месяц · отменить можно в любой момент</p>
+        <p class="tiny" style="text-align:center;margin-top:10px">Спишется один раз — о продлении напомним письмом за несколько дней</p>
       </div>
 
       <!-- Контакты и банковские реквизиты — их сознательно нет в анкете
@@ -1253,7 +1281,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <p class="tiny" style="text-align:center;margin-top:10px">Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня. Виджет и документы уже работают, ждать не нужно</p>
       </div>
 
-      <p class="tiny" style="margin-top:14px;text-align:center;color:rgba(17,17,16,.5)">🔒 Платёж обрабатывает защищённый шлюз · ваши данные под защитой</p>
+      <p class="tiny" style="margin-top:14px;text-align:center;color:rgba(17,17,16,.5)">🔒 Платёж обрабатывает защищённый шлюз</p>
     </div>
   </div>
   <!-- следует за активной вкладкой способа оплаты — партнёр ещё пустая
@@ -1261,7 +1289,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <div class="sticky-cta" id="pay-sticky"><span class="ctx">2 990 ₽/мес</span><button type="button" class="btn solid" id="pay-sticky-btn" data-go="s-project-paid" data-set-status="paid">Оплатить →</button></div>
 </section>
 
-<!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 3/3 · УСТАНОВКА (запуск триала) ═
+<!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 2/2 · УСТАНОВКА (запуск триала) ═
      HANDOFF 6.15 п.8 — установка теперь ПЕРЕД оплатой, не после: раньше
      этот экран стоял шагом 4 (до оплаты), потом был переставлен на 5 (после
      оплаты) с обоснованием «не проси ставить код тому, кто ещё не
@@ -1273,7 +1301,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      (data-set-status) — таймер 24ч в кабинете считается с этого момента,
      не с готовности документов (документы были готовы ещё на s-ready). -->
 <section class="screen" id="s-install">
-  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 3 из 3</span></div><div class="prog"><i style="width:100%"></i></div></div>
+  <div class="startbar"><div class="startbar-in"><b class="mono" style="font-size:13px">Белый Сайт</b><span class="micro" style="margin-left:auto">шаг 2 из 2</span></div><div class="prog"><i style="width:100%"></i></div></div>
   <div class="ctxbar"><div class="ctxbar-in"><span class="dom mono" style="font-weight:700">alfa-school.ru</span></div></div>
   <div class="startwrap">
     <button class="btn text sm" data-go="s-ready" style="margin-bottom:10px">← документы</button>
@@ -1315,15 +1343,39 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     </div>
     </details>
 
-    <div class="card pad" style="margin-top:14px">
+    <!-- Два исхода проверки, не один статичный «не найдено» (независимый
+         план исправлений, п.1.2, 25.08). Третий исход из плана («нашли,
+         но не там — body вместо head») сознательно не добавлен: он был
+         обязателен только при будущей prior-блокировке трекеров, а
+         баннер решили делать информационным (см. комментарий у ссылки на
+         виджет выше и HANDOFF 6.20) — блокировки не будет, позиция тега
+         больше не критична, двух исходов достаточно. `installCheck` —
+         новая переменная ('notfound' по умолчанию, реалистичнее для
+         первого захода на этот экран), реального бэкенда нет — «✓
+         найдено» недостижимо кликом, как и `expired` у siteStatus (см.
+         script): демонстрируется через dev-console
+         `installCheck='found'; syncPayState();`. Кнопка «Проверить
+         установку» намеренно ничего не делает — честная имитация: без
+         бэкенда мы не можем правда проверить, а бутафорский «нашли!» по
+         клику соврал бы. -->
+    <div class="card pad" data-install="notfound" style="margin-top:14px">
       <div class="b red">✕ Скрипт на сайте не найден</div>
-      <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили alfa-school.ru минуту назад.</p>
-      <button class="btn solid sm" style="margin-top:10px">↻ Проверить установку</button>
+      <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили alfa-school.ru минуту назад. Если только что вставили — подождите минуту и проверьте ещё раз, часто дело в кеше. Публикуете через конструктор (Тильда, Битрикс) — убедитесь, что нажали «Опубликовать». Не находит и через 10 минут — напишите в поддержку.</p>
+      <div class="row" style="margin-top:10px;gap:8px">
+        <button class="btn solid sm">↻ Проверить установку</button>
+        <button class="btn sm" data-go="s-support">Написать в поддержку</button>
+      </div>
+    </div>
+    <div class="card pad" data-install="found" style="margin-top:14px;border-color:rgba(26,122,82,.3);display:none">
+      <div class="b green">✓ Скрипт найден — виджет работает на alfa-school.ru</div>
+      <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили alfa-school.ru минуту назад. Письмо с подтверждением отправили на director@alfa-school.ru.</p>
     </div>
 
     <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-go="s-project-paid" data-set-status="trial">Готово → в кабинет</button>
-    <p class="tiny" style="text-align:center;margin-top:10px">Отсчёт бесплатных 24 часов начнётся с этого момента</p>
+    <button type="button" class="btn solid wide" data-install="found" style="display:none" data-go="s-project-paid" data-set-status="trial">Готово → в кабинет</button>
+    <p class="tiny" data-install="found" style="display:none;text-align:center;margin-top:10px">Отсчёт бесплатных 24 часов начался с этого момента</p>
+    <button type="button" class="btn wide" data-install="notfound" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button>
+    <p class="tiny" data-install="notfound" style="text-align:center;margin-top:10px">В кабинете статус будет честным — «не установлено», пока проверка не найдёт скрипт</p>
   </div>
   <div class="sticky-cta solo"><button type="button" class="btn solid">↻ Проверить установку</button></div>
 </section>
@@ -1481,7 +1533,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
            уже показан в превью на s-ready), открывается в новой вкладке. -->
       <div class="card" style="margin-top:16px;overflow:hidden">
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
           <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/requisites" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
@@ -1497,7 +1549,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/marketing-consent" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика в отношении cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Cookie-политика</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
           <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/cookies" target="_blank" rel="noopener">Открыть</a></span>
         </div>
       </div>
@@ -1554,7 +1606,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       </details>
 
       <details class="acc" open style="margin-top:24px">
-      <summary class="acc-title">Реквизиты</summary>
+      <summary class="acc-title">Реквизиты владельца</summary>
       <div class="card pad row" style="justify-content:space-between">
         <div><div style="font-weight:700;font-size:14.5px" id="req-name-set">ООО «Альфа Образование»</div><div class="tiny mono" id="req-inn-set">ИНН 7701234567</div></div>
         <button class="btn sm" data-go-modal="modal-req-set">Проверить и изменить</button>
@@ -1648,7 +1700,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <!-- модалка реквизитов (настройки) -->
 <div class="state" data-state="closed" id="modal-req-set" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
-    <div class="row" style="justify-content:space-between"><h3>Реквизиты</h3><button class="btn text sm" data-modal-close="modal-req-set">✕</button></div>
+    <div class="row" style="justify-content:space-between"><h3>Реквизиты владельца</h3><button class="btn text sm" data-modal-close="modal-req-set">✕</button></div>
 
     <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ok);margin-top:14px">✓ заполним сами — вам нужно только проверить</div>
     <label class="f" style="margin-top:8px">Наименование</label>
@@ -1900,8 +1952,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-forgot','s-register','s-verify','s-status','s-anketa','s-anketa2','s-prepare','s-ready','s-pay','s-install','s-project-paid','s-docs','s-billing','s-widget','s-settings','s-support'];
-var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-status':'мои сайты','s-anketa':'анкета 1/2','s-anketa2':'анкета 2/2','s-prepare':'подкл. 1/3','s-ready':'подкл. 2/3','s-pay':'оплата','s-install':'подкл. 3/3','s-project-paid':'кабинет','s-docs':'документы','s-billing':'подписка','s-widget':'виджет','s-settings':'настройки','s-support':'поддержка'};
+var SCREENS = ['s-login','s-forgot','s-register','s-verify','s-status','s-anketa','s-anketa2','s-ready','s-pay','s-install','s-project-paid','s-docs','s-billing','s-widget','s-settings','s-support'];
+var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-status':'мои сайты','s-anketa':'анкета 1/2','s-anketa2':'анкета 2/2','s-ready':'подкл. 1/2','s-pay':'оплата','s-install':'подкл. 2/2','s-project-paid':'кабинет','s-docs':'документы','s-billing':'подписка','s-widget':'виджет','s-settings':'настройки','s-support':'поддержка'};
 
 var nav = document.getElementById('scr-nav');
 var navMobile = document.getElementById('scr-nav-mobile');
@@ -1957,10 +2009,21 @@ var siteStatus = 'trial';
 var hasSite = true; // false только сразу после s-verify — реальный «пустой» первый заход
 var hasIdentity = false; // true после первого прохода Блока 1 анкеты — «Кто заполняет» на 2+ сайте больше не спрашиваем (HANDOFF 6.15)
 var sitePlatform = 'tilda'; // 'tilda'|'wp'|'bitrix'|'other' — из анкеты (s-anketa2), решает вкладку на s-install
+// 'notfound' | 'found' — s-install, два исхода проверки скрипта (независимый
+// план исправлений, п.1.2). 'notfound' по умолчанию — реалистичнее для
+// первого захода; 'found' недостижимо кликом (нет бэкенда), демо через
+// dev-console: installCheck='found'; syncPayState();
+var installCheck = 'notfound';
 
 function syncPayState(){
   document.querySelectorAll('[data-pay-state]').forEach(function(s){
     s.classList.toggle('on', s.dataset.payState === siteStatus);
+  });
+  // style.display, не hidden-атрибут — .btn задаёт свой display:inline-flex
+  // в авторском CSS, который перебивает UA-правило [hidden]{display:none}
+  // (тот же класс проблемы, что уже решён для .card через data-swapped).
+  document.querySelectorAll('[data-install]').forEach(function(s){
+    s.style.display = (s.dataset.install === installCheck) ? '' : 'none';
   });
   // s-docs: копирование/скачивание блокируется целиком через body-класс,
   // не по каждой из 5 строк отдельно — см. .doc-actions в CSS (HANDOFF 6.15 п.8)
