@@ -247,7 +247,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .projcard .dom{font-family:var(--mono);font-size:13px;font-weight:600}
 .projcard .name{font-size:14.5px;font-weight:700;letter-spacing:-.01em;margin-top:1px}
 .projcard .strip{margin:10px 0}
-.projcard .meta{font-size:11.5px;color:rgba(17,17,16,.5);line-height:1.6}
+.projcard .meta{font-size:11.5px;color:rgba(17,17,16,.62);line-height:1.6}
 .projcard .act{margin-top:auto;padding-top:11px;border-top:1px solid var(--line)}
 .projcard .act .actbtn{width:100%}
 .projcard .act .actbtn::after{content:"";position:absolute;inset:0}
@@ -268,13 +268,13 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .viewbar button.on{background:var(--ink);color:#fff}
 
 .projtable{width:100%;border-collapse:collapse;border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--white)}
-.projtable th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:rgba(17,17,16,.45);
+.projtable th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:rgba(17,17,16,.62);
   font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line)}
 .projtable td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:12.5px}
 .projtable tr:last-child td{border-bottom:0}
 .projtable tr:hover td{background:var(--warm)}
 .projtable .dom{font-family:var(--mono);font-size:12.5px;font-weight:600}
-.projtable .meta{font-size:11px;color:rgba(17,17,16,.5)}
+.projtable .meta{font-size:11px;color:rgba(17,17,16,.62)}
 .projtable td.act{text-align:right}
 .projtable td.act .actbtn{padding:6px 12px;font-size:12px}
 .projtable tr.state.on{display:table-row}
@@ -332,7 +332,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
    токенах и меньшего размера — не копия, отдельный стиль на тех же мотивах. */
 .dark-footer{border-radius:10px;overflow:hidden;border:1px solid var(--line-2)}
 .dark-footer .lbl{background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;
-  text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.45);border-bottom:1px solid var(--line-2)}
+  text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.62);border-bottom:1px solid var(--line-2)}
 .dark-footer .body{background:var(--ink);padding:16px}
 .dark-footer .row2{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .dark-footer .org{font-size:12.5px;font-weight:700;color:#fff}
@@ -809,6 +809,27 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <div class="meta">✓ Документы актуальны<br>ООО «Альфа Образование» · ИНН 7701234567<br>оплачено до 05.09.2026</div>
               <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
             </div>
+            <!-- независимый UX-аудит, критика A, P0: siteStatus по умолчанию
+                 'trial' (HANDOFF 6.15 п.8 — установка теперь до оплаты, trial
+                 встречается на порядок чаще unpaid), но у карточки не было
+                 своего data-pay-state для trial/expired — syncPayState() не
+                 находил, что тоглить, карточка рендерилась пустой. -->
+            <div class="state" data-pay-state="trial">
+              <div>
+                <div class="dom">alfa-school.ru</div>
+                <div class="name">Альфа Образование</div>
+              </div>
+              <div class="meta">🕐 Пробный период<br>ООО «Альфа Образование» · ИНН 7701234567<br>осталось 21 ч 43 мин</div>
+              <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
+            </div>
+            <div class="state" data-pay-state="expired">
+              <div>
+                <div class="dom">alfa-school.ru</div>
+                <div class="name">Альфа Образование</div>
+              </div>
+              <div class="meta">⚠ Пробный период закончился<br>ООО «Альфа Образование» · ИНН 7701234567<br>виджет отключён</div>
+              <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
+            </div>
           </div>
         </div>
       </div>
@@ -834,6 +855,18 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="b green">✓ Документы актуальны</span></td>
               <td class="meta">оплачено до 05.09.2026</td>
+              <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
+            </tr>
+            <tr class="state" data-pay-state="trial">
+              <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><span class="b amber">🕐 Пробный период</span></td>
+              <td class="meta">осталось 21 ч 43 мин</td>
+              <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
+            </tr>
+            <tr class="state" data-pay-state="expired">
+              <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><span class="b red">⚠ Пробный период закончился</span></td>
+              <td class="meta">виджет отключён</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
           </tbody>
@@ -1418,7 +1451,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <h2 style="margin-top:20px">Поручить тому, кто делает сайт</h2>
     <div class="card pad">
       <p class="tiny" style="margin-bottom:10px">Не нужно разбираться самим — перешлите тому, кто ведёт сайт. Без регистрации и входа в кабинет, только вставить одну строку кода.</p>
-      <label class="f">Почта разработчика</label><input class="inp mono" placeholder="dev@studio.ru"><button id="send-instructions-btn" class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
+      <label class="f">Почта разработчика</label><input class="inp mono" id="install-dev-email" placeholder="dev@studio.ru"><p class="tiny anketa-field-error" id="install-dev-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту разработчика — иначе некуда отправлять.</p><button id="send-instructions-btn" class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
     </div>
 
     <!-- только мобильный (разд.3.6 ТЗ 12.08) — на телефоне лезть в
@@ -1427,7 +1460,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <h2 class="mail-self-h2" style="margin-top:18px">Отправить себе на почту</h2>
     <div class="card pad mail-self">
       <p class="tiny" style="margin-bottom:10px">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
-      <label class="f">Почта</label><input class="inp mono" value="director@alfa-school.ru"><button id="send-self-btn" class="btn solid sm" style="margin-top:10px">Отправить себе</button>
+      <label class="f">Почта</label><input class="inp mono" id="install-self-email" value="director@alfa-school.ru"><p class="tiny anketa-field-error" id="install-self-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту — иначе некуда отправлять.</p><button id="send-self-btn" class="btn solid sm" style="margin-top:10px">Отправить себе</button>
     </div>
 
     <details class="acc" open style="margin-top:18px">
@@ -1804,6 +1837,15 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <span class="state" data-pay-state="pending"><span class="chip amber">ожидает оплаты</span></span>
           <span class="state on" data-pay-state="paid"><span class="chip green" id="sub-chip">оплачено до 05.09.2026</span></span>
           <span class="state" data-pay-state="unpaid"><span class="chip red">не оплачено</span></span>
+        </div>
+        <!-- независимый UX-аудит, критика A, P2 (третий раунд): у
+             #s-project-paid для pending+invoice-stalled есть предупреждение
+             «счёт выставлен больше 3 дней», у структурно того же состояния
+             здесь — не было. Тот же блок, дословно. -->
+        <div data-payment-issue="invoice-stalled" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(184,121,0,.25)">
+          <p class="small" style="color:var(--warn);font-weight:700">Счёт выставлен больше 3 дней назад и всё ещё не оплачен.</p>
+          <p class="tiny" style="margin-top:4px">Если перевод завис в банке — напишите в поддержку, поможем разобраться. Можно и оплатить другим способом.</p>
+          <button type="button" class="btn sm" style="margin-top:8px" data-go="s-support">Написать в поддержку</button>
         </div>
         <div class="hr"></div>
         <button class="btn text sm" style="color:var(--danger);padding:0" data-go-modal="modal-cancel">Отменить подписку</button>
@@ -2218,6 +2260,7 @@ function syncPayState(){
     installTabs.querySelectorAll('[data-platform]').forEach(function(b){
       var match = b.dataset.platform === sitePlatform;
       b.classList.toggle('on', match);
+      b.setAttribute('aria-pressed', match ? 'true' : 'false');
       var panel = document.querySelector('[data-swapped="' + b.dataset.swap + '"]');
       if (panel) panel.style.display = match ? '' : 'none';
     });
@@ -2370,10 +2413,32 @@ function flashDone(btn, label){
   btn.disabled = true;
   setTimeout(function(){ btn.textContent = original; btn.disabled = false; }, 1500);
 }
-['send-instructions-btn', 'send-self-btn'].forEach(function(id){
-  var btn = document.getElementById(id);
-  if (btn) btn.addEventListener('click', function(){ flashDone(btn, 'Отправлено ✓'); });
-});
+// Гейт на пустую почту — независимый UX-аудит, критика A, P3 (третий раунд):
+// flashDone подтверждал «Отправлено ✓» даже с пустым полем — уверенный ложный
+// успех хуже тишины, которую он заменил. Тот же .inp.error + подпись под
+// полем, что уже есть у wireLengthValidation.
+function wireEmailGate(btnId, inputId, errorId, label){
+  var btn = document.getElementById(btnId);
+  var input = document.getElementById(inputId);
+  var error = document.getElementById(errorId);
+  if (!btn || !input) return;
+  btn.addEventListener('click', function(){
+    if (!input.value.trim()) {
+      input.classList.add('error');
+      if (error) error.style.display = 'block';
+      input.focus();
+      return;
+    }
+    input.classList.remove('error');
+    if (error) error.style.display = 'none';
+    flashDone(btn, label);
+  });
+  input.addEventListener('input', function(){
+    if (input.classList.contains('error')) { input.classList.remove('error'); if (error) error.style.display = 'none'; }
+  });
+}
+wireEmailGate('send-instructions-btn', 'install-dev-email', 'install-dev-email-error', 'Отправлено ✓');
+wireEmailGate('send-self-btn', 'install-self-email', 'install-self-email-error', 'Отправлено ✓');
 ['save-contacts-btn', 'save-requisites-btn'].forEach(function(id){
   var btn = document.getElementById(id);
   if (btn) btn.addEventListener('click', function(){ flashDone(btn, 'Сохранено ✓'); });
@@ -2390,13 +2455,20 @@ document.querySelectorAll('[data-fold]').forEach(function(b){
   });
 });
 
-/* тумблеры внутри карточек */
+/* тумблеры внутри карточек — независимый UX-аудит, критика A, P2 (третий
+   раунд): сегмент-контролы (форма собственности, платформа, вкладки
+   оплаты и т.д.) после отката ARIA во втором раунде — обычные button без
+   какого-либо программного состояния «выбрано», скринридер не может его
+   сообщить. aria-pressed, не role=tab/radiogroup — то же решение, что и
+   раньше: не подразумевает клавиатурную модель, которой тут нет. */
 document.querySelectorAll('[data-swap]').forEach(function(b){
+  b.setAttribute('aria-pressed', b.classList.contains('on') ? 'true' : 'false');
   b.addEventListener('click', function(){
     var group = b.parentElement;
     group.querySelectorAll('[data-swap]').forEach(function(x){
       var on = (x === b);
       x.classList.toggle('on', on);
+      x.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     var scope = b.closest('.card') || b.closest('.startwrap') || b.closest('.screen') || document;
     // pm-tabs: две [data-swapped="pmsbp"] панели (обычная + отказ, см.
