@@ -339,7 +339,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .dark-footer .links{margin-top:9px;display:flex;flex-wrap:wrap;gap:14px}
 .dark-footer .links span{font-size:11px;color:rgba(255,255,255,.7);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)}
 .dark-footer .badge{display:inline-flex;align-items:center;gap:5px;flex:none;white-space:nowrap;
-  background:var(--brand);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.01em;
+  background:rgba(255,255,255,.14);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.01em;
   padding:7px 14px;border-radius:999px}
 .dark-footer .badge b{font-weight:800}
 
@@ -572,6 +572,18 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <!-- разд.1.3 ТЗ 12.08 — на мобильном лента режимов схлопывается в select,
        тестировать проще, чем ловить крошечные кнопки; десктоп не трогаем -->
   <select id="scr-nav-mobile" class="scr-nav-mobile"></select>
+  <!-- независимый UX-аудит, критика A, P2: paymentIssue менялся только
+       через dev-console — фикс из прошлого раунда (карточки отказа СБП/
+       зависшего счёта) нельзя было продемонстрировать кликом. Тот же
+       viewer-only тулбар, что и переключатель экранов выше — не часть
+       продукта, реальный пользователь такого переключателя не увидит:
+       отказ оплаты — это событие от шлюза, не то, что кликают сами. -->
+  <span style="margin-left:10px">демо сбоя оплаты:</span>
+  <select id="dbg-payment-issue" style="font:inherit;border:1px solid var(--line-2);border-radius:6px;padding:1px 4px;background:var(--paper);color:inherit">
+    <option value="none">без сбоя</option>
+    <option value="sbp-declined">отказ СБП</option>
+    <option value="invoice-stalled">счёт завис</option>
+  </select>
 </div>
 
 <!-- ══════════════════ 01 · ВХОД ═══════════════════════════════════════ -->
@@ -743,7 +755,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="state" data-has-site="false" style="margin-top:18px">
         <div class="card pad" style="max-width:440px;text-align:center;padding:36px 28px">
           <p class="lead">Пока нет ни одного сайта</p>
-          <p class="tiny" style="margin-top:6px;color:rgba(17,17,16,.5)">Добавьте сайт — дальше короткая анкета, и мы подготовим документы под него.</p>
+          <p class="tiny" style="margin-top:6px">Добавьте сайт — дальше короткая анкета, и мы подготовим документы под него.</p>
           <button type="button" class="btn solid wide" style="margin-top:16px" data-go="s-anketa">+ Добавить сайт</button>
         </div>
       </div>
@@ -1150,7 +1162,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          «после оплаты» → «после установки» по всему блоку — оплата больше
          не условие доступа, документы и виджет включаются установкой. -->
     <h2 style="margin-top:18px">Документы</h2>
-    <p class="tiny" style="margin-top:-6px;margin-bottom:10px;color:rgba(17,17,16,.5)">Превью — по ссылкам откроется после установки</p>
+    <p class="tiny" style="margin-top:-6px;margin-bottom:10px">Превью — по ссылкам откроется после установки</p>
     <div class="find">
       <button class="hd" data-find><span class="nm" style="flex:1">Реквизиты владельца</span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233 · 119019, Москва, ул. Воздвиженка, д. 10…</div>
@@ -1272,9 +1284,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
     <h2 style="margin-top:20px">Что входит</h2>
     <div class="card pad" style="margin-top:12px">
-      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3,rgba(17,17,16,.5))">Уже работает — бесплатно, 24 часа</h3>
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Уже работает — бесплатно, 24 часа</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: куки-баннер и реквизиты в подвале<br>· Постоянные ссылки на документы</div>
-      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3,rgba(17,17,16,.5));margin-top:14px">Оплата продлевает</h3>
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62);margin-top:14px">Оплата продлевает</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Доступ не прерывается после пробного периода<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
       <div class="hr"></div>
       <p class="tiny" style="margin-bottom:10px"><b style="color:var(--ink)">Это подписка, не разовая покупка</b> — меняется закон, вместе с ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.</p>
@@ -1307,7 +1319,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
 
       <div data-swapped="pmpartner" style="display:none;text-align:center;padding:24px 0">
-        <p class="tiny" style="color:rgba(17,17,16,.5)">Виджет платёжного партнёра — интеграция ещё не выбрана.</p>
+        <p class="tiny">Виджет платёжного партнёра — интеграция ещё не выбрана.</p>
       </div>
 
       <!-- Отказ СБП — независимый UX-аудит, критика A, приоритет P1: во всём
@@ -1371,7 +1383,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <p class="tiny" style="text-align:center;margin-top:10px">Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня. Виджет и документы уже работают, ждать не нужно</p>
       </div>
 
-      <p class="tiny" style="margin-top:14px;text-align:center;color:rgba(17,17,16,.5)">🔒 Платёж обрабатывает защищённый шлюз</p>
+      <p class="tiny" style="margin-top:14px;text-align:center">🔒 Платёж обрабатывает защищённый шлюз</p>
     </div>
   </div>
   <!-- следует за активной вкладкой способа оплаты — партнёр ещё пустая
@@ -1406,7 +1418,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <h2 style="margin-top:20px">Поручить тому, кто делает сайт</h2>
     <div class="card pad">
       <p class="tiny" style="margin-bottom:10px">Не нужно разбираться самим — перешлите тому, кто ведёт сайт. Без регистрации и входа в кабинет, только вставить одну строку кода.</p>
-      <label class="f">Почта разработчика</label><input class="inp mono" placeholder="dev@studio.ru"><button class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
+      <label class="f">Почта разработчика</label><input class="inp mono" placeholder="dev@studio.ru"><button id="send-instructions-btn" class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
     </div>
 
     <!-- только мобильный (разд.3.6 ТЗ 12.08) — на телефоне лезть в
@@ -1415,7 +1427,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <h2 class="mail-self-h2" style="margin-top:18px">Отправить себе на почту</h2>
     <div class="card pad mail-self">
       <p class="tiny" style="margin-bottom:10px">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
-      <label class="f">Почта</label><input class="inp mono" value="director@alfa-school.ru"><button class="btn solid sm" style="margin-top:10px">Отправить себе</button>
+      <label class="f">Почта</label><input class="inp mono" value="director@alfa-school.ru"><button id="send-self-btn" class="btn solid sm" style="margin-top:10px">Отправить себе</button>
     </div>
 
     <details class="acc" open style="margin-top:18px">
@@ -1542,12 +1554,12 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <span class="b green" style="font-size:16px">✓ Документы актуальны</span>
           <p class="lead" style="margin-top:8px">Документы подготовлены и подключены через виджет. Следим за законом и обновим сами, если что-то изменится.</p>
           <div class="hr"></div>
-          <p class="tiny" style="color:rgba(17,17,16,.5)">Сегодня, 09:14 — сверили реквизиты и текст баннера с действующей редакцией 152-ФЗ. Изменений в законе с последней проверки не было.</p>
+          <p class="tiny">Сегодня, 09:14 — сверили реквизиты и текст баннера с действующей редакцией 152-ФЗ. Изменений в законе с последней проверки не было.</p>
         </div>
       </div>
       <div class="state" data-pay-state="unpaid" style="margin-top:16px">
         <div class="card pad">
-          <span class="b" style="font-size:16px;color:rgba(17,17,16,.5)">— Пока не установлено</span>
+          <span class="b" style="font-size:16px;color:rgba(17,17,16,.62)">— Пока не установлено</span>
           <p class="lead" style="margin-top:8px">Документы ещё не подключены к сайту.</p>
           <div class="hr"></div>
           <button type="button" class="btn solid sm" data-go="s-ready">Продолжить настройку →</button>
@@ -1579,7 +1591,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="state on" data-pay-state="paid">
           <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">оплачено</span></div>
           <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Продление</span><span class="small" style="font-weight:700">05.09.2026 · 2 990 ₽</span></div>
-          <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.5)">Если не продлить — виджет на сайте отключится, обновление по закону остановится, как и по истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
+          <p class="tiny" style="margin-top:8px">Если не продлить — виджет на сайте отключится, обновление по закону остановится, как и по истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
         </div>
         <div class="state" data-pay-state="pending">
           <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">ожидает оплаты</span></div>
@@ -1661,11 +1673,11 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <h2 style="margin-top:24px">История изменений</h2>
       <div class="card" style="margin-top:12px;overflow:hidden">
         <div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start">
-          <span class="tiny mono" style="flex:none;width:88px;color:rgba(17,17,16,.5)">15.08.2026</span>
+          <span class="tiny mono" style="flex:none;width:88px">15.08.2026</span>
           <span class="small">«Политика обработки персональных данных» — обновили формулировки под изменения 152-ФЗ</span>
         </div>
         <div class="row" style="padding:12px 16px;align-items:flex-start">
-          <span class="tiny mono" style="flex:none;width:88px;color:rgba(17,17,16,.5)">05.08.2026</span>
+          <span class="tiny mono" style="flex:none;width:88px">05.08.2026</span>
           <span class="small">Пакет документов сформирован — 5 документов, первая версия</span>
         </div>
       </div>
@@ -1703,7 +1715,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="hr"></div>
         <div class="row" style="justify-content:space-between"><span class="small">Пароль</span><button class="btn sm" data-go-modal="modal-pass">Изменить</button></div>
       </div>
-      <button class="btn solid" style="margin-top:12px">Сохранить</button>
+      <button id="save-contacts-btn" class="btn solid" style="margin-top:12px">Сохранить</button>
       </details>
 
       <details class="acc" open style="margin-top:24px">
@@ -1756,7 +1768,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <button type="button" class="on" data-swap="renewinvoice">По счёту</button>
         </div>
         <div data-swapped="renewcard" style="display:none">
-          <p class="tiny" style="color:rgba(17,17,16,.5)">Автосписание картой — интеграция с эквайером ещё не выбрана. Продлевайте через СБП или по счёту.</p>
+          <p class="tiny">Автосписание картой — интеграция с эквайером ещё не выбрана. Продлевайте через СБП или по счёту.</p>
         </div>
         <div data-swapped="renewinvoice">
           <div class="row" style="justify-content:space-between;align-items:baseline">
@@ -1780,7 +1792,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <label class="f" style="margin-top:10px">Корр. счёт</label>
           <input class="inp mono" value="30101810400000000225">
           <p class="tiny" style="margin-top:10px">Следующий счёт придёт на почту за неделю до окончания оплаченного периода.</p>
-          <button class="btn solid sm" style="margin-top:12px">Сохранить реквизиты</button>
+          <button id="save-requisites-btn" class="btn solid sm" style="margin-top:12px">Сохранить реквизиты</button>
         </div>
         <div class="hr"></div>
         <!-- HANDOFF 6.15 п.8 — статус подписки теперь тоже читает
@@ -1916,7 +1928,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
         <div class="hr"></div>
 
-        <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.5)">Тема баннера</h3>
+        <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Тема баннера</h3>
         <div class="seg" style="margin:8px 0 12px">
           <button type="button" class="on" data-swap="bthemelight">Светлая</button>
           <button type="button" data-swap="bthemedark">Тёмная</button>
@@ -1931,7 +1943,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div data-swapped="bthemelight" style="border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
           <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">условиями обработки cookie</span>. Запретить обработку можно в настройках браузера.</div>
           <div class="row" style="flex:none;gap:8px">
-            <button type="button" aria-label="Закрыть" style="flex:none;width:32px;height:32px;border:0;background:none;color:rgba(17,17,16,.4);font-size:16px;cursor:pointer">✕</button>
+            <button type="button" aria-label="Закрыть" style="flex:none;width:32px;height:32px;border:0;background:none;color:rgba(17,17,16,.62);font-size:16px;cursor:pointer">✕</button>
             <button class="btn sm solid" style="flex:none">Принять</button>
           </div>
         </div>
@@ -1943,7 +1955,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           </div>
         </div>
         <div data-swapped="bthemeauto" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:16px;text-align:center">
-          <p class="tiny" style="color:rgba(17,17,16,.5)">Подстроится под системную тему браузера посетителя — светлая или тёмная. Один статичный превью здесь не покажет оба варианта.</p>
+          <p class="tiny">Подстроится под системную тему браузера посетителя — светлая или тёмная. Один статичный превью здесь не покажет оба варианта.</p>
         </div>
 
         <div class="dark-footer" style="margin-top:14px">
@@ -2087,6 +2099,12 @@ SCREENS.forEach(function(id){
 });
 navMobile.addEventListener('change', function(){ goScreen(navMobile.value); });
 
+var dbgPaymentIssue = document.getElementById('dbg-payment-issue');
+dbgPaymentIssue.addEventListener('change', function(){
+  paymentIssue = dbgPaymentIssue.value;
+  syncPayState();
+});
+
 function paintNav(id){
   document.querySelectorAll('[data-nav-for]').forEach(function(b){
     b.style.background = (b.dataset.navFor === id) ? 'var(--ink)' : 'none';
@@ -2200,7 +2218,6 @@ function syncPayState(){
     installTabs.querySelectorAll('[data-platform]').forEach(function(b){
       var match = b.dataset.platform === sitePlatform;
       b.classList.toggle('on', match);
-      b.setAttribute('aria-selected', match ? 'true' : 'false');
       var panel = document.querySelector('[data-swapped="' + b.dataset.swap + '"]');
       if (panel) panel.style.display = match ? '' : 'none';
     });
@@ -2343,6 +2360,25 @@ document.querySelectorAll('.doc-copy-btn').forEach(function(btn){
   });
 });
 
+// Отправить инструкцию/себе, Сохранить×2 — независимый UX-аудит, критика A,
+// P2: были молча нерабочими рядом с реально работающими solid-кнопками
+// (sbpRetryBtn и др.) — тот же класс проблемы, что уже решён для копи-кнопок
+// выше. Тот же приём: временный текст-подтверждение вместо тишины.
+function flashDone(btn, label){
+  var original = btn.textContent;
+  btn.textContent = label;
+  btn.disabled = true;
+  setTimeout(function(){ btn.textContent = original; btn.disabled = false; }, 1500);
+}
+['send-instructions-btn', 'send-self-btn'].forEach(function(id){
+  var btn = document.getElementById(id);
+  if (btn) btn.addEventListener('click', function(){ flashDone(btn, 'Отправлено ✓'); });
+});
+['save-contacts-btn', 'save-requisites-btn'].forEach(function(id){
+  var btn = document.getElementById(id);
+  if (btn) btn.addEventListener('click', function(){ flashDone(btn, 'Сохранено ✓'); });
+});
+
 /* раскрывашки-находки */
 document.querySelectorAll('[data-find]').forEach(function(b){
   b.addEventListener('click', function(){ b.closest('.find').classList.toggle('open'); });
@@ -2354,48 +2390,13 @@ document.querySelectorAll('[data-fold]').forEach(function(b){
   });
 });
 
-// ARIA на сегментированных контролах — независимый UX-аудит, критика A, P2:
-// 6+ мест (.seg/.tabs группы: форма собственности, платформа, тема баннера,
-// вкладки оплаты и др.) были обычными <button>, различимыми только
-// CSS-классом .on — скринридер не сообщал, что выбрано, на форме с
-// юридическими последствиями. Роль определяется автоматически, не руками
-// на каждую группу: если выбор в группе показывает/прячет data-swapped-
-// панель — это вкладки (role=tablist/tab/aria-selected), иначе — чистый
-// выбор значения без смены контента (role=radiogroup/radio/aria-checked).
-// Тот же scope-расчёт, что уже использует клик-обработчик ниже, — группа
-// либо и там, и там видит один набор data-swapped, либо ни там, ни там.
-function initA11yGroups(){
-  var seenGroups = [];
-  document.querySelectorAll('[data-swap]').forEach(function(b){
-    var group = b.parentElement;
-    if (seenGroups.indexOf(group) !== -1) return;
-    seenGroups.push(group);
-    var members = group.querySelectorAll('[data-swap]');
-    var scope = b.closest('.card') || b.closest('.startwrap') || b.closest('.screen') || document;
-    var swappedValues = [];
-    scope.querySelectorAll('[data-swapped]').forEach(function(p){ swappedValues.push(p.dataset.swapped); });
-    var isTablist = false;
-    members.forEach(function(x){ if (swappedValues.indexOf(x.dataset.swap) !== -1) isTablist = true; });
-    group.setAttribute('role', isTablist ? 'tablist' : 'radiogroup');
-    group.dataset.a11yKind = isTablist ? 'tab' : 'radio';
-    members.forEach(function(x){
-      if (isTablist) { x.setAttribute('role', 'tab'); x.setAttribute('aria-selected', x.classList.contains('on') ? 'true' : 'false'); }
-      else { x.setAttribute('role', 'radio'); x.setAttribute('aria-checked', x.classList.contains('on') ? 'true' : 'false'); }
-    });
-  });
-}
-initA11yGroups();
-
 /* тумблеры внутри карточек */
 document.querySelectorAll('[data-swap]').forEach(function(b){
   b.addEventListener('click', function(){
     var group = b.parentElement;
-    var a11yKind = group.dataset.a11yKind;
     group.querySelectorAll('[data-swap]').forEach(function(x){
       var on = (x === b);
       x.classList.toggle('on', on);
-      if (a11yKind === 'tab') x.setAttribute('aria-selected', on ? 'true' : 'false');
-      else if (a11yKind === 'radio') x.setAttribute('aria-checked', on ? 'true' : 'false');
     });
     var scope = b.closest('.card') || b.closest('.startwrap') || b.closest('.screen') || document;
     // pm-tabs: две [data-swapped="pmsbp"] панели (обычная + отказ, см.
