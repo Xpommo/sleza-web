@@ -97,9 +97,13 @@ h3{font-size:15px;font-weight:800;letter-spacing:-.01em;margin:0}
 p{margin:0}
 .lead{font-size:15px;color:rgba(17,17,16,.65)}
 .muted{color:rgba(17,17,16,.6)}
-.micro{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45)}
+/* UX-аудит (25.08, критика A): .45/.55 давали 3.0:1/4.1-4.2:1 на --warm/--paper —
+   ниже WCAG AA 4.5:1 для обычного текста (10.5-12px не проходит по «крупному
+   тексту» 3:1). .62 даёт ≥4.75:1 на самом тёмном фоне (--warm) из трёх, с запасом
+   на --paper/--white — посчитано по формуле контраста WCAG, не на глаз. */
+.micro{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.62)}
 .small{font-size:13px}
-.tiny{font-size:12px;color:rgba(17,17,16,.55)}
+.tiny{font-size:12px;color:rgba(17,17,16,.62)}
 .card{background:var(--white);border:1px solid var(--line-2);border-radius:12px}
 .pad{padding:16px 18px}
 .hr{height:1px;background:var(--line);margin:14px 0}
@@ -152,6 +156,14 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .inp{width:100%;border:1.5px solid var(--line-2);border-radius:10px;padding:11px 13px;background:var(--white);
   font-size:15px;color:var(--ink)}
 .inp:focus{outline:none;border-color:var(--brand);box-shadow:var(--ring)}
+/* Состояние ошибки поля — независимый UX-аудит, критика A, P2: во всём
+   файле не было ни одной визуальной ошибки, включая банковские реквизиты
+   (счёт/БИК/корр.счёт) и ИНН/ОГРН. Красный акцент — тот же danger-токен,
+   что у остальных error-состояний (см. .b.red, .chip.red), не новый цвет.
+   Проверено на длине (ИНН/расчётный счёт) — макет, не полноценный валидатор,
+   но показывает язык состояния, который реальный код унаследует. */
+.inp.error{border-color:var(--danger);background:var(--danger-tint)}
+.inp.error:focus{border-color:var(--danger);box-shadow:0 0 0 4px rgba(214,56,22,.08)}
 .check{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer}
 .check:last-of-type{border-bottom:0}
 .check input{appearance:none;width:19px;height:19px;flex:none;margin-top:1px;border:1.5px solid var(--line-2);
@@ -484,7 +496,15 @@ details.acc:first-child{margin-top:0}
    документов у Блока 2. Брейкпоинт 820px — тот же, на котором сайдбар
    схлопывается (не 640px, как у мелких мобильных правок выше): чек-лист
    сбоку нужен именно та ширина, которую даёт сайдбарная раскладка. */
-.anketa-step{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45);margin-bottom:6px}
+.anketa-step{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.62);margin-bottom:6px}
+/* Подпрогрессия внутри шага 2 (s-anketa2) — независимый UX-аудит, P1.
+   Тот же контраст-фикс, что .anketa-step/.micro (.62, не .45) — эта строка
+   тоже мелкий текст, тот же WCAG-расчёт применим. */
+.anketa-substep-nav{font-size:12px;color:rgba(17,17,16,.5);margin-bottom:14px}
+.anketa-substep-nav .sep{margin:0 6px;color:rgba(17,17,16,.3)}
+.anketa-substep-nav [data-substep-label]{color:rgba(17,17,16,.5)}
+.anketa-substep-nav [data-substep-label].current{color:var(--ink);font-weight:700}
+.anketa-substep-nav [data-substep-label].done{color:var(--ok)}
 .anketa-split{display:flex;gap:24px;align-items:flex-start}
 .anketa-split>.anketa-col{flex:1;min-width:0}
 .checklist-side{flex:none;width:272px;position:sticky;top:calc(var(--toolbar-h, 34px) + 20px)}
@@ -918,120 +938,147 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </aside>
     <main class="main">
       <div class="anketa-step">Шаг 2 из 4</div>
-      <h1>О компании и работе с сайтом</h1>
-      <p class="lead" style="margin-top:8px">По этим ответам соберём пакет документов — вот он справа, дополняется по ходу.</p>
+      <!-- Подшаги (независимый UX-аудит, критика A, приоритет P1) — было
+           одним «Шаг 2 из 4» на три независимых решения (форма
+           собственности, платформа, работа с клиентами) в одном скролле;
+           теперь честная подпрогрессия внутри самого шага 2, три отдельных
+           экрана состояния (data-substep), см. syncAnketaSubstep() в
+           script. Чек-лист (.checklist-side/.checklist-reveal) вынесен из
+           substep-гейта — виден на всех трёх подшагах непрерывно, ровно
+           так, как предлагала сама критика. -->
+      <div class="anketa-substep-nav" id="anketa-substep-nav">
+        <span data-substep-label="1" class="current">О компании</span><span class="sep">·</span><span data-substep-label="2">Платформа</span><span class="sep">·</span><span data-substep-label="3">Работа с клиентами</span>
+      </div>
 
       <div class="anketa-split" style="margin-top:16px">
         <div class="anketa-col">
-          <div class="card pad" id="anketa-req-card">
-            <h3>О компании</h3>
-            <p class="tiny" style="margin:6px 0 12px">Появятся внизу страниц сайта и в документах — реквизиты владельца сайта обязательны по 149-ФЗ.</p>
 
-            <!-- Форма собственности первым вопросом (независимый план
-                 исправлений, п.1.4, 25.08) — раньше ОГРН был безусловным
-                 полем, хотя у самозанятого нет ни ОГРН, ни расчётного
-                 счёта, а у ИП — ОГРНИП (другое число, другой реестр,
-                 ЕГРИП не ЕГРЮЛ), не «ОГРН». Подсказка «заполним сами»
-                 (см. modal-req-*) для них была бы неверна. Разграничение
-                 полей ниже — тот же `[data-swap]`/`[data-swapped]`
-                 приём, что уже используют «Платформа сайта» и способ
-                 продления на s-billing; scope — `.closest('.card')`,
-                 то есть эта карточка, соседние группы (платформа,
-                 работа с клиентами) не затронуты. ИНН и Адрес общие для
-                 всех трёх форм — не дублируются в панелях. Оплата
-                 «Самозанятый — карта, счёт не предлагаем» (из таблицы
-                 плана) в MVP не заведена отдельно: s-pay остаётся общим
-                 для всех форм собственности, это заметка на перенос в
-                 реальный код, не разрыв в макете. -->
-            <label class="f">Форма собственности</label>
-            <div class="seg" id="anketa-ownership-seg" style="margin:6px 0 4px">
-              <button type="button" class="on" data-swap="own-ooo" data-set-ownership="ooo">ООО</button>
-              <button type="button" data-swap="own-ip" data-set-ownership="ip">ИП</button>
-              <button type="button" data-swap="own-self" data-set-ownership="self">Самозанятый</button>
+          <div data-substep="1">
+            <h1>О компании</h1>
+            <p class="lead" style="margin-top:8px">Реквизиты владельца сайта — обязательны по 149-ФЗ, пойдут в документы и в подвал сайта.</p>
+            <div class="card pad" id="anketa-req-card" style="margin-top:16px">
+              <!-- Форма собственности первым вопросом (независимый план
+                   исправлений, п.1.4, 25.08) — раньше ОГРН был безусловным
+                   полем, хотя у самозанятого нет ни ОГРН, ни расчётного
+                   счёта, а у ИП — ОГРНИП (другое число, другой реестр,
+                   ЕГРИП не ЕГРЮЛ), не «ОГРН». Подсказка «заполним сами»
+                   (см. modal-req-*) для них была бы неверна. Разграничение
+                   полей ниже — тот же `[data-swap]`/`[data-swapped]`
+                   приём, что уже используют «Платформа сайта» и способ
+                   продления на s-billing; scope — `.closest('.card')`,
+                   то есть эта карточка, соседние группы (платформа,
+                   работа с клиентами) не затронуты. ИНН и Адрес общие для
+                   всех трёх форм — не дублируются в панелях. Оплата
+                   «Самозанятый — карта, счёт не предлагаем» (из таблицы
+                   плана) в MVP не заведена отдельно: s-pay остаётся общим
+                   для всех форм собственности, это заметка на перенос в
+                   реальный код, не разрыв в макете. -->
+              <label class="f">Форма собственности</label>
+              <div class="seg" id="anketa-ownership-seg" style="margin:6px 0 4px">
+                <button type="button" class="on" data-swap="own-ooo" data-set-ownership="ooo">ООО</button>
+                <button type="button" data-swap="own-ip" data-set-ownership="ip">ИП</button>
+                <button type="button" data-swap="own-self" data-set-ownership="self">Самозанятый</button>
+              </div>
+
+              <div data-swapped="own-ooo" style="margin-top:10px">
+                <label class="f">Наименование</label>
+                <input class="inp" value="ООО «Альфа Образование»">
+              </div>
+              <div data-swapped="own-ip" style="display:none;margin-top:10px">
+                <label class="f">ФИО</label>
+                <input class="inp" value="Иванова Мария Сергеевна">
+              </div>
+              <div data-swapped="own-self" style="display:none;margin-top:10px">
+                <label class="f">ФИО</label>
+                <input class="inp" value="Иванова Мария Сергеевна">
+              </div>
+
+              <label class="f" style="margin-top:10px">ИНН</label>
+              <input class="inp mono" id="anketa-inn" value="7701234567" maxlength="12" inputmode="numeric">
+              <p class="tiny anketa-field-error" id="anketa-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
+
+              <div data-swapped="own-ooo" style="margin-top:10px">
+                <label class="f">ОГРН</label>
+                <input class="inp mono" value="1157746112233">
+                <p class="tiny" style="margin-top:6px">Подставим из ЕГРЮЛ по ИНН.</p>
+              </div>
+              <div data-swapped="own-ip" style="display:none;margin-top:10px">
+                <label class="f">ОГРНИП</label>
+                <input class="inp mono" value="304770000000123">
+                <p class="tiny" style="margin-top:6px">Подставим из ЕГРИП по ИНН.</p>
+              </div>
+              <!-- own-self: ни ОГРН, ни ОГРНИП — самозанятый регистрируется
+                   без записи в ЕГРЮЛ/ЕГРИП, поля для него попросту нет. -->
+
+              <label class="f" style="margin-top:10px">Адрес</label>
+              <input class="inp" value="119019, Москва, ул. Воздвиженка, д. 10">
+
+              <!-- Куда писать по вопросам ПДн — независимый список правок,
+                   «Анкета», 25.08. Предзаполняем почтой аккаунта только для
+                   роли директор/сотрудник (via syncWhoFills) — для вебмастера
+                   и агентства поле пустое с явной подписью: они отвечают за
+                   техническую сторону, не за то, куда слать обращения
+                   субъектов ПДн. Мягкая подсказка на buh@/accounting@ — не
+                   блокирует ввод, просто предупреждает (см. script). -->
+              <label class="f" style="margin-top:10px">Куда писать по вопросам персональных данных</label>
+              <input class="inp" id="anketa-pd-contact" placeholder="Почта или телефон, куда придёт обращение">
+              <p class="tiny" id="anketa-pd-hint" style="display:none;margin-top:6px;color:var(--warn)">На бухгалтерскую почту такие обращения обычно теряются — лучше указать контакт, который точно проверяют.</p>
+
+              <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это спрашиваем ⌄</button>
+              <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Покажем внизу страниц через виджет.</p>
             </div>
-
-            <div data-swapped="own-ooo" style="margin-top:10px">
-              <label class="f">Наименование</label>
-              <input class="inp" value="ООО «Альфа Образование»">
-            </div>
-            <div data-swapped="own-ip" style="display:none;margin-top:10px">
-              <label class="f">ФИО</label>
-              <input class="inp" value="Иванова Мария Сергеевна">
-            </div>
-            <div data-swapped="own-self" style="display:none;margin-top:10px">
-              <label class="f">ФИО</label>
-              <input class="inp" value="Иванова Мария Сергеевна">
-            </div>
-
-            <label class="f" style="margin-top:10px">ИНН</label>
-            <input class="inp mono" value="7701234567">
-
-            <div data-swapped="own-ooo" style="margin-top:10px">
-              <label class="f">ОГРН</label>
-              <input class="inp mono" value="1157746112233">
-              <p class="tiny" style="margin-top:6px">Подставим из ЕГРЮЛ по ИНН.</p>
-            </div>
-            <div data-swapped="own-ip" style="display:none;margin-top:10px">
-              <label class="f">ОГРНИП</label>
-              <input class="inp mono" value="304770000000123">
-              <p class="tiny" style="margin-top:6px">Подставим из ЕГРИП по ИНН.</p>
-            </div>
-            <!-- own-self: ни ОГРН, ни ОГРНИП — самозанятый регистрируется
-                 без записи в ЕГРЮЛ/ЕГРИП, поля для него попросту нет. -->
-
-            <label class="f" style="margin-top:10px">Адрес</label>
-            <input class="inp" value="119019, Москва, ул. Воздвиженка, д. 10">
-
-            <!-- Куда писать по вопросам ПДн — независимый список правок,
-                 «Анкета», 25.08. Предзаполняем почтой аккаунта только для
-                 роли директор/сотрудник (via syncWhoFills) — для вебмастера
-                 и агентства поле пустое с явной подписью: они отвечают за
-                 техническую сторону, не за то, куда слать обращения
-                 субъектов ПДн. Мягкая подсказка на buh@/accounting@ — не
-                 блокирует ввод, просто предупреждает (см. script). -->
-            <label class="f" style="margin-top:10px">Куда писать по вопросам персональных данных</label>
-            <input class="inp" id="anketa-pd-contact" placeholder="Почта или телефон, куда придёт обращение">
-            <p class="tiny" id="anketa-pd-hint" style="display:none;margin-top:6px;color:var(--warn)">На бухгалтерскую почту такие обращения обычно теряются — лучше указать контакт, который точно проверяют.</p>
-
-            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это спрашиваем ⌄</button>
-            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Покажем внизу страниц через виджет.</p>
+            <div class="hr" style="margin-top:20px"></div>
+            <button type="button" class="btn solid wide" data-set-substep="2">Далее</button>
           </div>
 
-          <div class="card pad" style="margin-top:10px">
-            <h3>На какой платформе сайт?</h3>
-            <p class="tiny" style="margin:6px 0 12px">Пригодится на шаге установки — покажем инструкцию именно под неё.</p>
-            <div class="seg" id="anketa-platform-seg"><button type="button" class="on" data-swap="cms-tilda" data-set-platform="tilda">Тильда</button><button type="button" data-swap="cms-wp" data-set-platform="wp">WordPress</button><button type="button" data-swap="cms-bitrix" data-set-platform="bitrix">Битрикс</button><button type="button" data-swap="cms-other" data-set-platform="other">Другое</button></div>
-          </div>
-
-          <div class="card pad" id="anketa-clients-card" style="margin-top:10px">
-            <h3>Работа с клиентами</h3>
-            <p class="tiny" style="margin:6px 0 12px">Звоните, пишете в мессенджеры или на почту по базе клиентов?</p>
-            <div class="seg" id="anketa-calls-seg"><button type="button" class="on" data-swap="calls-yes">Да</button><button type="button" data-swap="calls-no">Нет</button></div>
-            <div class="hr" style="margin:14px 0"></div>
-            <p class="tiny" style="margin:0 0 10px">Для чего вы собираете контакты — попадёт в политику, цели должны совпадать с тем, что вы делаете на самом деле.</p>
-            <label class="check"><input type="checkbox" checked><span class="t">Записать на занятие</span></label>
-            <label class="check"><input type="checkbox" checked><span class="t">Ответить на обращение</span></label>
-            <label class="check"><input type="checkbox" checked><span class="t">Рассказывать об акциях и наборах</span></label>
-            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем нужно отдельное согласие на рассылки ⌄</button>
-            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">ФЗ «О рекламе» ст.18 требует отдельное согласие получателя на рекламные рассылки (email, смс, мессенджеры) — без него рассылка технически возможна, но незаконна.</p>
-          </div>
-
-          <!-- мобильный интерстишл — см. комментарий у секции выше -->
-          <div class="checklist-reveal">
-            <div class="card pad">
-              <h3>Вот что вы получите</h3>
-              <p class="tiny" style="margin:6px 0 10px">Пакет документов под alfa-school.ru — по вашим ответам выше.</p>
-              <div class="cl-item" data-cl="req"><span class="cl-mark"></span><span>Реквизиты владельца</span></div>
-              <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Политика обработки ПДн</span></div>
-              <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Cookie-политика</span></div>
-              <div class="cl-item" data-cl="clients"><span class="cl-mark"></span><span>Согласие на обработку ПДн</span></div>
-              <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-mark"></span><span>Согласие на рассылки</span></div>
-              <div class="cl-item cl-item-na" data-cl-industry hidden><span class="cl-mark"></span><span>Отраслевой блок для вашей сферы — не входит, уточните у поддержки</span></div>
+          <div data-substep="2" style="display:none">
+            <button type="button" class="btn text sm" data-set-substep="1" style="margin-bottom:10px">← О компании</button>
+            <h1>На какой платформе сайт?</h1>
+            <p class="lead" style="margin-top:8px">Пригодится на шаге установки — покажем инструкцию именно под неё.</p>
+            <div class="card pad" style="margin-top:16px">
+              <div class="seg" id="anketa-platform-seg"><button type="button" class="on" data-swap="cms-tilda" data-set-platform="tilda">Тильда</button><button type="button" data-swap="cms-wp" data-set-platform="wp">WordPress</button><button type="button" data-swap="cms-bitrix" data-set-platform="bitrix">Битрикс</button><button type="button" data-swap="cms-other" data-set-platform="other">Другое</button></div>
             </div>
+            <div class="hr" style="margin-top:20px"></div>
+            <button type="button" class="btn solid wide" data-set-substep="3">Далее</button>
           </div>
 
-          <div class="hr" style="margin-top:20px"></div>
-          <button type="button" class="btn solid wide" data-go="s-ready">Далее</button>
+          <div data-substep="3" style="display:none">
+            <button type="button" class="btn text sm" data-set-substep="2" style="margin-bottom:10px">← Платформа</button>
+            <h1>Работа с клиентами</h1>
+            <p class="lead" style="margin-top:8px">Как вы собираете и используете контакты — попадёт в политику и согласия.</p>
+            <div class="card pad" id="anketa-clients-card" style="margin-top:16px">
+              <p class="tiny" style="margin:0 0 12px">Звоните, пишете в мессенджеры или на почту по базе клиентов?</p>
+              <div class="seg" id="anketa-calls-seg"><button type="button" class="on" data-swap="calls-yes">Да</button><button type="button" data-swap="calls-no">Нет</button></div>
+              <div class="hr" style="margin:14px 0"></div>
+              <p class="tiny" style="margin:0 0 10px">Для чего вы собираете контакты — попадёт в политику, цели должны совпадать с тем, что вы делаете на самом деле.</p>
+              <label class="check"><input type="checkbox" checked><span class="t">Записать на занятие</span></label>
+              <label class="check"><input type="checkbox" checked><span class="t">Ответить на обращение</span></label>
+              <label class="check"><input type="checkbox" checked><span class="t">Рассказывать об акциях и наборах</span></label>
+              <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем нужно отдельное согласие на рассылки ⌄</button>
+              <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">ФЗ «О рекламе» ст.18 требует отдельное согласие получателя на рекламные рассылки (email, смс, мессенджеры) — без него рассылка технически возможна, но незаконна.</p>
+            </div>
+
+            <!-- мобильный интерстишл — см. комментарий у секции выше.
+                 Живёт только на подшаге 3 (последнем) — раньше сидел
+                 после всех трёх карточек разом, теперь после одной
+                 короткой, ближе к вопросам, которые его наполняют. -->
+            <div class="checklist-reveal">
+              <div class="card pad">
+                <h3>Вот что вы получите</h3>
+                <p class="tiny" style="margin:6px 0 10px">Пакет документов под alfa-school.ru — по вашим ответам выше.</p>
+                <div class="cl-item" data-cl="req"><span class="cl-mark"></span><span>Реквизиты владельца</span></div>
+                <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Политика обработки ПДн</span></div>
+                <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Cookie-политика</span></div>
+                <div class="cl-item" data-cl="clients"><span class="cl-mark"></span><span>Согласие на обработку ПДн</span></div>
+                <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-mark"></span><span>Согласие на рассылки</span></div>
+                <div class="cl-item cl-item-na" data-cl-industry hidden><span class="cl-mark"></span><span>Отраслевой блок для вашей сферы — не входит, уточните у поддержки</span></div>
+              </div>
+            </div>
+
+            <div class="hr" style="margin-top:20px"></div>
+            <button type="button" class="btn solid wide" data-go="s-ready">Далее</button>
+          </div>
+
         </div>
 
         <aside class="checklist-side">
@@ -1263,13 +1310,25 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <p class="tiny" style="color:rgba(17,17,16,.5)">Виджет платёжного партнёра — интеграция ещё не выбрана.</p>
       </div>
 
-      <div data-swapped="pmsbp" style="text-align:center">
+      <!-- Отказ СБП — независимый UX-аудит, критика A, приоритет P1: во всём
+           файле не было ни одного состояния отказа оплаты, хотя это самый
+           денежный экран. Реального бэкенда нет — исход недостижим кликом,
+           тот же паттерн, что installCheck/siteStatus='expired': демо через
+           dev-console paymentIssue='sbp-declined'; syncPayState(); -->
+      <div data-swapped="pmsbp" data-payment-issue="none" style="text-align:center">
         <div style="width:120px;height:120px;margin:0 auto 12px;border:1.5px solid var(--line-2);border-radius:10px;background:repeating-linear-gradient(45deg,var(--ink) 0 3px,transparent 3px 6px),repeating-linear-gradient(-45deg,var(--ink) 0 3px,transparent 3px 6px);background-blend-mode:multiply;opacity:.85"></div>
         <p class="tiny">Отсканируйте в приложении банка или введите номер телефона</p>
         <input class="inp mono" placeholder="+7 (___) ___-__-__" style="margin-top:8px;max-width:260px">
         <div class="hr" style="margin-top:16px"></div>
         <button type="button" class="btn solid wide" data-set-status="paid" data-go="s-project-paid">Оплатить 2 990 ₽ → в кабинет</button>
         <p class="tiny" style="text-align:center;margin-top:10px">Спишется один раз — о продлении напомним письмом за несколько дней</p>
+      </div>
+      <div data-swapped="pmsbp" data-payment-issue="sbp-declined" style="display:none;text-align:center">
+        <div class="b red" style="font-size:15px;justify-content:center">✕ Банк отклонил платёж</div>
+        <p class="tiny" style="margin-top:8px">Бывает из-за лимита операции, недостатка средств или блокировки СБП в приложении банка. Документы и виджет продолжают работать — доступ не прерывается, пока идёт пробный период.</p>
+        <div class="hr" style="margin-top:16px"></div>
+        <button type="button" class="btn solid wide" id="sbp-retry-btn">↻ Попробовать ещё раз</button>
+        <button type="button" class="btn wide" style="margin-top:8px" id="sbp-declined-goto-invoice">Оплатить по счёту вместо этого</button>
       </div>
 
       <!-- Контакты и банковские реквизиты — их сознательно нет в анкете
@@ -1287,7 +1346,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div data-swapped="pminvoice" style="display:none">
         <div class="row" style="justify-content:space-between;align-items:baseline">
           <label class="f" style="margin:0">Реквизиты плательщика — для счёта, не для подвала сайта</label>
-          <button type="button" class="btn text sm" style="padding:0">Скопировать из документов</button>
+          <button type="button" class="btn text sm" style="padding:0" title="Демо: поля ниже уже заполнены данными из анкеты">Скопировать из документов</button>
         </div>
         <div class="card pad" style="margin-top:6px;border-color:var(--line)">
           <div style="font-weight:700;font-size:14.5px">ООО «Альфа Образование»</div>
@@ -1298,7 +1357,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <label class="f" style="margin-top:10px">Телефон</label>
         <input class="inp mono" placeholder="+7 (___) ___-__-__">
         <label class="f" style="margin-top:10px">Расчётный счёт</label>
-        <input class="inp mono" inputmode="numeric" placeholder="40702810...">
+        <input class="inp mono" id="pay-invoice-account" inputmode="numeric" maxlength="20" placeholder="40702810...">
+        <p class="tiny anketa-field-error" id="pay-invoice-account-error" style="display:none;margin-top:5px;color:var(--danger)">Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
         <div class="row field-row" style="margin-top:10px;gap:10px">
           <div style="flex:1"><label class="f">Банк</label><input class="inp" placeholder="ПАО «...»"></div>
           <div style="flex:1"><label class="f">БИК</label><input class="inp mono" inputmode="numeric" placeholder="044525225"></div>
@@ -1361,9 +1421,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <details class="acc" open style="margin-top:18px">
     <summary class="acc-title">Сделать самому</summary>
     <div class="card pad">
-      <div class="code">&lt;script src="https://cdn.belysite.ru/w.js"
+      <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
-      <button class="btn sm copy-code-btn" style="margin-top:10px">Скопировать код</button>
+      <button class="btn sm copy-code-btn" data-copy-target="install-code" style="margin-top:10px">Скопировать код</button>
       <div class="hr"></div>
       <div class="tabs" id="install-cms-tabs"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
       <div class="small" data-swapped="t1">Настройки сайта → Ещё → HTML-код для вставки внутрь HEAD → вставить строку → Опубликовать все страницы.</div>
@@ -1470,6 +1530,11 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="card pad" style="border-color:rgba(184,121,0,.35)">
           <span class="b amber" style="font-size:16px">⏳ Счёт выставлен</span>
           <p class="lead" style="margin-top:8px">Документы и виджет уже работают на alfa-school.ru. Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня.</p>
+          <div data-payment-issue="invoice-stalled" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(184,121,0,.25)">
+            <p class="small" style="color:var(--warn);font-weight:700">Счёт выставлен больше 3 дней назад и всё ещё не оплачен.</p>
+            <p class="tiny" style="margin-top:4px">Если перевод завис в банке — напишите в поддержку, поможем разобраться. Можно и оплатить другим способом.</p>
+            <button type="button" class="btn sm" style="margin-top:8px" data-go="s-support">Написать в поддержку</button>
+          </div>
         </div>
       </div>
       <div class="state on" data-pay-state="paid" style="margin-top:16px">
@@ -1519,6 +1584,9 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="state" data-pay-state="pending">
           <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">ожидает оплаты</span></div>
           <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Счёт</span><span class="small" style="font-weight:700">выставлен · обычно 1–3 рабочих дня</span></div>
+          <div data-payment-issue="invoice-stalled" style="display:none;margin-top:8px">
+            <p class="tiny" style="color:var(--warn)">Больше 3 дней без оплаты — если перевод завис в банке, напишите в поддержку.</p>
+          </div>
         </div>
         <div class="hr"></div>
         <button type="button" class="btn text sm" style="padding:0" data-go="s-billing">Управлять подпиской →</button>
@@ -1567,23 +1635,23 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="card" style="margin-top:16px;overflow:hidden">
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/requisites" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm doc-copy-btn" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/requisites" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки персональных данных</div><div class="tiny mono">v2 · 15.08.2026 · обновили формулировки под изменения 152-ФЗ</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/pd-policy" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm doc-copy-btn" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/pd-policy" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на обработку ПДн</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/consent" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm doc-copy-btn" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/consent" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/marketing-consent" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm doc-copy-btn" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/marketing-consent" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Cookie-политика</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/cookies" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm doc-copy-btn" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/cookies" target="_blank" rel="noopener">Открыть</a></span>
         </div>
       </div>
 
@@ -1693,7 +1761,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div data-swapped="renewinvoice">
           <div class="row" style="justify-content:space-between;align-items:baseline">
             <label class="f" style="margin:0">Реквизиты плательщика — для счёта, не для подвала сайта</label>
-            <button type="button" class="btn text sm" style="padding:0">Скопировать из документов</button>
+            <button type="button" class="btn text sm" style="padding:0" title="Демо: поля ниже уже заполнены данными из анкеты">Скопировать из документов</button>
           </div>
           <div class="card pad" style="margin-top:6px;border-color:var(--line)">
             <div style="font-weight:700;font-size:14.5px">ООО «Альфа Образование»</div>
@@ -1894,9 +1962,12 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="hr" style="margin-top:14px"></div>
         <button class="btn text sm" data-fold="widget-code" style="padding:0">Показать код установки ⌄</button>
         <div id="widget-code" style="display:none;margin-top:10px">
-          <div class="code">&lt;script src="https://cdn.belysite.ru/w.js"
+          <div class="code" id="widget-code-block">&lt;script src="https://cdn.belysite.ru/w.js"
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
-          <button class="btn sm" style="margin-top:10px">↻ Проверить установку</button>
+          <div class="row" style="margin-top:10px;gap:8px">
+            <button class="btn sm copy-code-btn" data-copy-target="widget-code-block">Скопировать код</button>
+            <button class="btn sm">↻ Проверить установку</button>
+          </div>
         </div>
       </div>
     </main>
@@ -2082,10 +2153,19 @@ function syncPdContact(){
 // нигде не соседствует — см. кнопку «Поставлю позже →» на s-install).
 // 'notfound' — демо через dev-console: installCheck='notfound'; syncPayState();
 var installCheck = 'found';
+// 'none' | 'sbp-declined' | 'invoice-stalled' — независимый UX-аудит, критика A,
+// приоритет P1: не было ни одного состояния отказа оплаты. Реального бэкенда
+// нет, недостижимо кликом — тот же паттерн, что installCheck/'expired': демо
+// через dev-console paymentIssue='sbp-declined'; syncPayState(); (или
+// 'invoice-stalled', смотреть на s-project-paid/s-billing при siteStatus='pending').
+var paymentIssue = 'none';
 
 function syncPayState(){
   document.querySelectorAll('[data-pay-state]').forEach(function(s){
     s.classList.toggle('on', s.dataset.payState === siteStatus);
+  });
+  document.querySelectorAll('[data-payment-issue]').forEach(function(s){
+    s.style.display = (s.dataset.paymentIssue === paymentIssue) ? '' : 'none';
   });
   // style.display, не hidden-атрибут — .btn задаёт свой display:inline-flex
   // в авторском CSS, который перебивает UA-правило [hidden]{display:none}
@@ -2107,6 +2187,7 @@ function syncPayState(){
     installTabs.querySelectorAll('[data-platform]').forEach(function(b){
       var match = b.dataset.platform === sitePlatform;
       b.classList.toggle('on', match);
+      b.setAttribute('aria-selected', match ? 'true' : 'false');
       var panel = document.querySelector('[data-swapped="' + b.dataset.swap + '"]');
       if (panel) panel.style.display = match ? '' : 'none';
     });
@@ -2126,9 +2207,32 @@ function syncPayState(){
   }
 }
 
+// Подшаги s-anketa2 (1=О компании, 2=Платформа, 3=Работа с клиентами) —
+// независимый UX-аудит, критика A, приоритет P1: экран выдавал себя за
+// один «Шаг 2 из 4», а на деле требовал решить форму собственности,
+// платформу и цель сбора контактов на одном скролле — прямая причина
+// обоих провалов чек-листа cognitive load (chunking, one-thing-at-a-time).
+// Внешняя нумерация «Шаг X из 4» не трогается (не переоткрываем спор про
+// сквозную шкалу) — просто внутри шага 2 появляется честная подпрогрессия.
+// Чек-лист (.checklist-side/.checklist-reveal) остаётся ВНЕ substep-гейта,
+// виден на всех трёх подшагах — та самая «непрерывность», которую критика
+// сама предложила как решение, раз сайдбар уже её умеет.
+var anketaSubstep = 1;
+function syncAnketaSubstep(){
+  document.querySelectorAll('[data-substep]').forEach(function(el){
+    el.style.display = (parseInt(el.dataset.substep, 10) === anketaSubstep) ? '' : 'none';
+  });
+  document.querySelectorAll('[data-substep-label]').forEach(function(el){
+    var n = parseInt(el.dataset.substepLabel, 10);
+    el.classList.toggle('current', n === anketaSubstep);
+    el.classList.toggle('done', n < anketaSubstep);
+  });
+}
+
 function goScreen(id){
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('on', s.id === id); });
   syncPayState();
+  syncAnketaSubstep();
   paintNav(id);
   window.scrollTo(0,0);
 }
@@ -2137,7 +2241,17 @@ document.querySelectorAll('[data-go]').forEach(function(b){
     if (b.dataset.setStatus) siteStatus = b.dataset.setStatus;
     if (b.dataset.setHassite) hasSite = (b.dataset.setHassite === 'true');
     if (b.dataset.setHasidentity) hasIdentity = (b.dataset.setHasidentity === 'true');
+    if (b.dataset.setSubstep) anketaSubstep = parseInt(b.dataset.setSubstep, 10);
     goScreen(b.dataset.go);
+  });
+});
+// Далее/Назад внутри s-anketa2 — тот же приём, но без смены экрана
+// (goScreen здесь не нужен, .screen.on не меняется, только substep).
+document.querySelectorAll('[data-set-substep]:not([data-go])').forEach(function(b){
+  b.addEventListener('click', function(){
+    anketaSubstep = parseInt(b.dataset.setSubstep, 10);
+    syncAnketaSubstep();
+    window.scrollTo(0,0);
   });
 });
 goScreen('s-register');
@@ -2155,6 +2269,67 @@ if (pdContactInput) {
   });
 }
 
+// Отказ СБП (s-pay) — «Попробовать ещё раз» просто сбрасывает paymentIssue,
+// не изображает повторную реальную попытку (бэкенда нет); «Оплатить по
+// счёту вместо этого» кликает настоящую вкладку pminvoice, не дублирует
+// её логику — так переключение вкладки, чек-лист и всё остальное остаются
+// в одном месте.
+var sbpRetryBtn = document.getElementById('sbp-retry-btn');
+if (sbpRetryBtn) sbpRetryBtn.addEventListener('click', function(){ paymentIssue = 'none'; syncPayState(); });
+var sbpGotoInvoice = document.getElementById('sbp-declined-goto-invoice');
+if (sbpGotoInvoice) sbpGotoInvoice.addEventListener('click', function(){
+  document.querySelector('#pm-tabs [data-swap="pminvoice"]').click();
+});
+
+// Валидация полей по длине на blur — независимый UX-аудит, критика A, P2.
+// Не полноценный валидатор (это макет, не бэкенд) — показывает визуальный
+// язык ошибки (.inp.error + подпись под полем), который реальный код
+// унаследует. Два поля, где длина реально что-то значит: ИНН (10 цифр —
+// организация, 12 — ИП/самозанятый) и расчётный счёт (всегда 20).
+function wireLengthValidation(inputId, errorId, validLengths){
+  var input = document.getElementById(inputId);
+  var error = document.getElementById(errorId);
+  if (!input || !error) return;
+  input.addEventListener('blur', function(){
+    var digits = input.value.replace(/\D/g, '');
+    var valid = digits.length === 0 || validLengths.indexOf(digits.length) !== -1;
+    input.classList.toggle('error', !valid);
+    error.style.display = valid ? 'none' : 'block';
+  });
+  input.addEventListener('input', function(){
+    if (input.classList.contains('error')) { input.classList.remove('error'); error.style.display = 'none'; }
+  });
+}
+wireLengthValidation('anketa-inn', 'anketa-inn-error', [10, 12]);
+wireLengthValidation('pay-invoice-account', 'pay-invoice-account-error', [20]);
+
+// Копирование в буфер — независимый UX-аудит, критика A, P3: были молча
+// нерабочими, в отличие от «Проверить установку», у которого есть явный
+// комментарий «честная имитация» — копи-кнопки такого сигнала не несли и
+// читались как баг, не как демо. navigator.clipboard требует https/localhost
+// (у нас localhost при тесте, cdn.belysite.ru — https в проде) — на unsupported
+// окружениях textContent просто не всплывёт подтверждением, кнопка не сломается.
+function flashCopied(btn){
+  var original = btn.textContent;
+  btn.textContent = 'Скопировано ✓';
+  btn.disabled = true;
+  setTimeout(function(){ btn.textContent = original; btn.disabled = false; }, 1500);
+}
+document.querySelectorAll('.copy-code-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var codeEl = document.getElementById(btn.dataset.copyTarget);
+    if (!codeEl || !navigator.clipboard) return;
+    navigator.clipboard.writeText(codeEl.textContent.trim()).then(function(){ flashCopied(btn); });
+  });
+});
+document.querySelectorAll('.doc-copy-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var link = btn.parentElement.querySelector('a[href]');
+    if (!link || !navigator.clipboard) return;
+    navigator.clipboard.writeText(link.href).then(function(){ flashCopied(btn); });
+  });
+});
+
 /* раскрывашки-находки */
 document.querySelectorAll('[data-find]').forEach(function(b){
   b.addEventListener('click', function(){ b.closest('.find').classList.toggle('open'); });
@@ -2166,14 +2341,58 @@ document.querySelectorAll('[data-fold]').forEach(function(b){
   });
 });
 
+// ARIA на сегментированных контролах — независимый UX-аудит, критика A, P2:
+// 6+ мест (.seg/.tabs группы: форма собственности, платформа, тема баннера,
+// вкладки оплаты и др.) были обычными <button>, различимыми только
+// CSS-классом .on — скринридер не сообщал, что выбрано, на форме с
+// юридическими последствиями. Роль определяется автоматически, не руками
+// на каждую группу: если выбор в группе показывает/прячет data-swapped-
+// панель — это вкладки (role=tablist/tab/aria-selected), иначе — чистый
+// выбор значения без смены контента (role=radiogroup/radio/aria-checked).
+// Тот же scope-расчёт, что уже использует клик-обработчик ниже, — группа
+// либо и там, и там видит один набор data-swapped, либо ни там, ни там.
+function initA11yGroups(){
+  var seenGroups = [];
+  document.querySelectorAll('[data-swap]').forEach(function(b){
+    var group = b.parentElement;
+    if (seenGroups.indexOf(group) !== -1) return;
+    seenGroups.push(group);
+    var members = group.querySelectorAll('[data-swap]');
+    var scope = b.closest('.card') || b.closest('.startwrap') || b.closest('.screen') || document;
+    var swappedValues = [];
+    scope.querySelectorAll('[data-swapped]').forEach(function(p){ swappedValues.push(p.dataset.swapped); });
+    var isTablist = false;
+    members.forEach(function(x){ if (swappedValues.indexOf(x.dataset.swap) !== -1) isTablist = true; });
+    group.setAttribute('role', isTablist ? 'tablist' : 'radiogroup');
+    group.dataset.a11yKind = isTablist ? 'tab' : 'radio';
+    members.forEach(function(x){
+      if (isTablist) { x.setAttribute('role', 'tab'); x.setAttribute('aria-selected', x.classList.contains('on') ? 'true' : 'false'); }
+      else { x.setAttribute('role', 'radio'); x.setAttribute('aria-checked', x.classList.contains('on') ? 'true' : 'false'); }
+    });
+  });
+}
+initA11yGroups();
+
 /* тумблеры внутри карточек */
 document.querySelectorAll('[data-swap]').forEach(function(b){
   b.addEventListener('click', function(){
     var group = b.parentElement;
-    group.querySelectorAll('[data-swap]').forEach(function(x){ x.classList.toggle('on', x === b); });
+    var a11yKind = group.dataset.a11yKind;
+    group.querySelectorAll('[data-swap]').forEach(function(x){
+      var on = (x === b);
+      x.classList.toggle('on', on);
+      if (a11yKind === 'tab') x.setAttribute('aria-selected', on ? 'true' : 'false');
+      else if (a11yKind === 'radio') x.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
     var scope = b.closest('.card') || b.closest('.startwrap') || b.closest('.screen') || document;
     scope.querySelectorAll('[data-swapped]').forEach(function(p){
       p.style.display = (p.dataset.swapped === b.dataset.swap) ? '' : 'none';
+    });
+    // pm-tabs: две [data-swapped="pmsbp"] панели (обычная + отказ, см.
+    // paymentIssue) обе матчатся строкой выше — сузить по paymentIssue
+    // следом, иначе клик по вкладке «СБП» показал бы обе разом.
+    scope.querySelectorAll('[data-payment-issue]').forEach(function(p){
+      p.style.display = (p.dataset.paymentIssue === paymentIssue) ? '' : 'none';
     });
     if (b.dataset.setPlatform) sitePlatform = b.dataset.setPlatform;
     if (b.dataset.setOwnership) { siteOwnership = b.dataset.setOwnership; syncPayState(); }
