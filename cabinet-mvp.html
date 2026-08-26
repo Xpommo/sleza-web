@@ -1436,35 +1436,38 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            Счёту нужно больше — спрашиваем здесь, и только у тех, кто выбрал
            «по счёту»: карта и СБП это не требуют вовсе.
 
-           Подпись «реквизиты плательщика» + кнопка «Скопировать из
-           документов» — независимый список правок, «Реквизиты», 25.08:
-           без подписи это читалось как повтор реквизитов владельца сайта
-           из анкеты, хотя набор полей другой и назначение другое (счета
-           и акты, не подвал сайта). Кнопка декоративная — карточка ниже
-           и так уже показывает данные, взятые из анкеты; кнопка делает
-           это явным действием, а не молчаливым фактом. -->
+           Правка 26.08 (по итогам разбора анкеты): раньше здесь стояла
+           СТАТИКА «ООО «Альфа Образование» / ИНН.../ОГРН...», молча взятая
+           из анкеты сайта — но плательщик по счёту не обязан быть тем же
+           лицом, что владелец сайта (бухгалтерия, агентство, другое ООО
+           того же человека). Поэтому наименование/ИНН/ОГРН здесь — свои,
+           реально вводимые поля, не подтягиваются из анкеты. Вводятся один
+           раз, на «Выставить счёт» сохраняются (savePayInvoiceReq в script)
+           и становятся дефолтом модалки «Реквизиты для счёта» в Подписке —
+           поменять их снова можно уже оттуда, без повторного ввода. -->
       <div data-swapped="pminvoice" style="display:none">
-        <div class="row" style="justify-content:space-between;align-items:baseline">
-          <label class="f" style="margin:0">Реквизиты плательщика — для счёта, не для подвала сайта</label>
-          <button type="button" class="btn text sm" style="padding:0" title="Демо: поля ниже уже заполнены данными из анкеты">Скопировать из документов</button>
+        <label class="f" style="margin:0">Реквизиты плательщика — для счёта, не для подвала сайта</label>
+        <p class="tiny" style="margin-top:4px">Вводится один раз — дальше можно поменять в Подписке.</p>
+        <label class="f" style="margin-top:12px">Наименование плательщика</label>
+        <input class="inp" id="pay-invoice-name" placeholder="ООО «...» или ИП Фамилия И. О.">
+        <div class="row field-row" style="margin-top:10px;gap:10px">
+          <div style="flex:1"><label class="f">ИНН</label><input class="inp mono" id="pay-invoice-inn" inputmode="numeric" placeholder="10 или 12 цифр"></div>
+          <div style="flex:1"><label class="f">ОГРН</label><input class="inp mono" id="pay-invoice-ogrn" inputmode="numeric" placeholder="1157746112233"></div>
         </div>
-        <div class="card pad" style="margin-top:6px;border-color:var(--line)">
-          <div style="font-weight:700;font-size:14.5px">ООО «Альфа Образование»</div>
-          <div class="tiny mono" style="margin-top:2px">ИНН 7701234567 · ОГРН 1157746112233</div>
-        </div>
+        <p class="tiny anketa-field-error" id="pay-invoice-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
         <label class="f" style="margin-top:12px">Email для счёта</label>
-        <input class="inp" placeholder="buh@alfa-school.ru">
+        <input class="inp" id="pay-invoice-email" placeholder="buh@alfa-school.ru">
         <label class="f" style="margin-top:10px">Телефон</label>
-        <input class="inp mono" placeholder="+7 (___) ___-__-__">
+        <input class="inp mono" id="pay-invoice-phone" placeholder="+7 (___) ___-__-__">
         <label class="f" style="margin-top:10px">Расчётный счёт</label>
         <input class="inp mono" id="pay-invoice-account" inputmode="numeric" maxlength="20" placeholder="40702810...">
         <p class="tiny anketa-field-error" id="pay-invoice-account-error" style="display:none;margin-top:5px;color:var(--danger)">Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
         <div class="row field-row" style="margin-top:10px;gap:10px">
-          <div style="flex:1"><label class="f">Банк</label><input class="inp" placeholder="ПАО «...»"></div>
-          <div style="flex:1"><label class="f">БИК</label><input class="inp mono" inputmode="numeric" placeholder="044525225"></div>
+          <div style="flex:1"><label class="f">Банк</label><input class="inp" id="pay-invoice-bank" placeholder="ПАО «...»"></div>
+          <div style="flex:1"><label class="f">БИК</label><input class="inp mono" id="pay-invoice-bik" inputmode="numeric" placeholder="044525225"></div>
         </div>
         <label class="f" style="margin-top:10px">Корр. счёт</label>
-        <input class="inp mono" inputmode="numeric" placeholder="30101810...">
+        <input class="inp mono" id="pay-invoice-corr" inputmode="numeric" placeholder="30101810...">
         <p class="tiny" style="margin-top:10px">Счёт на 2 990 ₽ придёт на почту в PDF, оплатить можно переводом с расчётного счёта.</p>
         <div class="hr" style="margin-top:16px"></div>
         <button type="button" class="btn solid wide" data-set-status="pending" data-go="s-project-paid">Выставить счёт → в кабинет</button>
@@ -1928,8 +1931,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           </div>
           <div class="card pad row" style="margin-top:6px;border-color:var(--line);justify-content:space-between;align-items:center">
             <div>
-              <div style="font-weight:700;font-size:14.5px">ООО «Альфа Образование»</div>
-              <div class="tiny mono" style="margin-top:2px" id="invoice-req-summary">buh@alfa-school.ru · +7 (495) 123-45-67 · счёт …2345</div>
+              <div style="font-weight:700;font-size:14.5px" id="invoice-req-name">ООО «Альфа Образование»</div>
+              <div class="tiny mono" style="margin-top:2px" id="invoice-req-summary">ИНН 7701234567 · buh@alfa-school.ru · +7 (495) 123-45-67 · счёт …2345</div>
             </div>
             <button type="button" class="btn sm" data-go-modal="modal-req-invoice">Изменить</button>
           </div>
@@ -2008,13 +2011,23 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 
 <!-- модалка реквизитов для счёта (Подписка → По счёту) — отдельная от
      modal-req-set: там наименование/ОГРН/ИНН для документов и подвала
-     сайта, здесь — куда слать счёт и с какого счёта спишут, тот самый
-     смысл, который уже объясняет надпись «не для подвала сайта» рядом с
-     блоком на s-billing. -->
+     сайта, здесь — плательщик по счёту (может быть другим лицом —
+     бухгалтерия, агентство) и куда слать счёт/с какого счёта спишут, тот
+     самый смысл, который уже объясняет надпись «не для подвала сайта»
+     рядом с блоком на s-billing. Наименование/ИНН/ОГРН здесь — свои,
+     не синхронизируются с modal-req-set: правка 26.08, см. комментарий
+     на s-pay pminvoice. -->
 <div class="modal-overlay" data-state="closed" id="modal-req-invoice" role="dialog" aria-modal="true" aria-labelledby="modal-req-invoice-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-req-invoice-title">Реквизиты для счёта</h3><button class="btn text sm" data-modal-close="modal-req-invoice">✕</button></div>
-    <label class="f" style="margin-top:14px">Email для счёта</label>
+    <label class="f" style="margin-top:14px">Наименование плательщика</label>
+    <input class="inp" id="modal-invoice-name" value="ООО «Альфа Образование»">
+    <div class="row field-row" style="margin-top:10px;gap:10px">
+      <div style="flex:1"><label class="f">ИНН</label><input class="inp mono" id="modal-invoice-inn" inputmode="numeric" value="7701234567"></div>
+      <div style="flex:1"><label class="f">ОГРН</label><input class="inp mono" id="modal-invoice-ogrn" inputmode="numeric" value="1157746112233"></div>
+    </div>
+    <div class="hr" style="margin-top:14px"></div>
+    <label class="f">Email для счёта</label>
     <input class="inp" id="modal-invoice-email" value="buh@alfa-school.ru">
     <label class="f" style="margin-top:10px">Телефон</label>
     <input class="inp mono" id="modal-invoice-phone" value="+7 (495) 123-45-67">
@@ -2502,6 +2515,7 @@ function goScreen(id){
 document.querySelectorAll('[data-go]').forEach(function(b){
   b.addEventListener('click', function(){
     if (b.dataset.setStatus) siteStatus = b.dataset.setStatus;
+    if (b.dataset.setStatus === 'pending') savePayInvoiceReq();
     if (b.dataset.setHassite) hasSite = (b.dataset.setHassite === 'true');
     if (b.dataset.setHasidentity) hasIdentity = (b.dataset.setHasidentity === 'true');
     if (b.dataset.setSubstep) anketaSubstep = parseInt(b.dataset.setSubstep, 10);
@@ -2564,6 +2578,7 @@ function wireLengthValidation(inputId, errorId, validLengths){
   });
 }
 wireLengthValidation('anketa-inn', 'anketa-inn-error', [10, 12]);
+wireLengthValidation('pay-invoice-inn', 'pay-invoice-inn-error', [10, 12]);
 wireLengthValidation('pay-invoice-account', 'pay-invoice-account-error', [20]);
 
 // Копирование в буфер — независимый UX-аудит, критика A, P3: были молча
@@ -2853,16 +2868,53 @@ document.querySelectorAll('[data-save-req]').forEach(function(b){
 });
 
 // Реквизиты для счёта (s-billing → По счёту) — независимый обзор кабинета:
-// та же логика, что modal-req-set выше, но своя сводка (email/телефон/
-// счёт), не наименование+ИНН — другой набор полей, другой смысл.
+// та же логика, что modal-req-set выше, но свой плательщик (наименование/
+// ИНН/ОГРН + email/телефон/счёт) — не обязан совпадать с владельцем сайта
+// из modal-req-set, см. комментарий на s-pay pminvoice (правка 26.08).
 var saveInvoiceReqBtn = document.getElementById('save-invoice-req-btn');
 if (saveInvoiceReqBtn) saveInvoiceReqBtn.addEventListener('click', function(){
+  var name = document.getElementById('modal-invoice-name').value;
+  var inn = document.getElementById('modal-invoice-inn').value;
   var email = document.getElementById('modal-invoice-email').value;
   var phone = document.getElementById('modal-invoice-phone').value;
   var account = document.getElementById('modal-invoice-account').value;
+  var nameEl = document.getElementById('invoice-req-name');
   var summary = document.getElementById('invoice-req-summary');
-  if (summary) summary.textContent = email + ' · ' + phone + ' · счёт …' + account.slice(-4);
+  if (nameEl) nameEl.textContent = name;
+  if (summary) summary.textContent = 'ИНН ' + inn + ' · ' + email + ' · ' + phone + ' · счёт …' + account.slice(-4);
 });
+
+// Реквизиты плательщика, введённые прямо на шаге оплаты (s-pay → По счёту)
+// — вводятся один раз, при «Выставить счёт» становятся дефолтом модалки
+// «Реквизиты для счёта» выше (не подтягиваются из анкеты сайта, см.
+// комментарий на pminvoice: плательщик не обязан быть тем же лицом).
+// Не бэкенд — переносит значения полей в поля модалки и в сводку на
+// s-billing, тот же демо-приём, что и у остальных «Сохранить» в файле.
+function savePayInvoiceReq(){
+  var fields = ['name', 'inn', 'ogrn', 'email', 'phone', 'account', 'bank', 'bik', 'corr'];
+  var vals = {};
+  fields.forEach(function(k){
+    var el = document.getElementById('pay-invoice-' + k);
+    if (el && el.value) vals[k] = el.value;
+  });
+  if (!Object.keys(vals).length) return;
+  fields.forEach(function(k){
+    if (vals[k] === undefined) return;
+    var target = document.getElementById('modal-invoice-' + k);
+    if (target) target.value = vals[k];
+  });
+  var nameEl = document.getElementById('invoice-req-name');
+  if (vals.name && nameEl) nameEl.textContent = vals.name;
+  var summary = document.getElementById('invoice-req-summary');
+  if (summary) {
+    var parts = [];
+    if (vals.inn) parts.push('ИНН ' + vals.inn);
+    if (vals.email) parts.push(vals.email);
+    if (vals.phone) parts.push(vals.phone);
+    if (vals.account) parts.push('счёт …' + vals.account.slice(-4));
+    if (parts.length) summary.textContent = parts.join(' · ');
+  }
+}
 var requestInvoiceBtn = document.getElementById('request-invoice-btn');
 if (requestInvoiceBtn) requestInvoiceBtn.addEventListener('click', function(){ flashDone(requestInvoiceBtn, 'Счёт сформирован ✓'); });
 
