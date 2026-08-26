@@ -1862,29 +1862,24 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div data-swapped="renewcard" style="display:none">
           <p class="tiny">Автосписание картой — интеграция с эквайером ещё не выбрана. Продлевайте через СБП или по счёту.</p>
         </div>
+        <!-- независимый обзор кабинета: форма из 6 полей была
+             всегда-редактируемой на каждый визит — лишний риск случайно
+             поправить цифру в счёте, когда менять ничего не собирался.
+             Тот же паттерн, что «Реквизиты владельца» в Настройках:
+             сводка + «Изменить» → модалка, не инлайн-форма. -->
         <div data-swapped="renewinvoice">
           <div class="row" style="justify-content:space-between;align-items:baseline">
             <label class="f" style="margin:0">Реквизиты плательщика — для счёта, не для подвала сайта</label>
-            <button type="button" class="btn text sm" style="padding:0" title="Демо: поля ниже уже заполнены данными из анкеты">Скопировать из документов</button>
           </div>
-          <div class="card pad" style="margin-top:6px;border-color:var(--line)">
-            <div style="font-weight:700;font-size:14.5px">ООО «Альфа Образование»</div>
-            <div class="tiny mono" style="margin-top:2px">ИНН 7701234567 · ОГРН 1157746112233</div>
+          <div class="card pad row" style="margin-top:6px;border-color:var(--line);justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:700;font-size:14.5px">ООО «Альфа Образование»</div>
+              <div class="tiny mono" style="margin-top:2px" id="invoice-req-summary">buh@alfa-school.ru · +7 (495) 123-45-67 · счёт …2345</div>
+            </div>
+            <button type="button" class="btn sm" data-go-modal="modal-req-invoice">Изменить</button>
           </div>
-          <label class="f" style="margin-top:12px">Email для счёта</label>
-          <input class="inp" value="buh@alfa-school.ru">
-          <label class="f" style="margin-top:10px">Телефон</label>
-          <input class="inp mono" value="+7 (495) 123-45-67">
-          <label class="f" style="margin-top:10px">Расчётный счёт</label>
-          <input class="inp mono" value="40702810900000012345">
-          <div class="row" style="margin-top:10px;gap:10px">
-            <div style="flex:1"><label class="f">Банк</label><input class="inp" value="ПАО «Сбербанк»"></div>
-            <div style="flex:1"><label class="f">БИК</label><input class="inp mono" value="044525225"></div>
-          </div>
-          <label class="f" style="margin-top:10px">Корр. счёт</label>
-          <input class="inp mono" value="30101810400000000225">
-          <p class="tiny" style="margin-top:10px">Следующий счёт придёт на почту за неделю до окончания оплаченного периода.</p>
-          <button id="save-requisites-btn" class="btn solid sm" style="margin-top:12px">Сохранить реквизиты</button>
+          <p class="tiny" style="margin-top:10px">Следующий счёт придёт на почту за неделю до окончания оплаченного периода — или сформируйте сейчас, если нужно раньше.</p>
+          <button id="request-invoice-btn" class="btn solid sm" style="margin-top:12px">Сформировать счёт</button>
         </div>
         <div class="hr"></div>
         <!-- HANDOFF 6.15 п.8 — статус подписки теперь тоже читает
@@ -1953,6 +1948,31 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <input class="inp mono" value="30101810400000000225">
 
     <div class="row" style="margin-top:16px"><button class="btn solid" data-save-req="set" data-modal-close="modal-req-set">Сохранить</button><button class="btn text" data-modal-close="modal-req-set">Отмена</button></div>
+  </div>
+</div>
+
+<!-- модалка реквизитов для счёта (Подписка → По счёту) — отдельная от
+     modal-req-set: там наименование/ОГРН/ИНН для документов и подвала
+     сайта, здесь — куда слать счёт и с какого счёта спишут, тот самый
+     смысл, который уже объясняет надпись «не для подвала сайта» рядом с
+     блоком на s-billing. -->
+<div class="state" data-state="closed" id="modal-req-invoice" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
+    <div class="row" style="justify-content:space-between"><h3>Реквизиты для счёта</h3><button class="btn text sm" data-modal-close="modal-req-invoice">✕</button></div>
+    <label class="f" style="margin-top:14px">Email для счёта</label>
+    <input class="inp" id="modal-invoice-email" value="buh@alfa-school.ru">
+    <label class="f" style="margin-top:10px">Телефон</label>
+    <input class="inp mono" id="modal-invoice-phone" value="+7 (495) 123-45-67">
+    <label class="f" style="margin-top:10px">Расчётный счёт</label>
+    <input class="inp mono" id="modal-invoice-account" value="40702810900000012345">
+    <div class="row" style="margin-top:10px;gap:10px">
+      <div style="flex:1"><label class="f">Банк</label><input class="inp" id="modal-invoice-bank" value="ПАО «Сбербанк»"></div>
+      <div style="flex:1"><label class="f">БИК</label><input class="inp mono" id="modal-invoice-bik" value="044525225"></div>
+    </div>
+    <label class="f" style="margin-top:10px">Корр. счёт</label>
+    <input class="inp mono" id="modal-invoice-corr" value="30101810400000000225">
+
+    <div class="row" style="margin-top:16px"><button class="btn solid" id="save-invoice-req-btn" data-modal-close="modal-req-invoice">Сохранить</button><button class="btn text" data-modal-close="modal-req-invoice">Отмена</button></div>
   </div>
 </div>
 
@@ -2505,7 +2525,7 @@ function wireEmailGate(btnId, inputId, errorId, label){
 }
 wireEmailGate('send-instructions-btn', 'install-dev-email', 'install-dev-email-error', 'Отправлено ✓');
 wireEmailGate('send-self-btn', 'install-self-email', 'install-self-email-error', 'Отправлено ✓');
-['save-contacts-btn', 'save-requisites-btn', 'save-notify-btn'].forEach(function(id){
+['save-contacts-btn', 'save-notify-btn'].forEach(function(id){
   var btn = document.getElementById(id);
   if (btn) btn.addEventListener('click', function(){ flashDone(btn, 'Сохранено ✓'); });
 });
@@ -2682,6 +2702,20 @@ document.querySelectorAll('[data-save-req]').forEach(function(b){
     if (innEl) innEl.textContent = 'ИНН ' + inn;
   });
 });
+
+// Реквизиты для счёта (s-billing → По счёту) — независимый обзор кабинета:
+// та же логика, что modal-req-set выше, но своя сводка (email/телефон/
+// счёт), не наименование+ИНН — другой набор полей, другой смысл.
+var saveInvoiceReqBtn = document.getElementById('save-invoice-req-btn');
+if (saveInvoiceReqBtn) saveInvoiceReqBtn.addEventListener('click', function(){
+  var email = document.getElementById('modal-invoice-email').value;
+  var phone = document.getElementById('modal-invoice-phone').value;
+  var account = document.getElementById('modal-invoice-account').value;
+  var summary = document.getElementById('invoice-req-summary');
+  if (summary) summary.textContent = email + ' · ' + phone + ' · счёт …' + account.slice(-4);
+});
+var requestInvoiceBtn = document.getElementById('request-invoice-btn');
+if (requestInvoiceBtn) requestInvoiceBtn.addEventListener('click', function(){ flashDone(requestInvoiceBtn, 'Счёт сформирован ✓'); });
 
 /* подтверждение отмены подписки — статус на карточке меняется сразу,
    без перезагрузки экрана, чтобы решение в модалке было видно на месте */
