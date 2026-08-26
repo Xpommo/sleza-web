@@ -131,6 +131,19 @@ p{margin:0}
 .chip.out{background:var(--white);border:1px solid var(--line-2)}
 .chip.out svg{margin-right:1px}
 
+/* переключатель вкл/выкл виджета — прямой запрос пользователя.
+   role=switch, не голый чекбокс — тот же стандарт, что сам сканер
+   требует от чужих сайтов (detectDataFormNoConsent принимает
+   role=switch как согласие наравне с checkbox), странно было бы не
+   следовать ему у себя. */
+.switch{display:inline-flex;align-items:center;cursor:pointer;flex:none}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch-track{width:40px;height:24px;border-radius:999px;background:var(--line-2);position:relative;transition:background .15s;flex:none}
+.switch-thumb{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(17,17,16,.25);transition:transform .15s}
+.switch input:checked ~ .switch-track{background:var(--ok)}
+.switch input:checked ~ .switch-track .switch-thumb{transform:translateX(16px)}
+.switch input:focus-visible ~ .switch-track{box-shadow:0 0 0 3px rgba(31,31,230,.25)}
+
 .find{border:1px solid var(--line-2);background:var(--white);border-radius:12px;overflow:hidden;margin-bottom:8px}
 .find button.hd{width:100%;display:flex;align-items:center;gap:10px;padding:13px 15px;background:none;border:0;cursor:pointer;text-align:left}
 .find .dot{width:9px;height:9px;border-radius:999px;flex:none;background:var(--ok)}
@@ -2045,10 +2058,24 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
            поэтому вместо картинки — поясняющий текст, а не додуманная
            третья картинка. -->
       <div class="card pad" style="margin-top:16px">
-        <span class="b green">✓ Работает</span>
-        <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
+        <div class="row" style="justify-content:space-between;align-items:flex-start">
+          <div>
+            <span class="b green" id="widget-status-b">✓ Работает</span>
+            <p class="small" style="margin-top:6px;color:var(--ink-2)" id="widget-status-p">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
+          </div>
+          <!-- прямой запрос пользователя — раньше выключить виджет можно
+               было только отменой подписки. Полноценный переключатель,
+               без ограничений по времени, по явному решению: предупреждаем
+               о последствии текстом рядом, не блокируем действие. -->
+          <label class="switch" title="Включить/выключить виджет на сайте">
+            <input type="checkbox" id="widget-enabled-toggle" checked>
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+        </div>
+        <p class="tiny" id="widget-off-warning" style="display:none;margin-top:8px;color:var(--danger)">Пока выключен, баннер и ссылки на документы не показываются посетителям — сайт технически перестаёт соответствовать 152-ФЗ, хотя подписка продолжает действовать и списываться.</p>
         <div class="hr"></div>
 
+        <div id="widget-live-content">
         <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Тема баннера</h3>
         <div class="seg" style="margin:8px 0 12px">
           <button type="button" class="on" data-swap="bthemelight">Светлая</button>
@@ -2092,6 +2119,11 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
             </div>
           </div>
         </div>
+        </div>
+        <div id="widget-off-placeholder" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:24px 16px;text-align:center">
+          <p class="tiny">Виджет выключен — посетители не видят ни баннер, ни ссылки на документы в подвале сайта.</p>
+        </div>
+
         <div class="hr" style="margin-top:14px"></div>
         <button class="btn text sm" data-fold="widget-code" style="padding:0">Показать код установки ⌄</button>
         <div id="widget-code" style="display:none;margin-top:10px">
@@ -2540,6 +2572,24 @@ document.querySelectorAll('[data-fold]').forEach(function(b){
     if (box) box.style.display = (box.style.display === 'none') ? 'block' : 'none';
   });
 });
+
+// Переключатель вкл/выкл виджета (s-widget) — прямой запрос пользователя.
+// Полноценный, без авто-возврата — предупреждаем о последствии текстом,
+// не ограничиваем действие технически (осознанный выбор пользователя,
+// не решение этой сессии).
+function syncWidgetToggle(){
+  var on = document.getElementById('widget-enabled-toggle').checked;
+  var statusB = document.getElementById('widget-status-b');
+  var statusP = document.getElementById('widget-status-p');
+  statusB.textContent = on ? '✓ Работает' : '⏸ Отключён вами';
+  statusB.className = 'b ' + (on ? 'green' : 'amber');
+  statusP.style.display = on ? '' : 'none';
+  document.getElementById('widget-off-warning').style.display = on ? 'none' : 'block';
+  document.getElementById('widget-live-content').style.display = on ? '' : 'none';
+  document.getElementById('widget-off-placeholder').style.display = on ? 'none' : 'block';
+}
+var widgetToggle = document.getElementById('widget-enabled-toggle');
+if (widgetToggle) widgetToggle.addEventListener('change', syncWidgetToggle);
 
 /* тумблеры внутри карточек — независимый UX-аудит, критика A, P2 (третий
    раунд): сегмент-контролы (форма собственности, платформа, вкладки
