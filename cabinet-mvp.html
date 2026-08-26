@@ -1738,23 +1738,23 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="card" style="margin-top:16px;overflow:hidden">
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm doc-copy-btn" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/requisites" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/requisites" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки персональных данных</div><div class="tiny mono">v2 · 15.08.2026 · обновили формулировки под изменения 152-ФЗ</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm doc-copy-btn" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/pd-policy" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/pd-policy" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на обработку ПДн</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm doc-copy-btn" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/consent" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/consent" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm doc-copy-btn" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/marketing-consent" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/marketing-consent" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Cookie-политика</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm doc-copy-btn" title="Скопировать ссылку">Копировать</button><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/cookies" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/cookies" target="_blank" rel="noopener">Открыть</a></span>
         </div>
       </div>
 
@@ -2541,13 +2541,6 @@ document.querySelectorAll('.copy-code-btn').forEach(function(btn){
     var codeEl = document.getElementById(btn.dataset.copyTarget);
     if (!codeEl || !navigator.clipboard) return;
     navigator.clipboard.writeText(codeEl.textContent.trim()).then(function(){ flashCopied(btn); });
-  });
-});
-document.querySelectorAll('.doc-copy-btn').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    var link = btn.parentElement.querySelector('a[href]');
-    if (!link || !navigator.clipboard) return;
-    navigator.clipboard.writeText(link.href).then(function(){ flashCopied(btn); });
   });
 });
 
