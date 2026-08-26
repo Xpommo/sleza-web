@@ -196,7 +196,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .code{font-family:var(--mono);font-size:12px;background:var(--ink);color:#f2f0ec;border-radius:10px;
   padding:13px 14px;overflow-x:auto;white-space:pre;line-height:1.7}
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:13px;flex-wrap:wrap}
-.tabs button{background:none;border:0;padding:8px 12px;font-size:13px;font-weight:700;color:rgba(17,17,16,.55);
+.tabs button{background:none;border:0;padding:8px 12px;font-size:13px;font-weight:700;color:rgba(17,17,16,.65);
   cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
 .tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
 
@@ -252,6 +252,24 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .modal-overlay>.card{transform:scale(.95);opacity:0;transition:transform 200ms ease-out,opacity 200ms ease-out}
 .modal-overlay.open>.card{transform:scale(1);opacity:1}
 @starting-style{.modal-overlay.open>.card{transform:scale(.95);opacity:0}}
+
+/* аудит /impeccable audit (26 августа): движение выключается,
+   состояние — нет. Цветовой/фоновый фидбэк на нажатии и opacity-кроссфейд
+   открытия/закрытия остаются (иначе пропадает сигнал о смене состояния),
+   уходит только transform (scale/bounce). */
+@media(prefers-reduced-motion:reduce){
+  .btn,.seg button,.navlist a,.navlist button,.actbtn{transition:border-color .15s ease-out,background-color .15s ease-out,color .15s ease-out}
+  .btn:active,.seg button:active,.navlist button:active,.actbtn:active{transform:none}
+  .switch-thumb{transition:none}
+  .cl-item.done .cl-mark{animation:none}
+  .acct-menu{transition:opacity 150ms ease-out,display 150ms allow-discrete}
+  .acct-menu.open{transform:none}
+  @starting-style{.acct-menu.open{opacity:0}}
+  .modal-overlay>.card{transition:opacity 200ms ease-out;transform:none}
+  .modal-overlay.open>.card{transform:none}
+  @starting-style{.modal-overlay.open>.card{opacity:0}}
+}
+
 .acct-menu a,.acct-menu button{display:flex;width:100%;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;
   font-size:13.5px;font-weight:600;color:var(--ink-2);background:none;border:0;cursor:pointer;text-align:left}
 .acct-menu a:hover,.acct-menu button:hover{background:var(--paper);color:var(--ink)}
@@ -1955,9 +1973,9 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 </section>
 
 <!-- модалка реквизитов (настройки) -->
-<div class="modal-overlay" data-state="closed" id="modal-req-set" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" data-state="closed" id="modal-req-set" role="dialog" aria-modal="true" aria-labelledby="modal-req-set-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
-    <div class="row" style="justify-content:space-between"><h3>Реквизиты владельца</h3><button class="btn text sm" data-modal-close="modal-req-set">✕</button></div>
+    <div class="row" style="justify-content:space-between"><h3 id="modal-req-set-title">Реквизиты владельца</h3><button class="btn text sm" data-modal-close="modal-req-set">✕</button></div>
 
     <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ok);margin-top:14px">✓ заполним сами — вам нужно только проверить</div>
     <label class="f" style="margin-top:8px">Наименование</label>
@@ -1993,9 +2011,9 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
      сайта, здесь — куда слать счёт и с какого счёта спишут, тот самый
      смысл, который уже объясняет надпись «не для подвала сайта» рядом с
      блоком на s-billing. -->
-<div class="modal-overlay" data-state="closed" id="modal-req-invoice" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" data-state="closed" id="modal-req-invoice" role="dialog" aria-modal="true" aria-labelledby="modal-req-invoice-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
-    <div class="row" style="justify-content:space-between"><h3>Реквизиты для счёта</h3><button class="btn text sm" data-modal-close="modal-req-invoice">✕</button></div>
+    <div class="row" style="justify-content:space-between"><h3 id="modal-req-invoice-title">Реквизиты для счёта</h3><button class="btn text sm" data-modal-close="modal-req-invoice">✕</button></div>
     <label class="f" style="margin-top:14px">Email для счёта</label>
     <input class="inp" id="modal-invoice-email" value="buh@alfa-school.ru">
     <label class="f" style="margin-top:10px">Телефон</label>
@@ -2014,9 +2032,9 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 </div>
 
 <!-- модалка смены пароля — «Изменить» в Настройках раньше никуда не вела -->
-<div class="modal-overlay" data-state="closed" id="modal-pass" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" data-state="closed" id="modal-pass" role="dialog" aria-modal="true" aria-labelledby="modal-pass-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
-    <div class="row" style="justify-content:space-between"><h3>Смена пароля</h3><button class="btn text sm" data-modal-close="modal-pass">✕</button></div>
+    <div class="row" style="justify-content:space-between"><h3 id="modal-pass-title">Смена пароля</h3><button class="btn text sm" data-modal-close="modal-pass">✕</button></div>
     <label class="f" style="margin-top:14px">Текущий пароль</label>
     <input class="inp" type="password" placeholder="••••••••">
     <label class="f" style="margin-top:10px">Новый пароль</label>
@@ -2045,9 +2063,9 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
      виджет и обновление документов при смене закона — платная часть. -->
 <!-- то же самое разграничение — s-project-paid (data-pay-state=expired
      card) и FAQ на s-support. -->
-<div class="modal-overlay" data-state="closed" id="modal-cancel" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" data-state="closed" id="modal-cancel" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
-    <div class="row" style="justify-content:space-between"><h3>Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
+    <div class="row" style="justify-content:space-between"><h3 id="modal-cancel-title">Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
     <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 05.09.2026. После этого виджет на сайте отключится, обновление по закону остановится — как при истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
     <div class="row" style="margin-top:16px">
       <button class="btn solid" id="cancel-confirm" style="background:var(--danger);border-color:var(--danger)" data-modal-close="modal-cancel">Да, отменить</button>
@@ -2783,17 +2801,43 @@ document.querySelectorAll('[data-pass-toggle]').forEach(function(b){
   });
 });
 
-/* модалка реквизитов */
+/* модалка реквизитов — Escape, фокус-ловушка (Tab не должен утекать под
+   скрим), возврат фокуса на кнопку-триггер при закрытии, клик по фону
+   закрывает как и явные кнопки. */
+var modalFocusableSel = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+var modalLastTrigger = null;
+function openModal(m, trigger){
+  modalLastTrigger = trigger || document.activeElement;
+  m.classList.add('open');
+  var first = m.querySelector(modalFocusableSel);
+  if (first) first.focus();
+}
+function closeModal(m){
+  m.classList.remove('open');
+  if (modalLastTrigger) { modalLastTrigger.focus(); modalLastTrigger = null; }
+}
 document.querySelectorAll('[data-go-modal]').forEach(function(b){
   b.addEventListener('click', function(){
     var m = document.getElementById(b.dataset.goModal);
-    if (m) m.classList.add('open');
+    if (m) openModal(m, b);
   });
 });
 document.querySelectorAll('[data-modal-close]').forEach(function(b){
   b.addEventListener('click', function(){
     var m = document.getElementById(b.dataset.modalClose);
-    if (m) m.classList.remove('open');
+    if (m) closeModal(m);
+  });
+});
+document.querySelectorAll('.modal-overlay').forEach(function(m){
+  m.addEventListener('mousedown', function(e){ if (e.target === m) closeModal(m); });
+  m.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') { closeModal(m); return; }
+    if (e.key !== 'Tab') return;
+    var focusable = Array.prototype.slice.call(m.querySelectorAll(modalFocusableSel));
+    if (!focusable.length) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
 });
 document.querySelectorAll('[data-save-req]').forEach(function(b){
