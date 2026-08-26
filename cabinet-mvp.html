@@ -110,8 +110,10 @@ p{margin:0}
 .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14.5px;font-weight:700;
-  border:1.5px solid var(--line-2);background:var(--white);color:var(--ink);padding:12px 20px;border-radius:10px;cursor:pointer}
+  border:1.5px solid var(--line-2);background:var(--white);color:var(--ink);padding:12px 20px;border-radius:10px;cursor:pointer;
+  transition:transform 160ms ease-out,border-color .15s ease-out,background-color .15s ease-out,color .15s ease-out}
 .btn:hover{border-color:rgba(17,17,16,.4)}
+.btn:active{transform:scale(.97)}
 .btn.solid{background:var(--ink);border-color:var(--ink);color:#fff}
 .btn.solid:hover{background:var(--brand);border-color:var(--brand)}
 .btn.text{border-color:transparent;background:none;padding:12px 4px;color:rgba(17,17,16,.7)}
@@ -139,7 +141,7 @@ p{margin:0}
 .switch{display:inline-flex;align-items:center;cursor:pointer;flex:none}
 .switch input{position:absolute;opacity:0;width:1px;height:1px}
 .switch-track{width:40px;height:24px;border-radius:999px;background:var(--line-2);position:relative;transition:background .15s;flex:none}
-.switch-thumb{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(17,17,16,.25);transition:transform .15s}
+.switch-thumb{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(17,17,16,.25);transition:transform .15s ease-out}
 .switch input:checked ~ .switch-track{background:var(--ok)}
 .switch input:checked ~ .switch-track .switch-thumb{transform:translateX(16px)}
 .switch input:focus-visible ~ .switch-track{box-shadow:0 0 0 3px rgba(31,31,230,.25)}
@@ -187,8 +189,9 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .check .t{font-size:14px}
 .seg{display:inline-flex;gap:3px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
 .seg button{background:none;border:0;padding:8px 15px;border-radius:8px;font-size:13.5px;font-weight:700;
-  color:rgba(17,17,16,.6);cursor:pointer}
+  color:rgba(17,17,16,.6);cursor:pointer;transition:transform 160ms ease-out,background-color .15s ease-out,color .15s ease-out}
 .seg button.on{background:var(--ink);color:#fff}
+.seg button:active{transform:scale(.97)}
 
 .code{font-family:var(--mono);font-size:12px;background:var(--ink);color:#f2f0ec;border-radius:10px;
   padding:13px 14px;overflow-x:auto;white-space:pre;line-height:1.7}
@@ -215,8 +218,10 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .backlink:hover{color:var(--ink)}
 .navlist{display:flex;flex-direction:column;gap:2px}
 .navlist a,.navlist button{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;
-  font-size:14px;font-weight:700;color:rgba(17,17,16,.68);cursor:pointer;background:none;border:0;font-family:inherit;text-align:left}
+  font-size:14px;font-weight:700;color:rgba(17,17,16,.68);cursor:pointer;background:none;border:0;font-family:inherit;text-align:left;
+  transition:transform 160ms ease-out,background-color .15s ease-out,color .15s ease-out}
 .navlist a:hover,.navlist button:hover{background:var(--white);color:var(--ink)}
+.navlist button:active{transform:scale(.98)}
 .navlist a.on,.navlist button.on{background:var(--ink);color:#fff}
 .side .acct{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);position:relative}
 .acct-btn{display:flex;align-items:center;gap:9px;width:100%;background:none;border:0;padding:8px 8px;
@@ -255,7 +260,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .addcard span{font-size:11.5px;max-width:24ch}
 
 .projcard{position:relative;border:1px solid var(--line-2);border-radius:12px;padding:15px 16px;
-  background:var(--white);display:flex;flex-direction:column;min-height:180px}
+  background:var(--white);display:flex;flex-direction:column;min-height:180px;transition:border-color .15s ease-out}
 .projcard:hover{border-color:rgba(17,17,16,.3)}
 .projcard .dom{font-family:var(--mono);font-size:13px;font-weight:600}
 .projcard .name{font-size:14.5px;font-weight:700;letter-spacing:-.01em;margin-top:1px}
@@ -268,7 +273,9 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 
 .actbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;
   padding:9px 10px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;
-  border:1.5px solid transparent;background:none;color:rgba(17,17,16,.7)}
+  border:1.5px solid transparent;background:none;color:rgba(17,17,16,.7);
+  transition:transform 160ms ease-out,border-color .15s ease-out,background-color .15s ease-out,color .15s ease-out}
+.actbtn:active{transform:scale(.97)}
 .actbtn.solid{background:var(--ink);color:#fff}
 .actbtn.solid:hover{background:var(--brand)}
 .actbtn.outline{border-color:var(--line-2);color:var(--ink)}
@@ -543,8 +550,8 @@ details.acc:first-child{margin-top:0}
    долго, если вопрос вообще не тронуть (демо-макет, не строгий валидатор
    формы — «тронуть» здесь означает клик/фокус внутри карточки вопроса,
    см. script). */
-.cl-item.done .cl-mark{border:none;background:var(--ok-tint);color:var(--ok);animation:clPop .4s cubic-bezier(.34,1.56,.64,1)}
-@keyframes clPop{0%{transform:scale(.3)}55%{transform:scale(1.2)}100%{transform:scale(1)}}
+.cl-item.done .cl-mark{border:none;background:var(--ok-tint);color:var(--ok);animation:clPop .4s ease-out}
+@keyframes clPop{0%{transform:scale(.3)}55%{transform:scale(1.15)}100%{transform:scale(1)}}
 .cl-item[hidden]{display:none}
 /* строка «отраслевой блок — не входит» — появляется только для
    регулируемых сфер (медицина/финансы/детские центры, см. data-regulated
