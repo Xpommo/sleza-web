@@ -2058,24 +2058,40 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
            поэтому вместо картинки — поясняющий текст, а не додуманная
            третья картинка. -->
       <div class="card pad" style="margin-top:16px">
-        <div class="row" style="justify-content:space-between;align-items:flex-start">
-          <div>
-            <span class="b green" id="widget-status-b">✓ Работает</span>
-            <p class="small" style="margin-top:6px;color:var(--ink-2)" id="widget-status-p">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
-          </div>
-          <!-- прямой запрос пользователя — раньше выключить виджет можно
-               было только отменой подписки. Полноценный переключатель,
-               без ограничений по времени, по явному решению: предупреждаем
-               о последствии текстом рядом, не блокируем действие. -->
-          <label class="switch" title="Включить/выключить виджет на сайте">
-            <input type="checkbox" id="widget-enabled-toggle" checked>
+        <span class="b green" id="widget-status-b">✓ Работает</span>
+        <p class="small" style="margin-top:6px;color:var(--ink-2)" id="widget-status-p">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
+        <div class="hr"></div>
+
+        <!-- независимый обзор кабинета: баннер и подвал — разные по
+             юридической роли вещи, не одна «функция виджета» с одной
+             кнопкой. Подвал — постоянная публикация документов (ст.14
+             ч.1 152-ФЗ, доступность неограниченному кругу лиц), баннер —
+             разовый запрос согласия на cookie. Выключить их порознь —
+             два разных, не «половинных», риска, каждому свой текст
+             предупреждения. Реальный сценарий раздельного выключения:
+             у клиента уже стоит свой баннер или свой подвал на
+             конструкторе, наш нужен только для второй половины. -->
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div style="font-weight:700;font-size:14px">Баннер cookie</div>
+          <label class="switch" title="Включить/выключить баннер">
+            <input type="checkbox" id="banner-enabled-toggle" checked>
             <span class="switch-track"><span class="switch-thumb"></span></span>
           </label>
         </div>
-        <p class="tiny" id="widget-off-warning" style="display:none;margin-top:8px;color:var(--danger)">Пока выключен, баннер и ссылки на документы не показываются посетителям — сайт технически перестаёт соответствовать 152-ФЗ, хотя подписка продолжает действовать и списываться.</p>
-        <div class="hr"></div>
+        <p class="tiny" id="banner-off-warning" style="display:none;margin-top:4px;color:var(--danger)">Посетители не увидят запрос согласия перед использованием cookie.</p>
 
-        <div id="widget-live-content">
+        <div class="row" style="justify-content:space-between;align-items:center;margin-top:14px">
+          <div style="font-weight:700;font-size:14px">Подвал сайта</div>
+          <label class="switch" title="Включить/выключить подвал сайта">
+            <input type="checkbox" id="footer-enabled-toggle" checked>
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+        </div>
+        <p class="tiny" id="footer-off-warning" style="display:none;margin-top:4px;color:var(--danger)">Ссылки на документы и реквизиты компании перестанут быть постоянно видны посетителям — риск по ст.14 152-ФЗ (документ обязан быть доступен неограниченному кругу лиц).</p>
+
+        <div class="hr" style="margin-top:14px"></div>
+
+        <div id="banner-live-content">
         <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Тема баннера</h3>
         <div class="seg" style="margin:8px 0 12px">
           <button type="button" class="on" data-swap="bthemelight">Светлая</button>
@@ -2105,8 +2121,13 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div data-swapped="bthemeauto" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:16px;text-align:center">
           <p class="tiny">Подстроится под системную тему браузера посетителя — светлая или тёмная. Один статичный превью здесь не покажет оба варианта.</p>
         </div>
+        </div>
+        <div id="banner-off-placeholder" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:20px 16px;text-align:center">
+          <p class="tiny">Баннер выключен — посетители его не видят.</p>
+        </div>
 
-        <div class="dark-footer" style="margin-top:14px">
+        <div id="footer-live-content" style="margin-top:14px">
+        <div class="dark-footer">
           <div class="lbl">подвал сайта</div>
           <div class="body">
             <div class="row2">
@@ -2120,8 +2141,8 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           </div>
         </div>
         </div>
-        <div id="widget-off-placeholder" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:24px 16px;text-align:center">
-          <p class="tiny">Виджет выключен — посетители не видят ни баннер, ни ссылки на документы в подвале сайта.</p>
+        <div id="footer-off-placeholder" style="display:none;margin-top:14px;border:1px dashed var(--line-2);border-radius:10px;padding:20px 16px;text-align:center">
+          <p class="tiny">Подвал сайта выключен — ссылки на документы и реквизиты не показываются.</p>
         </div>
 
         <div class="hr" style="margin-top:14px"></div>
@@ -2573,23 +2594,35 @@ document.querySelectorAll('[data-fold]').forEach(function(b){
   });
 });
 
-// Переключатель вкл/выкл виджета (s-widget) — прямой запрос пользователя.
-// Полноценный, без авто-возврата — предупреждаем о последствии текстом,
-// не ограничиваем действие технически (осознанный выбор пользователя,
-// не решение этой сессии).
-function syncWidgetToggle(){
-  var on = document.getElementById('widget-enabled-toggle').checked;
+// Переключатели вкл/выкл виджета (s-widget) — прямой запрос пользователя,
+// сначала одним общим тумблером, затем разделён на баннер/подвал отдельно
+// (по прямому запросу — разная юридическая роль, разные предупреждения).
+// Полноценные, без авто-возврата — предупреждаем о последствии текстом,
+// не ограничиваем действие технически (осознанный выбор пользователя).
+function syncWidgetToggles(){
+  var bannerOn = document.getElementById('banner-enabled-toggle').checked;
+  var footerOn = document.getElementById('footer-enabled-toggle').checked;
   var statusB = document.getElementById('widget-status-b');
   var statusP = document.getElementById('widget-status-p');
-  statusB.textContent = on ? '✓ Работает' : '⏸ Отключён вами';
-  statusB.className = 'b ' + (on ? 'green' : 'amber');
-  statusP.style.display = on ? '' : 'none';
-  document.getElementById('widget-off-warning').style.display = on ? 'none' : 'block';
-  document.getElementById('widget-live-content').style.display = on ? '' : 'none';
-  document.getElementById('widget-off-placeholder').style.display = on ? 'none' : 'block';
+
+  if (bannerOn && footerOn) { statusB.textContent = '✓ Работает'; statusP.style.display = ''; }
+  else if (!bannerOn && !footerOn) { statusB.textContent = '⏸ Отключён вами'; statusP.style.display = 'none'; }
+  else if (!bannerOn) { statusB.textContent = '⚠ Баннер выключен'; statusP.style.display = 'none'; }
+  else { statusB.textContent = '⚠ Подвал выключен'; statusP.style.display = 'none'; }
+  statusB.className = 'b ' + (bannerOn && footerOn ? 'green' : 'amber');
+
+  document.getElementById('banner-off-warning').style.display = bannerOn ? 'none' : 'block';
+  document.getElementById('banner-live-content').style.display = bannerOn ? '' : 'none';
+  document.getElementById('banner-off-placeholder').style.display = bannerOn ? 'none' : 'block';
+
+  document.getElementById('footer-off-warning').style.display = footerOn ? 'none' : 'block';
+  document.getElementById('footer-live-content').style.display = footerOn ? '' : 'none';
+  document.getElementById('footer-off-placeholder').style.display = footerOn ? 'none' : 'block';
 }
-var widgetToggle = document.getElementById('widget-enabled-toggle');
-if (widgetToggle) widgetToggle.addEventListener('change', syncWidgetToggle);
+var bannerToggle = document.getElementById('banner-enabled-toggle');
+if (bannerToggle) bannerToggle.addEventListener('change', syncWidgetToggles);
+var footerToggle = document.getElementById('footer-enabled-toggle');
+if (footerToggle) footerToggle.addEventListener('change', syncWidgetToggles);
 
 /* тумблеры внутри карточек — независимый UX-аудит, критика A, P2 (третий
    раунд): сегмент-контролы (форма собственности, платформа, вкладки
