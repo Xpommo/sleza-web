@@ -233,8 +233,25 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .acct-btn .name{display:block;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acct-btn .mail{display:block;font-size:11px;color:rgba(17,17,16,.5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acct-menu{display:none;position:absolute;left:0;right:0;bottom:calc(100% + 6px);background:var(--white);
-  border:1px solid var(--line-2);border-radius:11px;box-shadow:0 10px 30px rgba(17,17,16,.14);padding:6px;z-index:20}
-.acct-menu.open{display:block}
+  border:1px solid var(--line-2);border-radius:11px;box-shadow:0 10px 30px rgba(17,17,16,.14);padding:6px;z-index:20;
+  transform-origin:bottom left;opacity:0;transform:scale(.95);
+  transition:opacity 150ms ease-out,transform 150ms ease-out,display 150ms allow-discrete}
+.acct-menu.open{display:block;opacity:1;transform:scale(1)}
+@starting-style{.acct-menu.open{opacity:0;transform:scale(.95)}}
+
+/* модалки (data-go-modal/data-modal-close) — раньше мгновенный
+   display:none↔flex через инлайн-стиль, независимый прогон
+   find-animation-opportunities поймал как «teleporting state». Тот
+   же приём, что .acct-menu: @starting-style + allow-discrete, JS не
+   трогали (data-go-modal/data-modal-close уже управляют классом,
+   не style.display напрямую — только сняли инлайновый display:none,
+   он побеждал бы по specificity над .modal-overlay.open{display:flex}). */
+.modal-overlay{display:none;opacity:0;transition:opacity 200ms ease-out,display 200ms allow-discrete}
+.modal-overlay.open{display:flex;opacity:1}
+@starting-style{.modal-overlay.open{opacity:0}}
+.modal-overlay>.card{transform:scale(.95);opacity:0;transition:transform 200ms ease-out,opacity 200ms ease-out}
+.modal-overlay.open>.card{transform:scale(1);opacity:1}
+@starting-style{.modal-overlay.open>.card{transform:scale(.95);opacity:0}}
 .acct-menu a,.acct-menu button{display:flex;width:100%;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;
   font-size:13.5px;font-weight:600;color:var(--ink-2);background:none;border:0;cursor:pointer;text-align:left}
 .acct-menu a:hover,.acct-menu button:hover{background:var(--paper);color:var(--ink)}
@@ -1938,7 +1955,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 </section>
 
 <!-- модалка реквизитов (настройки) -->
-<div class="state" data-state="closed" id="modal-req-set" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" data-state="closed" id="modal-req-set" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Реквизиты владельца</h3><button class="btn text sm" data-modal-close="modal-req-set">✕</button></div>
 
@@ -1976,7 +1993,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
      сайта, здесь — куда слать счёт и с какого счёта спишут, тот самый
      смысл, который уже объясняет надпись «не для подвала сайта» рядом с
      блоком на s-billing. -->
-<div class="state" data-state="closed" id="modal-req-invoice" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" data-state="closed" id="modal-req-invoice" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Реквизиты для счёта</h3><button class="btn text sm" data-modal-close="modal-req-invoice">✕</button></div>
     <label class="f" style="margin-top:14px">Email для счёта</label>
@@ -1997,7 +2014,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 </div>
 
 <!-- модалка смены пароля — «Изменить» в Настройках раньше никуда не вела -->
-<div class="state" data-state="closed" id="modal-pass" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" data-state="closed" id="modal-pass" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Смена пароля</h3><button class="btn text sm" data-modal-close="modal-pass">✕</button></div>
     <label class="f" style="margin-top:14px">Текущий пароль</label>
@@ -2028,7 +2045,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
      виджет и обновление документов при смене закона — платная часть. -->
 <!-- то же самое разграничение — s-project-paid (data-pay-state=expired
      card) и FAQ на s-support. -->
-<div class="state" data-state="closed" id="modal-cancel" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" data-state="closed" id="modal-cancel" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3>Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
     <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 05.09.2026. После этого виджет на сайте отключится, обновление по закону остановится — как при истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
@@ -2770,13 +2787,13 @@ document.querySelectorAll('[data-pass-toggle]').forEach(function(b){
 document.querySelectorAll('[data-go-modal]').forEach(function(b){
   b.addEventListener('click', function(){
     var m = document.getElementById(b.dataset.goModal);
-    if (m) m.style.display = 'flex';
+    if (m) m.classList.add('open');
   });
 });
 document.querySelectorAll('[data-modal-close]').forEach(function(b){
   b.addEventListener('click', function(){
     var m = document.getElementById(b.dataset.modalClose);
-    if (m) m.style.display = 'none';
+    if (m) m.classList.remove('open');
   });
 });
 document.querySelectorAll('[data-save-req]').forEach(function(b){
