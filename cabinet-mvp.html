@@ -1804,6 +1804,20 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       </div>
       <p class="tiny" style="margin-top:7px">Сверено с ЕГРЮЛ — используются в документах и в подвале сайта.</p>
       </details>
+
+      <!-- независимый обзор кабинета: единственный контакт в аккаунте —
+           если Кирилл недоступен, о сбое оплаты или отказе виджета узнать
+           некому. Необязательное поле, не полноценная многопользовательская
+           модель — просто второй адрес для дублирования важных писем. -->
+      <details class="acc" open style="margin-top:24px">
+      <summary class="acc-title">Уведомления</summary>
+      <div class="card pad">
+        <label class="f">Дублировать на почту</label>
+        <input class="inp mono" id="notify-email" placeholder="buh@alfa-school.ru">
+        <p class="tiny" style="margin-top:6px">Например, бухгалтеру или веб-мастеру — продублируем сюда письма о продлении, сбоях оплаты и статусе виджета, на случай если основной адрес недоступен. Необязательно.</p>
+      </div>
+      <button id="save-notify-btn" class="btn solid" style="margin-top:12px">Сохранить</button>
+      </details>
     </main>
   </div>
 </section>
@@ -2106,7 +2120,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <h2 style="margin-top:22px">Частые вопросы</h2>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Как поменять способ оплаты?</span><span class="chev">›</span></button>
-        <div class="bd"><div class="txt">В Настройках → Подписка выберите карту или счёт.</div></div>
+        <div class="bd"><div class="txt">В разделе «Подписка» в сайдбаре выберите карту или счёт.</div></div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Что будет, если не оплатить вовремя?</span><span class="chev">›</span></button>
@@ -2118,11 +2132,11 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Могу я добавить второй сайт?</span><span class="chev">›</span></button>
-        <div class="bd"><div class="txt">Да — на «Мои сайты» нажмите «Добавить сайт».</div></div>
+        <div class="bd"><div class="txt">Да — на «Мои сайты» нажмите «Добавить сайт». Подписка отдельная на каждый сайт, документы и виджет тоже свои.</div></div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Как отменить подписку?</span><span class="chev">›</span></button>
-        <div class="bd"><div class="txt">В Настройках → Подписка → «Отменить подписку». Доступ к документам сохранится до конца оплаченного периода.</div></div>
+        <div class="bd"><div class="txt">В разделе «Подписка» в сайдбаре → «Отменить подписку». Доступ к документам сохранится до конца оплаченного периода.</div></div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Виджет не появился на сайте — что делать?</span><span class="chev">›</span></button>
@@ -2491,7 +2505,7 @@ function wireEmailGate(btnId, inputId, errorId, label){
 }
 wireEmailGate('send-instructions-btn', 'install-dev-email', 'install-dev-email-error', 'Отправлено ✓');
 wireEmailGate('send-self-btn', 'install-self-email', 'install-self-email-error', 'Отправлено ✓');
-['save-contacts-btn', 'save-requisites-btn'].forEach(function(id){
+['save-contacts-btn', 'save-requisites-btn', 'save-notify-btn'].forEach(function(id){
   var btn = document.getElementById(id);
   if (btn) btn.addEventListener('click', function(){ flashDone(btn, 'Сохранено ✓'); });
 });
