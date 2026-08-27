@@ -245,17 +245,21 @@ section.block:last-of-type{border-bottom:0}
   display:flex;align-items:flex-end;justify-content:center;padding-bottom:18px}
 
 /* типичные ошибки */
-.cases{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line-strong);border-radius:10px;overflow:hidden}
-@media(max-width:700px){.cases{grid-template-columns:1fr}}
-.case{background:var(--bg-elev);padding:20px;display:flex;flex-direction:column;gap:12px}
-.case .tags{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.case .viol{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:var(--danger-tint);color:var(--danger);padding:2px 8px;border-radius:4px}
-.case .reg{font-family:var(--mono);font-size:10px;color:var(--ink-trace)}
-.case .name{font-size:15px;font-weight:700;letter-spacing:-.01em}
-.case .found{font-size:14px;color:var(--ink-2);line-height:1.5;flex:1}
-.case .fine-wrap{border-top:1px dashed var(--line-strong);padding-top:12px}
-.case .law{font-family:var(--mono);font-size:11px;color:var(--brand)}
-.case .fine{font-weight:700;font-size:15px;color:var(--danger)}
+.case-list{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:0 24px}
+.case-row{display:flex;justify-content:space-between;align-items:flex-start;gap:28px;padding:24px 0;border-bottom:1px solid var(--line)}
+.case-row:last-child{border-bottom:0}
+.case-tags{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+.case-tags .viol{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:var(--danger-tint);color:var(--danger);padding:2px 8px;border-radius:4px}
+.case-tags .reg{font-family:var(--mono);font-size:10px;color:var(--ink-trace)}
+.case-name{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.case-found{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin-top:7px;max-width:54ch}
+.case-value{flex:none;text-align:right}
+.case-fine{font-weight:800;font-size:19px;color:var(--danger);letter-spacing:-.01em;white-space:nowrap}
+.case-law{font-size:10.5px;color:var(--ink-faint);margin-top:5px;white-space:nowrap}
+@media(max-width:600px){
+  .case-row{flex-direction:column;gap:10px}
+  .case-value{text-align:left}
+}
 
 /* тонкая CTA-полоса между «типичные ошибки» и FAQ — не отдельная секция с рамкой
    с обеих сторон (двойная линия рядом с уже имеющейся у секции выше), а полоса на фоне
@@ -481,7 +485,13 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
   </div>
 </section>
 
-<!-- ══ ТИПИЧНЫЕ ОШИБКИ ══════════════════════════════════════════════ -->
+<!-- ══ ТИПИЧНЫЕ ОШИБКИ ══════════════════════════════════════════════
+     Раньше — сетка из 3 одинаковых бордер-карточек (.cases/.case), последняя
+     оставшаяся на странице секция в этом стиле после того, как «Что мы находим»
+     стала плоским списком + мокапом. Приводим к тому же языку, что уже дважды
+     использован на странице (список чек-листа, FAQ) — один общий контейнер,
+     разделители-волоски, а не N отдельных рамок. Сумма штрафа — с тем же весом,
+     что и в мокапе выше (крупная моно-цифра), а не мелкая строка в подвале карточки. -->
 <section class="block">
   <div class="wrap">
     <div class="sh">
@@ -489,24 +499,39 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
       <h2>Типичные ошибки на российских сайтах</h2>
       <p>Три показательных примера того, как это выглядит на практике — без привязки к конкретному сайту.</p>
     </div>
-    <div class="cases">
-      <div class="case">
-        <div class="tags"><span class="viol">нарушение</span><span class="reg">Новосибирск</span></div>
-        <div class="name">Интернет-магазин</div>
-        <p class="found">Google Analytics установлен на всех страницах, включая форму оформления заказа — данные покупателей уходят на серверы в США.</p>
-        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 18 ч. 5 · локализация ПДн</div><div class="fine">от 6 000 000 ₽</div></div>
+    <div class="case-list">
+      <div class="case-row">
+        <div class="case-body">
+          <div class="case-tags"><span class="viol">нарушение</span><span class="reg">Новосибирск</span></div>
+          <div class="case-name">Интернет-магазин</div>
+          <p class="case-found">Google Analytics установлен на всех страницах, включая форму оформления заказа — данные покупателей уходят на серверы в США.</p>
+        </div>
+        <div class="case-value">
+          <div class="case-fine mono">от 6 000 000 ₽</div>
+          <div class="case-law mono">152-ФЗ · ст. 18 ч. 5</div>
+        </div>
       </div>
-      <div class="case">
-        <div class="tags"><span class="viol">нарушение</span><span class="reg">Регионы</span></div>
-        <div class="name">Новостной портал</div>
-        <p class="found">Политика конфиденциальности есть, но не содержит 4 из 7 обязательных разделов: нет целей обработки, сроков хранения, категорий субъектов, порядка отзыва согласия.</p>
-        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 18.1 · неполная политика ПД</div><div class="fine">до 60 000 ₽</div></div>
+      <div class="case-row">
+        <div class="case-body">
+          <div class="case-tags"><span class="viol">нарушение</span><span class="reg">Регионы</span></div>
+          <div class="case-name">Новостной портал</div>
+          <p class="case-found">Политика конфиденциальности есть, но не содержит 4 из 7 обязательных разделов: нет целей обработки, сроков хранения, категорий субъектов, порядка отзыва согласия.</p>
+        </div>
+        <div class="case-value">
+          <div class="case-fine mono">до 60 000 ₽</div>
+          <div class="case-law mono">152-ФЗ · ст. 18.1</div>
+        </div>
       </div>
-      <div class="case">
-        <div class="tags"><span class="viol">нарушение</span><span class="reg">Санкт-Петербург</span></div>
-        <div class="name">Онлайн-школа</div>
-        <p class="found">Форма записи на занятие собирает телефон и email, но согласия на обработку данных рядом нет — ни галочки, ни ссылки на политику.</p>
-        <div class="fine-wrap"><div class="law">152-ФЗ · ст. 9 · согласие на форме сбора</div><div class="fine">от 300 000 ₽</div></div>
+      <div class="case-row">
+        <div class="case-body">
+          <div class="case-tags"><span class="viol">нарушение</span><span class="reg">Санкт-Петербург</span></div>
+          <div class="case-name">Онлайн-школа</div>
+          <p class="case-found">Форма записи на занятие собирает телефон и email, но согласия на обработку данных рядом нет — ни галочки, ни ссылки на политику.</p>
+        </div>
+        <div class="case-value">
+          <div class="case-fine mono">от 300 000 ₽</div>
+          <div class="case-law mono">152-ФЗ · ст. 9</div>
+        </div>
       </div>
     </div>
   </div>
