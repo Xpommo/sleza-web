@@ -263,6 +263,11 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
 .foot-cta:hover{filter:brightness(1.12);transform:translateY(-1px)}
 .foot-cta svg{flex-shrink:0}
 .foot-bottom{padding:18px 0 28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.04em;color:rgba(255,255,255,.34)}
+/* пока пустышка (href="#") — фундамент под будущую политику самого ШтрафКонтроля
+   (не Белого Сайта): куда уходит домен из формы, что с контактом при отправке в
+   Telegram. Не актуально, пока это макет — но место в разметке уже есть. */
+.foot-bottom a{color:rgba(255,255,255,.34);text-decoration:underline;text-underline-offset:2px;transition:color .15s}
+.foot-bottom a:hover{color:#fff}
 .back-link{text-align:center;padding:14px 20px;background:var(--bg)}
 .back-link a{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
 
@@ -391,9 +396,9 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
       <div class="res-list" id="resList"></div>
 
       <div class="offer" id="offer">
-        <div class="t">У вас <span id="offerScore"></span> из 100 — есть нарушения на сумму <span id="offerFine"></span></div>
-        <p class="d">Полный отчёт со всеми найденными нарушениями и что с ними делать — пришлём в Telegram.</p>
-        <a href="#" class="btn" style="margin-top:14px;text-decoration:none" onclick="return sendOfferTelegram()">Получить отчёт и чек-лист в Telegram →</a>
+        <div class="t" id="offerTitle"></div>
+        <p class="d" id="offerDesc"></p>
+        <a href="#" class="btn" id="offerBtn" style="margin-top:14px;text-decoration:none" onclick="return sendOfferTelegram()"></a>
         <div class="thanks"><b>Спасибо!</b><p id="offerThanksText"></p></div>
       </div>
 
@@ -487,6 +492,7 @@ footer .wrap{max-width:1040px;background:var(--ink);border-radius:20px;padding-l
     </div>
     <div class="foot-bottom">
       <span>© слеза · сервис юридического комплаенса для сайтов</span>
+      <a href="#">Политика обработки данных ШтрафКонтроля</a>
     </div>
   </div>
 </footer>
@@ -634,8 +640,18 @@ function renderSummary(){
   var fineMoney = fmtMoney(s.fineSum) + ' ₽';
   var fineText = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
   document.getElementById('resFineSum').textContent = fineText;
-  document.getElementById('offerScore').textContent = s.score;
-  document.getElementById('offerFine').textContent = fineText;
+
+  // офер: при fineSum=0 «есть нарушения на сумму 0 ₽» — противоречие само себе (нечего
+  // сообщать, но зовём получить отчёт о том, чего нет). Разные тексты, не просто число 0.
+  if(s.fineSum > 0){
+    document.getElementById('offerTitle').textContent = 'У вас ' + s.score + ' из 100 — есть нарушения на сумму ' + fineText;
+    document.getElementById('offerDesc').textContent = 'Полный отчёт со всеми найденными нарушениями и что с ними делать — пришлём в Telegram.';
+    document.getElementById('offerBtn').textContent = 'Получить отчёт и чек-лист в Telegram →';
+  } else {
+    document.getElementById('offerTitle').textContent = 'У вас ' + s.score + ' из 100 — подтверждённых нарушений не найдено';
+    document.getElementById('offerDesc').textContent = 'Требования меняются, разовая проверка не гарантирует, что так будет и через полгода. Напишем в Telegram, если появится повод перепроверить.';
+    document.getElementById('offerBtn').textContent = 'Подписаться на уведомления в Telegram →';
+  }
 
   // гейдж «риск получения штрафа» — на той же 100-балльной шкале, что и весь остальной
   // скор на странице, без новой формулы: риск = 100 − score (прямое дополнение).
@@ -688,7 +704,10 @@ function showOfferThanks(text){
 
 function sendOfferTelegram(e){
   if(e) e.preventDefault();
-  showOfferThanks('Отчёт придёт в Telegram в течение нескольких минут.');
+  var s = computeSummary();
+  showOfferThanks(s.fineSum > 0
+    ? 'Отчёт придёт в Telegram в течение нескольких минут.'
+    : 'Готово — напишем в Telegram, если появится повод перепроверить.');
   return false;
 }
 
