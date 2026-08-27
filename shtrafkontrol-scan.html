@@ -207,6 +207,7 @@ section.block:last-of-type{border-bottom:0}
    одинаковых icon-карточек. */
 .check-split{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:start}
 @media(max-width:820px){.check-split{grid-template-columns:1fr}}
+.check-list-hint{font-size:11.5px;color:var(--ink-faint);margin-bottom:6px;line-height:1.5}
 .check-list{display:flex;flex-direction:column}
 .check-row{display:flex;align-items:flex-start;gap:16px;padding:20px 0;border-bottom:1px solid var(--line)}
 .check-row:last-child{border-bottom:0}
@@ -229,10 +230,14 @@ section.block:last-of-type{border-bottom:0}
 .mock-browser{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:12px;overflow:hidden;box-shadow:0 24px 60px -28px rgba(17,17,16,.22);position:sticky;top:112px}
 @media(max-width:820px){.mock-browser{position:static}}
 .mock-chrome{display:flex;align-items:center;gap:6px;padding:12px 16px;background:var(--bg-paper);border-bottom:1px solid var(--line)}
-.mock-chrome i{width:8px;height:8px;border-radius:999px;background:var(--line-strong);flex:none}
+.mock-chrome i{width:8px;height:8px;border-radius:999px;flex:none;opacity:.55}
+.mock-chrome i:nth-child(1){background:var(--danger)}
+.mock-chrome i:nth-child(2){background:var(--warn)}
+.mock-chrome i:nth-child(3){background:var(--ok)}
 .mock-chrome .mock-url{margin-left:8px;font-size:11px;color:var(--ink-faint);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 13px;flex:1}
 .mock-body{padding:28px}
 .mock-fine{display:block;font-weight:800;font-size:36px;color:var(--danger);letter-spacing:-.02em;margin-top:6px}
+.mock-fine-note{font-size:11px;color:var(--ink-soft);margin-top:6px;line-height:1.5}
 /* внутри мокапа переиспользуем .res-row/.st-pill из настоящего результата (см. #resList
    выше) — но в этой секции колонка шире вдвое (960px/2 против исходных 768px), тот же
    размер шрифта там выглядел мелко. Увеличиваем только внутри .mock-body, не трогая
@@ -365,7 +370,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
     <div class="badge-row">
       <span class="free-badge">✓ бесплатно · без регистрации</span>
     </div>
-    <h1>Узнайте за 2 минуты, какие <span class="accent">документы регулятор не найдёт</span> у вас.</h1>
+    <h1>Узнайте за 2 минуты, какие <span class="accent">пробелы регулятор не простит</span>.</h1>
     <p class="lead">152-ФЗ, 149-ФЗ, 38-ФЗ — 9 требований, за которые уже штрафуют. <b>Проверьте, что не так у вас.</b></p>
 
     <div class="state on" data-state="idle" style="margin-top:28px">
@@ -471,16 +476,20 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
       <p>9 конкретных пунктов по 152-ФЗ, 149-ФЗ и 38-ФЗ — у каждого своя статья и штраф. Справа — как это выглядит в отчёте.</p>
     </div>
     <div class="check-split">
-      <div class="check-list" id="checkListPlain"></div>
+      <div>
+        <p class="check-list-hint">Сумма — вилка КоАП: «от» показывает нижнюю границу для крупных штрафов, «до» — верхнюю для небольших.</p>
+        <div class="check-list" id="checkListPlain"></div>
+      </div>
       <div class="mock-browser">
         <div class="mock-chrome"><i></i><i></i><i></i><span class="mock-url mono">example.ru</span></div>
         <div class="mock-body">
           <div class="res-meta-row" style="margin-bottom:14px">
-            <span class="mono val" style="font-size:13px">example.ru</span>
+            <span class="mono val" style="font-size:13px">example.ru <span style="color:var(--ink-faint);font-weight:400">· пример</span></span>
             <span class="st-pill" id="sampleStatus"></span>
           </div>
           <div class="micro">потенциальный штраф</div>
           <b id="sampleFineSum" class="mock-fine mono"></b>
+          <p class="mock-fine-note">По вилке для юрлиц, только подтверждённые нарушения — как и в вашем отчёте.</p>
           <div class="mock-blur-wrap">
             <div class="res-list" id="sampleResList" style="margin-top:14px;border:0;padding:0;background:none"></div>
             <div class="mock-fade">
