@@ -571,10 +571,20 @@ details.acc:first-child{margin-top:0}
 @media(max-width:820px){
   .checklist-reveal{display:block;margin-top:20px}
 }
-.cl-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);
-  font-size:13.5px;color:rgba(17,17,16,.35);transition:color .2s}
-.cl-item:last-child{border-bottom:0}
+/* Чек-лист переодет в чек (26 августа, по референсу site-price.vercel.app —
+   касса/штрихкод-механика «из чего складывается цена», адаптирована под
+   нашу фиксированную цену: пункты не двигают стоимость, они доказывают,
+   что 2 990 ₽/мес — это весь пакет целиком, не база + допродажи. Моно —
+   осознанное расширение «правила точных чисел» из DESIGN.md на весь
+   компонент: он сам себя подаёт как распечатку, не прозу. */
+.cl-head{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.45);
+  padding-bottom:9px;margin-bottom:2px;border-bottom:1px dashed var(--line-2)}
+.cl-item{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line-2);
+  font-family:var(--mono);font-size:12.5px;color:rgba(17,17,16,.35);transition:color .2s}
+.cl-item:last-of-type{border-bottom:0}
 .cl-item.done{color:var(--ink)}
+.cl-num{flex:none;opacity:.55}
+.cl-name{flex:1;min-width:0;border-bottom:1px dotted var(--line-2);padding-bottom:3px;line-height:1.35}
 .cl-mark{flex:none;width:19px;height:19px;border-radius:999px;border:1.5px dashed var(--line-2);
   display:grid;place-items:center;font-size:11px;font-weight:800;color:transparent;
   transition:border-color .2s,background-color .2s,color .2s}
@@ -592,10 +602,20 @@ details.acc:first-child{margin-top:0}
    регулируемых сфер (медицина/финансы/детские центры, см. data-regulated
    на s-anketa), никогда не становится .done — это не пункт пакета, а
    честное предупреждение, что для этой сферы часть требований пакет не
-   закрывает (дыра #3 из независимого ревью, 24.08). */
+   закрывает (дыра #3 из независимого ревью, 24.08). Без индекса и без
+   пунктирной линии-лидера — это не строка сметы, ей не с чем сходиться. */
+.cl-item-na .cl-name{border-bottom-color:transparent}
 .cl-item-na .cl-mark{border-style:solid;border-color:rgba(184,121,0,.4);color:var(--warn)}
 .cl-item-na .cl-mark::before{content:"–"}
 .cl-item-na{color:var(--warn)}
+/* Цена — видна с первого экрана анкеты, не только на s-pay в конце
+   воронки (независимый пробел, найден 27.08: раньше человек проходил всю
+   анкету, ни разу не увидев 2 990 ₽/мес). Не завязана на .done ни одного
+   пункта — цена фиксированная, ждать нечего, доказательство не в сумме,
+   а в списке выше. */
+.cl-total{display:flex;justify-content:space-between;align-items:baseline;
+  margin-top:3px;padding-top:10px;border-top:1px dashed var(--ink);font-weight:800;font-size:13.5px}
+.cl-total b{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
 
 /* «зачем это спрашиваем» — короткая .tiny-фраза всегда видна под каждым
    из 6 вопросов (уже есть по разметке вопроса); опциональный разворот
@@ -1165,13 +1185,15 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <div class="checklist-reveal">
               <div class="card pad">
                 <h3>Вот что вы получите</h3>
-                <p class="tiny" style="margin:6px 0 10px">Пакет документов под alfa-school.ru — по вашим ответам выше.</p>
-                <div class="cl-item" data-cl="req"><span class="cl-mark"></span><span>Реквизиты владельца</span></div>
-                <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Политика обработки ПДн</span></div>
-                <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Cookie-политика</span></div>
-                <div class="cl-item" data-cl="clients"><span class="cl-mark"></span><span>Согласие на обработку ПДн</span></div>
-                <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-mark"></span><span>Согласие на рассылки</span></div>
-                <div class="cl-item cl-item-na" data-cl-industry hidden><span class="cl-mark"></span><span>Отраслевой блок для вашей сферы — не входит, уточните у поддержки</span></div>
+                <div class="cl-head mono">alfa-school.ru</div>
+                <div class="cl-item" data-cl="req"><span class="cl-num">01</span><span class="cl-name">Реквизиты владельца</span><span class="cl-mark"></span></div>
+                <div class="cl-item" data-cl="platform"><span class="cl-num">02</span><span class="cl-name">Политика обработки ПДн</span><span class="cl-mark"></span></div>
+                <div class="cl-item" data-cl="platform"><span class="cl-num">03</span><span class="cl-name">Cookie-политика</span><span class="cl-mark"></span></div>
+                <div class="cl-item" data-cl="clients"><span class="cl-num">04</span><span class="cl-name">Согласие на обработку ПДн</span><span class="cl-mark"></span></div>
+                <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-num">05</span><span class="cl-name">Согласие на рассылки</span><span class="cl-mark"></span></div>
+                <div class="cl-item cl-item-na" data-cl-industry hidden><span class="cl-name">Отраслевой блок для вашей сферы — не входит, уточните у поддержки</span><span class="cl-mark"></span></div>
+                <div class="cl-total"><span>Итого</span><b>2 990 ₽/мес</b></div>
+                <p class="tiny" style="margin-top:5px;color:rgba(17,17,16,.5)">Спишется при оплате — сейчас 24 часа бесплатно</p>
               </div>
             </div>
 
@@ -1184,13 +1206,15 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <aside class="checklist-side">
           <div class="card pad">
             <h3>Вот что вы получите</h3>
-            <p class="tiny" style="margin:6px 0 10px">Пакет документов под alfa-school.ru</p>
-            <div class="cl-item" data-cl="req"><span class="cl-mark"></span><span>Реквизиты владельца</span></div>
-            <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Политика обработки ПДн</span></div>
-            <div class="cl-item" data-cl="platform"><span class="cl-mark"></span><span>Cookie-политика</span></div>
-            <div class="cl-item" data-cl="clients"><span class="cl-mark"></span><span>Согласие на обработку ПДн</span></div>
-            <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-mark"></span><span>Согласие на рассылки</span></div>
-            <div class="cl-item cl-item-na" data-cl-industry hidden><span class="cl-mark"></span><span>Отраслевой блок для вашей сферы — не входит, уточните у поддержки</span></div>
+            <div class="cl-head mono">alfa-school.ru</div>
+            <div class="cl-item" data-cl="req"><span class="cl-num">01</span><span class="cl-name">Реквизиты владельца</span><span class="cl-mark"></span></div>
+            <div class="cl-item" data-cl="platform"><span class="cl-num">02</span><span class="cl-name">Политика обработки ПДн</span><span class="cl-mark"></span></div>
+            <div class="cl-item" data-cl="platform"><span class="cl-num">03</span><span class="cl-name">Cookie-политика</span><span class="cl-mark"></span></div>
+            <div class="cl-item" data-cl="clients"><span class="cl-num">04</span><span class="cl-name">Согласие на обработку ПДн</span><span class="cl-mark"></span></div>
+            <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-num">05</span><span class="cl-name">Согласие на рассылки</span><span class="cl-mark"></span></div>
+            <div class="cl-item cl-item-na" data-cl-industry hidden><span class="cl-name">Отраслевой блок для вашей сферы — не входит, уточните у поддержки</span><span class="cl-mark"></span></div>
+            <div class="cl-total"><span>Итого</span><b>2 990 ₽/мес</b></div>
+            <p class="tiny" style="margin-top:5px;color:rgba(17,17,16,.5)">Спишется при оплате — сейчас 24 часа бесплатно</p>
           </div>
         </aside>
       </div>
