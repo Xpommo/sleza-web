@@ -216,7 +216,12 @@ section.block:last-of-type{border-bottom:0}
    что у fzscan.ru (плоский чек-лист слева, скриншот реального отчёта справа), у нас
    вместо скриншота — живой рендер по SAMPLE_CHECKS. Нижняя часть списка размыта —
    повод дойти до формы и получить свой результат целиком, не пример. */
-.mock-browser{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:12px;overflow:hidden;box-shadow:0 24px 60px -28px rgba(17,17,16,.22)}
+/* список слева выше мокапа (9 строк с описанием и штрафом против компактной карточки) —
+   без sticky мокап заканчивается раньше списка и просто уезжает вверх, оставляя пустоту
+   справа от последних строк. top:112px — сразу под двумя sticky-барами сверху (.modes
+   40px + .topnav ~56px = ~96px), чтобы мокап не наезжал на них при скролле. */
+.mock-browser{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:12px;overflow:hidden;box-shadow:0 24px 60px -28px rgba(17,17,16,.22);position:sticky;top:112px}
+@media(max-width:820px){.mock-browser{position:static}}
 .mock-chrome{display:flex;align-items:center;gap:6px;padding:12px 16px;background:var(--bg-paper);border-bottom:1px solid var(--line)}
 .mock-chrome i{width:8px;height:8px;border-radius:999px;background:var(--line-strong);flex:none}
 .mock-chrome .mock-url{margin-left:8px;font-size:11px;color:var(--ink-faint);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 13px;flex:1}
@@ -767,10 +772,15 @@ function renderSampleReport(){
   var fineMoney = fmtMoney(s.fineSum) + ' ₽';
   document.getElementById('sampleFineSum').textContent = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
   buildResultRows('sampleResList', SAMPLE_CHECKS);
-  // первые 3 строки видны как есть (сразу видна вся палитра: ок/риск/нарушение),
-  // остальное размыто — повод самим проверить свой сайт, а не читать чужой целиком
+  // первые 3 строки видны как есть (сразу видна вся палитра: ок/риск/нарушение), ещё 2
+  // размыты (намёк, что дальше есть ещё), а не все 8 — иначе мокап почти догонял по
+  // высоте весь список слева (9 строк) и sticky-приклеиванию (см. .mock-browser) было
+  // некуда «плыть»: мокап отклеивался и уезжал раньше, чем долистываешь список до конца.
   var rows = document.querySelectorAll('#sampleResList .res-row');
-  rows.forEach(function(row, i){ if(i >= 3) row.classList.add('blurred'); });
+  rows.forEach(function(row, i){
+    if(i >= 5){ row.remove(); return; }
+    if(i >= 3) row.classList.add('blurred');
+  });
 }
 
 function scrollToScan(){
