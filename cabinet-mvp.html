@@ -1070,7 +1070,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            substep-гейта — виден на всех трёх подшагах непрерывно, ровно
            так, как предлагала сама критика. -->
       <div class="anketa-substep-nav" id="anketa-substep-nav">
-        <span data-substep-label="1" class="current">О компании</span><span class="sep">·</span><span data-substep-label="2">Работа с клиентами</span>
+        <span data-substep-label="1" class="current">О компании</span><span class="sep">·</span><span data-substep-label="2">О сайте</span><span class="sep">·</span><span data-substep-label="3">Работа с клиентами</span>
       </div>
 
       <div class="anketa-split" style="margin-top:16px">
@@ -1154,8 +1154,69 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn solid wide" data-set-substep="2">Далее</button>
           </div>
 
+          <!-- «О сайте» (второй раз в истории макета) — прямой запрос
+               пользователя, 27 августа. Раньше здесь был только вопрос про
+               платформу, ушёл в 6.38 как «нигде не используется» — ошибка
+               разбора: `data-set-platform` действительно читался (общий
+               [data-swap]-обработчик, script ~2727) и двигал `sitePlatform`,
+               которая через syncPayState() выставляла вкладку по умолчанию
+               на s-install — просто grep искал дефис `data-set-platform` в
+               HTML, не искал camelCase `dataset.setPlatform` в JS. Так что
+               6.38 не только убрал пустой экран, но и тихо снял рабочую
+               связь анкета→install-таб; это её и возвращает.
+
+               Три новых вопроса поверх платформы — не меняют пакет
+               документов (он фиксирован, см. PRODUCT.md), только уточняют
+               формулировки в cookie-политике/политике ПДн под то, что
+               реально есть на сайте. «Формы ОС» — единственный из новых
+               вопросов, который на что-то ветвится: определяет, идти ли
+               дальше на «Работа с клиентами» (там же живёт документ
+               «Согласие на рассылки», уже условный) или сразу на s-ready —
+               спрашивать про звонки/письма клиентам, когда сайт вообще не
+               собирает контакты через форму, было бы странно. -->
           <div data-substep="2" style="display:none">
             <button type="button" class="btn text sm" data-set-substep="1" style="margin-bottom:10px">← О компании</button>
+            <h1>О сайте</h1>
+            <p class="lead" style="margin-top:8px">Технические детали — уточняют формулировки в политике и cookie-документе, пакет документов от ответов не меняется.</p>
+            <div class="card pad" id="anketa-site-card" style="margin-top:16px">
+              <label class="f">На какой платформе сайт?</label>
+              <div class="seg" id="anketa-platform-seg" style="margin-top:6px">
+                <button type="button" class="on" data-swap="cms-tilda" data-set-platform="tilda">Тильда</button>
+                <button type="button" data-swap="cms-wp" data-set-platform="wp">WordPress</button>
+                <button type="button" data-swap="cms-bitrix" data-set-platform="bitrix">Битрикс</button>
+                <button type="button" data-swap="cms-other" data-set-platform="other">Другое</button>
+              </div>
+              <p class="tiny" style="margin-top:6px">Пригодится на шаге установки — покажем инструкцию именно под неё.</p>
+
+              <div class="hr" style="margin:14px 0"></div>
+              <label class="f">Стоит аналитика — Яндекс.Метрика, Google Analytics?</label>
+              <div class="seg" id="anketa-analytics-seg" style="margin-top:6px">
+                <button type="button" data-swap="analytics-no">Нет</button>
+                <button type="button" class="on" data-swap="analytics-yes">Да</button>
+              </div>
+
+              <div class="hr" style="margin:14px 0"></div>
+              <label class="f">Сайт использует куки ещё для чего-то — корзина, авторизация, персонализация?</label>
+              <div class="seg" id="anketa-cookies-seg" style="margin-top:6px">
+                <button type="button" class="on" data-swap="cookies-no">Нет</button>
+                <button type="button" data-swap="cookies-yes">Да</button>
+              </div>
+              <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это спрашиваем ⌄</button>
+              <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Куки-баннер и cookie-политика входят в пакет всегда — ответы не убирают и не добавляют документ, только делают его текст точным: что именно на сайте собирается, а не общая формулировка на все случаи.</p>
+
+              <div class="hr" style="margin:14px 0"></div>
+              <label class="f">Есть на сайте формы — заявка, запись, обратный звонок?</label>
+              <div class="seg" id="anketa-forms-seg" style="margin-top:6px">
+                <button type="button" class="on" data-swap="forms-yes">Да</button>
+                <button type="button" data-swap="forms-no">Нет</button>
+              </div>
+            </div>
+            <div class="hr" style="margin-top:20px"></div>
+            <button type="button" class="btn solid wide" id="anketa-site-next">Далее</button>
+          </div>
+
+          <div data-substep="3" style="display:none">
+            <button type="button" class="btn text sm" data-set-substep="2" style="margin-bottom:10px">← О сайте</button>
             <h1>Работа с клиентами</h1>
             <p class="lead" style="margin-top:8px">Как вы собираете и используете контакты — попадёт в политику и согласия.</p>
             <div class="card pad" id="anketa-clients-card" style="margin-top:16px">
@@ -2742,16 +2803,22 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
 function markClDone(group){
   document.querySelectorAll('[data-cl="' + group + '"]').forEach(function(el){ el.classList.add('done'); });
 }
-/* 'platform'-группа чек-листа (Политика ПДн, Cookie-политика) раньше
-   отмечалась отдельным вопросом «На какой платформе сайт?» (свой подшаг
-   анкеты). Вопрос убран (27 августа, правка пользователя): он дублировал
-   тот же выбор на s-install, где платформа реально на что-то влияет
-   (показывает инструкцию установки под конкретную CMS) — здесь, в
-   анкете, ответ никуда не сохранялся и не использовался. Метка группы
-   'platform' в разметке чек-листа оставлена как есть (не переименовывал
-   data-cl, чтобы не трогать лишнее) — просто триггерится вместе с 'req'. */
 var reqCard = document.getElementById('anketa-req-card');
-if (reqCard) reqCard.addEventListener('focusin', function(){ markClDone('req'); markClDone('platform'); });
+if (reqCard) reqCard.addEventListener('focusin', function(){ markClDone('req'); });
+
+/* 'platform'-группа чек-листа (Политика ПДн, Cookie-политика) — карточка
+   «О сайте» (подшаг 2, возвращён 27 августа). Любой клик внутри — по
+   платформе, аналитике или куки — считается достаточным сигналом,
+   отдельно каждый сегмент не разбираем. */
+var siteCard = document.getElementById('anketa-site-card');
+if (siteCard) siteCard.addEventListener('click', function(){ markClDone('platform'); });
+
+/* 'clients'-группа — «Согласие на обработку ПДн» входит в пакет всегда
+   (см. PRODUCT.md, «фиксирован для всех»), поэтому тикает уже на вопросе
+   «Есть формы ОС?», а не только на самой карточке substep 3 — тот
+   подшаг теперь не гарантированно посещается (см. ниже). */
+var formsSeg = document.getElementById('anketa-forms-seg');
+if (formsSeg) formsSeg.addEventListener('click', function(){ markClDone('clients'); });
 
 var clientsCard = document.getElementById('anketa-clients-card');
 if (clientsCard) {
@@ -2768,6 +2835,24 @@ if (callsSeg) {
     });
   });
 }
+
+/* «Далее» на подшаге «О сайте» ветвится по ответу «Есть формы ОС?» —
+   без формы сайт не собирает контакты от посетителей, спрашивать
+   дальше «звоните/пишете ли этим контактам» было бы про базу клиентов
+   вообще, не про сайт (сама анкета — про сайт). «Нет» пропускает
+   substep 3 целиком и явно прячет «Согласие на рассылки»: без этого
+   клика callsSeg, который обычно это делает, никогда не сработает. */
+var siteNextBtn = document.getElementById('anketa-site-next');
+if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
+  var formsYes = document.querySelector('#anketa-forms-seg [data-swap="forms-yes"]').classList.contains('on');
+  if (formsYes) {
+    anketaSubstep = 3;
+    syncAnketaSubstep();
+  } else {
+    document.querySelectorAll('[data-cl-marketing]').forEach(function(el){ el.hidden = true; });
+    goScreen('s-ready');
+  }
+});
 
 /* сфера на s-anketa (Блок 1) помечена data-regulated у части option —
    медицина/финансы/детские центры имеют отраслевые требования, которых
