@@ -160,12 +160,16 @@ p{margin:0}
 .find .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.4);margin:9px 0 2px}
 .find .lbl:first-child{margin-top:0}
 .find .txt{font-size:13px;color:var(--ink-2)}
-
-.pkg{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
-.pkg:last-child{border-bottom:0}
-.pkg .tick{color:var(--ok);font-size:15px;line-height:1.4;flex:none}
-.pkg .n{font-size:14px;font-weight:700}
-.pkg .w{font-size:12.5px;color:rgba(17,17,16,.6);margin-top:1px}
+/* «Что подготовили» на s-ready слито с бывшим отдельным списком
+   «Документы» (27 августа, правка пользователя — те же 5 названий
+   показывались дважды подряд, читалось как дубль, хотя смысл был разный:
+   тут — тик+причина, там — превью текста). .hd.stacked позволяет
+   двустрочному тик+название+причина ужиться в той же раскрывашке
+   .find/[data-find], что уже несёт превью — один пункт списка, не два. */
+.find .hd.stacked{align-items:flex-start}
+.find .tick{color:var(--ok);font-size:15px;line-height:1.4;flex:none;margin-top:1px}
+.find .n{font-size:14px;font-weight:700}
+.find .w{font-size:12.5px;color:rgba(17,17,16,.6);margin-top:1px}
 
 label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .inp{width:100%;border:1.5px solid var(--line-2);border-radius:10px;padding:11px 13px;background:var(--white);
@@ -579,12 +583,12 @@ details.acc:first-child{margin-top:0}
    компонент: он сам себя подаёт как распечатку, не прозу. */
 .cl-head{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.45);
   padding-bottom:9px;margin-bottom:2px;border-bottom:1px dashed var(--line-2)}
-.cl-item{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line-2);
+.cl-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line-2);
   font-family:var(--mono);font-size:12.5px;color:rgba(17,17,16,.35);transition:color .2s}
 .cl-item:last-of-type{border-bottom:0}
 .cl-item.done{color:var(--ink)}
 .cl-num{flex:none;opacity:.55}
-.cl-name{flex:1;min-width:0;border-bottom:1px dotted var(--line-2);padding-bottom:3px;line-height:1.35}
+.cl-name{flex:1;min-width:0;line-height:1.35}
 .cl-mark{flex:none;width:19px;height:19px;border-radius:999px;border:1.5px dashed var(--line-2);
   display:grid;place-items:center;font-size:11px;font-weight:800;color:transparent;
   transition:border-color .2s,background-color .2s,color .2s}
@@ -602,9 +606,8 @@ details.acc:first-child{margin-top:0}
    регулируемых сфер (медицина/финансы/детские центры, см. data-regulated
    на s-anketa), никогда не становится .done — это не пункт пакета, а
    честное предупреждение, что для этой сферы часть требований пакет не
-   закрывает (дыра #3 из независимого ревью, 24.08). Без индекса и без
-   пунктирной линии-лидера — это не строка сметы, ей не с чем сходиться. */
-.cl-item-na .cl-name{border-bottom-color:transparent}
+   закрывает (дыра #3 из независимого ревью, 24.08). Без индекса — это не
+   строка сметы. */
 .cl-item-na .cl-mark{border-style:solid;border-color:rgba(184,121,0,.4);color:var(--warn)}
 .cl-item-na .cl-mark::before{content:"–"}
 .cl-item-na{color:var(--warn)}
@@ -1067,7 +1070,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            substep-гейта — виден на всех трёх подшагах непрерывно, ровно
            так, как предлагала сама критика. -->
       <div class="anketa-substep-nav" id="anketa-substep-nav">
-        <span data-substep-label="1" class="current">О компании</span><span class="sep">·</span><span data-substep-label="2">Платформа</span><span class="sep">·</span><span data-substep-label="3">Работа с клиентами</span>
+        <span data-substep-label="1" class="current">О компании</span><span class="sep">·</span><span data-substep-label="2">Работа с клиентами</span>
       </div>
 
       <div class="anketa-split" style="margin-top:16px">
@@ -1153,17 +1156,6 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
           <div data-substep="2" style="display:none">
             <button type="button" class="btn text sm" data-set-substep="1" style="margin-bottom:10px">← О компании</button>
-            <h1>На какой платформе сайт?</h1>
-            <p class="lead" style="margin-top:8px">Пригодится на шаге установки — покажем инструкцию именно под неё.</p>
-            <div class="card pad" style="margin-top:16px">
-              <div class="seg" id="anketa-platform-seg"><button type="button" class="on" data-swap="cms-tilda" data-set-platform="tilda">Тильда</button><button type="button" data-swap="cms-wp" data-set-platform="wp">WordPress</button><button type="button" data-swap="cms-bitrix" data-set-platform="bitrix">Битрикс</button><button type="button" data-swap="cms-other" data-set-platform="other">Другое</button></div>
-            </div>
-            <div class="hr" style="margin-top:20px"></div>
-            <button type="button" class="btn solid wide" data-set-substep="3">Далее</button>
-          </div>
-
-          <div data-substep="3" style="display:none">
-            <button type="button" class="btn text sm" data-set-substep="2" style="margin-bottom:10px">← Платформа</button>
             <h1>Работа с клиентами</h1>
             <p class="lead" style="margin-top:8px">Как вы собираете и используете контакты — попадёт в политику и согласия.</p>
             <div class="card pad" id="anketa-clients-card" style="margin-top:16px">
@@ -1258,25 +1250,20 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <p class="lead" style="margin-top:8px">Собрали пакет документов под alfa-school.ru — превью открыто уже сейчас, ниже. Рабочие ссылки и виджет включатся после установки, без оплаты — 24 часа бесплатно.</p>
 
     <h2 style="margin-top:20px">Что подготовили</h2>
-    <div class="card" style="margin-top:12px;overflow:hidden">
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">149-ФЗ · реквизиты владельца</div><div class="w">Покажем внизу страниц сайта через виджет — по данным из анкеты.</div></div></div>
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">152-ФЗ · политика обработки ПДн</div><div class="w">Соберём под вашу сферу и способ сбора контактов.</div></div></div>
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Куки · Cookie-политика</div><div class="w">Подключим баннер-уведомление о cookie и текст политики.</div></div></div>
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">152-ФЗ · согласие на обработку ПДн</div><div class="w">Текст согласия для форм на сайте.</div></div></div>
-      <div class="pkg" style="padding-left:16px;padding-right:16px"><span class="tick">✓</span><div><div class="n">Согласие на рассылки</div><div class="w">По ответу «звоните/пишете по базе» в анкете.</div></div></div>
-    </div>
-
-    <!-- Раньше «Открыть» вело на настоящую ссылку до установки — если она
-         правда работала, ставить виджет незачем, если нет — обещание
-         ложное. До установки — только превью первых строк, разворачивается
-         по клику; рабочая ссылка появляется в «Документах» после установки
+    <!-- «Что подготовили» и «Документы» были двумя списками из тех же 5
+         названий подряд (тик+причина, затем превью-текста) — читалось как
+         дубль. Слито в один: каждый пункт — тик+название+причина видны
+         сразу, превью раскрывается по клику ([data-find], тот же приём,
+         что у FAQ). Раньше «Открыть» вело на настоящую ссылку до установки
+         — если она правда работала, ставить виджет незачем, если нет —
+         обещание ложное. До установки — только превью первых строк;
+         рабочая ссылка появляется в «Документах» после установки
          (см. s-docs) — там документ правда есть. HANDOFF 6.15 п.8:
          «после оплаты» → «после установки» по всему блоку — оплата больше
          не условие доступа, документы и виджет включаются установкой. -->
-    <h2 style="margin-top:18px">Документы</h2>
     <p class="tiny" style="margin-top:-6px;margin-bottom:10px">Превью — по ссылкам откроется после установки</p>
     <div class="find">
-      <button class="hd" data-find><span class="nm" style="flex:1">Реквизиты владельца</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">149-ФЗ · реквизиты владельца</span><span class="w" style="display:block">Покажем внизу страниц сайта через виджет — по данным из анкеты.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233 · 119019, Москва, ул. Воздвиженка, д. 10…</div>
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/alfa-school-ru/requisites — откроется после установки</p></div>
     </div>
@@ -1295,12 +1282,17 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          тот же уровень нереактивности, что и у подвала сайта на этом же
          экране, не новое ограничение. -->
     <div class="find">
-      <button class="hd" data-find><span class="nm" style="flex:1">Политика обработки персональных данных</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки ПДн</span><span class="w" style="display:block">Соберём под вашу сферу и способ сбора контактов.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящая Политика в отношении обработки персональных данных определяет порядок и условия обработки персональных данных Оператором: ООО «Альфа Образование». Цели обработки: запись на занятия, ответы на обращения, информирование о наборах и акциях — по сфере деятельности «Онлайн-школа, курсы, репетиторство»…</div>
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/alfa-school-ru/pd-policy — откроется после установки</p></div>
     </div>
     <div class="find">
-      <button class="hd" data-find><span class="nm" style="flex:1">Согласие на обработку ПДн</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">Куки · Cookie-политика</span><span class="w" style="display:block">Подключим баннер-уведомление о cookie и текст политики.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте alfa-school.ru, включая аналитику и работу виджета на платформе Тильда…</div>
+      <p class="tiny" style="margin-top:8px">docs.belysite.ru/alfa-school-ru/cookies — откроется после установки</p></div>
+    </div>
+    <div class="find">
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · согласие на обработку ПДн</span><span class="w" style="display:block">Текст согласия для форм на сайте.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящим я свободно, своей волей и в своём интересе даю согласие на обработку моих персональных данных Оператору — ООО «Альфа Образование» — в целях записи на занятия, обработки обращений и информирования о наборах и акциях…</div>
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/alfa-school-ru/consent — откроется после установки</p></div>
     </div>
@@ -1311,14 +1303,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          вопрос «работа с клиентами» (звонки/мессенджеры/почта), а не
          обезличенный список «товары-работы-услуги». -->
     <div class="find">
-      <button class="hd" data-find><span class="nm" style="flex:1">Согласие на получение рекламных сообщений</span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">Согласие на рассылки</span><span class="w" style="display:block">По ответу «звоните/пишете по базе» в анкете.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящим я даю согласие на получение рекламных и информационных сообщений от ООО «Альфа Образование» по телефону, в мессенджерах и на почту — по каналам, которые компания использует для связи с клиентами…</div>
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/alfa-school-ru/marketing-consent — откроется после установки</p></div>
-    </div>
-    <div class="find">
-      <button class="hd" data-find><span class="nm" style="flex:1">Cookie-политика</span><span class="chip fill">превью</span><span class="chev">›</span></button>
-      <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте alfa-school.ru, включая аналитику и работу виджета на платформе Тильда…</div>
-      <p class="tiny" style="margin-top:8px">docs.belysite.ru/alfa-school-ru/cookies — откроется после установки</p></div>
     </div>
 
     <!-- десктоп — всегда развёрнуто, как раньше; на мобильном тот же блок
@@ -1552,6 +1539,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <button class="btn sm copy-code-btn" data-copy-target="install-code" style="margin-top:10px">Скопировать код</button>
       <div class="hr"></div>
+      <!-- Единственное место, где спрашиваем платформу сайта (27 августа —
+           раньше тот же вопрос дублировался отдельным подшагом анкеты,
+           убран: там выбор ни на что не влиял, здесь он сразу показывает
+           нужную инструкцию — вопрос имеет смысл только рядом с ответом). -->
       <div class="tabs" id="install-cms-tabs"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
       <div class="small" data-swapped="t1">Настройки сайта → Ещё → HTML-код для вставки внутрь HEAD → вставить строку → Опубликовать все страницы.</div>
       <div class="small" data-swapped="t2" style="display:none">Внешний вид → Редактор тем → header.php → вставить перед &lt;/head&gt;.</div>
@@ -2751,13 +2742,16 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
 function markClDone(group){
   document.querySelectorAll('[data-cl="' + group + '"]').forEach(function(el){ el.classList.add('done'); });
 }
+/* 'platform'-группа чек-листа (Политика ПДн, Cookie-политика) раньше
+   отмечалась отдельным вопросом «На какой платформе сайт?» (свой подшаг
+   анкеты). Вопрос убран (27 августа, правка пользователя): он дублировал
+   тот же выбор на s-install, где платформа реально на что-то влияет
+   (показывает инструкцию установки под конкретную CMS) — здесь, в
+   анкете, ответ никуда не сохранялся и не использовался. Метка группы
+   'platform' в разметке чек-листа оставлена как есть (не переименовывал
+   data-cl, чтобы не трогать лишнее) — просто триггерится вместе с 'req'. */
 var reqCard = document.getElementById('anketa-req-card');
-if (reqCard) reqCard.addEventListener('focusin', function(){ markClDone('req'); });
-
-var platformSeg = document.getElementById('anketa-platform-seg');
-if (platformSeg) {
-  platformSeg.addEventListener('click', function(){ markClDone('platform'); });
-}
+if (reqCard) reqCard.addEventListener('focusin', function(){ markClDone('req'); markClDone('platform'); });
 
 var clientsCard = document.getElementById('anketa-clients-card');
 if (clientsCard) {
