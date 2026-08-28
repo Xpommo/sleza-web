@@ -185,6 +185,10 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .inp.error:focus{border-color:var(--danger);box-shadow:0 0 0 4px rgba(214,56,22,.08)}
 .check{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer}
 .check:last-of-type{border-bottom:0}
+/* [hidden] сам по себе не побеждает — .check{display:flex} той же
+   специфичности (0,1,0), но объявлен позже как авторский стиль против
+   UA-таблицы; та же грабля, что уже была с .state (HANDOFF 6.34). */
+.check[hidden]{display:none}
 .check input{appearance:none;width:19px;height:19px;flex:none;margin-top:1px;border:1.5px solid var(--line-2);
   border-radius:6px;background:#fff;cursor:pointer;position:relative}
 .check input:checked{background:var(--ink);border-color:var(--ink)}
@@ -1005,19 +1009,19 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <h3>Какая у вас сфера?</h3>
         <p class="tiny" style="margin:6px 0 12px">Сфера влияет на формулировки в документах. Для отдельных сфер — медицина, финансы, работа с детьми — есть дополнительные отраслевые требования, которые этот пакет не покрывает; для них уточним отдельно (см. чек-лист на следующем шаге).</p>
         <select class="inp" id="anketa-sphere-select">
-          <option>Онлайн-школа, курсы, репетиторство</option>
-          <option data-regulated="1">Детский центр, кружки, секции</option>
-          <option>Услуги для бизнеса (консалтинг, бухгалтерия, юр. услуги)</option>
-          <option>Бытовые услуги (ремонт, клининг)</option>
-          <option>Красота и здоровье (салон, барбершоп, фитнес)</option>
-          <option data-regulated="1">Медицина, клиники</option>
-          <option>Интернет-магазин</option>
-          <option>Кафе, ресторан, доставка еды</option>
-          <option>Недвижимость</option>
-          <option data-regulated="1">Финансы, страхование</option>
-          <option>IT, SaaS, разработка</option>
-          <option>Производство</option>
-          <option>Другое</option>
+          <option data-sphere="school">Онлайн-школа, курсы, репетиторство</option>
+          <option data-regulated="1" data-sphere="kids">Детский центр, кружки, секции</option>
+          <option data-sphere="bizserv">Услуги для бизнеса (консалтинг, бухгалтерия, юр. услуги)</option>
+          <option data-sphere="homeserv">Бытовые услуги (ремонт, клининг)</option>
+          <option data-sphere="beauty">Красота и здоровье (салон, барбершоп, фитнес)</option>
+          <option data-regulated="1" data-sphere="medicine">Медицина, клиники</option>
+          <option data-sphere="shop">Интернет-магазин</option>
+          <option data-sphere="food">Кафе, ресторан, доставка еды</option>
+          <option data-sphere="realty">Недвижимость</option>
+          <option data-regulated="1" data-sphere="finance">Финансы, страхование</option>
+          <option data-sphere="it">IT, SaaS, разработка</option>
+          <option data-sphere="manuf">Производство</option>
+          <option data-sphere="other">Другое</option>
         </select>
       </div>
 
@@ -1177,7 +1181,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <div data-substep="2" style="display:none">
             <button type="button" class="btn text sm" data-set-substep="1" style="margin-bottom:10px">← О компании</button>
             <h1>О сайте</h1>
-            <p class="lead" style="margin-top:8px">Технические детали — уточняют формулировки в политике и cookie-документе, пакет документов от ответов не меняется.</p>
+            <p class="lead" style="margin-top:8px">Технические детали сайта — попадут в формулировки политики и cookie-документа.</p>
             <div class="card pad" id="anketa-site-card" style="margin-top:16px">
               <label class="f">На какой платформе сайт?</label>
               <div class="seg" id="anketa-platform-seg" style="margin-top:6px">
@@ -1223,10 +1227,23 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <p class="tiny" style="margin:0 0 12px">Звоните, пишете в мессенджеры или на почту по базе клиентов?</p>
               <div class="seg" id="anketa-calls-seg"><button type="button" class="on" data-swap="calls-yes">Да</button><button type="button" data-swap="calls-no">Нет</button></div>
               <div class="hr" style="margin:14px 0"></div>
-              <p class="tiny" style="margin:0 0 10px">Для чего вы собираете контакты — попадёт в политику, цели должны совпадать с тем, что вы делаете на самом деле.</p>
-              <label class="check"><input type="checkbox" checked><span class="t">Записать на занятие</span></label>
-              <label class="check"><input type="checkbox" checked><span class="t">Ответить на обращение</span></label>
-              <label class="check"><input type="checkbox" checked><span class="t">Рассказывать об акциях и наборах</span></label>
+              <p class="tiny" style="margin:0 0 10px">Для чего вы собираете контакты — отметьте своё, попадёт в политику. Список подстроен под сферу, выбранную на первом шаге.</p>
+              <!-- Раньше — 3 галочки под одну сферу (онлайн-школа), все
+                   предзаполнены checked без участия человека: для остальных
+                   12 сфер список не подходил и выглядел решённым за
+                   пользователя, не реальным выбором (правка пользователя,
+                   28 августа). Теперь — общий пул из 6 целей, у каждой
+                   data-purpose="слаг"; видны только те, что относятся к
+                   сфере, выбранной в «Какая у вас сфера?» (s-anketa) —
+                   тот же приём, что у data-regulated/data-cl-industry, тот
+                   же PURPOSE_MAP в script. Ни одна не отмечена по
+                   умолчанию — реальный чекбокс, не декорация. -->
+              <label class="check" data-purpose="booking"><input type="checkbox"><span class="t">Записать на приём/занятие</span></label>
+              <label class="check" data-purpose="order"><input type="checkbox"><span class="t">Оформить и передать заказ</span></label>
+              <label class="check" data-purpose="property"><input type="checkbox"><span class="t">Показать объект, записать на просмотр</span></label>
+              <label class="check" data-purpose="consult"><input type="checkbox"><span class="t">Проконсультировать по услуге</span></label>
+              <label class="check" data-purpose="inquiry"><input type="checkbox"><span class="t">Ответить на обращение</span></label>
+              <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях</span></label>
               <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем нужно отдельное согласие на рассылки ⌄</button>
               <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">ФЗ «О рекламе» ст.18 требует отдельное согласие получателя на рекламные рассылки (email, смс, мессенджеры) — без него рассылка технически возможна, но незаконна.</p>
             </div>
@@ -2859,11 +2876,42 @@ if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
    пакет 1+2+2 не покрывает (дыра #3 из независимого ревью, 24.08).
    Чек-лист живёт на s-anketa2 (Блок 2), оба экрана в одном DOM — просто
    переключаем hidden у уже отрисованной строки, без ожидания перехода. */
+/* «Для чего вы собираете контакты» (s-anketa2, подшаг 3) — пул из 6
+   целей, видимые зависят от сферы, выбранной здесь же на s-anketa.
+   Ключи — data-sphere у <option>, значения — data-purpose у .check.
+   «other» и сферы без явного смысла (financial/it/manuf) получают
+   универсальный набор — inquiry/consult/promo подходят почти всегда,
+   booking/order/property — нет, они остаются только там, где реально
+   есть запись/заказ/показ объекта. */
+var PURPOSE_MAP = {
+  school: ['booking', 'inquiry', 'promo'],
+  kids: ['booking', 'inquiry', 'promo'],
+  bizserv: ['consult', 'inquiry', 'promo'],
+  homeserv: ['consult', 'inquiry', 'promo'],
+  beauty: ['booking', 'inquiry', 'promo'],
+  medicine: ['booking', 'inquiry'],
+  shop: ['order', 'inquiry', 'promo'],
+  food: ['order', 'inquiry', 'promo'],
+  realty: ['property', 'inquiry', 'promo'],
+  finance: ['consult', 'inquiry'],
+  it: ['consult', 'inquiry'],
+  manuf: ['consult', 'inquiry'],
+  other: ['inquiry', 'consult', 'promo']
+};
+function syncPurposes(){
+  var sphere = sphereSelect.selectedOptions[0].dataset.sphere || 'other';
+  var allowed = PURPOSE_MAP[sphere] || PURPOSE_MAP.other;
+  document.querySelectorAll('[data-purpose]').forEach(function(el){
+    el.hidden = allowed.indexOf(el.dataset.purpose) === -1;
+  });
+}
 var sphereSelect = document.getElementById('anketa-sphere-select');
 if (sphereSelect) {
+  syncPurposes();
   sphereSelect.addEventListener('change', function(){
     var regulated = sphereSelect.selectedOptions[0].hasAttribute('data-regulated');
     document.querySelectorAll('[data-cl-industry]').forEach(function(el){ el.hidden = !regulated; });
+    syncPurposes();
   });
 }
 
