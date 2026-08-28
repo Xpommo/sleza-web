@@ -42,8 +42,8 @@
   --ink-soft:rgba(17,17,16,.62); --ink-faint:rgba(17,17,16,.58); --ink-trace:rgba(17,17,16,.14);
   --line:rgba(17,17,16,.09); --line-strong:rgba(17,17,16,.18);
   --brand:#1f1fe6; --brand-soft:rgba(31,31,230,.08);
-  --danger:#d63816; --warn:#b87900; --ok:#1a7a52;
-  --danger-tint:rgba(214,56,22,.10);
+  --danger:#c22f0c; --warn:#b87900; --ok:#1a7a52;
+  --danger-tint:rgba(194,47,12,.10);
   --sans:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;
   --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
   --ease-out:cubic-bezier(.2,.8,.2,1); --ease-inout:cubic-bezier(.4,0,.2,1);
@@ -75,7 +75,9 @@ a{color:inherit}
 /* ── шапка продукта ──────────────────────────────────────────────────── */
 .topnav{position:sticky;top:40px;z-index:40;border-bottom:1px solid var(--line);background:rgba(244,241,236,.85);backdrop-filter:blur(14px)}
 .topnav-in{max-width:var(--maxw);margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
-.brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink)}
+/* padding+отрицательный margin по вертикали — тот же приём, что у .btn-text ниже:
+   поднимает тач-таргет с ~27px до ~44px, не сдвигая соседние элементы шапки */
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink);padding:8px 0;margin:-8px 0}
 .brand svg{color:var(--brand)}
 .brand b{font-size:18px;font-weight:900;letter-spacing:-.04em}
 
@@ -149,7 +151,8 @@ section.block:last-of-type{border-bottom:0}
 .pulse{width:6px;height:6px;border-radius:999px;background:var(--brand);animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:14px}
-.bar i{display:block;height:100%;background:var(--brand);border-radius:3px;transition:width .5s var(--ease-out);width:0%}
+/* transform:scaleX вместо width — не триггерит layout, только компоновку GPU */
+.bar i{display:block;height:100%;width:100%;background:var(--brand);border-radius:3px;transform-origin:left;transform:scaleX(0);transition:transform .5s var(--ease-out)}
 .term{background:var(--ink);color:#fff;border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:12px;line-height:1.9;max-height:200px;overflow:hidden}
 .term .ln{opacity:0;transform:translateY(3px);transition:opacity .3s,transform .3s}
 .term .ln.in{opacity:1;transform:none}
@@ -178,8 +181,8 @@ section.block:last-of-type{border-bottom:0}
 .risk-gauge-value{font-family:var(--mono);font-weight:800;font-size:15px}
 .risk-gauge-track{height:6px;border-radius:999px;overflow:hidden;margin-top:10px;position:relative;
   background:linear-gradient(to right,var(--ok),var(--warn) 55%,var(--danger))}
-.risk-gauge-mask{position:absolute;top:0;right:0;height:100%;background:var(--line);transition:width .5s var(--ease-out)}
-.risk-gauge-ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-trace);margin-top:5px}
+.risk-gauge-mask{position:absolute;top:0;right:0;height:100%;width:100%;background:var(--line);transform-origin:right;transform:scaleX(0);transition:transform .5s var(--ease-out)}
+.risk-gauge-ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:5px}
 .res-list{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:0 24px}
 .res-row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .res-row:last-child{border-bottom:0}
@@ -265,7 +268,7 @@ section.block:last-of-type{border-bottom:0}
 .case-row:last-child{border-bottom:0}
 .case-tags{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px}
 .case-tags .viol{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:var(--danger-tint);color:var(--danger);padding:2px 8px;border-radius:4px}
-.case-tags .reg{font-family:var(--mono);font-size:10px;color:var(--ink-trace)}
+.case-tags .reg{font-family:var(--mono);font-size:10px;color:var(--ink-faint)}
 .case-name{font-size:16px;font-weight:700;letter-spacing:-.01em}
 .case-found{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin-top:7px;max-width:54ch}
 .case-value{flex:none;text-align:right}
@@ -317,7 +320,10 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
 .brand-row svg{color:var(--brand)}
 .brand-row .name{font-weight:var(--fw-black);font-size:18px;letter-spacing:-0.04em;color:#fff}
 .foot-docs{padding:16px 0 32px;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px;line-height:1.7;color:rgba(255,255,255,.5)}
-.foot-legal{margin-top:12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.34)}
+/* без text-transform:uppercase на самом классе — капс держит только .foot-legal-label
+   (короткий ярлык-рубрика); два предложения ниже — связный текст, капс на нём не читается */
+.foot-legal{margin-top:12px;font-family:var(--font-mono);font-size:10.5px;color:rgba(255,255,255,.34)}
+.foot-legal-label{text-transform:uppercase;letter-spacing:.06em}
 /* НЕ финальный текст — маркер «на обсуждение», намеренно кричащий и выбивающийся из стиля,
    чтобы не потерялся при следующем ревью макета. Убрать вместе с flag-mark, когда решится. */
 .review-flag{color:#fff200}
@@ -410,10 +416,10 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
         <div class="progress-top">
           <span class="pulse"></span>
           <span>проверка</span>
-          <span class="mono" id="progressCount" style="color:var(--ink-faint)">0 / 9 · 0%</span>
+          <span class="mono" id="progressCount" aria-live="polite" aria-atomic="true" style="color:var(--ink-faint)">0 / 9 · 0%</span>
           <button class="btn-text" style="margin-left:auto" onclick="stopScan()">✕ остановить</button>
         </div>
-        <div class="bar"><i id="progressBar"></i></div>
+        <div class="bar" role="progressbar" aria-label="проверка сайта" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" id="progressBarWrap"><i id="progressBar"></i></div>
         <div class="term" id="term">
           <div style="color:rgba(255,255,255,.4)">[init] открываем сайт…</div>
         </div>
@@ -588,7 +594,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
   <div class="wrap">
     <div class="foot-top">
       <span class="brand-row">
-        <svg width="20" height="14" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="20" height="14" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect x="1" y="5" width="6" height="6" rx="1.5" fill="currentColor"/>
           <path d="M7 4.5L11 3V13L7 11.5V4.5Z" fill="currentColor"/>
           <g class="rays" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
@@ -605,7 +611,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
       </a>
     </div>
     <div class="foot-docs">
-      <div class="foot-legal" style="margin-top:0;margin-bottom:10px">документы штрафконтроля</div>
+      <div class="foot-legal foot-legal-label" style="margin-top:0;margin-bottom:10px">документы штрафконтроля</div>
       <u>Политика обработки персональных данных</u> <span class="foot-sep">·</span> <u>Согласие на обработку ПД на форме сбора</u> <span class="foot-sep">·</span> <u>Cookie‑баннер</u> <span class="foot-sep">·</span> <u>Политика cookie</u> <span class="foot-sep">·</span> <u>Согласие на рекламные рассылки</u> <span class="foot-sep">·</span> <u>Реквизиты владельца сайта</u>
       <div class="foot-legal">не является юридической консультацией</div>
       <div class="foot-legal review-flag"><span class="flag-mark">?</span> методология проверки разработана при участии юристов, специализирующихся на it-праве и защите пдн <span class="flag-mark">?</span></div>
@@ -695,7 +701,7 @@ var SK_FAQ = [
   {q:'Это юридическая консультация?', a:'Нет. Результат — сигнал, что и где проверить. Для спорных случаев и оценки конкретного риска нужен юрист.'}
 ];
 
-function icon(id){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+ICONS[id]+'</svg>'; }
+function icon(id){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[id]+'</svg>'; }
 
 function renderCheckList(){
   var el = document.getElementById('checkListPlain');
@@ -796,7 +802,7 @@ function renderSummary(){
   var valueEl = document.getElementById('riskGaugeValue');
   valueEl.textContent = riskValue + ' из 100 · ' + s.riskWord;
   valueEl.style.color = 'var(--' + s.tone + ')';
-  document.getElementById('riskGaugeMask').style.width = s.score + '%';
+  document.getElementById('riskGaugeMask').style.transform = 'scaleX(' + (s.score / 100) + ')';
 }
 
 // построчно по всем применимым проверкам (не сгруппировано по закону) — так число строк
@@ -909,7 +915,8 @@ function startScan(){
     term.scrollTop = term.scrollHeight;
     i++;
     document.getElementById('progressCount').textContent = i+' / '+CHECK_ORDER.length+' · '+Math.round(i/CHECK_ORDER.length*100)+'%';
-    document.getElementById('progressBar').style.width = Math.round(i/CHECK_ORDER.length*100)+'%';
+    document.getElementById('progressBar').style.transform = 'scaleX('+(i/CHECK_ORDER.length)+')';
+    document.getElementById('progressBarWrap').setAttribute('aria-valuenow', i);
   }, 480);
 }
 
