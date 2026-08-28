@@ -281,16 +281,23 @@ section.block:last-of-type{border-bottom:0}
 .cta-strip .btn{width:auto;padding:12px 22px;flex:none}
 
 /* FAQ */
+/* тот же язык, что у .check-ico + .check-row .t (кружок-бейдж + жирный заголовок) —
+   раньше вопрос был 14.5px/500 против 16px/700 у заголовков везде на странице,
+   а номер — почти невидимый mono-текст без цвета. Из-за этого FAQ читался как
+   вставка из другого макета, а не продолжение той же страницы. */
 .faq{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;overflow:hidden}
 .faq-item{border-bottom:1px solid var(--line)}
 .faq-item:last-child{border-bottom:0}
-.faq-item button{width:100%;text-align:left;background:none;border:0;padding:16px 20px;font-size:14.5px;font-weight:500;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
+.faq-item button{width:100%;text-align:left;background:none;border:0;padding:18px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer}
 .faq-item button:hover{background:var(--bg-paper)}
-.faq-item .q{display:flex;align-items:center;gap:12px}
-.faq-item .n{font-family:var(--mono);font-size:10px;color:var(--ink-trace)}
+.faq-item .q{display:flex;align-items:center;gap:14px}
+.faq-item .n{width:26px;height:26px;border-radius:999px;background:var(--brand-soft);color:var(--brand);
+  display:flex;align-items:center;justify-content:center;flex:none;
+  font-family:var(--mono);font-size:10px;font-weight:700}
+.faq-item .qt{font-size:15px;font-weight:700;line-height:1.3}
 .faq-item .sign{font-size:17px;color:var(--ink-faint);flex:none;display:inline-block;transition:transform .15s,color .15s}
-.faq-item .a{display:none;padding:0 20px 16px 20px;font-size:13.5px;color:var(--ink-soft);line-height:1.55;max-width:64ch}
+.faq-item .a{display:none;padding:0 20px 18px 60px;font-size:13.5px;color:var(--ink-soft);line-height:1.55;max-width:64ch}
 .faq-item.open .a{display:block}
 .faq-item.open .sign{transform:rotate(45deg);color:var(--ink)}
 
@@ -840,7 +847,7 @@ function renderFaq(){
     var n = i === 0 ? ' open' : '';
     el.insertAdjacentHTML('beforeend',
       '<div class="faq-item'+n+'"><button onclick="this.parentElement.classList.toggle(\'open\')">'+
-      '<span class="q"><span class="n">'+String(i+1).padStart(2,'0')+'</span><span>'+item.q+'</span></span>'+
+      '<span class="q"><span class="n">'+String(i+1).padStart(2,'0')+'</span><span class="qt">'+item.q+'</span></span>'+
       '<span class="sign">'+(i===0?'−':'+')+'</span></button><div class="a">'+item.a+'</div></div>');
   });
 }
