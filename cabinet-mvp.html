@@ -1232,7 +1232,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                    предзаполнены checked без участия человека: для остальных
                    12 сфер список не подходил и выглядел решённым за
                    пользователя, не реальным выбором (правка пользователя,
-                   28 августа). Теперь — общий пул из 6 целей, у каждой
+                   28 августа). Теперь — общий пул из 8 целей, у каждой
                    data-purpose="слаг"; видны только те, что относятся к
                    сфере, выбранной в «Какая у вас сфера?» (s-anketa) —
                    тот же приём, что у data-regulated/data-cl-industry, тот
@@ -1242,6 +1242,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <label class="check" data-purpose="order"><input type="checkbox"><span class="t">Оформить и передать заказ</span></label>
               <label class="check" data-purpose="property"><input type="checkbox"><span class="t">Показать объект, записать на просмотр</span></label>
               <label class="check" data-purpose="consult"><input type="checkbox"><span class="t">Проконсультировать по услуге</span></label>
+              <label class="check" data-purpose="contract"><input type="checkbox"><span class="t">Заключить и исполнить договор</span></label>
+              <label class="check" data-purpose="payment"><input type="checkbox"><span class="t">Принять оплату онлайн</span></label>
               <label class="check" data-purpose="inquiry"><input type="checkbox"><span class="t">Ответить на обращение</span></label>
               <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях</span></label>
               <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем нужно отдельное согласие на рассылки ⌄</button>
@@ -2876,26 +2878,28 @@ if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
    пакет 1+2+2 не покрывает (дыра #3 из независимого ревью, 24.08).
    Чек-лист живёт на s-anketa2 (Блок 2), оба экрана в одном DOM — просто
    переключаем hidden у уже отрисованной строки, без ожидания перехода. */
-/* «Для чего вы собираете контакты» (s-anketa2, подшаг 3) — пул из 6
+/* «Для чего вы собираете контакты» (s-anketa2, подшаг 3) — пул из 8
    целей, видимые зависят от сферы, выбранной здесь же на s-anketa.
    Ключи — data-sphere у <option>, значения — data-purpose у .check.
-   «other» и сферы без явного смысла (financial/it/manuf) получают
-   универсальный набор — inquiry/consult/promo подходят почти всегда,
-   booking/order/property — нет, они остаются только там, где реально
-   есть запись/заказ/показ объекта. */
+   «other» получает универсальный набор — inquiry/consult/promo
+   подходят почти всегда; booking/order/property — нет, остаются
+   только там, где реально есть запись/заказ/показ объекта; contract —
+   сферы, где типична формальная сделка (услуги для бизнеса, бытовые
+   услуги, недвижимость, финансы, IT, производство); payment — сферы
+   с частой оплатой прямо на сайте (запись/заказ + сразу оплата). */
 var PURPOSE_MAP = {
-  school: ['booking', 'inquiry', 'promo'],
-  kids: ['booking', 'inquiry', 'promo'],
-  bizserv: ['consult', 'inquiry', 'promo'],
-  homeserv: ['consult', 'inquiry', 'promo'],
-  beauty: ['booking', 'inquiry', 'promo'],
+  school: ['booking', 'inquiry', 'promo', 'payment'],
+  kids: ['booking', 'inquiry', 'promo', 'payment'],
+  bizserv: ['consult', 'contract', 'inquiry', 'promo'],
+  homeserv: ['consult', 'contract', 'inquiry', 'promo'],
+  beauty: ['booking', 'inquiry', 'promo', 'payment'],
   medicine: ['booking', 'inquiry'],
-  shop: ['order', 'inquiry', 'promo'],
-  food: ['order', 'inquiry', 'promo'],
-  realty: ['property', 'inquiry', 'promo'],
-  finance: ['consult', 'inquiry'],
-  it: ['consult', 'inquiry'],
-  manuf: ['consult', 'inquiry'],
+  shop: ['order', 'payment', 'inquiry', 'promo'],
+  food: ['order', 'payment', 'inquiry', 'promo'],
+  realty: ['property', 'contract', 'inquiry', 'promo'],
+  finance: ['consult', 'contract', 'inquiry'],
+  it: ['consult', 'contract', 'inquiry'],
+  manuf: ['consult', 'contract', 'inquiry'],
   other: ['inquiry', 'consult', 'promo']
 };
 function syncPurposes(){
