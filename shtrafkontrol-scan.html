@@ -847,7 +847,7 @@ function renderFaq(){
     var n = i === 0 ? ' open' : '';
     el.insertAdjacentHTML('beforeend',
       '<div class="faq-item'+n+'"><button onclick="this.parentElement.classList.toggle(\'open\')">'+
-      '<span class="q"><span class="n">'+String(i+1).padStart(2,'0')+'</span><span class="qt">'+item.q+'</span></span>'+
+      '<span class="q"><span class="n">'+(i+1)+'</span><span class="qt">'+item.q+'</span></span>'+
       '<span class="sign">'+(i===0?'−':'+')+'</span></button><div class="a">'+item.a+'</div></div>');
   });
 }
