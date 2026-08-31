@@ -146,14 +146,33 @@ section.block:last-of-type{border-bottom:0}
 .trust b{color:var(--ok)}
 
 /* прогресс */
-.progress-card{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:18px 20px}
-.progress-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+.progress-card{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:24px}
+/* тот же приём глубины/масштаба, что и у результата (см. .res-stats) — слева большая
+   заявительная цифра (домен + %), справа терминал, а не одна узкая колонка сверху вниз,
+   где прогресс был просто мелкой строкой текста над логом. */
+/* было 1.15/.85 в пользу левой колонки — строки терминала (длинные названия проверок)
+   переносились на вторую строку почти везде. Терминалу как раз нужно больше места,
+   левая колонка — короткие домен/процент, ей хватает меньшей доли. */
+.progress-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:32px;align-items:start}
+@media(max-width:700px){.progress-grid{grid-template-columns:1fr}}
+.progress-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .pulse{width:6px;height:6px;border-radius:999px;background:var(--brand);animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:14px}
+.progress-domain{font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.progress-percent{font-weight:800;letter-spacing:-.02em;line-height:1;font-size:clamp(48px,7vw,72px);
+  color:var(--ink);margin-top:8px;font-variant-numeric:tabular-nums}
+.progress-percent-suffix{font-size:28px;font-weight:700;color:var(--ink-faint);margin-left:2px}
+.progress-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;flex-wrap:wrap}
+.progress-caption{font-size:11px;color:var(--ink-faint)}
+/* «остановить» была голым текстом в верхнем углу — перенесена вниз, рядом со счётчиком
+   пунктов (там же, где по смыслу и находится «где я сейчас»), и получила обводку —
+   просто текстовая ссылка терялась, а это единственное действие, доступное во время скана */
+.progress-stop{border:1.5px solid var(--line-strong);border-radius:999px;padding:7px 14px;margin:0}
+.progress-stop:hover{border-color:var(--danger)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:16px 0 0}
 /* transform:scaleX вместо width — не триггерит layout, только компоновку GPU */
 .bar i{display:block;height:100%;width:100%;background:var(--brand);border-radius:3px;transform-origin:left;transform:scaleX(0);transition:transform .5s var(--ease-out)}
-.term{background:var(--ink);color:#fff;border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:12px;line-height:1.9;max-height:200px;overflow:hidden}
+.term{background:var(--ink);color:#fff;border-radius:8px;padding:14px 18px;font-family:var(--mono);font-size:12px;line-height:2;max-height:260px;overflow:hidden;height:100%}
 .term .ln{opacity:0;transform:translateY(3px);transition:opacity .3s,transform .3s}
 .term .ln.in{opacity:1;transform:none}
 .term .t{color:rgba(255,255,255,.3);margin-right:10px}
@@ -162,24 +181,37 @@ section.block:last-of-type{border-bottom:0}
 /* результат */
 .res-top{background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:22px 24px;
   display:flex;flex-direction:column;gap:16px}
+/* домен и дата — два прямых ребёнка строки (не общая группа) — space-between теперь
+   разводит их по краям, как в референсе, а не жмёт друг к другу слева с пустотой справа */
 .res-meta-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
-.res-meta-cols{display:flex;gap:26px;flex-wrap:wrap}
-.res-meta-cols .val{font-size:14px;font-weight:600;color:var(--ink);margin-top:4px}
+.res-meta-col .val{font-size:14px;font-weight:600;color:var(--ink);margin-top:4px}
+.res-meta-col+.res-meta-col{text-align:right;margin-left:auto}
 .st-pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;
   letter-spacing:.02em;padding:7px 14px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
 .st-pill.ok{color:var(--ok)} .st-pill.warn{color:var(--warn)} .st-pill.danger{color:var(--danger)}
+/* штраф и риск — две равные по весу колонки (было: большая цифра штрафа + маленький
+   гейдж риска в углу мета-строки, риск читался как довесок, а не вторая главная метрика).
+   Мета-строка (домен/дата) — отдельно над этим блоком, без каких-либо цифр в ней. */
+/* 1.15/.85, не 1/1 — «от 1 200 000 ₽» длиннее, чем «44/100» + пилюля, ровный сплит
+   душил числа мельче, чем на референсе; асимметрия даёт сумме место без переноса */
+.res-stats{display:grid;grid-template-columns:1.15fr .85fr;gap:32px}
+@media(max-width:600px){.res-stats{grid-template-columns:1fr;gap:24px}}
+.res-stats-col+.res-stats-col{padding-left:32px;border-left:1px solid var(--line-strong)}
+@media(max-width:600px){.res-stats-col+.res-stats-col{padding-left:0;border-left:0;padding-top:24px;border-top:1px solid var(--line-strong)}}
 .res-hero-fine b{display:block;font-weight:800;letter-spacing:-.02em;margin-top:6px;line-height:1;
-  font-size:clamp(38px,6vw,60px);color:var(--danger);font-variant-numeric:tabular-nums}
+  font-size:clamp(32px,5.2vw,58px);color:var(--danger);font-variant-numeric:tabular-nums}
 .res-fine-note{font-size:11.5px;color:var(--ink-soft);margin-top:10px;max-width:52ch;line-height:1.5}
 .res-legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line-strong)}
 /* риск = 100 − score (см. computeSummary) — то же число, что определяет статус-цвет
-   везде на странице, просто в дополнительном виде. Раньше показывали ЕЩЁ и отдельный
-   бейдж со статусом (56/100) рядом с этим гейджем (44/100) — два зеркальных числа
-   рядом читались как расхождение, а не как одно и то же с двух сторон. Теперь только
-   этот компактный гейдж в правом верхнем углу, вместо бывшего бейджа. */
-.res-risk-mini{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:none}
-.res-risk-mini-value{font-weight:800;font-size:13px;white-space:nowrap}
-.res-risk-mini-wrap{position:relative;width:min(320px,55vw);padding-top:26px}
+   везде на странице. Раньше показывали ЕЩЁ и отдельный бейдж со статусом (56/100) рядом
+   с этим гейджем (44/100) — два зеркальных числа рядом читались как расхождение. Сейчас
+   один блок: крупная цифра + отдельная цветная пилюля со словом (не два числа) + шкала
+   с подписанными концами (0·чисто / 100·критично) — было только само число сбоку. */
+.res-risk-big{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:6px}
+.res-risk-big-num{font-weight:800;letter-spacing:-.02em;line-height:1;font-size:clamp(28px,4.4vw,44px);
+  color:var(--ink);font-variant-numeric:tabular-nums}
+.res-risk-big-suffix{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink-faint);margin-left:2px}
+.res-risk-mini-wrap{position:relative;width:100%;padding-top:26px;margin-top:14px}
 .res-risk-mini-track{width:100%;height:5px;border-radius:999px;overflow:hidden;position:relative;
   background:linear-gradient(to right,var(--ok),var(--warn) 55%,var(--danger))}
 .res-risk-mini-mask{position:absolute;top:0;right:0;height:100%;width:100%;background:var(--line);transform-origin:right;transform:scaleX(0)}
@@ -194,6 +226,7 @@ section.block:last-of-type{border-bottom:0}
   background:var(--ink);padding:2px 6px;border-radius:4px;white-space:nowrap;
   opacity:0;transition:opacity .25s var(--ease-out)}
 .res-risk-mini-here.show{opacity:1}
+.res-risk-ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:7px}
 .res-list{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:0 24px}
 .res-row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .res-row:last-child{border-bottom:0}
@@ -397,11 +430,17 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
 <!-- ══ HERO + СКАН ═══════════════════════════════════════════════════ -->
 <header class="hero">
   <div class="wrap">
-    <div class="badge-row">
-      <span class="free-badge">✓ бесплатно · без регистрации</span>
+    <!-- скрывается целиком, как только посетитель нажал «Проверить сайт» (см. setState) —
+         и во время скана, и на результате питч-заголовок уже не нужен (решение убеждать
+         принято), а сверху над карточкой результата/прогресса остаётся пустое место,
+         прижимающее её вниз. Показывается только в состоянии «форма». -->
+    <div id="heroPitch">
+      <div class="badge-row">
+        <span class="free-badge">✓ бесплатно · без регистрации</span>
+      </div>
+      <h1>Узнайте за 2 минуты, какие <span class="accent">пробелы регулятор не простит</span>.</h1>
+      <p class="lead">152-ФЗ, 149-ФЗ, 38-ФЗ и другие нормы — 9 требований, за которые уже штрафуют. <b>Проверьте, что не так у вас.</b></p>
     </div>
-    <h1>Узнайте за 2 минуты, какие <span class="accent">пробелы регулятор не простит</span>.</h1>
-    <p class="lead" id="heroLead">152-ФЗ, 149-ФЗ, 38-ФЗ и другие нормы — 9 требований, за которые уже штрафуют. <b>Проверьте, что не так у вас.</b></p>
 
     <div class="state on" data-state="idle" style="margin-top:28px">
       <div class="scan-card">
@@ -427,15 +466,25 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
 
     <div class="state" data-state="scanning" style="margin-top:28px">
       <div class="progress-card">
-        <div class="progress-top">
-          <span class="pulse"></span>
-          <span>проверка</span>
-          <span class="mono" id="progressCount" aria-live="polite" aria-atomic="true" style="color:var(--ink-faint)">0 / 9 · 0%</span>
-          <button class="btn-text" style="margin-left:auto" onclick="stopScan()">✕ остановить</button>
-        </div>
-        <div class="bar" role="progressbar" aria-label="проверка сайта" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" id="progressBarWrap"><i id="progressBar"></i></div>
-        <div class="term" id="term">
-          <div style="color:rgba(255,255,255,.4)">[init] открываем сайт…</div>
+        <div class="progress-grid">
+          <div class="progress-left">
+            <div class="progress-top">
+              <span class="pulse"></span>
+              <span class="micro">проверяем</span>
+            </div>
+            <div class="progress-domain mono">delta-service.ru</div>
+            <div class="progress-percent mono"><span id="progressPercent">0</span><span class="progress-percent-suffix">%</span></div>
+            <div class="bar" role="progressbar" aria-label="проверка сайта" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" id="progressBarWrap"><i id="progressBar"></i></div>
+            <div class="progress-bottom">
+              <div class="progress-caption mono" id="progressCount" aria-live="polite" aria-atomic="true">пункт 0 из 9</div>
+              <button class="btn-text progress-stop" onclick="stopScan()">✕ остановить</button>
+            </div>
+          </div>
+          <div class="progress-right">
+            <div class="term" id="term">
+              <div style="color:rgba(255,255,255,.4)">[init] открываем сайт…</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -443,19 +492,28 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
     <div class="state" data-state="done" style="margin-top:28px">
       <div class="res-top">
         <div class="res-meta-row">
-          <div class="res-meta-cols">
-            <div class="res-meta-col">
-              <div class="micro">домен</div>
-              <div class="mono val">delta-service.ru</div>
-            </div>
-            <div class="res-meta-col">
-              <div class="micro">отчёт от</div>
-              <div class="mono val" id="resDate"></div>
-            </div>
+          <div class="res-meta-col">
+            <div class="micro">домен</div>
+            <div class="mono val">delta-service.ru</div>
           </div>
-          <div class="res-risk-mini">
-            <span class="micro">риск получения штрафа</span>
-            <span class="res-risk-mini-value mono" id="riskGaugeValue"></span>
+          <div class="res-meta-col">
+            <div class="micro">отчёт от</div>
+            <div class="mono val" id="resDate"></div>
+          </div>
+        </div>
+        <div class="hr" style="margin:0"></div>
+        <div class="res-stats">
+          <div class="res-stats-col res-hero-fine">
+            <div class="micro">потенциальный штраф по найденным нарушениям</div>
+            <b id="resFineSum"></b>
+            <p class="res-fine-note">Сумма — по вилке для юрлиц, только по подтверждённым нарушениям. У ИП и самозанятых цифры обычно меньше, но требования одинаковы для всех. Итоговый размер определяют обстоятельства дела и число эпизодов — вилка едина по всей стране.</p>
+          </div>
+          <div class="res-stats-col">
+            <div class="micro">риск получения штрафа</div>
+            <div class="res-risk-big">
+              <span class="res-risk-big-num mono"><span id="riskGaugeValue">0</span><span class="res-risk-big-suffix">/100</span></span>
+              <span class="st-pill" id="riskGaugeWord"></span>
+            </div>
             <div class="res-risk-mini-wrap">
               <div class="res-risk-mini-track">
                 <div class="res-risk-mini-mask" id="riskGaugeMask"></div>
@@ -464,16 +522,11 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
                 <span class="res-risk-mini-here" id="riskGaugeHere">я тут</span>
               </div>
             </div>
+            <div class="res-risk-ticks"><span>0 · чисто</span><span>100 · критично</span></div>
           </div>
         </div>
-        <div class="hr" style="margin:0"></div>
-        <div class="res-hero-fine">
-          <div class="micro">потенциальный штраф по найденным нарушениям</div>
-          <b id="resFineSum"></b>
-          <p class="res-fine-note">Сумма — по вилке для юрлиц, только по подтверждённым нарушениям. У ИП и самозанятых цифры обычно меньше, но требования одинаковы для всех. Итоговый размер определяют обстоятельства дела и число эпизодов — вилка едина по всей стране.</p>
-        </div>
         <div class="res-legend">
-          <span class="micro" style="width:100%;margin-bottom:2px">Обозначения в таблице ниже</span>
+          <span class="micro" style="width:100%;margin-bottom:2px">сначала нарушения</span>
           <span class="st ok"><i></i>в норме</span>
           <span class="st warn"><i></i>риск</span>
           <span class="st danger"><i></i>нарушение</span>
@@ -847,12 +900,18 @@ function animateResultReveal(s){
   var pin = document.getElementById('riskGaugePin');
   var here = document.getElementById('riskGaugeHere');
   var valueEl = document.getElementById('riskGaugeValue');
+  var wordEl = document.getElementById('riskGaugeWord');
   var fineEl = document.getElementById('resFineSum');
   var trackWidth = document.querySelector('.res-risk-mini-track').getBoundingClientRect().width;
   var duration = 1100;
   var startTime = null;
   var finePrefix = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') : '';
   here.classList.remove('show');
+  // слово (высокий/средний/низкий) и его цвет не считаются кадр за кадром вместе с
+  // числом — это не отдельная цифра, а неизменная качественная оценка того же самого
+  // финального счёта, показываем сразу.
+  wordEl.className = 'st-pill ' + s.tone;
+  wordEl.textContent = s.riskWord;
   function frame(ts){
     if(startTime === null) startTime = ts;
     var t = Math.min(1, (ts - startTime) / duration);
@@ -861,7 +920,7 @@ function animateResultReveal(s){
     var offsetPx = trackWidth * (100 - current) / 100;
     mask.style.transform = 'scaleX(' + (current / 100) + ')';
     pin.style.transform = 'translateX(' + (offsetPx - 6) + 'px)';
-    valueEl.textContent = Math.round(100 - current) + ' из 100 · ' + s.riskWord;
+    valueEl.textContent = Math.round(100 - current);
     fineEl.textContent = s.fineSum > 0 ? finePrefix + fmtMoney(Math.round(s.fineSum * eased)) + ' ₽' : '0 ₽';
     if(t < 1){
       requestAnimationFrame(frame);
@@ -872,18 +931,23 @@ function animateResultReveal(s){
   requestAnimationFrame(frame);
 }
 
-// построчно по всем применимым проверкам (не сгруппировано по закону) — так число строк
-// совпадает с «9 требований» из заголовка. Только светофор + закон, без текста находки
-// и без суммы — детали уходят в «Что мы находим» и в полный отчёт (см. оффер). Проверка,
-// неприменимая к этому сайту (applicable:false), в сводке не показывается — «не требуется»
-// только путает. Общий хелпер: используется и для реального результата (#resList), и для
+// построчно по всем применимым проверкам, отсортировано по тяжести (нарушение → риск →
+// в норме) — раньше шло тематическим порядком CHECK_ORDER, самое важное могло оказаться
+// последней строкой. Внутри одной тяжести порядок стабилен (Array.sort стабилен) и
+// совпадает с CHECK_ORDER. Только светофор + закон, без текста находки и без суммы —
+// детали уходят в «Что мы находим» и в полный отчёт (см. оффер). Проверка, неприменимая
+// к этому сайту (applicable:false), в сводке не показывается — «не требуется» только
+// путает. Общий хелпер: используется и для реального результата (#resList), и для
 // секции «Пример отчёта» (#sampleResList) — та же разметка, разные исходные данные.
+var STATUS_SEVERITY = {violation:0, risk:1, ok:2};
 function buildResultRows(targetId, checks){
   var el = document.getElementById(targetId);
-  CHECK_ORDER.forEach(function(id){
-    var c = checks.filter(function(x){ return x.id === id; })[0];
-    if(!c.applicable) return;
-    var meta = CHECK_META[id];
+  var rows = CHECK_ORDER
+    .map(function(id){ return checks.filter(function(x){ return x.id === id; })[0]; })
+    .filter(function(c){ return c.applicable; })
+    .sort(function(a, b){ return STATUS_SEVERITY[a.status] - STATUS_SEVERITY[b.status]; });
+  rows.forEach(function(c){
+    var meta = CHECK_META[c.id];
     var word = c.status === 'ok' ? 'в норме' : (c.status === 'violation' ? 'нарушение' : 'риск');
     el.insertAdjacentHTML('beforeend', '<div class="res-row"><div><div class="lbl">'+meta.label+'</div><div class="code">'+meta.lawCode+'</div></div><span class="st '+STATUS_TONE[c.status]+'"><i></i>'+word+'</span></div>');
   });
@@ -955,10 +1019,13 @@ function renderMockRecap(scanState, s){
     text.textContent = 'Читаем страницу и ищем нарушения — результат появится здесь и в блоке выше.';
     btn.textContent = 'Смотреть прогресс ↑';
   } else {
+    // риск = 100 − score, та же цифра и та же формулировка, что и в самом результате
+    // (см. .res-risk-big выше) — раньше здесь показывали score (56), а в результате
+    // риск (44): одно и то же число наизнанку, но выглядело как расхождение.
     var fineMoney = fmtMoney(s.fineSum) + ' ₽';
     var fineText = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
     label.textContent = 'это ваш отчёт';
-    text.innerHTML = 'Балл <b class="mono">' + s.score + '/100</b> · штраф <b class="mono">' + fineText + '</b>. Полная таблица — в блоке выше.';
+    text.innerHTML = 'Риск <b class="mono">' + (100 - s.score) + '/100</b> · штраф <b class="mono">' + fineText + '</b>. Полная таблица — в блоке выше.';
     btn.textContent = 'Смотреть результат ↑';
   }
 }
@@ -980,18 +1047,14 @@ function renderFaq(){
   });
 }
 
-var HERO_LEAD_PITCH = '152-ФЗ, 149-ФЗ, 38-ФЗ и другие нормы — 9 требований, за которые уже штрафуют. <b>Проверьте, что не так у вас.</b>';
-// во время скана этот же абзац раньше повторял «152-ФЗ, 149-ФЗ, 38-ФЗ» — а терминал
-// прямо под ним теперь тоже цитирует конкретные статьи (см. startScan) — на экране
-// одновременно 4 упоминания «ФЗ». Плюс сам питч «проверьте, что не так» уже не нужен:
-// посетитель на него среагировал, он и так сканирует. Меняем на то, что описывает сам
-// процесс — не рекламирует его заново.
-var HERO_LEAD_SCANNING = 'Читаем политику конфиденциальности, ищем чекбоксы согласия и трекеры на странице. <b>Обычно это занимает около двух минут.</b>';
-
 function setState(name){
   document.querySelectorAll('.state').forEach(function(s){ s.classList.toggle('on', s.dataset.state === name); });
   document.querySelectorAll('.modes button[data-state-to]').forEach(function(b){ b.classList.toggle('on', b.dataset.stateTo === name); });
-  document.getElementById('heroLead').innerHTML = name === 'scanning' ? HERO_LEAD_SCANNING : HERO_LEAD_PITCH;
+  // питч (бейдж+H1+лид) — только в «форме». Как только нажали «Проверить сайт», убеждать
+  // уже не в чем: и во время скана, и на результате пустое место над карточкой только
+  // прижимало её вниз, а сам текст («узнайте», «проверьте, что не так») не имел смысла
+  // рядом с уже идущим/готовым результатом.
+  document.getElementById('heroPitch').style.display = name === 'idle' ? '' : 'none';
   var mockBody = document.querySelector('.mock-browser .mock-body');
   if(mockBody) mockBody.classList.toggle('recap', name !== 'idle');
   document.getElementById('mockUrl').textContent = name === 'idle' ? 'тест.ru' : 'delta-service.ru';
@@ -1051,7 +1114,8 @@ function startScan(){
     requestAnimationFrame(function(){ lastLn.classList.add('in'); });
     term.scrollTop = term.scrollHeight;
     i++;
-    document.getElementById('progressCount').textContent = i+' / '+CHECK_ORDER.length+' · '+Math.round(i/CHECK_ORDER.length*100)+'%';
+    document.getElementById('progressPercent').textContent = Math.round(i/CHECK_ORDER.length*100);
+    document.getElementById('progressCount').textContent = 'пункт '+i+' из '+CHECK_ORDER.length;
     document.getElementById('progressBar').style.transform = 'scaleX('+(i/CHECK_ORDER.length)+')';
     document.getElementById('progressBarWrap').setAttribute('aria-valuenow', i);
   }, 480);
