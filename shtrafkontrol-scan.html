@@ -807,7 +807,7 @@ function renderSummary(){
   // сообщать, но зовём получить отчёт о том, чего нет). Разные тексты, не просто число 0.
   if(s.fineSum > 0){
     document.getElementById('offerTitle').textContent = 'У вас ' + s.score + ' из 100 — есть нарушения на сумму ' + fineText;
-    document.getElementById('offerDesc').textContent = 'Полный отчёт со всеми найденными нарушениями и что с ними делать — бесплатно, пришлём в Telegram. Если захотите закрыть их готовыми документами — это отдельная платная подписка, решаете уже после отчёта.';
+    document.getElementById('offerDesc').textContent = 'Полный отчёт со всеми найденными нарушениями и что с ними делать — бесплатно, пришлём в Telegram.';
     document.getElementById('offerBtn').textContent = 'Получить отчёт и чек-лист в Telegram →';
   } else {
     document.getElementById('offerTitle').textContent = 'У вас ' + s.score + ' из 100 — подтверждённых нарушений не найдено';
