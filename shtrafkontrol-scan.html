@@ -172,17 +172,28 @@ section.block:last-of-type{border-bottom:0}
   font-size:clamp(38px,6vw,60px);color:var(--danger);font-variant-numeric:tabular-nums}
 .res-fine-note{font-size:11.5px;color:var(--ink-soft);margin-top:10px;max-width:52ch;line-height:1.5}
 .res-legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line-strong)}
-/* визуальный гейдж поверх уже посчитанного статуса (см. computeSummary) — новой формулы
-   тут нет, риск = 10 − score/10 (просто дополнение к скору соответствия), чтобы бар
-   заполнялся сильнее там, где статус хуже. Ровно то же самое число, что и в бейдже
-   выше, только в перевёрнутом виде и другой шкале для этого конкретного визуала. */
-.risk-gauge{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
-.risk-gauge-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
-.risk-gauge-value{font-family:var(--mono);font-weight:800;font-size:15px}
-.risk-gauge-track{height:6px;border-radius:999px;overflow:hidden;margin-top:10px;position:relative;
+/* риск = 100 − score (см. computeSummary) — то же число, что определяет статус-цвет
+   везде на странице, просто в дополнительном виде. Раньше показывали ЕЩЁ и отдельный
+   бейдж со статусом (56/100) рядом с этим гейджем (44/100) — два зеркальных числа
+   рядом читались как расхождение, а не как одно и то же с двух сторон. Теперь только
+   этот компактный гейдж в правом верхнем углу, вместо бывшего бейджа. */
+.res-risk-mini{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:none}
+.res-risk-mini-value{font-weight:800;font-size:13px;white-space:nowrap}
+.res-risk-mini-wrap{position:relative;width:min(320px,55vw);padding-top:26px}
+.res-risk-mini-track{width:100%;height:5px;border-radius:999px;overflow:hidden;position:relative;
   background:linear-gradient(to right,var(--ok),var(--warn) 55%,var(--danger))}
-.risk-gauge-mask{position:absolute;top:0;right:0;height:100%;width:100%;background:var(--line);transform-origin:right;transform:scaleX(0);transition:transform .5s var(--ease-out)}
-.risk-gauge-ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:5px}
+.res-risk-mini-mask{position:absolute;top:0;right:0;height:100%;width:100%;background:var(--line);transform-origin:right;transform:scaleX(0)}
+/* треугольник-маркер и подпись «я тут» позиционируются из JS через transform:translateX(px) —
+   левый край .res-risk-mini-pin зафиксирован на left:0, JS сдвигает его вдоль трека кадр за
+   кадром (см. animateResultReveal) синхронно со счётчиком цифры; transform, а не left/right,
+   чтобы анимация не триггерила layout на каждый кадр. */
+.res-risk-mini-pin{position:absolute;top:18px;left:0;width:0;height:0;
+  border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--ink)}
+.res-risk-mini-here{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:3px;
+  font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.03em;color:#fff;
+  background:var(--ink);padding:2px 6px;border-radius:4px;white-space:nowrap;
+  opacity:0;transition:opacity .25s var(--ease-out)}
+.res-risk-mini-here.show{opacity:1}
 .res-list{margin-top:16px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:0 24px}
 .res-row{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .res-row:last-child{border-bottom:0}
@@ -256,6 +267,12 @@ section.block:last-of-type{border-bottom:0}
 .mock-body .st{font-size:12px}
 .mock-body .res-meta-row .mono.val{font-size:14.5px}
 .mock-body .micro{font-size:11px}
+.mock-recap{display:none}
+.mock-body.recap .mock-preview{display:none}
+.mock-body.recap .mock-recap{display:block}
+.mock-recap .mock-recap-text{font-size:13px;color:var(--ink-soft);margin-top:10px;line-height:1.5;max-width:40ch}
+.mock-recap .mock-recap-text b{color:var(--ink)}
+.mock-recap .btn{margin-top:16px}
 .mock-blur-wrap{position:relative}
 .mock-blur-wrap .res-row.blurred{filter:blur(4.5px);user-select:none}
 .mock-fade{position:absolute;left:-20px;right:-20px;bottom:-20px;height:150px;
@@ -384,7 +401,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
       <span class="free-badge">✓ бесплатно · без регистрации</span>
     </div>
     <h1>Узнайте за 2 минуты, какие <span class="accent">пробелы регулятор не простит</span>.</h1>
-    <p class="lead">152-ФЗ, 149-ФЗ, 38-ФЗ и другие нормы — 9 требований, за которые уже штрафуют. <b>Проверьте, что не так у вас.</b></p>
+    <p class="lead" id="heroLead">152-ФЗ, 149-ФЗ, 38-ФЗ и другие нормы — 9 требований, за которые уже штрафуют. <b>Проверьте, что не так у вас.</b></p>
 
     <div class="state on" data-state="idle" style="margin-top:28px">
       <div class="scan-card">
@@ -436,21 +453,24 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
               <div class="mono val" id="resDate"></div>
             </div>
           </div>
-          <span class="st-pill" id="resStatus"></span>
+          <div class="res-risk-mini">
+            <span class="micro">риск получения штрафа</span>
+            <span class="res-risk-mini-value mono" id="riskGaugeValue"></span>
+            <div class="res-risk-mini-wrap">
+              <div class="res-risk-mini-track">
+                <div class="res-risk-mini-mask" id="riskGaugeMask"></div>
+              </div>
+              <div class="res-risk-mini-pin" id="riskGaugePin">
+                <span class="res-risk-mini-here" id="riskGaugeHere">я тут</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="hr" style="margin:0"></div>
         <div class="res-hero-fine">
           <div class="micro">потенциальный штраф по найденным нарушениям</div>
           <b id="resFineSum"></b>
-          <p class="res-fine-note" id="resFineNote">Сумма — по вилке для юрлиц, только по подтверждённым нарушениям. У ИП и самозанятых цифры обычно меньше, но требования одинаковы для всех. Итоговый размер определяют обстоятельства дела и число эпизодов — вилка едина по всей стране.</p>
-        </div>
-        <div class="risk-gauge">
-          <div class="risk-gauge-top">
-            <span class="micro">риск получения штрафа</span>
-            <span class="risk-gauge-value" id="riskGaugeValue"></span>
-          </div>
-          <div class="risk-gauge-track"><div class="risk-gauge-mask" id="riskGaugeMask"></div></div>
-          <div class="risk-gauge-ticks"><span>0</span><span>50</span><span>100</span></div>
+          <p class="res-fine-note">Сумма — по вилке для юрлиц, только по подтверждённым нарушениям. У ИП и самозанятых цифры обычно меньше, но требования одинаковы для всех. Итоговый размер определяют обстоятельства дела и число эпизодов — вилка едина по всей стране.</p>
         </div>
         <div class="res-legend">
           <span class="micro" style="width:100%;margin-bottom:2px">Обозначения в таблице ниже</span>
@@ -496,20 +516,36 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
         <div class="check-list" id="checkListPlain"></div>
       </div>
       <div class="mock-browser">
-        <div class="mock-chrome"><i></i><i></i><i></i><span class="mock-url mono">example.ru</span></div>
+        <div class="mock-chrome"><i></i><i></i><i></i><span class="mock-url mono" id="mockUrl">example.ru</span></div>
+        <!-- .mock-body.recap включается для ЛЮБОГО состояния кроме idle (см. setState) —
+             пока не нажал «Проверить сайт», тут пример чужого сайта (тизер формата
+             отчёта); с момента клика убеждать уже не в чем — карточка сразу становится
+             коротким рекапом ПРО ЭТОГО посетителя: во время скана «идёт проверка» со
+             ссылкой на прогресс, после скана — реальный балл/сумма со ссылкой на
+             результат. Без этого разграничения долиставший вниз ВО ВРЕМЯ скана видит
+             тизер «проверьте свой сайт» и его же старую блюр-таблицу, хотя уже нажал
+             эту самую кнопку минуту назад — и то же самое повторяется опять после done. -->
         <div class="mock-body">
-          <div class="res-meta-row" style="margin-bottom:14px">
-            <span class="mono val" style="font-size:13px">example.ru <span style="color:var(--ink-faint);font-weight:400">· пример</span></span>
-            <span class="st-pill" id="sampleStatus"></span>
-          </div>
-          <div class="micro">потенциальный штраф</div>
-          <b id="sampleFineSum" class="mock-fine mono"></b>
-          <p class="mock-fine-note">По вилке для юрлиц, только подтверждённые нарушения — как и в вашем отчёте. Показаны не все пункты — в вашем отчёте будут все 9.</p>
-          <div class="mock-blur-wrap">
-            <div class="res-list" id="sampleResList" style="margin-top:14px;border:0;padding:0;background:none"></div>
-            <div class="mock-fade">
-              <button class="btn" style="width:auto" onclick="scrollToScan()">Проверить свой сайт →</button>
+          <div class="mock-preview" id="mockPreview">
+            <div class="res-meta-row" style="margin-bottom:14px">
+              <span class="mono val" style="font-size:13px">example.ru <span style="color:var(--ink-faint);font-weight:400">· пример</span></span>
+              <span class="st-pill" id="sampleStatus"></span>
             </div>
+            <div class="micro">потенциальный штраф</div>
+            <b id="sampleFineSum" class="mock-fine mono"></b>
+            <p class="mock-fine-note">По вилке для юрлиц, только подтверждённые нарушения — как и в вашем отчёте. Показаны не все пункты — в вашем отчёте будут все 9.</p>
+            <div class="mock-blur-wrap">
+              <div class="res-list" id="sampleResList" style="margin-top:14px;border:0;padding:0;background:none"></div>
+              <div class="mock-fade">
+                <button class="btn" style="width:auto" onclick="scrollToScan()">Проверить свой сайт →</button>
+              </div>
+            </div>
+          </div>
+          <div class="mock-recap" id="mockRecap">
+            <div class="micro" id="mockRecapLabel">это ваш отчёт</div>
+            <div class="mono val" style="font-size:15px;margin-top:4px">delta-service.ru</div>
+            <p class="mock-recap-text" id="mockRecapText"></p>
+            <button class="btn" id="mockRecapBtn" style="width:auto" onclick="scrollToScan()">Смотреть результат ↑</button>
           </div>
         </div>
       </div>
@@ -539,7 +575,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
           <p class="case-found">Google Analytics установлен на всех страницах, включая форму оформления заказа — данные покупателей уходят на серверы в США.</p>
         </div>
         <div class="case-value">
-          <div class="case-fine mono">от 6 000 000 ₽</div>
+          <div class="case-fine mono">от 1 000 000 ₽</div>
           <div class="case-law mono">152-ФЗ · ст. 18 ч. 5</div>
         </div>
       </div>
@@ -656,7 +692,7 @@ var CHECK_INFO = [
   {id:'cookie_policy', why:'Отдельно про cookie и счётчики — какие используете и зачем. Не обязательно отдельным документом: подойдёт и раздел внутри политики ПД.', fineFloor:150000, fineCeil:300000},
   {id:'marketing_consent', why:'Рассылки требуют отдельного согласия — своя галочка, а не часть общего согласия на обработку данных.', fineFloor:300000, fineCeil:1000000},
   {id:'requisites', why:'Любой сайт обязан показывать, кому он принадлежит: ИНН, ОГРН, адрес, контакты.', fineFloor:5000, fineCeil:10000},
-  {id:'ga_presence', why:'Данные пользователей нельзя передавать за рубеж — Google Analytics делает это, отправляя их на серверы в США. Замена на Яндекс Метрику закрывает вопрос.', fineFloor:6000000, fineCeil:18000000},
+  {id:'ga_presence', why:'Данные пользователей нельзя передавать за рубеж — Google Analytics делает это, отправляя их на серверы в США. Замена на Яндекс Метрику закрывает вопрос.', fineFloor:1000000, fineCeil:18000000},
   {id:'inoagent_marking', why:'Упоминания иноагентов, террористов и нежелательных организаций нужно сопровождать предупреждением — за отсутствие маркировки штрафуют реально.', fineFloor:40000, fineCeil:50000},
   {id:'anglicisms', why:'Если сайт продаёт товары или услуги физлицам, текст на иностранном языке без перевода — нарушение прав потребителя.', fineFloor:5000, fineCeil:10000}
 ];
@@ -747,20 +783,17 @@ function fineDisplay(info){
 
 function computeSummary(checks){
   // сумма — только по подтверждённым violation, не по risk (спорный/неполный сигнал не
-  // должен раздувать итоговую цифру, как на ФОНАРИКе). ГА в общую сумму не входит —
-  // его вилка (6–18 млн ₽, КоАП 13.11 ч.8) на порядок больше остальных 8 пунктов и одна
-  // перекрывает/обесценивает всю сумму. Статус вверху (см. ниже) всё равно станет
-  // красным из-за ГА через worstStatus — этого достаточно, отдельно её не проговариваем.
-  var applicable = 0, ok = 0, fineSum = 0, usedFloor = false, gaExcluded = null;
+  // должен раздувать итоговую цифру, как на ФОНАРИКе). ГА раньше исключали из суммы —
+  // его вилка была на порядок больше остальных 8 пунктов и одна перекрывала всю сумму.
+  // Нижняя граница по ГА снижена до 1 млн (первое нарушение по КоАП 13.11 ч.8, не
+  // повторное) — теперь она сопоставима с остальными пунктами, и ГА участвует в сумме
+  // как любой другой подтверждённый пункт, без отдельной оговорки.
+  var applicable = 0, ok = 0, fineSum = 0, usedFloor = false;
   checks.forEach(function(c){
     if(!c.applicable) return;
     applicable++;
     if(c.status === 'ok'){ ok++; return; }
     if(c.status !== 'violation') return;
-    if(c.id === 'ga_presence'){
-      gaExcluded = CHECK_INFO.filter(function(i){ return i.id === c.id; })[0];
-      return;
-    }
     var info = CHECK_INFO.filter(function(i){ return i.id === c.id; })[0];
     var fd = fineDisplay(info);
     fineSum += fd.amount;
@@ -777,31 +810,16 @@ function computeSummary(checks){
   if(overallStatus === 'violation'){ tone = 'danger'; word = 'требует изменений'; riskWord = 'высокий'; }
   else if(overallStatus === 'risk'){ tone = 'warn'; word = 'требует внимания'; riskWord = 'средний'; }
   else { tone = 'ok'; word = 'всё в порядке'; riskWord = 'низкий'; }
-  return {score:score, applicable:applicable, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word, riskWord:riskWord, gaExcluded:gaExcluded};
+  return {score:score, applicable:applicable, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word, riskWord:riskWord};
 }
 
 function renderSummary(){
   var s = computeSummary(DEMO_CHECKS);
   document.getElementById('resDate').textContent = fmtDateTime(new Date());
-  var statusEl = document.getElementById('resStatus');
-  statusEl.className = 'st-pill ' + s.tone;
-  statusEl.textContent = s.word + ' · ' + s.score + '/100';
   var fineMoney = fmtMoney(s.fineSum) + ' ₽';
   var fineText = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
-  document.getElementById('resFineSum').textContent = fineText;
-
-  // ГА исключён из суммы выше (см. computeSummary) — но при этом показан в таблице
-  // ниже как «нарушение» на сумму на порядок больше итога. Без явной оговорки это
-  // читается как несходящиеся цифры одного и того же отчёта, а не как осознанное
-  // решение не давать одному пункту обесценить всю сумму.
-  var noteEl = document.getElementById('resFineNote');
-  var baseNote = 'Сумма — по вилке для юрлиц, только по подтверждённым нарушениям. У ИП и самозанятых цифры обычно меньше, но требования одинаковы для всех. Итоговый размер определяют обстоятельства дела и число эпизодов — вилка едина по всей стране.';
-  if(s.gaExcluded){
-    var gaFd = fineDisplay(s.gaExcluded);
-    noteEl.innerHTML = baseNote + ' Отдельно: Google Analytics — <span class="mono">' + gaFd.text + '</span> (' + CHECK_META['ga_presence'].lawCode + ') — не входит в сумму выше, чтобы одна строка не обесценивала остальные; см. эту строку в таблице ниже.';
-  } else {
-    noteEl.textContent = baseNote;
-  }
+  // сама цифра #resFineSum не пишется здесь — её досчитывает анимация в animateResultReveal,
+  // запускаемая из setState('done'). fineText нужен только для статичного текста оффера ниже.
 
   // офер: при fineSum=0 «есть нарушения на сумму 0 ₽» — противоречие само себе (нечего
   // сообщать, но зовём получить отчёт о том, чего нет). Разные тексты, не просто число 0.
@@ -815,13 +833,44 @@ function renderSummary(){
     document.getElementById('offerBtn').textContent = 'Подписаться на уведомления в Telegram →';
   }
 
-  // гейдж «риск получения штрафа» — на той же 100-балльной шкале, что и весь остальной
-  // скор на странице, без новой формулы: риск = 100 − score (прямое дополнение).
-  var riskValue = 100 - s.score;
+  document.getElementById('riskGaugeValue').style.color = 'var(--' + s.tone + ')';
+}
+
+// единая анимация всего экрана результата — играет не при загрузке страницы (renderSummary
+// вызывается один раз сразу, пока состояние «результат» ещё скрыто), а именно в момент,
+// когда посетитель это состояние увидел (см. вызов из setState). Гейдж и сумма штрафа
+// считаются от общего прогресса t/eased одного requestAnimationFrame-цикла — не два
+// рассинхронизированных таймера, а одна и та же кривая на оба числа, поэтому они всегда
+// финишируют вместе. Гейдж — от условных «риск 0» к финальному score; сумма — от 0 к
+// итоговой fineSum. transform вместо left/right/width — анимация не триггерит layout.
+function animateResultReveal(s){
+  var mask = document.getElementById('riskGaugeMask');
+  var pin = document.getElementById('riskGaugePin');
+  var here = document.getElementById('riskGaugeHere');
   var valueEl = document.getElementById('riskGaugeValue');
-  valueEl.textContent = riskValue + ' из 100 · ' + s.riskWord;
-  valueEl.style.color = 'var(--' + s.tone + ')';
-  document.getElementById('riskGaugeMask').style.transform = 'scaleX(' + (s.score / 100) + ')';
+  var fineEl = document.getElementById('resFineSum');
+  var trackWidth = document.querySelector('.res-risk-mini-track').getBoundingClientRect().width;
+  var duration = 1100;
+  var startTime = null;
+  var finePrefix = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') : '';
+  here.classList.remove('show');
+  function frame(ts){
+    if(startTime === null) startTime = ts;
+    var t = Math.min(1, (ts - startTime) / duration);
+    var eased = 1 - Math.pow(1 - t, 3);
+    var current = 100 - (100 - s.score) * eased; // от 100 (риск 0) к финальному score
+    var offsetPx = trackWidth * (100 - current) / 100;
+    mask.style.transform = 'scaleX(' + (current / 100) + ')';
+    pin.style.transform = 'translateX(' + (offsetPx - 6) + 'px)';
+    valueEl.textContent = Math.round(100 - current) + ' из 100 · ' + s.riskWord;
+    fineEl.textContent = s.fineSum > 0 ? finePrefix + fmtMoney(Math.round(s.fineSum * eased)) + ' ₽' : '0 ₽';
+    if(t < 1){
+      requestAnimationFrame(frame);
+    } else {
+      here.classList.add('show');
+    }
+  }
+  requestAnimationFrame(frame);
 }
 
 // построчно по всем применимым проверкам (не сгруппировано по закону) — так число строк
@@ -864,10 +913,54 @@ function renderSampleReport(){
   });
 }
 
+// «Проверить свой сайт →» разбросано по нескольким секциям ниже по странице (тизер в
+// мокапе, cta-strip) как призыв к ещё не сканировавшему посетителю. Раньше при клике
+// всегда скроллило на #urlInput — но пока идёт скан, этот инпут внутри state="idle"
+// скрыт (display:none), и scrollIntoView/focus на скрытом элементе молча ничего не
+// делают: кнопка казалась просто сломанной. Теперь функция смотрит на текущее
+// состояние: во время скана — скроллит к уже идущему прогрессу, после скана — к уже
+// готовому результату (см. scrollToResult) вместо повторного призыва проверить то,
+// что человек только что проверил.
 function scrollToScan(){
+  var current = document.querySelector('.state.on').dataset.state;
+  if(current === 'done'){ scrollToResult(); return; }
+  if(current === 'scanning'){
+    var card = document.querySelector('.progress-card');
+    if(card) card.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
   var input = document.getElementById('urlInput');
   input.scrollIntoView({behavior:'smooth', block:'center'});
   input.focus();
+}
+
+function scrollToResult(){
+  var el = document.querySelector('.res-top');
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// рекап в мокапе «Что мы находим» — два под-режима одной и той же карточки, не два
+// отдельных момента: пока скан идёт — заглушка «идёт проверка» со ссылкой на прогресс;
+// после — реальные цифры со ссылкой на результат. Числа берутся мгновенно (не
+// досчитываются), в отличие от animateResultReveal в hero: это уже не первый показ
+// результата, а справочная сноска «вот что там было», повторно анимировать незачем.
+// Кнопка всегда onclick="scrollToScan()" (см. эту функцию) — она сама уже умеет вести
+// в нужное место по текущему состоянию, отдельная привязка на каждый режим не нужна.
+function renderMockRecap(scanState, s){
+  var label = document.getElementById('mockRecapLabel');
+  var text = document.getElementById('mockRecapText');
+  var btn = document.getElementById('mockRecapBtn');
+  if(scanState === 'scanning'){
+    label.textContent = 'идёт проверка';
+    text.textContent = 'Читаем страницу и ищем нарушения — результат появится здесь и в блоке выше.';
+    btn.textContent = 'Смотреть прогресс ↑';
+  } else {
+    var fineMoney = fmtMoney(s.fineSum) + ' ₽';
+    var fineText = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
+    label.textContent = 'это ваш отчёт';
+    text.innerHTML = 'Балл <b class="mono">' + s.score + '/100</b> · штраф <b class="mono">' + fineText + '</b>. Полная таблица — в блоке выше.';
+    btn.textContent = 'Смотреть результат ↑';
+  }
 }
 
 function toggleFaq(btn){
@@ -887,9 +980,29 @@ function renderFaq(){
   });
 }
 
+var HERO_LEAD_PITCH = '152-ФЗ, 149-ФЗ, 38-ФЗ и другие нормы — 9 требований, за которые уже штрафуют. <b>Проверьте, что не так у вас.</b>';
+// во время скана этот же абзац раньше повторял «152-ФЗ, 149-ФЗ, 38-ФЗ» — а терминал
+// прямо под ним теперь тоже цитирует конкретные статьи (см. startScan) — на экране
+// одновременно 4 упоминания «ФЗ». Плюс сам питч «проверьте, что не так» уже не нужен:
+// посетитель на него среагировал, он и так сканирует. Меняем на то, что описывает сам
+// процесс — не рекламирует его заново.
+var HERO_LEAD_SCANNING = 'Читаем политику конфиденциальности, ищем чекбоксы согласия и трекеры на странице. <b>Обычно это занимает около двух минут.</b>';
+
 function setState(name){
   document.querySelectorAll('.state').forEach(function(s){ s.classList.toggle('on', s.dataset.state === name); });
   document.querySelectorAll('.modes button[data-state-to]').forEach(function(b){ b.classList.toggle('on', b.dataset.stateTo === name); });
+  document.getElementById('heroLead').innerHTML = name === 'scanning' ? HERO_LEAD_SCANNING : HERO_LEAD_PITCH;
+  var mockBody = document.querySelector('.mock-browser .mock-body');
+  if(mockBody) mockBody.classList.toggle('recap', name !== 'idle');
+  document.getElementById('mockUrl').textContent = name === 'idle' ? 'example.ru' : 'delta-service.ru';
+  if(name === 'scanning'){
+    renderMockRecap('scanning');
+  }
+  if(name === 'done'){
+    var s = computeSummary(DEMO_CHECKS);
+    animateResultReveal(s);
+    renderMockRecap('done', s);
+  }
 }
 document.querySelectorAll('.modes button[data-state-to]').forEach(function(b){
   b.addEventListener('click', function(){ setState(b.dataset.stateTo); });
@@ -921,14 +1034,19 @@ function startScan(){
   var term = document.getElementById('term');
   term.innerHTML = '<div style="color:rgba(255,255,255,.4)">[init] открываем сайт…</div>';
   var i = 0;
+  var startTs = Date.now();
   clearInterval(scanTimer);
   clearTimeout(scanDoneTimeout);
   scanTimer = setInterval(function(){
     if(i >= CHECK_ORDER.length){ clearInterval(scanTimer); scanDoneTimeout = setTimeout(function(){ setState('done'); }, 400); return; }
     var id = CHECK_ORDER[i];
-    var d = new Date();
-    var stamp = '['+String(d.getMinutes()).padStart(2,'0')+'.'+String(d.getSeconds()).padStart(2,'0')+']';
-    term.insertAdjacentHTML('beforeend', '<div class="ln"><span class="t">'+stamp+'</span><span class="m">['+id+'] '+CHECK_META[id].label+'</span></div>');
+    // раньше тут был [id] — сырое имя переменной из кода (privacy_policy, data_consent…),
+    // случайно утёкшее в интерфейс; код закона — та же по форме скобка, но осмысленная.
+    // Таймштамп был текущей минутой.секундой по часам браузера (бессмысленное число,
+    // легко спутать со временем суток) — теперь честные секунды с начала скана.
+    var elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
+    var stamp = '['+elapsed+'s]';
+    term.insertAdjacentHTML('beforeend', '<div class="ln"><span class="t">'+stamp+'</span><span class="m">['+CHECK_META[id].lawCode+'] '+CHECK_META[id].label+'</span></div>');
     var lastLn = term.lastElementChild;
     requestAnimationFrame(function(){ lastLn.classList.add('in'); });
     term.scrollTop = term.scrollHeight;
