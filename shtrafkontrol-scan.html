@@ -420,7 +420,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
         <div class="trust">
           <span><b>✓</b> 9 проверок</span>
           <span><b>✓</b> результат за 2 минуты</span>
-          <span><b>✓</b> ничего не сохраняем</span>
+          <span><b>✓</b> не храним лишнего</span>
         </div>
       </div>
     </div>
@@ -516,7 +516,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
         <div class="check-list" id="checkListPlain"></div>
       </div>
       <div class="mock-browser">
-        <div class="mock-chrome"><i></i><i></i><i></i><span class="mock-url mono" id="mockUrl">example.ru</span></div>
+        <div class="mock-chrome"><i></i><i></i><i></i><span class="mock-url mono" id="mockUrl">тест.ru</span></div>
         <!-- .mock-body.recap включается для ЛЮБОГО состояния кроме idle (см. setState) —
              пока не нажал «Проверить сайт», тут пример чужого сайта (тизер формата
              отчёта); с момента клика убеждать уже не в чем — карточка сразу становится
@@ -528,8 +528,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
         <div class="mock-body">
           <div class="mock-preview" id="mockPreview">
             <div class="res-meta-row" style="margin-bottom:14px">
-              <span class="mono val" style="font-size:13px">example.ru <span style="color:var(--ink-faint);font-weight:400">· пример</span></span>
-              <span class="st-pill" id="sampleStatus"></span>
+              <span class="mono val" style="font-size:13px">тест.ru <span style="color:var(--ink-faint);font-weight:400">· пример</span></span>
             </div>
             <div class="micro">потенциальный штраф</div>
             <b id="sampleFineSum" class="mock-fine mono"></b>
@@ -894,11 +893,12 @@ function renderResults(){
   buildResultRows('resList', DEMO_CHECKS);
 }
 
+// без бейджа-пилюли статуса (типа «требует изменений · 63/100») — такого элемента
+// больше нет и в настоящем результате (см. .res-risk-mini выше), после сегодняшнего
+// переноса гейджа в угол. Превью показывает то же, что и раньше, за вычетом убранного
+// элемента — не обещает формат, которого сам продукт больше не показывает.
 function renderSampleReport(){
   var s = computeSummary(SAMPLE_CHECKS);
-  var statusEl = document.getElementById('sampleStatus');
-  statusEl.className = 'st-pill ' + s.tone;
-  statusEl.textContent = s.word + ' · ' + s.score + '/100';
   var fineMoney = fmtMoney(s.fineSum) + ' ₽';
   document.getElementById('sampleFineSum').textContent = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
   buildResultRows('sampleResList', SAMPLE_CHECKS);
@@ -994,7 +994,7 @@ function setState(name){
   document.getElementById('heroLead').innerHTML = name === 'scanning' ? HERO_LEAD_SCANNING : HERO_LEAD_PITCH;
   var mockBody = document.querySelector('.mock-browser .mock-body');
   if(mockBody) mockBody.classList.toggle('recap', name !== 'idle');
-  document.getElementById('mockUrl').textContent = name === 'idle' ? 'example.ru' : 'delta-service.ru';
+  document.getElementById('mockUrl').textContent = name === 'idle' ? 'тест.ru' : 'delta-service.ru';
   if(name === 'scanning'){
     renderMockRecap('scanning');
   }
