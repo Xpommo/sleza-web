@@ -322,12 +322,8 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
 .foot-docs{padding:16px 0 32px;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px;line-height:1.7;color:rgba(255,255,255,.5)}
 /* без text-transform:uppercase на самом классе — капс держит только .foot-legal-label
    (короткий ярлык-рубрика); два предложения ниже — связный текст, капс на нём не читается */
-.foot-legal{margin-top:12px;font-family:var(--font-mono);font-size:10.5px;color:rgba(255,255,255,.34)}
+.foot-legal{margin-top:12px;font-family:var(--font-mono);font-size:10.5px;color:rgba(255,255,255,.46)}
 .foot-legal-label{text-transform:uppercase;letter-spacing:.06em}
-/* НЕ финальный текст — маркер «на обсуждение», намеренно кричащий и выбивающийся из стиля,
-   чтобы не потерялся при следующем ревью макета. Убрать вместе с flag-mark, когда решится. */
-.review-flag{color:#fff200}
-.review-flag .flag-mark{color:#ff2e2e;font-weight:900;font-size:14px}
 .foot-docs a{color:rgba(255,255,255,.5);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.18);transition:color .15s,border-color .15s}
 .foot-docs a:hover{color:#fff;border-color:rgba(255,255,255,.5)}
 .foot-sep{color:rgba(255,255,255,.22)}
@@ -388,7 +384,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
       <span class="free-badge">✓ бесплатно · без регистрации</span>
     </div>
     <h1>Узнайте за 2 минуты, какие <span class="accent">пробелы регулятор не простит</span>.</h1>
-    <p class="lead">152-ФЗ, 149-ФЗ, 38-ФЗ — 9 требований, за которые уже штрафуют. <b>Проверьте, что не так у вас.</b></p>
+    <p class="lead">152-ФЗ, 149-ФЗ, 38-ФЗ и другие нормы — 9 требований, за которые уже штрафуют. <b>Проверьте, что не так у вас.</b></p>
 
     <div class="state on" data-state="idle" style="margin-top:28px">
       <div class="scan-card">
@@ -407,6 +403,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
         <div class="trust">
           <span><b>✓</b> 9 проверок</span>
           <span><b>✓</b> результат за 2 минуты</span>
+          <span><b>✓</b> ничего не сохраняем</span>
         </div>
       </div>
     </div>
@@ -445,7 +442,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
         <div class="res-hero-fine">
           <div class="micro">потенциальный штраф по найденным нарушениям</div>
           <b id="resFineSum"></b>
-          <p class="res-fine-note">Сумма — по вилке для юрлиц, только по подтверждённым нарушениям. У ИП и самозанятых цифры обычно меньше, но требования одинаковы для всех. Итоговый размер определяют обстоятельства дела и число эпизодов — вилка едина по всей стране.</p>
+          <p class="res-fine-note" id="resFineNote">Сумма — по вилке для юрлиц, только по подтверждённым нарушениям. У ИП и самозанятых цифры обычно меньше, но требования одинаковы для всех. Итоговый размер определяют обстоятельства дела и число эпизодов — вилка едина по всей стране.</p>
         </div>
         <div class="risk-gauge">
           <div class="risk-gauge-top">
@@ -456,9 +453,10 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
           <div class="risk-gauge-ticks"><span>0</span><span>50</span><span>100</span></div>
         </div>
         <div class="res-legend">
-          <span class="st ok"><i></i>всё в порядке</span>
-          <span class="st warn"><i></i>требует внимания</span>
-          <span class="st danger"><i></i>требует изменений</span>
+          <span class="micro" style="width:100%;margin-bottom:2px">Обозначения в таблице ниже</span>
+          <span class="st ok"><i></i>в норме</span>
+          <span class="st warn"><i></i>риск</span>
+          <span class="st danger"><i></i>нарушение</span>
         </div>
       </div>
       <div class="res-list" id="resList"></div>
@@ -490,7 +488,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
     <div class="sh">
       <div class="kicker">// что и почему проверяем</div>
       <h2>Что мы находим на сайте</h2>
-      <p>9 конкретных пунктов по 152-ФЗ, 149-ФЗ и 38-ФЗ — за каждым статья КоАП и штраф. Справа — как это выглядит в отчёте.</p>
+      <p>9 конкретных пунктов по 152-ФЗ, 149-ФЗ, 38-ФЗ и другим нормам — за каждым статья КоАП и штраф. Справа — как это выглядит в отчёте.</p>
     </div>
     <div class="check-split">
       <div>
@@ -506,7 +504,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
           </div>
           <div class="micro">потенциальный штраф</div>
           <b id="sampleFineSum" class="mock-fine mono"></b>
-          <p class="mock-fine-note">По вилке для юрлиц, только подтверждённые нарушения — как и в вашем отчёте.</p>
+          <p class="mock-fine-note">По вилке для юрлиц, только подтверждённые нарушения — как и в вашем отчёте. Показаны не все пункты — в вашем отчёте будут все 9.</p>
           <div class="mock-blur-wrap">
             <div class="res-list" id="sampleResList" style="margin-top:14px;border:0;padding:0;background:none"></div>
             <div class="mock-fade">
@@ -536,7 +534,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
     <div class="case-list">
       <div class="case-row">
         <div class="case-body">
-          <div class="case-tags"><span class="viol">нарушение</span><span class="reg">Новосибирск</span></div>
+          <div class="case-tags"><span class="viol">нарушение</span><span class="reg">пример</span></div>
           <div class="case-name">Интернет-магазин</div>
           <p class="case-found">Google Analytics установлен на всех страницах, включая форму оформления заказа — данные покупателей уходят на серверы в США.</p>
         </div>
@@ -547,7 +545,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
       </div>
       <div class="case-row">
         <div class="case-body">
-          <div class="case-tags"><span class="viol">нарушение</span><span class="reg">Регионы</span></div>
+          <div class="case-tags"><span class="viol">нарушение</span><span class="reg">пример</span></div>
           <div class="case-name">Новостной портал</div>
           <p class="case-found">Политика конфиденциальности есть, но не содержит 5 из 7 обязательных разделов: нет целей обработки, сроков хранения, категорий субъектов, порядка отзыва согласия, порядка уничтожения данных.</p>
         </div>
@@ -558,7 +556,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
       </div>
       <div class="case-row">
         <div class="case-body">
-          <div class="case-tags"><span class="viol">нарушение</span><span class="reg">Санкт-Петербург</span></div>
+          <div class="case-tags"><span class="viol">нарушение</span><span class="reg">пример</span></div>
           <div class="case-name">Онлайн-школа</div>
           <p class="case-found">Форма записи на занятие собирает телефон и email, но согласия на обработку данных рядом нет — ни галочки, ни ссылки на политику.</p>
         </div>
@@ -614,7 +612,7 @@ footer .wrap{background:var(--ink);border-radius:20px;padding-left:32px;padding-
       <div class="foot-legal foot-legal-label" style="margin-top:0;margin-bottom:10px">документы штрафконтроля</div>
       <u>Политика обработки персональных данных</u> <span class="foot-sep">·</span> <u>Согласие на обработку ПД на форме сбора</u> <span class="foot-sep">·</span> <u>Cookie‑баннер</u> <span class="foot-sep">·</span> <u>Политика cookie</u> <span class="foot-sep">·</span> <u>Согласие на рекламные рассылки</u> <span class="foot-sep">·</span> <u>Реквизиты владельца сайта</u>
       <div class="foot-legal">не является юридической консультацией</div>
-      <div class="foot-legal review-flag"><span class="flag-mark">?</span> методология проверки разработана при участии юристов, специализирующихся на it-праве и защите пдн <span class="flag-mark">?</span></div>
+      <div class="foot-legal">методология проверки основана на нормах 152-ФЗ, 149-ФЗ, 38-ФЗ и КоАП РФ</div>
     </div>
     <div class="foot-bottom">
       <span>© слеза · сервис юридического комплаенса для сайтов</span>
@@ -662,12 +660,14 @@ var CHECK_INFO = [
   {id:'inoagent_marking', why:'Упоминания иноагентов, террористов и нежелательных организаций нужно сопровождать предупреждением — за отсутствие маркировки штрафуют реально.', fineFloor:40000, fineCeil:50000},
   {id:'anglicisms', why:'Если сайт продаёт товары или услуги физлицам, текст на иностранном языке без перевода — нарушение прав потребителя.', fineFloor:5000, fineCeil:10000}
 ];
+// все 9 пунктов applicable:true — «9 требований» в заголовке должно совпадать
+// со строками в самом отчёте; ни один демо-пример не должен молча показывать 8.
 var DEMO_CHECKS = [
   {id:'data_consent', status:'ok', applicable:true},
   {id:'privacy_policy', status:'risk', applicable:true},
   {id:'cookie_policy', status:'ok', applicable:true},
   {id:'cookie_banner', status:'violation', applicable:true},
-  {id:'marketing_consent', status:'ok', applicable:false},
+  {id:'marketing_consent', status:'ok', applicable:true},
   {id:'requisites', status:'ok', applicable:true},
   {id:'ga_presence', status:'violation', applicable:true},
   {id:'inoagent_marking', status:'violation', applicable:true},
@@ -689,15 +689,18 @@ var SAMPLE_CHECKS = [
   {id:'anglicisms', status:'ok', applicable:true}
 ];
 var STATUS_TONE = {ok:'ok', risk:'warn', violation:'danger'};
+// порядок: сначала общие/доверительные вопросы (в т.ч. про сохранность данных —
+// раньше стоял 6-м и сворачивался, хотя это первое, что хочет знать настороженный
+// посетитель), нишевый вопрос про cookie-баннер/GDPR — ближе к концу.
 var SK_FAQ = [
   {q:'Это правда бесплатно и без регистрации?', a:'Да. Вводите адрес — результат на этой же странице, без формы, почты или пароля.'},
+  {q:'Что вы делаете с содержимым моего сайта?', a:'Смотрим только то, что нужно для этих 9 пунктов: текст политики, форму сбора данных, скрипты в html. Ничего сверх этого не сохраняем и не анализируем.'},
   {q:'Вы используете ИИ для проверки?', a:'Нет. Каждый из 9 пунктов — конкретный детерминированный признак: раздел в тексте политики, чекбокс на форме, скрипт в html. Один и тот же сайт даёт один и тот же результат при повторной проверке.'},
-  {q:'Обязательно ли добавлять кнопку «отклонить всё» в cookie-баннер?', a:'Нет. Баннер с тремя кнопками «Принять всё / Отклонить / Настроить» — это шаблон европейского GDPR. В российских нормах требования к конкретным кнопкам нет ни в одном документе — важно само предупреждение и то, что оно стоит до включения счётчиков.'},
   {q:'Почему нет проверки публичной оферты?', a:'Оферта у каждого бизнеса своя — шаблон под неё нельзя корректно собрать не глядя на конкретные условия продажи. Показывать проверку, за которой не стоит нормальный документ, было бы враньём — поэтому её пока нет в списке.'},
   {q:'Мы собираем данные не только через сайт — на Авито, в WhatsApp, по телефону. Это тоже под 152-ФЗ?', a:'Да, требования 152-ФЗ одинаковы для любого канала — Авито, WhatsApp, звонков, а не только сайта. Сканер проверяет именно сайт, потому что это можно сделать автоматически, но правила касаются всех ваших каналов сбора данных.'},
-  {q:'Что вы делаете с содержимым моего сайта?', a:'Смотрим только то, что нужно для этих 9 пунктов: текст политики, форму сбора данных, скрипты в html. Ничего сверх этого не сохраняем и не анализируем.'},
   {q:'Вы поможете исправить найденные нарушения?', a:'Сканер только показывает, чего не хватает — ничего не пишет и не устанавливает автоматически. Полный список находок и с чего начинать — в развёрнутом отчёте, который пришлём в Telegram.'},
   {q:'Мы передаём данные в CRM или подрядчику — это снимает с нас ответственность?', a:'Нет. Если данные обрабатывает CRM или подрядчик, вы поручили обработку, но отвечаете за неё всё равно вы — по ч.5 ст.6 152-ФЗ.'},
+  {q:'Обязательно ли добавлять кнопку «отклонить всё» в cookie-баннер?', a:'Нет. Баннер с тремя кнопками «Принять всё / Отклонить / Настроить» — это шаблон европейского GDPR. В российских нормах требования к конкретным кнопкам нет ни в одном документе — важно само предупреждение и то, что оно стоит до включения счётчиков.'},
   {q:'Это юридическая консультация?', a:'Нет. Результат — сигнал, что и где проверить. Для спорных случаев и оценки конкретного риска нужен юрист.'}
 ];
 
@@ -748,13 +751,16 @@ function computeSummary(checks){
   // его вилка (6–18 млн ₽, КоАП 13.11 ч.8) на порядок больше остальных 8 пунктов и одна
   // перекрывает/обесценивает всю сумму. Статус вверху (см. ниже) всё равно станет
   // красным из-за ГА через worstStatus — этого достаточно, отдельно её не проговариваем.
-  var applicable = 0, ok = 0, fineSum = 0, usedFloor = false;
+  var applicable = 0, ok = 0, fineSum = 0, usedFloor = false, gaExcluded = null;
   checks.forEach(function(c){
     if(!c.applicable) return;
     applicable++;
     if(c.status === 'ok'){ ok++; return; }
     if(c.status !== 'violation') return;
-    if(c.id === 'ga_presence') return;
+    if(c.id === 'ga_presence'){
+      gaExcluded = CHECK_INFO.filter(function(i){ return i.id === c.id; })[0];
+      return;
+    }
     var info = CHECK_INFO.filter(function(i){ return i.id === c.id; })[0];
     var fd = fineDisplay(info);
     fineSum += fd.amount;
@@ -771,7 +777,7 @@ function computeSummary(checks){
   if(overallStatus === 'violation'){ tone = 'danger'; word = 'требует изменений'; riskWord = 'высокий'; }
   else if(overallStatus === 'risk'){ tone = 'warn'; word = 'требует внимания'; riskWord = 'средний'; }
   else { tone = 'ok'; word = 'всё в порядке'; riskWord = 'низкий'; }
-  return {score:score, applicable:applicable, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word, riskWord:riskWord};
+  return {score:score, applicable:applicable, fineSum:fineSum, usedFloor:usedFloor, tone:tone, word:word, riskWord:riskWord, gaExcluded:gaExcluded};
 }
 
 function renderSummary(){
@@ -784,11 +790,24 @@ function renderSummary(){
   var fineText = s.fineSum > 0 ? (s.usedFloor ? 'от ' : 'до ') + fineMoney : '0 ₽';
   document.getElementById('resFineSum').textContent = fineText;
 
+  // ГА исключён из суммы выше (см. computeSummary) — но при этом показан в таблице
+  // ниже как «нарушение» на сумму на порядок больше итога. Без явной оговорки это
+  // читается как несходящиеся цифры одного и того же отчёта, а не как осознанное
+  // решение не давать одному пункту обесценить всю сумму.
+  var noteEl = document.getElementById('resFineNote');
+  var baseNote = 'Сумма — по вилке для юрлиц, только по подтверждённым нарушениям. У ИП и самозанятых цифры обычно меньше, но требования одинаковы для всех. Итоговый размер определяют обстоятельства дела и число эпизодов — вилка едина по всей стране.';
+  if(s.gaExcluded){
+    var gaFd = fineDisplay(s.gaExcluded);
+    noteEl.innerHTML = baseNote + ' Отдельно: Google Analytics — <span class="mono">' + gaFd.text + '</span> (' + CHECK_META['ga_presence'].lawCode + ') — не входит в сумму выше, чтобы одна строка не обесценивала остальные; см. эту строку в таблице ниже.';
+  } else {
+    noteEl.textContent = baseNote;
+  }
+
   // офер: при fineSum=0 «есть нарушения на сумму 0 ₽» — противоречие само себе (нечего
   // сообщать, но зовём получить отчёт о том, чего нет). Разные тексты, не просто число 0.
   if(s.fineSum > 0){
     document.getElementById('offerTitle').textContent = 'У вас ' + s.score + ' из 100 — есть нарушения на сумму ' + fineText;
-    document.getElementById('offerDesc').textContent = 'Полный отчёт со всеми найденными нарушениями и что с ними делать — пришлём в Telegram.';
+    document.getElementById('offerDesc').textContent = 'Полный отчёт со всеми найденными нарушениями и что с ними делать — бесплатно, пришлём в Telegram. Если захотите закрыть их готовыми документами — это отдельная платная подписка, решаете уже после отчёта.';
     document.getElementById('offerBtn').textContent = 'Получить отчёт и чек-лист в Telegram →';
   } else {
     document.getElementById('offerTitle').textContent = 'У вас ' + s.score + ' из 100 — подтверждённых нарушений не найдено';
