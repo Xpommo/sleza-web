@@ -633,15 +633,6 @@
         grid-template-columns: 1.2fr 0.8fr;
         gap: 18px;
       }
-      .faq-list { display: grid; gap: 12px; }
-      .faq-item {
-        padding: 18px 18px 16px;
-        border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.06);
-        background: rgba(255,255,255,0.025);
-      }
-      .faq-item h4 { margin: 0 0 8px; font-size: 1.08rem; }
-      .faq-item p { margin: 0; color: var(--muted); }
       .note-box {
         padding: 22px 20px;
         border-radius: 24px;
@@ -667,6 +658,143 @@
         color: #f7b7a4;
         text-decoration: underline;
         text-underline-offset: 2px;
+      }
+      .result-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .result-summary {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+      }
+      .fine-label {
+        color: var(--muted);
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .fine-total {
+        font-size: clamp(1.45rem, 2vw, 2rem);
+        line-height: 1;
+        letter-spacing: -0.06em;
+        font-weight: 800;
+        color: #f7cfaf;
+        text-align: right;
+      }
+      .scan-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 14px;
+      }
+      .stop-btn {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.02);
+        color: var(--soft);
+        border-radius: 999px;
+        padding: 0.5rem 0.8rem;
+        cursor: pointer;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+      .stop-btn.visible {
+        display: inline-flex;
+      }
+      .result-offer {
+        display: none;
+        margin-top: 16px;
+        padding: 18px 18px 16px;
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: linear-gradient(135deg, rgba(243,176,109,0.08), rgba(255,255,255,0.02));
+      }
+      .result-offer.visible {
+        display: block;
+      }
+      .offer-kicker {
+        margin: 0 0 8px;
+        color: var(--amber);
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-weight: 800;
+      }
+      .result-offer h4 {
+        margin: 0 0 8px;
+        font-size: 1.2rem;
+        line-height: 1.2;
+        letter-spacing: -0.05em;
+      }
+      .result-offer p {
+        margin: 0 0 14px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .offer-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+      }
+      .faq-list { display: grid; gap: 12px; }
+      .faq-item {
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.025);
+        overflow: hidden;
+      }
+      .faq-trigger {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 18px 16px;
+        text-align: left;
+        cursor: pointer;
+        font: inherit;
+      }
+      .faq-trigger strong {
+        font-size: 1.06rem;
+        letter-spacing: -0.04em;
+        font-weight: 600;
+      }
+      .faq-icon {
+        font-size: 1.2rem;
+        color: var(--amber);
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+      }
+      .faq-item.is-open .faq-icon {
+        transform: rotate(45deg);
+      }
+      .faq-panel {
+        display: none;
+        padding: 0 18px 18px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .faq-item.is-open .faq-panel {
+        display: block;
       }
       .note-box h4 {
         margin: 0 0 12px;
@@ -860,15 +988,28 @@
                         <div class="status">критично</div>
                       </div>
                     </div>
+
+                    <div class="scan-actions">
+                      <button id="stopScanButton" class="stop-btn" type="button">✕ Остановить</button>
+                    </div>
                   </div>
 
                   <div class="risk-box">
+                    <div class="result-meta">
+                      <span id="reportDomain">example.ru</span>
+                      <span id="reportDate">—</span>
+                    </div>
                     <div class="risk-top">
                       <div>
                         <div class="risk-kicker">Итоговый риск</div>
                         <div id="riskLevel" class="risk-level">76</div>
                       </div>
                       <div id="riskBadge" class="risk-badge">Высокий</div>
+                    </div>
+
+                    <div class="result-summary">
+                      <div class="fine-label">Потенциальный штраф</div>
+                      <div id="fineDisplay" class="fine-total">от 1 300 000 ₽</div>
                     </div>
 
                     <div id="riskBarWrap" class="risk-bar"><span id="riskBar"></span></div>
@@ -895,6 +1036,13 @@
                         </div>
                         <em>Критично</em>
                       </div>
+                    </div>
+
+                    <div id="resultOffer" class="result-offer">
+                      <p class="offer-kicker">Нужно закрыть риск</p>
+                      <h4>Не ждите регулятора — закройте нарушения документами и виджетом.</h4>
+                      <p>В сервисе Слеза · Белый Сайт готовим готовый пакет по 152-ФЗ, cookie и форме согласия, чтобы убрать тревожные маркеры без лишней бюрократии.</p>
+                      <a href="#footer" class="primary-btn offer-btn">Слеза · Белый Сайт</a>
                     </div>
 
                     <div id="doneSupport" class="done-support" aria-live="polite">
@@ -1017,17 +1165,86 @@
         </div>
         <div class="faq-wrap">
           <div class="faq-list">
-            <div class="faq-item">
-              <h4>Это быстрая диагностика или полноценная экспертиза?</h4>
-              <p>Скорее первая линия аудита: мы выделяем типовые точки риска, чтобы не тратить день на разбор без понимания масштаба проблемы.</p>
+            <div class="faq-item is-open">
+              <button class="faq-trigger" type="button" aria-expanded="true">
+                <strong>Это правда бесплатно и без регистрации?</strong>
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-panel">
+                Да. Вводите адрес — результат на этой же странице, без формы, почты или пароля.
+              </div>
             </div>
             <div class="faq-item">
-              <h4>Нужна ли регистрация?</h4>
-              <p>Нет. Проверка запускается по URL и не требует входа в кабинет.</p>
+              <button class="faq-trigger" type="button" aria-expanded="false">
+                <strong>Что вы делаете с содержимым моего сайта?</strong>
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-panel">
+                Смотрим только то, что нужно для этих 9 пунктов: текст политики, форму сбора данных, скрипты в html. Ничего сверх этого не сохраняем и не анализируем.
+              </div>
             </div>
             <div class="faq-item">
-              <h4>Что делать, если домен уже проблемный?</h4>
-              <p>Начните с пунктов со статусом «нарушение» — они дают наибольший штраф. Закрыть их документами и виджетом можно через Слеза · Белый Сайт (ссылка в футере).</p>
+              <button class="faq-trigger" type="button" aria-expanded="false">
+                <strong>Вы используете ИИ для проверки?</strong>
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-panel">
+                Нет. Каждый из 9 пунктов — конкретный детерминированный признак: раздел в тексте политики, чекбокс на форме, скрипт в html. Один и тот же сайт даёт один и тот же результат при повторной проверке.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-trigger" type="button" aria-expanded="false">
+                <strong>Почему нет проверки публичной оферты?</strong>
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-panel">
+                Оферта у каждого бизнеса своя — шаблон под неё нельзя корректно собрать не глядя на конкретные условия продажи. Показывать проверку, за которой не стоит нормальный документ, было бы враньём — поэтому её пока нет в списке.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-trigger" type="button" aria-expanded="false">
+                <strong>Мы собираем данные не только через сайт — на Авито, в WhatsApp, по телефону. Это тоже под 152-ФЗ?</strong>
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-panel">
+                Да, требования 152-ФЗ одинаковы для любого канала — Авито, WhatsApp, звонков, а не только сайта. Сканер проверяет именно сайт, потому что это можно сделать автоматически, но правила касаются всех ваших каналов сбора данных.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-trigger" type="button" aria-expanded="false">
+                <strong>Вы поможете исправить найденные нарушения?</strong>
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-panel">
+                Сканер только показывает, чего не хватает — документы и виджет для исправления делает отдельный сервис Слеза · Белый Сайт (ссылка в футере).
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-trigger" type="button" aria-expanded="false">
+                <strong>Мы передаём данные в CRM или подрядчику — это снимает с нас ответственность?</strong>
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-panel">
+                Нет. Если данные обрабатывает CRM или подрядчик, вы поручили обработку, но отвечаете за неё всё равно вы — по ч.5 ст.6 152-ФЗ.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-trigger" type="button" aria-expanded="false">
+                <strong>Обязательно ли добавлять кнопку «отклонить всё» в cookie-баннер?</strong>
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-panel">
+                Нет. Баннер с тремя кнопками «Принять всё / Отклонить / Настроить» — это шаблон европейского GDPR. В российских нормах требования к конкретным кнопкам нет ни в одном документе — важно само предупреждение и то, что оно стоит до включения счётчиков.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-trigger" type="button" aria-expanded="false">
+                <strong>Это юридическая консультация?</strong>
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-panel">
+                Нет. Результат — сигнал, что и где проверить. Для спорных случаев и оценки конкретного риска нужен юрист.
+              </div>
             </div>
           </div>
 
@@ -1078,9 +1295,67 @@
       let currentStep = 0;
       let phase = 'form';
 
+      function formatMoney(value) {
+        return `от ${new Intl.NumberFormat('ru-RU').format(value)} ₽`;
+      }
+
+      function calculateDemoFine() {
+        return 1300000;
+      }
+
+      function updateReportMeta() {
+        const input = document.getElementById('domainInput');
+        const domainNode = document.getElementById('reportDomain');
+        const dateNode = document.getElementById('reportDate');
+        if (input && domainNode) {
+          domainNode.textContent = input.value.trim() || 'example.ru';
+        }
+        if (dateNode) {
+          const now = new Date();
+          const formatted = new Intl.DateTimeFormat('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).format(now);
+          dateNode.textContent = formatted.replace(',', '');
+        }
+      }
+
+      function setFineDisplay(text) {
+        const fineDisplay = document.getElementById('fineDisplay');
+        if (!fineDisplay) return;
+        fineDisplay.textContent = text;
+      }
+
+      function animateFineDisplay(targetText) {
+        const fineDisplay = document.getElementById('fineDisplay');
+        if (!fineDisplay) return;
+
+        const parsedTarget = Number(String(targetText).replace(/\D/g, ''));
+        if (!Number.isFinite(parsedTarget) || parsedTarget <= 0) {
+          fineDisplay.textContent = targetText;
+          return;
+        }
+
+        const startTime = performance.now();
+        const duration = 1000;
+        const step = (now) => {
+          const progress = Math.min((now - startTime) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const value = Math.round(parsedTarget * eased);
+          fineDisplay.textContent = formatMoney(value);
+          if (progress < 1) requestAnimationFrame(step);
+        };
+
+        requestAnimationFrame(step);
+      }
+
       function ensureDomainValue() {
         const input = document.getElementById('domainInput');
         if (!input.value.trim()) input.value = 'example.ru';
+        updateReportMeta();
       }
 
       function setSignalState(labelText, valueText, unitText) {
@@ -1128,6 +1403,18 @@
         }
 
         headerStatus.setAttribute('aria-label', isDone ? `Результат: ${score}, ${badgeText}` : 'Сканирование сайта');
+      }
+
+      function setStopButtonState(visible) {
+        const stopButton = document.getElementById('stopScanButton');
+        if (!stopButton) return;
+        stopButton.classList.toggle('visible', visible);
+      }
+
+      function setResultOffer(visible) {
+        const resultOffer = document.getElementById('resultOffer');
+        if (!resultOffer) return;
+        resultOffer.classList.toggle('visible', visible);
       }
 
       function renderScanList(progressIndex) {
@@ -1178,11 +1465,17 @@
 
       function renderFormState() {
         phase = 'form';
+        updateReportMeta();
         setSignalState('signal://audit', '76', 'риск');
         setRiskState(76, 'Высокий');
         setHeaderStatus('form', 76, 'Высокий');
         renderScanList(2);
         renderRiskList(76);
+        setStopButtonState(false);
+        setFineDisplay(formatMoney(calculateDemoFine()));
+        setResultOffer(false);
+        const doneSupport = document.getElementById('doneSupport');
+        if (doneSupport) doneSupport.classList.remove('visible');
         const scanButton = document.getElementById('scanButton');
         if (scanButton) scanButton.textContent = 'Проверить сайт →';
         document.getElementById('runDemoButton').style.display = '';
@@ -1197,6 +1490,11 @@
         setHeaderStatus('scanning', currentScore, badge);
         renderScanList(currentStep);
         renderRiskList(currentScore);
+        setStopButtonState(true);
+        setFineDisplay('Считаем…');
+        setResultOffer(false);
+        const doneSupport = document.getElementById('doneSupport');
+        if (doneSupport) doneSupport.classList.remove('visible');
         const scanButton = document.getElementById('scanButton');
         if (scanButton) scanButton.textContent = 'Сканирую…';
         document.getElementById('runDemoButton').style.display = 'none';
@@ -1205,11 +1503,16 @@
       function renderDoneState() {
         phase = 'done';
         const score = 92;
+        const fineAmount = calculateDemoFine();
         setSignalState('signal://done', String(score), 'риск');
         setRiskState(score, 'Критично');
         setHeaderStatus('done', score, 'Критично');
         renderScanList(8);
         renderRiskList(score);
+        setStopButtonState(false);
+        animateFineDisplay(formatMoney(fineAmount));
+        updateReportMeta();
+        setResultOffer(true);
         const scanButton = document.getElementById('scanButton');
         if (scanButton) scanButton.textContent = 'Проверить другой сайт';
         document.getElementById('runDemoButton').style.display = 'none';
@@ -1222,7 +1525,18 @@
         if (doneSupport) doneSupport.classList.add('visible');
       }
 
+      function stopCurrentScan() {
+        if (scanTimer) {
+          clearInterval(scanTimer);
+          scanTimer = null;
+        }
+        currentStep = 0;
+        phase = 'form';
+        renderFormState();
+      }
+
       function startScan() {
+        if (phase === 'scanning') return;
         ensureDomainValue();
         currentStep = 0;
         phase = 'scanning';
@@ -1249,6 +1563,28 @@
         currentStep = 0;
         phase = 'form';
         renderFormState();
+      }
+
+      function setupFaqAccordion() {
+        const items = document.querySelectorAll('.faq-item');
+        items.forEach((item) => {
+          const trigger = item.querySelector('.faq-trigger');
+          if (!trigger) return;
+
+          trigger.addEventListener('click', () => {
+            const isOpen = item.classList.contains('is-open');
+            items.forEach((faqItem) => {
+              const faqTrigger = faqItem.querySelector('.faq-trigger');
+              faqItem.classList.remove('is-open');
+              if (faqTrigger) faqTrigger.setAttribute('aria-expanded', 'false');
+            });
+
+            if (!isOpen) {
+              item.classList.add('is-open');
+              trigger.setAttribute('aria-expanded', 'true');
+            }
+          });
+        });
       }
 
       const mobileToggle = document.querySelector('.mobile-nav-toggle');
@@ -1300,13 +1636,17 @@
       scanTriggers.forEach((button) => {
         button.addEventListener('click', () => {
           focusInput();
-          if (phase === 'scanning') return;
           if (phase === 'done') {
             resetScan();
           }
           startScan();
         });
       });
+
+      const stopButton = document.getElementById('stopScanButton');
+      if (stopButton) {
+        stopButton.addEventListener('click', stopCurrentScan);
+      }
 
       const headerStatus = document.getElementById('headerStatus');
       if (headerStatus) {
@@ -1326,6 +1666,7 @@
         if (event.key === 'Enter') startScan();
       });
 
+      setupFaqAccordion();
       renderFormState();
     </script>
   </body>
