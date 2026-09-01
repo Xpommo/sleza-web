@@ -19,8 +19,10 @@
         --muted: #9aa3a1;
         --soft: #d8dccd;
         --amber: #f3b06d;
+        --amber-soft: rgba(243, 176, 109, 0.12);
         --copper: #d97347;
         --rose: #dd6d5c;
+        --rose-soft: rgba(221, 109, 92, 0.1);
         --teal: #78b9a8;
         --shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
       }
@@ -62,6 +64,46 @@
         align-items: center;
         justify-content: space-between;
         gap: 20px;
+      }
+      .header-status {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        padding: 0.46rem 0.76rem;
+        border-radius: 999px;
+        border: 1px solid rgba(243,176,109,0.2);
+        background: rgba(243,176,109,0.12);
+        color: #f0d0a0;
+        cursor: pointer;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 700;
+        transition: background .2s ease, border-color .2s ease, color .2s ease;
+      }
+      .header-status.visible {
+        display: inline-flex;
+      }
+      .header-status.warning {
+        border-color: rgba(243,176,109,0.2);
+        background: rgba(243,176,109,0.12);
+        color: #f0d0a0;
+      }
+      .header-status.danger {
+        border-color: rgba(221,109,92,0.25);
+        background: rgba(221,109,92,0.12);
+        color: #f8b4a9;
+      }
+      .header-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 0 6px rgba(243,176,109,0.12);
+        animation: pulseDot 1.6s ease-in-out infinite;
+      }
+      .header-status.done .header-status-dot {
+        box-shadow: 0 0 0 6px rgba(221,109,92,0.12);
       }
       .brand {
         display: inline-flex;
@@ -115,13 +157,20 @@
       }
 
       .hero {
-        padding: 60px 0 22px;
+        padding: 34px 0 22px;
       }
       .hero-grid {
         display: grid;
         grid-template-columns: 0.95fr 1.05fr;
         gap: 32px;
-        align-items: center;
+        align-items: flex-start;
+        min-height: 1120px;
+      }
+      .hero-copy {
+        position: sticky;
+        top: 96px;
+        align-self: start;
+        padding-top: 12px;
       }
       .eyebrow {
         display: inline-flex;
@@ -145,7 +194,7 @@
         box-shadow: 0 0 0 4px rgba(243, 176, 109, 0.14);
       }
       h1 {
-        margin: 22px 0 16px;
+        margin: 16px 0 14px;
         font-size: clamp(3.1rem, 4.8vw, 5.9rem);
         line-height: 0.9;
         letter-spacing: -0.085em;
@@ -220,7 +269,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
-        margin-top: 28px;
+        margin-top: 18px;
       }
       .fact {
         display: inline-flex;
@@ -240,6 +289,7 @@
         min-height: 620px;
         display: grid;
         place-items: center;
+        padding-top: 10px;
       }
       .orb {
         position: absolute;
@@ -274,20 +324,20 @@
         position: absolute;
         inset: 0;
         background:
-          radial-gradient(circle at center, rgb(from var(--teal) r g b / 0.16) 0%, rgb(from var(--teal) r g b / 0.05) 28%, transparent 42%),
-          repeating-radial-gradient(circle at center, rgba(255,255,255,0.06) 0 1px, transparent 1px 32px),
-          radial-gradient(circle at 50% 52%, transparent 0 52%, rgba(255,255,255,0.05) 52.2%, transparent 52.8%, transparent 100%);
-        mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
-        opacity: 0.82;
+          linear-gradient(180deg, rgba(255,255,255,0.02), transparent),
+          repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 26px),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 28px),
+          radial-gradient(circle at center, rgba(221,109,92,0.12) 0%, rgba(120,185,168,0.08) 18%, transparent 38%);
+        opacity: 0.9;
       }
       .radar::after {
         content: "";
         position: absolute;
         inset: 8% 8% 12% 8%;
-        border-radius: 50%;
-        border: 1px solid rgba(255,255,255,0.05);
-        box-shadow: inset 0 0 18px rgba(255,255,255,0.04), 0 0 0 1px rgba(255,255,255,0.02);
-        transform: rotate(-8deg);
+        border-radius: 26px;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), inset 0 0 28px rgba(13,14,18,0.24);
+        transform: rotate(-3deg);
       }
       .radar-shell {
         position: relative;
@@ -350,11 +400,17 @@
       .ring:nth-child(3) { width: 110px; height: 110px; }
       .ring-core {
         position: relative;
-        width: 88px; height: 88px;
+        width: 92px; height: 92px;
         border-radius: 50%;
         display: grid; place-items: center;
-        background: radial-gradient(circle, rgba(243,176,109,0.4), rgba(217,115,71,0.18) 50%, transparent 72%);
-        border: 1px solid rgba(243,176,109,0.3);
+        background: radial-gradient(circle, rgba(243,176,109,0.46), rgba(217,115,71,0.18) 52%, rgba(13,14,18,0.12) 72%, transparent 100%);
+        border: 1px solid rgba(243,176,109,0.35);
+        box-shadow: 0 0 0 10px rgba(243,176,109,0.08), 0 0 30px rgba(217,115,71,0.18);
+      }
+      .ring-core.is-critical {
+        background: radial-gradient(circle, rgba(221,109,92,0.46), rgba(221,109,92,0.18) 52%, rgba(13,14,18,0.12) 72%, transparent 100%);
+        border-color: rgba(221,109,92,0.42);
+        box-shadow: 0 0 0 10px rgba(221,109,92,0.08), 0 0 30px rgba(221,109,92,0.2);
       }
       .ring-core strong {
         display: block;
@@ -396,6 +452,11 @@
         text-transform: uppercase;
         font-weight: 700;
       }
+      .status.critical {
+        border-color: rgba(221,109,92,0.25);
+        background: rgba(221,109,92,0.12);
+        color: #f7b0a1;
+      }
 
       .risk-box {
         padding: 18px 18px 16px;
@@ -431,6 +492,11 @@
         letter-spacing: 0.08em;
         text-transform: uppercase;
       }
+      .risk-badge.critical {
+        background: rgba(221,109,92,0.14);
+        border-color: rgba(221,109,92,0.22);
+        color: #f3b1a5;
+      }
       .risk-bar {
         margin-top: 18px;
         height: 10px;
@@ -442,6 +508,9 @@
         display: block;
         width: 74%; height: 100%;
         background: linear-gradient(90deg, #f3b06d, #d97347 100%);
+      }
+      .risk-bar.critical span {
+        background: linear-gradient(90deg, #e57c63, #d44944 100%);
       }
       .risk-list {
         display: grid;
@@ -467,6 +536,9 @@
         letter-spacing: 0.08em;
         text-transform: uppercase;
         font-weight: 700;
+      }
+      .risk-item.critical em {
+        color: #f6b1a8;
       }
 
       .section {
@@ -510,6 +582,17 @@
         inset: 0 auto auto 0;
         width: 100%; height: 1px;
         background: linear-gradient(90deg, rgba(243,176,109,0.4), transparent);
+      }
+      .check-card.case-card {
+        background: rgba(221,109,92,0.04);
+        border-color: rgba(221,109,92,0.2);
+      }
+      .check-card.case-card::before {
+        background: linear-gradient(90deg, rgba(221,109,92,0.75), transparent);
+      }
+      .check-card.case-card .index,
+      .check-card.case-card .check-meta strong {
+        color: #f5b3a5;
       }
       .check-card .index {
         color: var(--muted);
@@ -616,6 +699,26 @@
         border: 1px solid rgba(255,255,255,0.06);
         background: rgba(255,255,255,0.025);
       }
+      .done-support {
+        display: none;
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.02);
+        color: var(--soft);
+      }
+      .done-support.visible {
+        display: block;
+      }
+      .done-support strong {
+        color: var(--text); display: block; margin-bottom: 4px;
+      }
+      .done-support a {
+        color: #f7b7a4;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
       .note-box h4 {
         margin: 0 0 12px;
         font-size: 1.28rem;
@@ -653,6 +756,10 @@
         from { transform: translateY(0) translateX(0); }
         to { transform: translateY(-24px) translateX(18px); }
       }
+      @keyframes pulseDot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.62; transform: scale(1.18); }
+      }
 
       @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after {
@@ -663,6 +770,20 @@
         }
       }
 
+      .nav-scrim {
+        position: fixed;
+        inset: 0;
+        background: rgba(5, 6, 8, 0.48);
+        backdrop-filter: blur(2px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s ease;
+        z-index: 15;
+      }
+      .nav-scrim.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
       @media (max-width: 960px) {
         .hero-grid, .radar-body, .check-grid, .faq-wrap, .cta { grid-template-columns: 1fr; }
         .nav {
@@ -689,11 +810,19 @@
         .hero-actions { flex-direction: column; align-items: stretch; }
         .mini-facts { display: grid; grid-template-columns: 1fr; }
         .matrix { grid-template-columns: 1fr; }
+        .check-meta strong {
+          letter-spacing: 0.02em;
+          white-space: nowrap;
+        }
         .footer-shell { display: grid; justify-content: start; }
+      }
+      @media (max-width: 390px) {
+        .nav-cta { display: none; }
       }
     </style>
   </head>
   <body>
+    <div id="navScrim" class="nav-scrim" aria-hidden="true"></div>
     <header class="topbar">
       <div class="wrap topbar-inner">
         <div class="brand"><span class="brand-mark"></span><span>ШтрафКонтроль</span></div>
@@ -702,15 +831,19 @@
           <a href="#system">Как работает</a>
           <a href="#faq">FAQ</a>
         </nav>
+        <button id="headerStatus" class="header-status" type="button" aria-live="polite">
+          <span class="header-status-dot" aria-hidden="true"></span>
+          <span class="header-status-text">Сканирование…</span>
+        </button>
         <button class="mobile-nav-toggle" type="button" aria-label="Открыть меню" aria-controls="site-nav" aria-expanded="false">☰</button>
-        <button class="nav-cta" type="button">Проверить сайт</button>
+        <button id="navScanButton" class="nav-cta" type="button">Проверить сайт</button>
       </div>
     </header>
 
     <main class="wrap">
       <section class="hero">
         <div class="hero-grid">
-          <div>
+          <div class="hero-copy">
             <div class="eyebrow">Бесплатный аудит</div>
             <h1>Узнайте, где сайт нарушает закон — до того, как узнает регулятор.</h1>
             <p class="subhead">9 проверок по 152-ФЗ, 149-ФЗ и 38-ФЗ. Бесплатно, без регистрации, за 2 минуты.</p>
@@ -794,7 +927,7 @@
                       <div id="riskBadge" class="risk-badge">Высокий</div>
                     </div>
 
-                    <div class="risk-bar"><span id="riskBar"></span></div>
+                    <div id="riskBarWrap" class="risk-bar"><span id="riskBar"></span></div>
 
                     <div id="riskList" class="risk-list">
                       <div class="risk-item">
@@ -818,6 +951,11 @@
                         </div>
                         <em>Критично</em>
                       </div>
+                    </div>
+
+                    <div id="doneSupport" class="done-support" aria-live="polite">
+                      <strong>Это тревожный результат, но он не безвыходный.</strong>
+                      <span>Первым делом закрывайте пункты со статусом «нарушение». Варианты исправления и документ готовы в <a href="#footer">Слеза · Белый Сайт</a>.</span>
                     </div>
                   </div>
                 </div>
@@ -898,19 +1036,19 @@
         </div>
 
         <div class="check-grid">
-          <article class="check-card">
+          <article class="check-card case-card">
             <div class="index">интернет-магазин</div>
             <h3>Google Analytics стоит даже на странице оформления заказа</h3>
             <p>152-ФЗ ст.18 ч.5 · от 1 000 000 ₽</p>
             <div class="check-meta"><span>риски</span><strong>передача данных за рубеж</strong></div>
           </article>
-          <article class="check-card">
+          <article class="check-card case-card">
             <div class="index">новостной портал</div>
             <h3>Политика конфиденциальности есть, но без 5 из 7 обязательных разделов</h3>
             <p>152-ФЗ ст.18.1 · до 60 000 ₽</p>
             <div class="check-meta"><span>риски</span><strong>формально документ есть, но не работает</strong></div>
           </article>
-          <article class="check-card">
+          <article class="check-card case-card">
             <div class="index">онлайн-школа</div>
             <h3>Форма записи собирает телефон и email без согласия</h3>
             <p>152-ФЗ ст.9 · от 300 000 ₽</p>
@@ -943,7 +1081,7 @@
             <h3>Проверка сайта — не про страх, а про ясность.</h3>
             <p>Сначала понять, где реальный риск, а уже потом принимать решение о документе, разработке и исправлении.</p>
           </div>
-          <button class="primary-btn" type="button">Проверить сайт →</button>
+          <button id="ctaScanButton" class="primary-btn" type="button">Проверить сайт →</button>
         </div>
       </section>
 
@@ -979,7 +1117,7 @@
       </section>
     </main>
 
-    <footer>
+    <footer id="footer">
       <div class="wrap footer-shell">
         <div class="footer-brand"><span class="brand-mark"></span><span>ШтрафКонтроль</span></div>
         <div>
@@ -1006,12 +1144,7 @@
         { title: 'Политика персональных данных', detail: 'Проверка обязательных разделов' },
         { title: 'Согласие на обработку ПД', detail: 'Проверка форм и чекбоксов' },
         { title: 'Cookie-баннер', detail: 'Проверка уведомления до скриптов' },
-        { title: 'Политика cookie', detail: 'Проверка отдельного документа' },
-        { title: 'Рассылки и подписки', detail: 'Проверка email / push согласия' },
-        { title: 'Реквизиты владельца', detail: 'Проверка контактов и оферты' },
-        { title: 'Google Analytics', detail: 'Проверка передачи данных за рубеж' },
-        { title: 'Иноагенты и маркировка', detail: 'Проверка упоминаний и содержания' },
-        { title: 'Англицизмы и тексты', detail: 'Проверка потребительских формулировок' }
+        { title: 'Google Analytics', detail: 'Проверка передачи данных за рубеж' }
       ];
 
       const scoreValues = [69, 74, 81, 68, 77, 62, 92, 58, 86];
@@ -1037,9 +1170,38 @@
         const riskLevel = document.getElementById('riskLevel');
         const riskBadge = document.getElementById('riskBadge');
         const riskBar = document.getElementById('riskBar');
+        const riskBarWrap = document.getElementById('riskBarWrap');
+        const ringCore = document.querySelector('.ring-core');
+        const isCritical = /крит|наруш/i.test(String(badgeText));
         if (riskLevel) riskLevel.textContent = score;
-        if (riskBadge) riskBadge.textContent = badgeText;
+        if (riskBadge) {
+          riskBadge.textContent = badgeText;
+          riskBadge.classList.toggle('critical', isCritical);
+        }
         if (riskBar) riskBar.style.width = score + '%';
+        if (riskBarWrap) riskBarWrap.classList.toggle('critical', isCritical);
+        if (ringCore) ringCore.classList.toggle('is-critical', isCritical);
+      }
+
+      function setHeaderStatus(phaseName, score, badgeText) {
+        const headerStatus = document.getElementById('headerStatus');
+        if (!headerStatus) return;
+
+        const textNode = headerStatus.querySelector('.header-status-text');
+        const isDone = phaseName === 'done';
+        const isScanning = phaseName === 'scanning';
+        const isCritical = /крит|наруш/i.test(String(badgeText));
+
+        headerStatus.classList.toggle('visible', isScanning || isDone);
+        headerStatus.classList.toggle('done', isDone);
+        headerStatus.classList.toggle('warning', isScanning || (!isDone && !isScanning));
+        headerStatus.classList.toggle('danger', isDone && isCritical);
+
+        if (textNode) {
+          textNode.textContent = isDone ? `${score} · ${badgeText}` : 'Сканирование…';
+        }
+
+        headerStatus.setAttribute('aria-label', isDone ? `Результат: ${score}, ${badgeText}` : 'Сканирование сайта');
       }
 
       function renderScanList(progressIndex) {
@@ -1051,13 +1213,14 @@
           const item = document.createElement('div');
           item.className = 'scan-step';
           const active = index <= progressIndex;
-          const status = index === 6 ? 'нарушение' : index === 1 || index === 2 || index === 3 || index === 4 ? 'риск' : 'ок';
+          const isCritical = index === 3;
+          const status = isCritical ? 'нарушение' : index === 1 || index === 2 ? 'риск' : 'ок';
           item.innerHTML = `
             <div class="scan-text">
               <strong>${step.title}</strong>
               <span>${step.detail}</span>
             </div>
-            <div class="status" style="opacity:${active ? 1 : 0.45};">${active ? status : 'ожидание'}</div>
+            <div class="status ${isCritical ? 'critical' : ''}" style="opacity:${active ? 1 : 0.45};">${active ? status : 'ожидание'}</div>
           `;
           list.appendChild(item);
         });
@@ -1073,21 +1236,25 @@
           { name: 'Аналитика', detail: 'Передача данных зарубежным сервисам', tag: score > 85 ? 'Критично' : score > 70 ? 'Высокий' : 'Риск' }
         ];
 
-        list.innerHTML = items.map(item => `
-          <div class="risk-item">
-            <div>
-              <strong>${item.name}</strong>
-              <span>${item.detail}</span>
+        list.innerHTML = items.map(item => {
+          const critical = item.tag === 'Нарушение' || item.tag === 'Критично';
+          return `
+            <div class="risk-item ${critical ? 'critical' : ''}">
+              <div>
+                <strong>${item.name}</strong>
+                <span>${item.detail}</span>
+              </div>
+              <em>${item.tag}</em>
             </div>
-            <em>${item.tag}</em>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       }
 
       function renderFormState() {
         phase = 'form';
         setSignalState('signal://audit', '76', 'риск');
         setRiskState(76, 'Высокий');
+        setHeaderStatus('form', 76, 'Высокий');
         renderScanList(2);
         renderRiskList(76);
         const scanButton = document.getElementById('scanButton');
@@ -1101,6 +1268,7 @@
         const badge = currentScore >= 85 ? 'Критично' : currentScore >= 70 ? 'Высокий' : 'Средний';
         setSignalState('signal://scan', String(currentStep + 1), 'из 9');
         setRiskState(currentScore, badge);
+        setHeaderStatus('scanning', currentScore, badge);
         renderScanList(currentStep);
         renderRiskList(currentScore);
         const scanButton = document.getElementById('scanButton');
@@ -1113,6 +1281,7 @@
         const score = 92;
         setSignalState('signal://done', String(score), 'риск');
         setRiskState(score, 'Критично');
+        setHeaderStatus('done', score, 'Критично');
         renderScanList(8);
         renderRiskList(score);
         const scanButton = document.getElementById('scanButton');
@@ -1123,6 +1292,8 @@
         document.getElementById('riskBadge').textContent = 'Критично';
         document.getElementById('ringValue').textContent = score;
         document.getElementById('ringUnit').textContent = 'риск';
+        const doneSupport = document.getElementById('doneSupport');
+        if (doneSupport) doneSupport.classList.add('visible');
       }
 
       function startScan() {
@@ -1156,30 +1327,70 @@
 
       const mobileToggle = document.querySelector('.mobile-nav-toggle');
       const siteNav = document.getElementById('site-nav');
+      const navScrim = document.getElementById('navScrim');
+      const focusInput = () => {
+        const input = document.getElementById('domainInput');
+        if (!input) return;
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        input.focus({ preventScroll: true });
+      };
+
       if (mobileToggle && siteNav) {
-        mobileToggle.addEventListener('click', () => {
-          const isOpen = siteNav.classList.toggle('is-open');
+        const syncNavState = () => {
+          const isOpen = siteNav.classList.contains('is-open');
           mobileToggle.setAttribute('aria-expanded', String(isOpen));
           mobileToggle.textContent = isOpen ? '✕' : '☰';
+          if (navScrim) {
+            navScrim.classList.toggle('is-visible', isOpen);
+          }
+        };
+
+        mobileToggle.addEventListener('click', () => {
+          const isOpen = siteNav.classList.toggle('is-open');
+          if (!isOpen && navScrim) navScrim.classList.remove('is-visible');
+          syncNavState();
         });
 
         siteNav.querySelectorAll('a').forEach((link) => {
           link.addEventListener('click', () => {
             siteNav.classList.remove('is-open');
+            if (navScrim) navScrim.classList.remove('is-visible');
             mobileToggle.setAttribute('aria-expanded', 'false');
             mobileToggle.textContent = '☰';
           });
         });
+
+        if (navScrim) {
+          navScrim.addEventListener('click', () => {
+            siteNav.classList.remove('is-open');
+            navScrim.classList.remove('is-visible');
+            mobileToggle.setAttribute('aria-expanded', 'false');
+            mobileToggle.textContent = '☰';
+          });
+        }
       }
 
-      document.getElementById('scanButton').addEventListener('click', () => {
-        if (phase === 'scanning') return;
-        if (phase === 'done') {
-          resetScan();
-          return;
-        }
-        startScan();
+      const scanTriggers = [document.getElementById('scanButton'), document.getElementById('navScanButton'), document.getElementById('ctaScanButton')].filter(Boolean);
+      scanTriggers.forEach((button) => {
+        button.addEventListener('click', () => {
+          focusInput();
+          if (phase === 'scanning') return;
+          if (phase === 'done') {
+            resetScan();
+          }
+          startScan();
+        });
       });
+
+      const headerStatus = document.getElementById('headerStatus');
+      if (headerStatus) {
+        headerStatus.addEventListener('click', () => {
+          const systemPanel = document.getElementById('system');
+          if (systemPanel) {
+            systemPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      }
 
       document.getElementById('runDemoButton').addEventListener('click', () => {
         startScan();
