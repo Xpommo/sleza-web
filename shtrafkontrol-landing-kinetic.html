@@ -165,6 +165,25 @@
         border: 1px solid var(--line);
         padding: 0.95rem 1.2rem;
       }
+      .hero-domain-row {
+        margin-top: 24px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .domain-input {
+        flex: 1 1 260px;
+        min-width: 220px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 1rem 1.1rem;
+        outline: none;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+      }
+      .domain-input::placeholder { color: rgba(238,240,238,0.35); }
       .mini-facts {
         display: flex;
         flex-wrap: wrap;
@@ -623,9 +642,13 @@
             <h1>Ставим сайт под сигнал тревоги до штрафа.</h1>
             <p class="subhead">Мы не рекламируем “комплаенс”. Мы показываем, где сайт уже расходится с требованиями закона и где риск выходит за пределы терпения.</p>
 
-            <div class="hero-actions">
-              <button class="primary-btn" type="button">Проверить сайт →</button>
-              <button class="ghost-btn" type="button">Смотреть пример</button>
+            <div class="hero-domain-row">
+              <input id="domainInput" class="domain-input" type="text" value="example.ru" placeholder="example.ru" aria-label="Домен сайта" />
+              <button id="scanButton" class="primary-btn" type="button">Проверить сайт →</button>
+            </div>
+
+            <div class="hero-actions" style="margin-top: 18px;">
+              <button id="runDemoButton" class="ghost-btn" type="button">Смотреть пример</button>
             </div>
 
             <div class="mini-facts">
@@ -845,8 +868,192 @@
     <footer>
       <div class="wrap footer-shell">
         <div class="footer-brand"><span class="brand-mark"></span><span>ШтрафКонтроль</span></div>
-        <div>Сигнальный аудит для бизнеса в России.</div>
+        <div>
+          <div style="margin-bottom: 8px;">Документы готовит <strong>Слеза · Белый Сайт</strong></div>
+          <div style="display:flex; flex-wrap:wrap; gap:12px 18px; margin-bottom: 10px; color: var(--muted);">
+            <span>Политика обработки персональных данных</span>
+            <span>Согласие на обработку ПД на форме сбора</span>
+            <span>Cookie-баннер</span>
+            <span>Политика cookie</span>
+            <span>Согласие на рекламные рассылки</span>
+            <span>Реквизиты владельца сайта</span>
+          </div>
+          <div style="color: var(--muted);">Не является юридической консультацией. Методология проверки основана на нормах 152-ФЗ, 149-ФЗ, 38-ФЗ и КоАП РФ.</div>
+        </div>
       </div>
     </footer>
+
+    <script>
+      const steps = [
+        { title: 'Политика персональных данных', detail: 'Проверка обязательных разделов' },
+        { title: 'Согласие на обработку ПД', detail: 'Проверка форм и чекбоксов' },
+        { title: 'Cookie-баннер', detail: 'Проверка уведомления до скриптов' },
+        { title: 'Политика cookie', detail: 'Проверка отдельного документа' },
+        { title: 'Рассылки и подписки', detail: 'Проверка email / push согласия' },
+        { title: 'Реквизиты владельца', detail: 'Проверка контактов и оферты' },
+        { title: 'Google Analytics', detail: 'Проверка передачи данных за рубеж' },
+        { title: 'Иноагенты и маркировка', detail: 'Проверка упоминаний и содержания' },
+        { title: 'Англицизмы и тексты', detail: 'Проверка потребительских формулировок' }
+      ];
+
+      const scoreValues = [69, 74, 81, 68, 77, 62, 92, 58, 86];
+      let scanTimer = null;
+      let currentStep = 0;
+      let phase = 'form';
+
+      function ensureDomainValue() {
+        const input = document.getElementById('domainInput');
+        if (!input.value.trim()) input.value = 'example.ru';
+      }
+
+      function setSignalState(labelText, valueText, unitText) {
+        const signalLabel = document.getElementById('signalLabel');
+        const ringValue = document.getElementById('ringValue');
+        const ringUnit = document.getElementById('ringUnit');
+        if (signalLabel) signalLabel.textContent = labelText;
+        if (ringValue) ringValue.textContent = valueText;
+        if (ringUnit) ringUnit.textContent = unitText;
+      }
+
+      function setRiskState(score, badgeText) {
+        const riskLevel = document.getElementById('riskLevel');
+        const riskBadge = document.getElementById('riskBadge');
+        const riskBar = document.getElementById('riskBar');
+        if (riskLevel) riskLevel.textContent = score;
+        if (riskBadge) riskBadge.textContent = badgeText;
+        if (riskBar) riskBar.style.width = score + '%';
+      }
+
+      function renderScanList(progressIndex) {
+        const list = document.getElementById('scanList');
+        if (!list) return;
+        list.innerHTML = '';
+
+        steps.forEach((step, index) => {
+          const item = document.createElement('div');
+          item.className = 'scan-step';
+          const active = index <= progressIndex;
+          const status = index === 6 ? 'нарушение' : index === 1 || index === 2 || index === 3 || index === 4 ? 'риск' : 'ok';
+          item.innerHTML = `
+            <div class="scan-text">
+              <strong>${step.title}</strong>
+              <span>${step.detail}</span>
+            </div>
+            <div class="status" style="opacity:${active ? 1 : 0.45};">${active ? status : 'wait'}</div>
+          `;
+          list.appendChild(item);
+        });
+      }
+
+      function renderRiskList(score) {
+        const list = document.getElementById('riskList');
+        if (!list) return;
+
+        const items = [
+          { name: 'Consent', detail: 'Сбор данных без явного согласия', tag: score > 80 ? 'Violation' : score > 60 ? 'Risk' : 'Low' },
+          { name: 'Policy', detail: 'Не хватает обязательных разделов', tag: score > 70 ? 'Risk' : 'Low' },
+          { name: 'Analytics', detail: 'Передача данных зарубежным сервисам', tag: score > 85 ? 'Critical' : score > 70 ? 'High' : 'Risk' }
+        ];
+
+        list.innerHTML = items.map(item => `
+          <div class="risk-item">
+            <div>
+              <strong>${item.name}</strong>
+              <span>${item.detail}</span>
+            </div>
+            <em>${item.tag}</em>
+          </div>
+        `).join('');
+      }
+
+      function renderFormState() {
+        phase = 'form';
+        setSignalState('signal://audit', '76', 'risk');
+        setRiskState(76, 'High');
+        renderScanList(2);
+        renderRiskList(76);
+        const scanButton = document.getElementById('scanButton');
+        if (scanButton) scanButton.textContent = 'Проверить сайт →';
+        document.getElementById('runDemoButton').style.display = '';
+      }
+
+      function renderScanningState() {
+        phase = 'scanning';
+        const currentScore = scoreValues[Math.min(currentStep, scoreValues.length - 1)];
+        const badge = currentScore >= 85 ? 'Critical' : currentScore >= 70 ? 'High' : 'Medium';
+        setSignalState('signal://scan', String(currentStep + 1), 'of 9');
+        setRiskState(currentScore, badge);
+        renderScanList(currentStep);
+        renderRiskList(currentScore);
+        const scanButton = document.getElementById('scanButton');
+        if (scanButton) scanButton.textContent = 'Сканирую…';
+        document.getElementById('runDemoButton').style.display = 'none';
+      }
+
+      function renderDoneState() {
+        phase = 'done';
+        const score = 92;
+        setSignalState('signal://done', String(score), 'risk');
+        setRiskState(score, 'Critical');
+        renderScanList(8);
+        renderRiskList(score);
+        const scanButton = document.getElementById('scanButton');
+        if (scanButton) scanButton.textContent = 'Проверить другой сайт';
+        document.getElementById('runDemoButton').style.display = 'none';
+        document.getElementById('riskLevel').textContent = score;
+        document.getElementById('riskBar').style.width = score + '%';
+        document.getElementById('riskBadge').textContent = 'Critical';
+        document.getElementById('ringValue').textContent = score;
+        document.getElementById('ringUnit').textContent = 'risk';
+      }
+
+      function startScan() {
+        ensureDomainValue();
+        currentStep = 0;
+        phase = 'scanning';
+        renderScanningState();
+
+        if (scanTimer) clearInterval(scanTimer);
+        scanTimer = setInterval(() => {
+          currentStep += 1;
+          if (currentStep >= 9) {
+            clearInterval(scanTimer);
+            scanTimer = null;
+            renderDoneState();
+            return;
+          }
+          renderScanningState();
+        }, 700);
+      }
+
+      function resetScan() {
+        if (scanTimer) {
+          clearInterval(scanTimer);
+          scanTimer = null;
+        }
+        currentStep = 0;
+        phase = 'form';
+        renderFormState();
+      }
+
+      document.getElementById('scanButton').addEventListener('click', () => {
+        if (phase === 'scanning') return;
+        if (phase === 'done') {
+          resetScan();
+          return;
+        }
+        startScan();
+      });
+
+      document.getElementById('runDemoButton').addEventListener('click', () => {
+        startScan();
+      });
+
+      document.getElementById('domainInput').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') startScan();
+      });
+
+      renderFormState();
+    </script>
   </body>
 </html>
