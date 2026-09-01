@@ -7,7 +7,7 @@
     <title>ШтрафКонтроль — signal system</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
       :root {
         --bg: #0d0e12;
@@ -36,7 +36,7 @@
           radial-gradient(circle at 80% 12%, rgb(from var(--teal) r g b / 0.15), transparent 22%),
           linear-gradient(180deg, #0d0e12 0%, #10141a 38%, #0d1116 100%);
         color: var(--text);
-        font-family: "Sora", "Segoe UI", sans-serif;
+        font-family: "Manrope", "Segoe UI", sans-serif;
         line-height: 1.5;
         letter-spacing: -0.02em;
       }
@@ -164,12 +164,14 @@
         grid-template-columns: 0.95fr 1.05fr;
         gap: 32px;
         align-items: flex-start;
-        min-height: 1120px;
+        min-height: 780px;
       }
       .hero-copy {
         position: sticky;
         top: 96px;
         align-self: start;
+        max-height: calc(100vh - 150px);
+        overflow: hidden;
         padding-top: 12px;
       }
       .eyebrow {
@@ -783,6 +785,16 @@
       .nav-scrim.is-visible {
         opacity: 1;
         pointer-events: auto;
+      }
+      @media (max-width: 1024px) {
+        .hero-grid {
+          min-height: auto;
+        }
+        .hero-copy {
+          position: static;
+          max-height: none;
+          overflow: visible;
+        }
       }
       @media (max-width: 960px) {
         .hero-grid, .radar-body, .check-grid, .faq-wrap, .cta { grid-template-columns: 1fr; }
