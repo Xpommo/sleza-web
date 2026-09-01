@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
     <title>ШтрафКонтроль — signal system</title>
     <style>
       :root {
@@ -670,7 +671,7 @@
                     <span></span>
                     <span></span>
                   </div>
-                  <div class="signal-label">signal://audit</div>
+                  <div id="signalLabel" class="signal-label">signal://audit</div>
                 </div>
 
                 <div class="radar-body">
@@ -681,13 +682,13 @@
                       <div class="ring"></div>
                       <div class="ring-core">
                         <div>
-                          <strong>76</strong>
-                          <span>risk</span>
+                          <strong id="ringValue">76</strong>
+                          <span id="ringUnit">risk</span>
                         </div>
                       </div>
                     </div>
 
-                    <div class="scan-list">
+                    <div id="scanList" class="scan-list">
                       <div class="scan-step">
                         <div class="scan-text">
                           <strong>Политика персональных данных</strong>
@@ -716,14 +717,14 @@
                     <div class="risk-top">
                       <div>
                         <div class="risk-kicker">Итоговый риск</div>
-                        <div class="risk-level">76</div>
+                        <div id="riskLevel" class="risk-level">76</div>
                       </div>
-                      <div class="risk-badge">High</div>
+                      <div id="riskBadge" class="risk-badge">High</div>
                     </div>
 
-                    <div class="risk-bar"><span></span></div>
+                    <div class="risk-bar"><span id="riskBar"></span></div>
 
-                    <div class="risk-list">
+                    <div id="riskList" class="risk-list">
                       <div class="risk-item">
                         <div>
                           <strong>Consent</strong>
@@ -763,39 +764,85 @@
         <div class="check-grid">
           <article class="check-card">
             <div class="index">01</div>
-            <h3>Правовая база сайта</h3>
-            <p>Политика обработки данных, оферта, реквизиты, порядок взаимодействия с клиентами.</p>
-            <div class="check-meta"><span>152-ФЗ</span><strong>high</strong></div>
+            <h3>Политика обработки персональных данных</h3>
+            <p>152-ФЗ п.2 ст.18.1</p>
+            <div class="check-meta"><span>штраф</span><strong>от 30 000 до 60 000 ₽</strong></div>
           </article>
           <article class="check-card">
             <div class="index">02</div>
-            <h3>Формы и сбор данных</h3>
-            <p>Согласие на обработку, понятность форм, отсутствие скрытого сбора персональных данных.</p>
-            <div class="check-meta"><span>152-ФЗ</span><strong>critical</strong></div>
+            <h3>Согласие на обработку ПД на форме сбора</h3>
+            <p>152-ФЗ ст.3,6,9</p>
+            <div class="check-meta"><span>штраф</span><strong>от 300 000 до 700 000 ₽</strong></div>
           </article>
           <article class="check-card">
             <div class="index">03</div>
-            <h3>Cookie-баннер и tracking</h3>
-            <p>Согласие до загрузки метрик, аналитики и скриптов, которые фиксируют пользовательское поведение.</p>
-            <div class="check-meta"><span>Cookie</span><strong>high</strong></div>
+            <h3>Cookie-баннер</h3>
+            <p>152-ФЗ ст.3,6,9</p>
+            <div class="check-meta"><span>штраф</span><strong>от 150 000 до 300 000 ₽</strong></div>
           </article>
           <article class="check-card">
             <div class="index">04</div>
-            <h3>Маркетинговые рассылки</h3>
-            <p>Согласие на email, push и уведомления, особенно в форме подписки или промопанелей.</p>
-            <div class="check-meta"><span>38-ФЗ</span><strong>medium</strong></div>
+            <h3>Политика cookie</h3>
+            <p>152-ФЗ ст.3,6,9</p>
+            <div class="check-meta"><span>штраф</span><strong>от 150 000 до 300 000 ₽</strong></div>
           </article>
           <article class="check-card">
             <div class="index">05</div>
-            <h3>Google Analytics</h3>
-            <p>Проверка передачи данных за пределы РФ и контекста, в котором сервис подключён на сайте.</p>
-            <div class="check-meta"><span>152-ФЗ</span><strong>critical</strong></div>
+            <h3>Согласие на рекламные рассылки</h3>
+            <p>38-ФЗ п.1 ст.18</p>
+            <div class="check-meta"><span>штраф</span><strong>от 300 000 до 1 000 000 ₽</strong></div>
           </article>
           <article class="check-card">
             <div class="index">06</div>
-            <h3>Публичная информация</h3>
-            <p>Право клиента понять, кто владелец, как связаться, какие документы и условия действуют.</p>
-            <div class="check-meta"><span>149-ФЗ</span><strong>medium</strong></div>
+            <h3>Реквизиты владельца сайта</h3>
+            <p>149-ФЗ ст.10</p>
+            <div class="check-meta"><span>штраф</span><strong>от 5 000 до 10 000 ₽</strong></div>
+          </article>
+          <article class="check-card">
+            <div class="index">07</div>
+            <h3>Google Analytics (передача данных за рубеж)</h3>
+            <p>152-ФЗ ст.18 ч.5</p>
+            <div class="check-meta"><span>штраф</span><strong>от 1 000 000 до 18 000 000 ₽</strong></div>
+          </article>
+          <article class="check-card">
+            <div class="index">08</div>
+            <h3>Маркировка иноагентов/террористов в упоминаниях</h3>
+            <p>ст.13.15 КоАП</p>
+            <div class="check-meta"><span>штраф</span><strong>от 40 000 до 50 000 ₽</strong></div>
+          </article>
+          <article class="check-card">
+            <div class="index">09</div>
+            <h3>Англицизмы без перевода в потребительских текстах</h3>
+            <p>ЗоЗПП ст.10.1</p>
+            <div class="check-meta"><span>штраф</span><strong>от 5 000 до 10 000 ₽</strong></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>Типичные ошибки</h2>
+          <div class="lead">Их легко пропустить, но именно они чаще всего становятся неожиданным штрафом.</div>
+        </div>
+
+        <div class="check-grid">
+          <article class="check-card">
+            <div class="index">интернет-магазин</div>
+            <h3>Google Analytics стоит даже на странице оформления заказа</h3>
+            <p>152-ФЗ ст.18 ч.5 · от 1 000 000 ₽</p>
+            <div class="check-meta"><span>риски</span><strong>передача данных за рубеж</strong></div>
+          </article>
+          <article class="check-card">
+            <div class="index">новостной портал</div>
+            <h3>Политика конфиденциальности есть, но без 5 из 7 обязательных разделов</h3>
+            <p>152-ФЗ ст.18.1 · до 60 000 ₽</p>
+            <div class="check-meta"><span>риски</span><strong>формально документ есть, но не работает</strong></div>
+          </article>
+          <article class="check-card">
+            <div class="index">онлайн-школа</div>
+            <h3>Форма записи собирает телефон и email без согласия</h3>
+            <p>152-ФЗ ст.9 · от 300 000 ₽</p>
+            <div class="check-meta"><span>риски</span><strong>скрытый сбор персональных данных</strong></div>
           </article>
         </div>
       </section>
@@ -882,6 +929,10 @@
         </div>
       </div>
     </footer>
+
+    <div style="text-align:center;padding:20px 0 40px;">
+      <a href="./index.html" style="color:var(--muted);font-size:0.8rem;">← все макеты</a>
+    </div>
 
     <script>
       const steps = [
