@@ -337,14 +337,6 @@
       .signal-dots span:nth-child(1){ background: #dba47d; }
       .signal-dots span:nth-child(2){ background: #d4c57c; }
       .signal-dots span:nth-child(3){ background: #86b597; }
-      .signal-label {
-        padding: 0.5rem 0.8rem;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid var(--line);
-        color: var(--muted);
-        font-size: 0.72rem;
-      }
 
       .radar-body {
         display: grid;
@@ -390,6 +382,10 @@
         display: block;
         font-size: 2.1rem;
         letter-spacing: -0.07em;
+        color: #f7cfaf;
+      }
+      .ring-core strong.is-critical {
+        color: #f3a89f;
       }
       .ring-core span {
         color: var(--muted);
@@ -454,6 +450,10 @@
         font-size: clamp(2.3rem, 3vw, 3.5rem);
         letter-spacing: -0.07em;
         font-weight: 800;
+        color: #f7cfaf;
+      }
+      .risk-level.is-critical {
+        color: #f3a89f;
       }
       .risk-badge {
         padding: 0.48rem 0.72rem;
@@ -671,10 +671,9 @@
         text-transform: uppercase;
       }
       .result-summary {
-        display: flex;
-        align-items: end;
-        justify-content: space-between;
-        gap: 12px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
         margin-top: 14px;
         padding-top: 14px;
         border-top: 1px solid rgba(255,255,255,0.06);
@@ -687,11 +686,21 @@
       }
       .fine-total {
         font-size: clamp(1.45rem, 2vw, 2rem);
-        line-height: 1;
+        line-height: 1.1;
         letter-spacing: -0.06em;
         font-weight: 800;
         color: #f7cfaf;
-        text-align: right;
+        word-spacing: 0.15em;
+        white-space: nowrap;
+      }
+      .fine-total.is-critical {
+        color: #f3a89f;
+      }
+      .number-critical {
+        color: #f3a89f !important;
+      }
+      .number-warning {
+        color: #f7cfaf;
       }
       .scan-actions {
         display: flex;
@@ -948,7 +957,6 @@
                     <span></span>
                     <span></span>
                   </div>
-                  <div id="signalLabel" class="signal-label">signal://audit</div>
                 </div>
 
                 <div class="radar-body">
@@ -1000,10 +1008,6 @@
                       <span id="reportDate">—</span>
                     </div>
                     <div class="risk-top">
-                      <div>
-                        <div class="risk-kicker">Итоговый риск</div>
-                        <div id="riskLevel" class="risk-level">76</div>
-                      </div>
                       <div id="riskBadge" class="risk-badge">Высокий</div>
                     </div>
 
@@ -1358,29 +1362,25 @@
         updateReportMeta();
       }
 
-      function setSignalState(labelText, valueText, unitText) {
-        const signalLabel = document.getElementById('signalLabel');
-        const ringValue = document.getElementById('ringValue');
-        const ringUnit = document.getElementById('ringUnit');
-        if (signalLabel) signalLabel.textContent = labelText;
-        if (ringValue) ringValue.textContent = valueText;
-        if (ringUnit) ringUnit.textContent = unitText;
-      }
-
       function setRiskState(score, badgeText) {
-        const riskLevel = document.getElementById('riskLevel');
+        const ringValue = document.getElementById('ringValue');
         const riskBadge = document.getElementById('riskBadge');
         const riskBar = document.getElementById('riskBar');
         const riskBarWrap = document.getElementById('riskBarWrap');
+        const fineDisplay = document.getElementById('fineDisplay');
         const ringCore = document.querySelector('.ring-core');
         const isCritical = /крит|наруш/i.test(String(badgeText));
-        if (riskLevel) riskLevel.textContent = score;
+        if (ringValue) {
+          ringValue.textContent = score;
+          ringValue.classList.toggle('is-critical', isCritical);
+        }
         if (riskBadge) {
           riskBadge.textContent = badgeText;
           riskBadge.classList.toggle('critical', isCritical);
         }
         if (riskBar) riskBar.style.width = score + '%';
         if (riskBarWrap) riskBarWrap.classList.toggle('critical', isCritical);
+        if (fineDisplay) fineDisplay.classList.toggle('is-critical', isCritical);
         if (ringCore) ringCore.classList.toggle('is-critical', isCritical);
       }
 
@@ -1466,7 +1466,6 @@
       function renderFormState() {
         phase = 'form';
         updateReportMeta();
-        setSignalState('signal://audit', '76', 'риск');
         setRiskState(76, 'Высокий');
         setHeaderStatus('form', 76, 'Высокий');
         renderScanList(2);
@@ -1485,7 +1484,6 @@
         phase = 'scanning';
         const currentScore = scoreValues[Math.min(currentStep, scoreValues.length - 1)];
         const badge = currentScore >= 85 ? 'Критично' : currentScore >= 70 ? 'Высокий' : 'Средний';
-        setSignalState('signal://scan', String(currentStep + 1), 'из 9');
         setRiskState(currentScore, badge);
         setHeaderStatus('scanning', currentScore, badge);
         renderScanList(currentStep);
@@ -1504,7 +1502,6 @@
         phase = 'done';
         const score = 92;
         const fineAmount = calculateDemoFine();
-        setSignalState('signal://done', String(score), 'риск');
         setRiskState(score, 'Критично');
         setHeaderStatus('done', score, 'Критично');
         renderScanList(8);
@@ -1516,11 +1513,8 @@
         const scanButton = document.getElementById('scanButton');
         if (scanButton) scanButton.textContent = 'Проверить другой сайт';
         document.getElementById('runDemoButton').style.display = 'none';
-        document.getElementById('riskLevel').textContent = score;
-        document.getElementById('riskBar').style.width = score + '%';
-        document.getElementById('riskBadge').textContent = 'Критично';
-        document.getElementById('ringValue').textContent = score;
-        document.getElementById('ringUnit').textContent = 'риск';
+        const ringUnit = document.getElementById('ringUnit');
+        if (ringUnit) ringUnit.textContent = 'риск';
         const doneSupport = document.getElementById('doneSupport');
         if (doneSupport) doneSupport.classList.add('visible');
       }
