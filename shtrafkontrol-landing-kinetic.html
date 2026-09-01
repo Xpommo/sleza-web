@@ -163,16 +163,7 @@
         display: grid;
         grid-template-columns: 0.95fr 1.05fr;
         gap: 32px;
-        align-items: flex-start;
-        min-height: 780px;
-      }
-      .hero-copy {
-        position: sticky;
-        top: 96px;
-        align-self: start;
-        max-height: calc(100vh - 150px);
-        overflow: hidden;
-        padding-top: 12px;
+        align-items: center;
       }
       .eyebrow {
         display: inline-flex;
@@ -785,16 +776,6 @@
       .nav-scrim.is-visible {
         opacity: 1;
         pointer-events: auto;
-      }
-      @media (max-width: 1024px) {
-        .hero-grid {
-          min-height: auto;
-        }
-        .hero-copy {
-          position: static;
-          max-height: none;
-          overflow: visible;
-        }
       }
       @media (max-width: 960px) {
         .hero-grid, .radar-body, .check-grid, .faq-wrap, .cta { grid-template-columns: 1fr; }
