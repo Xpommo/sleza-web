@@ -712,8 +712,8 @@
         <div class="hero-grid">
           <div>
             <div class="eyebrow">Бесплатный аудит</div>
-            <h1>Ставим сайт под сигнал тревоги до штрафа.</h1>
-            <p class="subhead">Мы не рекламируем “комплаенс”. Мы показываем, где сайт уже расходится с требованиями закона и где риск выходит за пределы терпения.</p>
+            <h1>Узнайте, где сайт нарушает закон — до того, как узнает регулятор.</h1>
+            <p class="subhead">9 проверок по 152-ФЗ, 149-ФЗ и 38-ФЗ. Бесплатно, без регистрации, за 2 минуты.</p>
 
             <div class="hero-domain-row">
               <input id="domainInput" class="domain-input" type="text" value="example.ru" placeholder="example.ru" aria-label="Домен сайта" />
@@ -755,7 +755,7 @@
                       <div class="ring-core">
                         <div>
                           <strong id="ringValue">76</strong>
-                          <span id="ringUnit">risk</span>
+                          <span id="ringUnit">риск</span>
                         </div>
                       </div>
                     </div>
@@ -799,21 +799,21 @@
                     <div id="riskList" class="risk-list">
                       <div class="risk-item">
                         <div>
-                          <strong>Consent</strong>
+                          <strong>Согласие</strong>
                           <span>Сбор данных без явного согласия</span>
                         </div>
                         <em>Нарушение</em>
                       </div>
                       <div class="risk-item">
                         <div>
-                          <strong>Policy</strong>
+                          <strong>Политика</strong>
                           <span>Не хватает обязательных разделов</span>
                         </div>
                         <em>Риск</em>
                       </div>
                       <div class="risk-item">
                         <div>
-                          <strong>Analytics</strong>
+                          <strong>Аналитика</strong>
                           <span>Передача данных зарубежным сервисам</span>
                         </div>
                         <em>Критично</em>
@@ -983,7 +983,7 @@
       <div class="wrap footer-shell">
         <div class="footer-brand"><span class="brand-mark"></span><span>ШтрафКонтроль</span></div>
         <div>
-          <div style="margin-bottom: 8px;">Документы готовит <strong>Слеза · Белый Сайт</strong></div>
+          <div style="margin-bottom: 8px;">Документы и виджет готовит <strong>Слеза · Белый Сайт</strong></div>
           <div style="display:flex; flex-wrap:wrap; gap:12px 18px; margin-bottom: 10px; color: var(--muted);">
             <span>Политика обработки персональных данных</span>
             <span>Согласие на обработку ПД на форме сбора</span>
@@ -1051,13 +1051,13 @@
           const item = document.createElement('div');
           item.className = 'scan-step';
           const active = index <= progressIndex;
-          const status = index === 6 ? 'нарушение' : index === 1 || index === 2 || index === 3 || index === 4 ? 'риск' : 'ok';
+          const status = index === 6 ? 'нарушение' : index === 1 || index === 2 || index === 3 || index === 4 ? 'риск' : 'ок';
           item.innerHTML = `
             <div class="scan-text">
               <strong>${step.title}</strong>
               <span>${step.detail}</span>
             </div>
-            <div class="status" style="opacity:${active ? 1 : 0.45};">${active ? status : 'wait'}</div>
+            <div class="status" style="opacity:${active ? 1 : 0.45};">${active ? status : 'ожидание'}</div>
           `;
           list.appendChild(item);
         });
@@ -1068,9 +1068,9 @@
         if (!list) return;
 
         const items = [
-          { name: 'Consent', detail: 'Сбор данных без явного согласия', tag: score > 80 ? 'Нарушение' : score > 60 ? 'Риск' : 'Низкий' },
-          { name: 'Policy', detail: 'Не хватает обязательных разделов', tag: score > 70 ? 'Риск' : 'Низкий' },
-          { name: 'Analytics', detail: 'Передача данных зарубежным сервисам', tag: score > 85 ? 'Критично' : score > 70 ? 'Высокий' : 'Риск' }
+          { name: 'Согласие', detail: 'Сбор данных без явного согласия', tag: score > 80 ? 'Нарушение' : score > 60 ? 'Риск' : 'Низкий' },
+          { name: 'Политика', detail: 'Не хватает обязательных разделов', tag: score > 70 ? 'Риск' : 'Низкий' },
+          { name: 'Аналитика', detail: 'Передача данных зарубежным сервисам', tag: score > 85 ? 'Критично' : score > 70 ? 'Высокий' : 'Риск' }
         ];
 
         list.innerHTML = items.map(item => `
@@ -1086,7 +1086,7 @@
 
       function renderFormState() {
         phase = 'form';
-        setSignalState('signal://audit', '76', 'risk');
+        setSignalState('signal://audit', '76', 'риск');
         setRiskState(76, 'Высокий');
         renderScanList(2);
         renderRiskList(76);
@@ -1099,7 +1099,7 @@
         phase = 'scanning';
         const currentScore = scoreValues[Math.min(currentStep, scoreValues.length - 1)];
         const badge = currentScore >= 85 ? 'Критично' : currentScore >= 70 ? 'Высокий' : 'Средний';
-        setSignalState('signal://scan', String(currentStep + 1), 'of 9');
+        setSignalState('signal://scan', String(currentStep + 1), 'из 9');
         setRiskState(currentScore, badge);
         renderScanList(currentStep);
         renderRiskList(currentScore);
@@ -1111,7 +1111,7 @@
       function renderDoneState() {
         phase = 'done';
         const score = 92;
-        setSignalState('signal://done', String(score), 'risk');
+        setSignalState('signal://done', String(score), 'риск');
         setRiskState(score, 'Критично');
         renderScanList(8);
         renderRiskList(score);
@@ -1122,7 +1122,7 @@
         document.getElementById('riskBar').style.width = score + '%';
         document.getElementById('riskBadge').textContent = 'Критично';
         document.getElementById('ringValue').textContent = score;
-        document.getElementById('ringUnit').textContent = 'risk';
+        document.getElementById('ringUnit').textContent = 'риск';
       }
 
       function startScan() {
