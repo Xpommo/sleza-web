@@ -791,7 +791,7 @@
                         <div class="risk-kicker">Итоговый риск</div>
                         <div id="riskLevel" class="risk-level">76</div>
                       </div>
-                      <div id="riskBadge" class="risk-badge">High</div>
+                      <div id="riskBadge" class="risk-badge">Высокий</div>
                     </div>
 
                     <div class="risk-bar"><span id="riskBar"></span></div>
@@ -802,21 +802,21 @@
                           <strong>Consent</strong>
                           <span>Сбор данных без явного согласия</span>
                         </div>
-                        <em>Violation</em>
+                        <em>Нарушение</em>
                       </div>
                       <div class="risk-item">
                         <div>
                           <strong>Policy</strong>
                           <span>Не хватает обязательных разделов</span>
                         </div>
-                        <em>Risk</em>
+                        <em>Риск</em>
                       </div>
                       <div class="risk-item">
                         <div>
                           <strong>Analytics</strong>
                           <span>Передача данных зарубежным сервисам</span>
                         </div>
-                        <em>Critical</em>
+                        <em>Критично</em>
                       </div>
                     </div>
                   </div>
@@ -925,22 +925,14 @@
           <div class="lead">Мы не подменяем юридическую консультацию — мы показываем явные маркеры риска и то, куда смотреть сначала.</div>
         </div>
 
-        <div class="matrix">
+        <div class="matrix" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
           <div class="matrix-card">
             <span class="big">9</span>
             <span class="small">ключевых сигналов</span>
           </div>
           <div class="matrix-card">
-            <span class="big">2m</span>
+            <span class="big">2 мин</span>
             <span class="small">на первичную оценку</span>
-          </div>
-          <div class="matrix-card">
-            <span class="big">0</span>
-            <span class="small">сценариев “по шаблону”</span>
-          </div>
-          <div class="matrix-card">
-            <span class="big">1</span>
-            <span class="small">чёткий результат по сайту</span>
           </div>
         </div>
       </section>
@@ -971,7 +963,7 @@
             </div>
             <div class="faq-item">
               <h4>Что делать, если домен уже проблемный?</h4>
-              <p>Уже лучше видно, где именно путается правовой контекст. Сканер помогает сфокусироваться на точках уязвимости, а не на всём сразу.</p>
+              <p>Начните с пунктов со статусом «нарушение» — они дают наибольший штраф. Закрыть их документами и виджетом можно через Слеза · Белый Сайт (ссылка в футере).</p>
             </div>
           </div>
 
@@ -1076,9 +1068,9 @@
         if (!list) return;
 
         const items = [
-          { name: 'Consent', detail: 'Сбор данных без явного согласия', tag: score > 80 ? 'Violation' : score > 60 ? 'Risk' : 'Low' },
-          { name: 'Policy', detail: 'Не хватает обязательных разделов', tag: score > 70 ? 'Risk' : 'Low' },
-          { name: 'Analytics', detail: 'Передача данных зарубежным сервисам', tag: score > 85 ? 'Critical' : score > 70 ? 'High' : 'Risk' }
+          { name: 'Consent', detail: 'Сбор данных без явного согласия', tag: score > 80 ? 'Нарушение' : score > 60 ? 'Риск' : 'Низкий' },
+          { name: 'Policy', detail: 'Не хватает обязательных разделов', tag: score > 70 ? 'Риск' : 'Низкий' },
+          { name: 'Analytics', detail: 'Передача данных зарубежным сервисам', tag: score > 85 ? 'Критично' : score > 70 ? 'Высокий' : 'Риск' }
         ];
 
         list.innerHTML = items.map(item => `
@@ -1095,7 +1087,7 @@
       function renderFormState() {
         phase = 'form';
         setSignalState('signal://audit', '76', 'risk');
-        setRiskState(76, 'High');
+        setRiskState(76, 'Высокий');
         renderScanList(2);
         renderRiskList(76);
         const scanButton = document.getElementById('scanButton');
@@ -1106,7 +1098,7 @@
       function renderScanningState() {
         phase = 'scanning';
         const currentScore = scoreValues[Math.min(currentStep, scoreValues.length - 1)];
-        const badge = currentScore >= 85 ? 'Critical' : currentScore >= 70 ? 'High' : 'Medium';
+        const badge = currentScore >= 85 ? 'Критично' : currentScore >= 70 ? 'Высокий' : 'Средний';
         setSignalState('signal://scan', String(currentStep + 1), 'of 9');
         setRiskState(currentScore, badge);
         renderScanList(currentStep);
@@ -1120,7 +1112,7 @@
         phase = 'done';
         const score = 92;
         setSignalState('signal://done', String(score), 'risk');
-        setRiskState(score, 'Critical');
+        setRiskState(score, 'Критично');
         renderScanList(8);
         renderRiskList(score);
         const scanButton = document.getElementById('scanButton');
@@ -1128,7 +1120,7 @@
         document.getElementById('runDemoButton').style.display = 'none';
         document.getElementById('riskLevel').textContent = score;
         document.getElementById('riskBar').style.width = score + '%';
-        document.getElementById('riskBadge').textContent = 'Critical';
+        document.getElementById('riskBadge').textContent = 'Критично';
         document.getElementById('ringValue').textContent = score;
         document.getElementById('ringUnit').textContent = 'risk';
       }
