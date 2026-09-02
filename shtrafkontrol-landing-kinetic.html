@@ -260,7 +260,7 @@
       .domain-input::placeholder { color: rgba(238,240,238,0.35); }
       .signal-panel {
         position: relative;
-        min-height: 620px;
+        min-height: 480px;
         display: grid;
         place-items: center;
         padding-top: 10px;
@@ -286,7 +286,7 @@
       .radar {
         position: relative;
         width: min(100%, 660px);
-        min-height: 560px;
+        min-height: auto;
         border-radius: 34px;
         border: 1px solid rgba(255,255,255,0.06);
         background: linear-gradient(180deg, rgba(18, 21, 27, 0.9), rgba(14, 18, 21, 0.96));
@@ -316,14 +316,14 @@
       .radar-shell {
         position: relative;
         z-index: 1;
-        padding: 18px 18px 20px;
+        padding: 12px 12px 14px;
       }
       .radar-head {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        padding-bottom: 18px;
+        justify-content: flex-start;
+        gap: 8px;
+        padding-bottom: 12px;
         border-bottom: 1px solid rgba(255,255,255,0.06);
       }
       .signal-dots {
@@ -345,14 +345,15 @@
         margin-top: 18px;
       }
       .monitor {
-        padding: 18px 18px 16px;
+        padding: 12px 12px 14px;
         border-radius: 24px;
         border: 1px solid var(--line);
         background: rgba(255,255,255,0.025);
       }
       .ring-wrap {
         position: relative;
-        height: 280px;
+        height: auto;
+        min-height: 200px;
         display: grid;
         place-items: center;
       }
@@ -394,42 +395,8 @@
         letter-spacing: 0.14em;
       }
 
-      .scan-list {
-        display: grid;
-        gap: 10px;
-        margin-top: 18px;
-      }
-      .scan-step {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 12px;
-        align-items: center;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.06);
-        background: rgba(255,255,255,0.018);
-        padding: 10px 12px;
-      }
-      .scan-text strong { display: block; font-size: 0.95rem; }
-      .scan-text span { color: var(--muted); font-size: 0.72rem; }
-      .status {
-        padding: 0.38rem 0.72rem;
-        border-radius: 999px;
-        border: 1px solid rgba(243,176,109,0.2);
-        background: rgba(243,176,109,0.12);
-        color: #f0d0a0;
-        font-size: 0.68rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        font-weight: 700;
-      }
-      .status.critical {
-        border-color: rgba(221,109,92,0.25);
-        background: rgba(221,109,92,0.12);
-        color: #f7b0a1;
-      }
-
       .risk-box {
-        padding: 18px 18px 16px;
+        padding: 12px 12px 14px;
         border-radius: 24px;
         border: 1px solid var(--line);
         background: rgba(255,255,255,0.025);
@@ -639,26 +606,6 @@
         border: 1px solid rgba(255,255,255,0.06);
         background: rgba(255,255,255,0.025);
       }
-      .done-support {
-        display: none;
-        margin-top: 14px;
-        padding: 12px 14px;
-        border-radius: 14px;
-        border: 1px solid rgba(255,255,255,0.06);
-        background: rgba(255,255,255,0.02);
-        color: var(--soft);
-      }
-      .done-support.visible {
-        display: block;
-      }
-      .done-support strong {
-        color: var(--text); display: block; margin-bottom: 4px;
-      }
-      .done-support a {
-        color: #f7b7a4;
-        text-decoration: underline;
-        text-underline-offset: 2px;
-      }
       .result-meta {
         display: flex;
         align-items: center;
@@ -727,9 +674,9 @@
       }
       .result-offer {
         display: none;
-        margin-top: 16px;
-        padding: 18px 18px 16px;
-        border-radius: 22px;
+        margin-top: 12px;
+        padding: 14px 14px 12px;
+        border-radius: 18px;
         border: 1px solid rgba(255,255,255,0.08);
         background: linear-gradient(135deg, rgba(243,176,109,0.08), rgba(255,255,255,0.02));
       }
@@ -737,7 +684,7 @@
         display: block;
       }
       .offer-kicker {
-        margin: 0 0 8px;
+        margin: 0 0 6px;
         color: var(--amber);
         font-size: 0.68rem;
         letter-spacing: 0.1em;
@@ -745,21 +692,44 @@
         font-weight: 800;
       }
       .result-offer h4 {
-        margin: 0 0 8px;
-        font-size: 1.2rem;
+        margin: 0 0 6px;
+        font-size: 1.1rem;
         line-height: 1.2;
         letter-spacing: -0.05em;
       }
       .result-offer p {
-        margin: 0 0 14px;
+        margin: 0 0 10px;
         color: var(--muted);
         line-height: 1.5;
+        font-size: 0.93rem;
       }
       .offer-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         width: auto;
+      }
+      .result-offer.is-sent .offer-kicker,
+      .result-offer.is-sent h4,
+      .result-offer.is-sent p,
+      .result-offer.is-sent .offer-btn {
+        display: none;
+      }
+      .offer-thanks {
+        display: none;
+      }
+      .result-offer.is-sent .offer-thanks {
+        display: block;
+      }
+      .offer-thanks strong {
+        display: block;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+      .offer-thanks span {
+        color: var(--muted);
+        font-size: 0.93rem;
+        line-height: 1.5;
       }
       .faq-list { display: grid; gap: 12px; }
       .faq-item {
@@ -973,30 +943,6 @@
                       </div>
                     </div>
 
-                    <div id="scanList" class="scan-list">
-                      <div class="scan-step">
-                        <div class="scan-text">
-                          <strong>Политика персональных данных</strong>
-                          <span>Не закрывает обязательные пункты</span>
-                        </div>
-                        <div class="status">угроза</div>
-                      </div>
-                      <div class="scan-step">
-                        <div class="scan-text">
-                          <strong>Cookie и согласие</strong>
-                          <span>Без явного предварительного согласия</span>
-                        </div>
-                        <div class="status">угроза</div>
-                      </div>
-                      <div class="scan-step">
-                        <div class="scan-text">
-                          <strong>Google Analytics</strong>
-                          <span>Передача данных за пределы РФ</span>
-                        </div>
-                        <div class="status">критично</div>
-                      </div>
-                    </div>
-
                     <div class="scan-actions">
                       <button id="stopScanButton" class="stop-btn" type="button">✕ Остановить</button>
                     </div>
@@ -1043,15 +989,14 @@
                     </div>
 
                     <div id="resultOffer" class="result-offer">
-                      <p class="offer-kicker">Нужно закрыть риск</p>
-                      <h4>Не ждите регулятора — закройте нарушения документами и виджетом.</h4>
-                      <p>В сервисе Слеза · Белый Сайт готовим готовый пакет по 152-ФЗ, cookie и форме согласия, чтобы убрать тревожные маркеры без лишней бюрократии.</p>
-                      <a href="#footer" class="primary-btn offer-btn">Слеза · Белый Сайт</a>
-                    </div>
-
-                    <div id="doneSupport" class="done-support" aria-live="polite">
-                      <strong>Это тревожный результат, но он не безвыходный.</strong>
-                      <span>Первым делом закрывайте пункты со статусом «нарушение». Варианты исправления и документ готовы в <a href="#footer">Слеза · Белый Сайт</a>.</span>
+                      <p class="offer-kicker">Получить отчёт</p>
+                      <h4>Отправим результаты в Telegram</h4>
+                      <p>Полный отчёт с рекомендациями по каждому пункту — получится сразу в чат.</p>
+                      <button id="offerTelegramBtn" class="primary-btn offer-btn" type="button">Получить в Telegram →</button>
+                      <div class="offer-thanks" aria-live="polite">
+                        <strong>Готово!</strong>
+                        <span>Отчёт придёт в Telegram в течение нескольких минут.</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1287,13 +1232,6 @@
     </div>
 
     <script>
-      const steps = [
-        { title: 'Политика персональных данных', detail: 'Проверка обязательных разделов' },
-        { title: 'Согласие на обработку ПД', detail: 'Проверка форм и чекбоксов' },
-        { title: 'Cookie-баннер', detail: 'Проверка уведомления до скриптов' },
-        { title: 'Google Analytics', detail: 'Проверка передачи данных за рубеж' }
-      ];
-
       const scoreValues = [69, 74, 81, 68, 77, 62, 92, 58, 86];
       let scanTimer = null;
       let currentStep = 0;
@@ -1415,28 +1353,12 @@
         const resultOffer = document.getElementById('resultOffer');
         if (!resultOffer) return;
         resultOffer.classList.toggle('visible', visible);
+        resultOffer.classList.remove('is-sent');
       }
 
-      function renderScanList(progressIndex) {
-        const list = document.getElementById('scanList');
-        if (!list) return;
-        list.innerHTML = '';
-
-        steps.forEach((step, index) => {
-          const item = document.createElement('div');
-          item.className = 'scan-step';
-          const active = index <= progressIndex;
-          const isCritical = index === 3;
-          const status = isCritical ? 'нарушение' : index === 1 || index === 2 ? 'риск' : 'ок';
-          item.innerHTML = `
-            <div class="scan-text">
-              <strong>${step.title}</strong>
-              <span>${step.detail}</span>
-            </div>
-            <div class="status ${isCritical ? 'critical' : ''}" style="opacity:${active ? 1 : 0.45};">${active ? status : 'ожидание'}</div>
-          `;
-          list.appendChild(item);
-        });
+      function sendOfferTelegram() {
+        const resultOffer = document.getElementById('resultOffer');
+        if (resultOffer) resultOffer.classList.add('is-sent');
       }
 
       function renderRiskList(score) {
@@ -1468,13 +1390,10 @@
         updateReportMeta();
         setRiskState(76, 'Высокий');
         setHeaderStatus('form', 76, 'Высокий');
-        renderScanList(2);
         renderRiskList(76);
         setStopButtonState(false);
         setFineDisplay(formatMoney(calculateDemoFine()));
         setResultOffer(false);
-        const doneSupport = document.getElementById('doneSupport');
-        if (doneSupport) doneSupport.classList.remove('visible');
         const scanButton = document.getElementById('scanButton');
         if (scanButton) scanButton.textContent = 'Проверить сайт →';
         document.getElementById('runDemoButton').style.display = '';
@@ -1486,13 +1405,10 @@
         const badge = currentScore >= 85 ? 'Критично' : currentScore >= 70 ? 'Высокий' : 'Средний';
         setRiskState(currentScore, badge);
         setHeaderStatus('scanning', currentScore, badge);
-        renderScanList(currentStep);
         renderRiskList(currentScore);
         setStopButtonState(true);
         setFineDisplay('Считаем…');
         setResultOffer(false);
-        const doneSupport = document.getElementById('doneSupport');
-        if (doneSupport) doneSupport.classList.remove('visible');
         const scanButton = document.getElementById('scanButton');
         if (scanButton) scanButton.textContent = 'Сканирую…';
         document.getElementById('runDemoButton').style.display = 'none';
@@ -1504,7 +1420,6 @@
         const fineAmount = calculateDemoFine();
         setRiskState(score, 'Критично');
         setHeaderStatus('done', score, 'Критично');
-        renderScanList(8);
         renderRiskList(score);
         setStopButtonState(false);
         animateFineDisplay(formatMoney(fineAmount));
@@ -1515,8 +1430,6 @@
         document.getElementById('runDemoButton').style.display = 'none';
         const ringUnit = document.getElementById('ringUnit');
         if (ringUnit) ringUnit.textContent = 'риск';
-        const doneSupport = document.getElementById('doneSupport');
-        if (doneSupport) doneSupport.classList.add('visible');
       }
 
       function stopCurrentScan() {
@@ -1640,6 +1553,11 @@
       const stopButton = document.getElementById('stopScanButton');
       if (stopButton) {
         stopButton.addEventListener('click', stopCurrentScan);
+      }
+
+      const offerTelegramBtn = document.getElementById('offerTelegramBtn');
+      if (offerTelegramBtn) {
+        offerTelegramBtn.addEventListener('click', sendOfferTelegram);
       }
 
       const headerStatus = document.getElementById('headerStatus');
