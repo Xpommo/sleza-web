@@ -604,7 +604,7 @@ details.acc:first-child{margin-top:0}
 /* Чек-лист переодет в чек (26 августа, по референсу site-price.vercel.app —
    касса/штрихкод-механика «из чего складывается цена», адаптирована под
    нашу фиксированную цену: пункты не двигают стоимость, они доказывают,
-   что 2 990 ₽/мес — это весь пакет целиком, не база + допродажи. Моно —
+   что 29 900 ₽/год — это весь пакет целиком, не база + допродажи. Моно —
    осознанное расширение «правила точных чисел» из DESIGN.md на весь
    компонент: он сам себя подаёт как распечатку, не прозу. */
 .cl-head{font-family:var(--mono);font-size:11px;color:rgba(17,17,16,.45);
@@ -639,7 +639,7 @@ details.acc:first-child{margin-top:0}
 .cl-item-na{color:var(--warn)}
 /* Цена — видна с первого экрана анкеты, не только на s-pay в конце
    воронки (независимый пробел, найден 27.08: раньше человек проходил всю
-   анкету, ни разу не увидев 2 990 ₽/мес). Не завязана на .done ни одного
+   анкету, ни разу не увидев 29 900 ₽/год). Не завязана на .done ни одного
    пункта — цена фиксированная, ждать нечего, доказательство не в сумме,
    а в списке выше. */
 .cl-total{display:flex;justify-content:space-between;align-items:baseline;
@@ -923,7 +923,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                 <div class="dom">alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
               </div>
-              <div class="meta">✓ Документы актуальны<br>ООО «Альфа Образование» · ИНН 7701234567<br>оплачено до 05.09.2026</div>
+              <div class="meta">✓ Документы актуальны<br>ООО «Альфа Образование» · ИНН 7701234567<br>оплачено до 05.08.2027</div>
               <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
             </div>
             <!-- независимый UX-аудит, критика A, P0: siteStatus по умолчанию
@@ -971,7 +971,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <tr class="state" data-pay-state="paid">
               <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="b green">✓ Документы актуальны</span></td>
-              <td class="meta">оплачено до 05.09.2026</td>
+              <td class="meta">оплачено до 05.08.2027</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
             <tr class="state" data-pay-state="trial">
@@ -1301,7 +1301,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                 <div class="cl-item" data-cl="clients"><span class="cl-num">04</span><span class="cl-name">Согласие на обработку ПДн</span><span class="cl-mark"></span></div>
                 <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-num">05</span><span class="cl-name">Согласие на рассылки</span><span class="cl-mark"></span></div>
                 <div class="cl-item cl-item-na" data-cl-industry hidden><span class="cl-name">Отраслевой блок для вашей сферы — не входит, уточните у поддержки</span><span class="cl-mark"></span></div>
-                <div class="cl-total"><span>Итого</span><b>2 990 ₽/мес</b></div>
+                <div class="cl-total"><span>Итого</span><b>29 900 ₽/год</b></div>
                 <p class="tiny" style="margin-top:5px;color:rgba(17,17,16,.5)">Спишется при оплате — сейчас 24 часа бесплатно</p>
               </div>
             </div>
@@ -1322,7 +1322,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <div class="cl-item" data-cl="clients"><span class="cl-num">04</span><span class="cl-name">Согласие на обработку ПДн</span><span class="cl-mark"></span></div>
             <div class="cl-item" data-cl="clients" data-cl-marketing><span class="cl-num">05</span><span class="cl-name">Согласие на рассылки</span><span class="cl-mark"></span></div>
             <div class="cl-item cl-item-na" data-cl-industry hidden><span class="cl-name">Отраслевой блок для вашей сферы — не входит, уточните у поддержки</span><span class="cl-mark"></span></div>
-            <div class="cl-total"><span>Итого</span><b>2 990 ₽/мес</b></div>
+            <div class="cl-total"><span>Итого</span><b>29 900 ₽/год</b></div>
             <p class="tiny" style="margin-top:5px;color:rgba(17,17,16,.5)">Спишется при оплате — сейчас 24 часа бесплатно</p>
           </div>
         </aside>
@@ -1463,12 +1463,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </details>
 
     <div class="card pad" style="margin-top:16px">
-      <div class="row" style="justify-content:space-between"><span class="small muted">Подписка</span><span style="font-size:19px;font-weight:800">2 990 ₽/мес</span></div>
-      <p class="tiny" style="margin-top:5px">Спишется один раз при оплате — о продлении напомним письмом. Отменить можно в любой момент.</p>
+      <div class="row" style="justify-content:space-between"><span class="small muted">Подписка</span><span style="font-size:19px;font-weight:800">29 900 ₽/год</span></div>
+      <p class="tiny" style="margin-top:5px">Спишется один раз в год — о продлении напомним письмом заранее. Отменить можно в любой момент.</p>
     </div>
 
     <!-- HANDOFF 6.15 п.8 — установка идёт до оплаты, не после: кнопка
-         теперь ведёт на s-install, не s-pay. «Оплатить 2 990 ₽» как текст
+         теперь ведёт на s-install, не s-pay. «Оплатить 29 900 ₽» как текст
          кнопки была бы обманом ещё раньше — здесь оплаты вообще нет,
          только запуск бесплатного 24-часового периода. -->
     <div class="hr" style="margin-top:20px"></div>
@@ -1505,8 +1505,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62);margin-top:14px">Оплата продлевает</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Доступ не прерывается после пробного периода<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
       <div class="hr"></div>
-      <p class="tiny" style="margin-bottom:10px"><b style="color:var(--ink)">Это подписка, не разовая покупка</b> — меняется закон, вместе с ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.</p>
-      <div class="row" style="justify-content:space-between"><span class="small muted">Итого</span><b style="font-size:19px">2 990 ₽/мес</b></div>
+      <p class="tiny" style="margin-bottom:10px"><b style="color:var(--ink)">Оплата раз в год — но это подписка, не разовая покупка</b>: меняется закон, вместе с ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.</p>
+      <div class="row" style="justify-content:space-between"><span class="small muted">Итого</span><b style="font-size:19px">29 900 ₽/год</b></div>
     </div>
 
     <!-- Платёжный партнёр + СБП + По счёту. Раньше здесь рисовали свою
@@ -1548,8 +1548,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <p class="tiny">Отсканируйте в приложении банка или введите номер телефона</p>
         <input class="inp mono" placeholder="+7 (___) ___-__-__" style="margin-top:8px;max-width:260px">
         <div class="hr" style="margin-top:16px"></div>
-        <button type="button" class="btn solid wide" data-set-status="paid" data-go="s-project-paid">Оплатить 2 990 ₽ → в кабинет</button>
-        <p class="tiny" style="text-align:center;margin-top:10px">Спишется один раз — о продлении напомним письмом за несколько дней</p>
+        <button type="button" class="btn solid wide" data-set-status="paid" data-go="s-project-paid">Оплатить 29 900 ₽ → в кабинет</button>
+        <p class="tiny" style="text-align:center;margin-top:10px">Спишется один раз в год — о продлении напомним письмом заранее</p>
       </div>
       <div data-swapped="pmsbp" data-payment-issue="sbp-declined" style="display:none;text-align:center">
         <div class="b red" style="font-size:15px;justify-content:center">✕ Банк отклонил платёж</div>
@@ -1596,7 +1596,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         </div>
         <label class="f" style="margin-top:10px">Корр. счёт</label>
         <input class="inp mono" id="pay-invoice-corr" inputmode="numeric" placeholder="30101810...">
-        <p class="tiny" style="margin-top:10px">Счёт на 2 990 ₽ придёт на почту в PDF, оплатить можно переводом с расчётного счёта.</p>
+        <p class="tiny" style="margin-top:10px">Счёт на 29 900 ₽ придёт на почту в PDF, оплатить можно переводом с расчётного счёта.</p>
         <div class="hr" style="margin-top:16px"></div>
         <button type="button" class="btn solid wide" data-set-status="pending" data-go="s-project-paid">Выставить счёт → в кабинет</button>
         <p class="tiny" style="text-align:center;margin-top:10px">Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня. Виджет и документы уже работают, ждать не нужно</p>
@@ -1607,7 +1607,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   </div>
   <!-- следует за активной вкладкой способа оплаты — партнёр ещё пустая
        заглушка без формы, там плашке нечего запускать, поэтому скрыта -->
-  <div class="sticky-cta" id="pay-sticky"><span class="ctx">2 990 ₽/мес</span><button type="button" class="btn solid" id="pay-sticky-btn" data-go="s-project-paid" data-set-status="paid">Оплатить →</button></div>
+  <div class="sticky-cta" id="pay-sticky"><span class="ctx">29 900 ₽/год</span><button type="button" class="btn solid" id="pay-sticky-btn" data-go="s-project-paid" data-set-status="paid">Оплатить →</button></div>
 </section>
 
 <!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 4/4 · УСТАНОВКА (запуск триала) ═
@@ -1818,7 +1818,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
                попадают trial/expired/pending/paid (HANDOFF 6.15 п.8). -->
           <div class="state" data-pay-state="unpaid">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">не оплачено</span></div>
-            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">2 990 ₽/мес</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">29 900 ₽/год</span></div>
           </div>
           <div class="state" data-pay-state="trial">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">пробный период</span></div>
@@ -1830,7 +1830,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           </div>
           <div class="state on" data-pay-state="paid">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">оплачено</span></div>
-            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Продление</span><span class="small" style="font-weight:700">05.09.2026 · 2 990 ₽</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Продление</span><span class="small" style="font-weight:700">05.08.2027 · 29 900 ₽</span></div>
             <p class="tiny" style="margin-top:8px">Если не продлить — виджет на сайте отключится, обновление по закону остановится, как и по истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
           </div>
           <div class="state" data-pay-state="pending">
@@ -1875,7 +1875,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         </div>
         <div class="row" style="padding:12px 16px;align-items:flex-start">
           <span class="tiny mono" style="flex:none;width:88px">05.08.2026</span>
-          <span class="small">Подключили виджет и оплатили первый месяц</span>
+          <span class="small">Подключили виджет и оплатили годовой доступ</span>
         </div>
       </div>
     </main>
@@ -2027,7 +2027,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
      строку внутри Настроек; сами поля жили только разово на шаге оплаты
      воронки, s-pay, и были недоступны для правки после). Плюс новый
      раздел «Акты» — закрывающие бухгалтерские документы, по одному на
-     каждый оплаченный месяц, каждый скачивается отдельным PDF. -->
+     каждый оплаченный год, каждый скачивается отдельным PDF. -->
 <section class="screen" id="s-billing">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -2075,7 +2075,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
             </div>
             <button type="button" class="btn sm" data-go-modal="modal-req-invoice">Изменить</button>
           </div>
-          <p class="tiny" style="margin-top:10px">Следующий счёт придёт на почту за неделю до окончания оплаченного периода — или сформируйте сейчас, если нужно раньше.</p>
+          <p class="tiny" style="margin-top:10px">Следующий счёт придёт на почту за две недели до окончания оплаченного периода — или сформируйте сейчас, если нужно раньше.</p>
           <button id="request-invoice-btn" class="btn solid sm" style="margin-top:12px">Сформировать счёт</button>
         </div>
         <div class="hr"></div>
@@ -2086,7 +2086,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <span class="state" data-pay-state="trial"><span class="chip amber">пробный период · 21 ч 43 мин</span></span>
           <span class="state" data-pay-state="expired"><span class="chip red">пробный период закончился</span></span>
           <span class="state" data-pay-state="pending"><span class="chip amber">ожидает оплаты</span></span>
-          <span class="state on" data-pay-state="paid"><span class="chip green" id="sub-chip">оплачено до 05.09.2026</span></span>
+          <span class="state on" data-pay-state="paid"><span class="chip green" id="sub-chip">оплачено до 05.08.2027</span></span>
           <span class="state" data-pay-state="unpaid"><span class="chip red">не оплачено</span></span>
         </div>
         <!-- независимый UX-аудит, критика A, P2 (третий раунд): у
@@ -2103,11 +2103,11 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       </div>
 
       <h2 style="margin-top:24px">Акты</h2>
-      <p class="tiny" style="margin-top:4px">Закрывающие документы для бухгалтерии — один акт за каждый оплаченный месяц.</p>
+      <p class="tiny" style="margin-top:4px">Закрывающие документы для бухгалтерии — один акт за оплаченный год.</p>
       <div class="card" style="margin-top:12px;overflow:hidden">
         <div class="row" style="padding:13px 16px">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Акт за август 2026</div><div class="tiny mono">05.08.2026 – 04.09.2026 · 2 990 ₽</div></div>
-          <span class="chip green">готов</span><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/act-2026-08.pdf" target="_blank" rel="noopener">Скачать PDF</a>
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Акт за 2026–2027</div><div class="tiny mono">05.08.2026 – 04.08.2027 · 29 900 ₽</div></div>
+          <span class="chip green">готов</span><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/act-2026-2027.pdf" target="_blank" rel="noopener">Скачать PDF</a>
         </div>
       </div>
     </main>
@@ -2218,7 +2218,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <div class="modal-overlay" data-state="closed" id="modal-cancel" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-cancel-title">Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
-    <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 05.09.2026. После этого виджет на сайте отключится, обновление по закону остановится — как при истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
+    <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 05.08.2027. После этого виджет на сайте отключится, обновление по закону остановится — как при истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
     <div class="row" style="margin-top:16px">
       <button class="btn solid" id="cancel-confirm" style="background:var(--danger);border-color:var(--danger)" data-modal-close="modal-cancel">Да, отменить</button>
       <button class="btn text" data-modal-close="modal-cancel">Оставить подписку</button>
@@ -2939,7 +2939,7 @@ function syncMobileStrip(){
   if (!strips.length) return;
   var items = document.querySelectorAll('.checklist-side .cl-item:not(.cl-item-na):not([hidden])');
   var done = document.querySelectorAll('.checklist-side .cl-item:not(.cl-item-na):not([hidden]).done').length;
-  var html = done + '/' + items.length + ' документов <b>2 990 ₽/мес</b>';
+  var html = done + '/' + items.length + ' документов <b>29 900 ₽/год</b>';
   strips.forEach(function(el){ el.innerHTML = html; });
 }
 syncMobileStrip();
@@ -3201,7 +3201,7 @@ var cancelConfirm = document.getElementById('cancel-confirm');
 if (cancelConfirm) {
   cancelConfirm.addEventListener('click', function(){
     var chip = document.getElementById('sub-chip');
-    if (chip) { chip.textContent = 'отменена · доступ до 05.09.2026'; chip.className = 'chip amber'; }
+    if (chip) { chip.textContent = 'отменена · доступ до 05.08.2027'; chip.className = 'chip amber'; }
   });
 }
 
