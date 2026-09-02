@@ -422,7 +422,11 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 .split{min-height:100vh;display:flex}
 .split-value{flex:0 0 42%;background:var(--ink);color:#fff;padding:56px 44px;display:flex;flex-direction:column;justify-content:center}
 .split-value .kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)}
-.split-value h2{color:#fff;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.25;margin:10px 0 22px}
+/* Была <h2>, стояла в DOM раньше <h1>Регистрация</h1> в форме справа —
+   единственное место в файле с этим паттерном (impeccable critique,
+   2 сентября). Это маркетинг-тэглайн, не структурный заголовок страницы —
+   понижена до .split-tagline, а не переставлена местами с настоящим h1. */
+.split-value .split-tagline{display:block;color:#fff;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.25;margin:10px 0 22px}
 .split-value .why{display:flex;gap:12px;padding:14px 0;border-top:1px solid rgba(255,255,255,.14)}
 .split-value .why:last-child{padding-bottom:0}
 .split-value .why b{display:block;font-size:14px;font-weight:700}
@@ -431,7 +435,7 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 @media(max-width:820px){
   .split{display:block}
   .split-value{padding:32px 24px}
-  .split-value h2{font-size:21px}
+  .split-value .split-tagline{font-size:21px}
 }
 
 @media(max-width:600px){
@@ -539,6 +543,11 @@ details.acc:first-child{margin-top:0}
 .acc-title{font-size:15px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px;cursor:pointer;list-style:none}
 .acc-title::-webkit-details-marker{display:none}
 .acc-title::after{display:none}
+/* <summary> без heading внутри — скринридер в Настройках слышит только
+   заголовок экрана и ничего внутри (impeccable critique, 2 сентября).
+   <h3> первым потомком summary — валидно по HTML5, инвертируем его
+   собственные стили, чтобы визуал не изменился ни на пиксель. */
+.acc-title h3{margin:0;font:inherit;letter-spacing:inherit;color:inherit}
 @media(max-width:640px){
   .acc-title::after{content:"⌄";float:right;color:rgba(17,17,16,.4);display:inline}
   details.acc[open] .acc-title::after{content:"⌃"}
@@ -578,6 +587,19 @@ details.acc:first-child{margin-top:0}
 .checklist-reveal{display:none}
 @media(max-width:820px){
   .checklist-reveal{display:block;margin-top:20px}
+}
+/* Полоска-заглушка для подшагов 1–2 анкеты на мобильном — .checklist-side
+   там скрыт (см. выше), .checklist-reveal физически существует только
+   внутри подшага 3 — на 1–2 мобильный пользователь не видел вообще
+   ничего из «что собирается и сколько стоит» (impeccable critique,
+   2 сентября, персона «пользователь с телефона»). Не полный чек-лист —
+   именно то, чего критика и просила: минимум, не дублирование. */
+.cl-mobile-strip{display:none}
+@media(max-width:820px){
+  .cl-mobile-strip{display:flex;justify-content:space-between;align-items:baseline;
+    margin-top:14px;padding:10px 14px;border:1px solid var(--line-2);border-radius:10px;
+    background:var(--white);font-family:var(--mono);font-size:12.5px}
+  .cl-mobile-strip b{font-size:13.5px;font-variant-numeric:tabular-nums}
 }
 /* Чек-лист переодет в чек (26 августа, по референсу site-price.vercel.app —
    касса/штрихкод-механика «из чего складывается цена», адаптирована под
@@ -737,7 +759,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <div class="split">
     <div class="split-value">
       <span class="kicker">слеза белый сайт</span>
-      <h2>Документы для сайта — готовим и держим в порядке</h2>
+      <p class="split-tagline">Документы для сайта — готовим и держим в порядке</p>
       <div class="why"><div><b>Соберём под вашу компанию</b><span>Заполните анкету о сайте и компании — документы соберём под ваши данные и вашу сферу деятельности.</span></div></div>
       <div class="why"><div><b>Виджет на сайт</b><span>Один скрипт: показывает cookie-уведомление, выводит реквизиты в подвал и держит ссылки на документы рабочими.</span></div></div>
       <div class="why"><div><b>Следим, что всё работает</b><span>Проверяем, что виджет и документы на сайте работают исправно — не нужно проверять это самим.</span></div></div>
@@ -753,7 +775,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <h1 style="margin-bottom:6px">Регистрация</h1>
         <p class="lead" style="margin-bottom:22px">Демо: подойдут любые данные — заполнять по-настоящему не нужно.</p>
 
-        <div><label class="f" for="r-mail">Email</label><input class="inp" id="r-mail" type="email" autocomplete="email" placeholder="you@company.ru"></div>
+        <div><label class="f" for="r-mail">Email</label><input class="inp" id="r-mail" type="email" autocomplete="email" placeholder="you@company.ru">
+        <p class="tiny anketa-field-error" id="r-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите email — на него придёт подтверждение.</p></div>
 
         <div style="margin-top:16px">
           <label class="f" for="r-pass">Пароль</label>
@@ -764,6 +787,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <svg class="eye-hide" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.6 6c.77-.2 1.58-.3 2.4-.3 6.6 0 10.2 6.3 10.2 6.3s-.9 1.6-2.5 3.2M6.1 8c-2 1.7-3.1 4-3.1 4S6.6 18.3 12 18.3c1.3 0 2.5-.25 3.5-.66"/><path d="M10 10a2.8 2.8 0 0 0 4 4"/><path d="M3.5 3.5 20.5 20.5"/></svg>
             </button>
           </div>
+          <p class="tiny anketa-field-error" id="r-pass-error" style="display:none;margin-top:5px;color:var(--danger)">Минимум 8 символов.</p>
         </div>
 
         <!-- Акцепт оферты — чекбоксом здесь, не отдельным экраном-гейтом
@@ -775,8 +799,19 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <input type="checkbox" id="r-offer">
           <span class="t">Принимаю условия <a href="#" style="text-decoration:underline">оферты</a></span>
         </label>
+        <p class="tiny anketa-field-error" id="r-offer-error" style="display:none;margin-top:5px;color:var(--danger)">Нужно принять условия оферты, чтобы продолжить.</p>
 
-        <button type="button" class="btn solid wide" style="margin-top:16px" data-go="s-verify">Создать аккаунт</button>
+        <!-- Гейт на регистрацию — независимый UX-аудит (impeccable critique,
+             2 сентября): единственная форма файла без валидации, «Создать
+             аккаунт» проходила с пустыми email/паролем/неотмеченной офертой —
+             прямой регресс относительно wireEmailGate/wireLengthValidation
+             ниже, которые как раз чинили этот же класс проблемы в других
+             местах. data-go специально не поставлен — кнопку ведёт
+             wireRegisterGate(), сама вызывает goScreen при успехе; если бы
+             остался data-go, общий [data-go]-обработчик сработал бы
+             независимо от валидации (гонка двух обработчиков на одной
+             кнопке). -->
+        <button type="button" class="btn solid wide" id="register-submit-btn" style="margin-top:16px">Создать аккаунт</button>
 
         <p class="tiny" style="text-align:center;margin-top:24px">Уже есть аккаунт? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
       </div>
@@ -1083,6 +1118,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <div data-substep="1">
             <h1>О компании</h1>
             <p class="lead" style="margin-top:8px">Реквизиты владельца сайта — обязательны по 149-ФЗ, пойдут в документы и в подвал сайта.</p>
+            <div class="cl-mobile-strip" data-cl-mobile-strip></div>
             <div class="card pad" id="anketa-req-card" style="margin-top:16px">
               <!-- Форма собственности первым вопросом (независимый план
                    исправлений, п.1.4, 25.08) — раньше ОГРН был безусловным
@@ -1182,6 +1218,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm" data-set-substep="1" style="margin-bottom:10px">← О компании</button>
             <h1>О сайте</h1>
             <p class="lead" style="margin-top:8px">Технические детали сайта — попадут в формулировки политики и cookie-документа.</p>
+            <div class="cl-mobile-strip" data-cl-mobile-strip></div>
             <div class="card pad" id="anketa-site-card" style="margin-top:16px">
               <label class="f">На какой платформе сайт?</label>
               <div class="seg" id="anketa-platform-seg" style="margin-top:6px">
@@ -1256,7 +1293,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  короткой, ближе к вопросам, которые его наполняют. -->
             <div class="checklist-reveal">
               <div class="card pad">
-                <h3>Вот что вы получите</h3>
+                <h2>Вот что вы получите</h2>
                 <div class="cl-head mono">alfa-school.ru</div>
                 <div class="cl-item" data-cl="req"><span class="cl-num">01</span><span class="cl-name">Реквизиты владельца</span><span class="cl-mark"></span></div>
                 <div class="cl-item" data-cl="platform"><span class="cl-num">02</span><span class="cl-name">Политика обработки ПДн</span><span class="cl-mark"></span></div>
@@ -1277,7 +1314,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
         <aside class="checklist-side">
           <div class="card pad">
-            <h3>Вот что вы получите</h3>
+            <h2>Вот что вы получите</h2>
             <div class="cl-head mono">alfa-school.ru</div>
             <div class="cl-item" data-cl="req"><span class="cl-num">01</span><span class="cl-name">Реквизиты владельца</span><span class="cl-mark"></span></div>
             <div class="cl-item" data-cl="platform"><span class="cl-num">02</span><span class="cl-name">Политика обработки ПДн</span><span class="cl-mark"></span></div>
@@ -1612,8 +1649,14 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <label class="f">Почта</label><input class="inp mono" id="install-self-email" value="director@alfa-school.ru"><p class="tiny anketa-field-error" id="install-self-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту — иначе некуда отправлять.</p><button id="send-self-btn" class="btn solid sm" style="margin-top:10px">Отправить себе</button>
     </div>
 
-    <details class="acc" open style="margin-top:18px">
-    <summary class="acc-title">Сделать самому</summary>
+    <!-- Закрыт по умолчанию даже на десктопе (impeccable critique, 2
+         сентября) — раньше был open здесь же, мобильный JS ниже
+         сворачивал его только на ≤640px. Замысел секции — «сначала
+         снимаем страх делегированием, не код» — не срабатывал именно на
+         десктопе: чёрный код-блок доминирует над страницей визуально
+         независимо от намерения, прямо под белой карточкой «Поручить». -->
+    <details class="acc" style="margin-top:18px">
+    <summary class="acc-title"><h3>Сделать самому</h3></summary>
     <div class="card pad">
       <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
@@ -1653,7 +1696,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="b red">✕ Скрипт на сайте не найден</div>
       <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили alfa-school.ru минуту назад. Если только что вставили — подождите минуту и проверьте ещё раз, часто дело в кеше. Публикуете через конструктор (Тильда, Битрикс) — убедитесь, что нажали «Опубликовать». Не находит и через 10 минут — напишите в поддержку.</p>
       <div class="row" style="margin-top:10px;gap:8px">
-        <button class="btn solid sm">↻ Проверить установку</button>
+        <button class="btn solid sm check-install-btn">↻ Проверить установку</button>
         <button class="btn sm" data-go="s-support">Написать в поддержку</button>
       </div>
     </div>
@@ -1668,7 +1711,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <button type="button" class="btn wide" data-install="notfound" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button>
     <p class="tiny" data-install="notfound" style="text-align:center;margin-top:10px">В кабинете статус будет честным — «не установлено», пока проверка не найдёт скрипт</p>
   </div>
-  <div class="sticky-cta solo"><button type="button" class="btn solid">↻ Проверить установку</button></div>
+  <div class="sticky-cta solo"><button type="button" class="btn solid check-install-btn">↻ Проверить установку</button></div>
 </section>
 
 <!-- ══════════════════ КАБИНЕТ — ОБЗОР, ОДНА СТРАНИЦА ═══════════════════
@@ -1699,7 +1742,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
             <span class="tiny mono">установка проверена сегодня</span>
           </div>
         </div>
-        <button class="btn sm">↻ Проверить установку</button>
+        <button class="btn sm check-install-btn">↻ Проверить установку</button>
       </div>
       <!-- HANDOFF 6.15 п.8 — карточка сверху раньше была одна и всегда
            «✓ Документы актуальны» независимо от реального siteStatus
@@ -1712,6 +1755,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="card pad" style="border-color:rgba(184,121,0,.35)">
           <span class="b amber" style="font-size:16px">🕐 Пробный период — осталось 21 ч 43 мин</span>
           <p class="lead" style="margin-top:8px">Документы и виджет уже работают на alfa-school.ru. Оплатите в любой момент — доступ не прервётся.</p>
+          <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.55)">Не успеете — напишем на почту заранее, до того как виджет отключится.</p>
           <div class="hr"></div>
           <button type="button" class="btn solid sm" data-go="s-pay">Оплатить сейчас →</button>
         </div>
@@ -1939,7 +1983,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
            6.16/6.17). Один столбец, без settings-grid — грид имел смысл
            только пока рядом стояла карточка Подписки. -->
       <details class="acc" open style="margin-top:16px">
-      <summary class="acc-title">Контакты</summary>
+      <summary class="acc-title"><h3>Контакты</h3></summary>
       <div class="card pad">
         <label class="f">Имя</label><input class="inp" value="Кирилл">
         <label class="f" style="margin-top:10px">Почта</label><input class="inp mono" value="director@alfa-school.ru">
@@ -1950,12 +1994,12 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       </details>
 
       <details class="acc" open style="margin-top:24px">
-      <summary class="acc-title">Реквизиты владельца</summary>
+      <summary class="acc-title"><h3>Реквизиты владельца</h3></summary>
       <div class="card pad row" style="justify-content:space-between">
         <div><div style="font-weight:700;font-size:14.5px" id="req-name-set">ООО «Альфа Образование»</div><div class="tiny mono" id="req-inn-set">ИНН 7701234567</div></div>
         <button class="btn sm" data-go-modal="modal-req-set">Проверить и изменить</button>
       </div>
-      <p class="tiny" style="margin-top:7px">Сверено с ЕГРЮЛ — используются в документах и в подвале сайта.</p>
+      <p class="tiny" style="margin-top:7px">Заполним сами по ИНН — вам нужно только проверить. Используются в документах и в подвале сайта.</p>
       </details>
 
       <!-- независимый обзор кабинета: единственный контакт в аккаунте —
@@ -1963,7 +2007,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
            некому. Необязательное поле, не полноценная многопользовательская
            модель — просто второй адрес для дублирования важных писем. -->
       <details class="acc" open style="margin-top:24px">
-      <summary class="acc-title">Уведомления</summary>
+      <summary class="acc-title"><h3>Уведомления</h3></summary>
       <div class="card pad">
         <label class="f">Дублировать на почту</label>
         <input class="inp mono" id="notify-email" placeholder="buh@alfa-school.ru">
@@ -2235,7 +2279,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <div class="hr" style="margin-top:12px"></div>
 
         <div id="banner-live-content">
-        <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Тема баннера</h3>
+        <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Тема баннера</h2>
         <div class="seg" style="margin:8px 0 12px">
           <button type="button" class="on" data-swap="bthemelight">Светлая</button>
           <button type="button" data-swap="bthemedark">Тёмная</button>
@@ -2320,7 +2364,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
           <div class="row" style="margin-top:10px;gap:8px">
             <button class="btn sm copy-code-btn" data-copy-target="widget-code-block">Скопировать код</button>
-            <button class="btn sm">↻ Проверить установку</button>
+            <button class="btn sm check-install-btn">↻ Проверить установку</button>
           </div>
         </div>
       </div>
@@ -2369,7 +2413,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Как обновить реквизиты компании?</span><span class="chev">›</span></button>
-        <div class="bd"><div class="txt">На карточке документа или на шаге подготовки нажмите «Проверить и изменить» — сверим заново с ЕГРЮЛ.</div></div>
+        <div class="bd"><div class="txt">На карточке документа или на шаге подготовки нажмите «Проверить и изменить» — поправите поля сами.</div></div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Могу я добавить второй сайт?</span><span class="chev">›</span></button>
@@ -2407,7 +2451,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <!-- на мобильном свёрнута до тапа (разд.3.8 ТЗ 12.08) — тот же
            приём <details class="acc">, что и в s-settings -->
       <details class="acc" open style="margin-top:24px">
-      <summary class="acc-title">Написать в поддержку</summary>
+      <summary class="acc-title"><h3>Написать в поддержку</h3></summary>
       <div class="card pad" style="margin-top:10px;max-width:520px">
         <div class="state on" data-state="form">
           <label class="f">Опишите, что случилось</label>
@@ -2705,6 +2749,22 @@ document.querySelectorAll('.copy-code-btn').forEach(function(btn){
   });
 });
 
+/* «Проверить установку» — независимый UX-аудит (impeccable critique,
+   2 сентября): комментарий выше про «честную имитацию» объясняет, почему
+   кнопка не подделывает ДРУГОЙ результат — но не запрещает честное
+   «проверяем…»-состояние. Без него кнопка неотличима от сломанной. Тот
+   же приём, что flashCopied — временный текст, возврат к исходному, не
+   к новому статусу (installCheck не меняется). */
+function flashChecking(btn){
+  var original = btn.textContent;
+  btn.textContent = 'Проверяем…';
+  btn.disabled = true;
+  setTimeout(function(){ btn.textContent = original; btn.disabled = false; }, 1500);
+}
+document.querySelectorAll('.check-install-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){ flashChecking(btn); });
+});
+
 // Отправить инструкцию/себе, Сохранить×2 — независимый UX-аудит, критика A,
 // P2: были молча нерабочими рядом с реально работающими solid-кнопками
 // (sbpRetryBtn и др.) — тот же класс проблемы, что уже решён для копи-кнопок
@@ -2741,6 +2801,44 @@ function wireEmailGate(btnId, inputId, errorId, label){
 }
 wireEmailGate('send-instructions-btn', 'install-dev-email', 'install-dev-email-error', 'Отправлено ✓');
 wireEmailGate('send-self-btn', 'install-self-email', 'install-self-email-error', 'Отправлено ✓');
+
+/* Регистрация — та же логика гейта, но на три поля сразу (email/пароль/
+   оферта) и переход на s-verify только при успехе, а не безусловный
+   data-go. См. комментарий у кнопки в разметке. */
+function wireRegisterGate(){
+  var btn = document.getElementById('register-submit-btn');
+  if (!btn) return;
+  var mail = document.getElementById('r-mail');
+  var mailError = document.getElementById('r-mail-error');
+  var pass = document.getElementById('r-pass');
+  var passError = document.getElementById('r-pass-error');
+  var offer = document.getElementById('r-offer');
+  var offerError = document.getElementById('r-offer-error');
+  function clearField(input, error){
+    input.classList.remove('error');
+    if (error) error.style.display = 'none';
+  }
+  [mail, pass].forEach(function(input){
+    input.addEventListener('input', function(){
+      if (input.classList.contains('error')) clearField(input, input === mail ? mailError : passError);
+    });
+  });
+  offer.addEventListener('change', function(){
+    if (offer.checked) offerError.style.display = 'none';
+  });
+  btn.addEventListener('click', function(){
+    var ok = true;
+    if (!mail.value.trim()) { mail.classList.add('error'); mailError.style.display = 'block'; ok = false; }
+    else clearField(mail, mailError);
+    if (pass.value.length < 8) { pass.classList.add('error'); passError.style.display = 'block'; ok = false; }
+    else clearField(pass, passError);
+    if (!offer.checked) { offerError.style.display = 'block'; ok = false; }
+    else offerError.style.display = 'none';
+    if (!ok) return;
+    goScreen('s-verify');
+  });
+}
+wireRegisterGate();
 ['save-contacts-btn', 'save-notify-btn'].forEach(function(id){
   var btn = document.getElementById(id);
   if (btn) btn.addEventListener('click', function(){ flashDone(btn, 'Сохранено ✓'); });
@@ -2830,7 +2928,21 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
    сколько раз сработает при последующих кликах в той же карточке. */
 function markClDone(group){
   document.querySelectorAll('[data-cl="' + group + '"]').forEach(function(el){ el.classList.add('done'); });
+  syncMobileStrip();
 }
+/* Полоска на подшагах 1–2 анкеты (мобильный, см. .cl-mobile-strip) —
+   считает по уже живому .checklist-side (десктопный сайдбар, скрыт на
+   мобильном, но не удалён из DOM), не заводит второй источник правды.
+   cl-item-na (отраслевой) в счёт не идёт — это не пункт пакета. */
+function syncMobileStrip(){
+  var strips = document.querySelectorAll('[data-cl-mobile-strip]');
+  if (!strips.length) return;
+  var items = document.querySelectorAll('.checklist-side .cl-item:not(.cl-item-na):not([hidden])');
+  var done = document.querySelectorAll('.checklist-side .cl-item:not(.cl-item-na):not([hidden]).done').length;
+  var html = done + '/' + items.length + ' документов <b>2 990 ₽/мес</b>';
+  strips.forEach(function(el){ el.innerHTML = html; });
+}
+syncMobileStrip();
 var reqCard = document.getElementById('anketa-req-card');
 if (reqCard) reqCard.addEventListener('focusin', function(){ markClDone('req'); });
 
@@ -2860,6 +2972,7 @@ if (callsSeg) {
     b.addEventListener('click', function(){
       var show = b.dataset.swap === 'calls-yes';
       document.querySelectorAll('[data-cl-marketing]').forEach(function(el){ el.hidden = !show; });
+      syncMobileStrip();
     });
   });
 }
