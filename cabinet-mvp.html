@@ -615,6 +615,17 @@ details.acc:first-child{margin-top:0}
    убраны 7 сентября: те же три названия теперь стоят в степпере сайдбара,
    причём кликабельные. Здесь они были дублем и вдобавок выглядели
    навигацией, не будучи ей (независимый UX-аудит, 3 сентября, P3). */
+/* Пара «Назад/Далее» внизу шага (7 сентября, прямая правка пользователя:
+   «если мы делаем кнопку далее, обязательно должна быть кнопка назад —
+   человек мог ввести не то»). Раньше возврат был ссылкой НАД заголовком:
+   рука уже внизу у «Далее», а чтобы вернуться, надо скроллить вверх.
+   «Далее» держит flex:1 — основное действие шире и остаётся доминантой,
+   «Назад» ровно по своему тексту. */
+.step-nav{display:flex;gap:10px;align-items:stretch}
+.step-nav .btn.solid{flex:1}
+@media(max-width:640px){
+  .step-nav .btn{padding-left:14px;padding-right:14px}
+}
 .anketa-split{display:flex;gap:24px;align-items:flex-start}
 .anketa-split>.anketa-col{flex:1;min-width:0}
 .checklist-side{flex:none;width:272px;position:sticky;top:calc(var(--toolbar-h, 34px) + 20px)}
@@ -1054,12 +1065,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist"><a class="on">Подключение сайта</a></div>
       <div class="side-steps" data-side-steps>
-        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Начало</button>
-        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О компании</button>
-        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>О сайте</button>
-        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Работа с клиентами</button>
+        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
+        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
+        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>Работа с клиентами</button>
+        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Реквизиты</button>
         <button type="button" class="side-step" data-step="5"><span class="st-mark"></span>Что подготовили</button>
-        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка</button>
+        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка скрипта</button>
       </div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
@@ -1068,8 +1079,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </aside>
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 1 из 6</div>
-      <h1>Расскажите о сайте и компании</h1>
-      <p class="lead" style="margin-top:8px">10–15 минут, с реквизитами под рукой — и документы соберём под ваши данные и вашу сферу.</p>
+      <h1>Знакомство</h1>
+      <p class="lead" style="margin-top:8px">Пара минут на знакомство, дальше вопросы о сайте. Реквизиты понадобятся на последнем шаге — держите под рукой.</p>
 
       <div class="card pad state" data-has-identity="false" style="margin-top:16px">
         <h3>Кто заполняет анкету?</h3>
@@ -1081,10 +1092,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <h3>Домен и название сайта</h3>
         <p class="tiny" style="margin:6px 0 12px">Домен — на него подключим виджет и привяжем документы; название — как называть сайт в кабинете.</p>
         <label class="f" for="add-domain">Домен сайта</label>
-        <input class="inp mono" id="add-domain" value="alfa-school.ru">
+        <input class="inp mono" id="add-domain" placeholder="alfa-school.ru">
+        <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
         <p class="tiny" style="margin-top:6px">Бесплатный период даётся один раз на домен — повторно на уже использованный домен не откроется.</p>
         <label class="f" style="margin-top:10px" for="add-name">Название компании или сайта</label>
-        <input class="inp" id="add-name" value="Альфа Образование">
+        <input class="inp" id="add-name" placeholder="Альфа Образование">
+        <p class="tiny anketa-field-error" id="add-name-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите название — так сайт будет называться в кабинете.</p>
       </div>
 
       <div class="card pad" style="margin-top:10px">
@@ -1108,7 +1121,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
 
       <div class="hr" style="margin-top:20px"></div>
-      <button type="button" class="btn solid wide" data-go="s-anketa2" data-set-hassite="true" data-set-hasidentity="true">Далее →</button>
+      <!-- data-go снят намеренно: переход делает wireStepGate после проверки
+           домена и названия, иначе общий [data-go]-обработчик увёл бы вперёд
+           независимо от гейта (та же грабля, что уже ловили на регистрации). -->
+      <button type="button" class="btn solid wide" id="anketa-start-next">Далее →</button>
     </main>
   </div>
 </section>
@@ -1142,12 +1158,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist"><a class="on">Подключение сайта</a></div>
       <div class="side-steps" data-side-steps>
-        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Начало</button>
-        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О компании</button>
-        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>О сайте</button>
-        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Работа с клиентами</button>
+        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
+        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
+        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>Работа с клиентами</button>
+        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Реквизиты</button>
         <button type="button" class="side-step" data-step="5"><span class="st-mark"></span>Что подготовили</button>
-        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка</button>
+        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка скрипта</button>
       </div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
@@ -1169,106 +1185,6 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <div class="anketa-col">
 
           <div data-substep="1">
-            <h1>О компании</h1>
-            <p class="lead" style="margin-top:8px">Реквизиты владельца сайта — обязательны по 149-ФЗ, пойдут в документы и в подвал сайта.</p>
-            <div class="cl-mobile-strip" data-cl-mobile-strip></div>
-            <div class="card pad" id="anketa-req-card" style="margin-top:16px">
-              <!-- Форма собственности первым вопросом (независимый план
-                   исправлений, п.1.4, 25.08) — раньше ОГРН был безусловным
-                   полем, хотя у самозанятого нет ни ОГРН, ни расчётного
-                   счёта, а у ИП — ОГРНИП (другое число, другой реестр,
-                   ЕГРИП не ЕГРЮЛ), не «ОГРН». Подсказка «заполним сами»
-                   (см. modal-req-*) для них была бы неверна. Разграничение
-                   полей ниже — тот же `[data-swap]`/`[data-swapped]`
-                   приём, что уже используют «Платформа сайта» и способ
-                   продления на s-billing; scope — `.closest('.card')`,
-                   то есть эта карточка, соседние группы (платформа,
-                   работа с клиентами) не затронуты. ИНН и Адрес общие для
-                   всех трёх форм — не дублируются в панелях. Оплата
-                   «Самозанятый — карта, счёт не предлагаем» (из таблицы
-                   плана) в MVP не заведена отдельно: s-pay остаётся общим
-                   для всех форм собственности, это заметка на перенос в
-                   реальный код, не разрыв в макете. -->
-              <label class="f">Форма собственности</label>
-              <div class="seg" id="anketa-ownership-seg" style="margin:6px 0 4px">
-                <button type="button" class="on" data-swap="own-ooo" data-set-ownership="ooo">ООО</button>
-                <button type="button" data-swap="own-ip" data-set-ownership="ip">ИП</button>
-                <button type="button" data-swap="own-self" data-set-ownership="self">Самозанятый</button>
-              </div>
-
-              <div data-swapped="own-ooo" style="margin-top:10px">
-                <label class="f">Наименование</label>
-                <input class="inp" value="ООО «Альфа Образование»">
-              </div>
-              <div data-swapped="own-ip" style="display:none;margin-top:10px">
-                <label class="f">ФИО</label>
-                <input class="inp" value="Иванова Мария Сергеевна">
-              </div>
-              <div data-swapped="own-self" style="display:none;margin-top:10px">
-                <label class="f">ФИО</label>
-                <input class="inp" value="Иванова Мария Сергеевна">
-              </div>
-
-              <label class="f" style="margin-top:10px">ИНН</label>
-              <input class="inp mono" id="anketa-inn" value="7701234567" maxlength="12" inputmode="numeric">
-              <p class="tiny anketa-field-error" id="anketa-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
-
-              <div data-swapped="own-ooo" style="margin-top:10px">
-                <label class="f">ОГРН</label>
-                <input class="inp mono" value="1157746112233">
-                <p class="tiny" style="margin-top:6px">Подставим из ЕГРЮЛ по ИНН.</p>
-              </div>
-              <div data-swapped="own-ip" style="display:none;margin-top:10px">
-                <label class="f">ОГРНИП</label>
-                <input class="inp mono" value="304770000000123">
-                <p class="tiny" style="margin-top:6px">Подставим из ЕГРИП по ИНН.</p>
-              </div>
-              <!-- own-self: ни ОГРН, ни ОГРНИП — самозанятый регистрируется
-                   без записи в ЕГРЮЛ/ЕГРИП, поля для него попросту нет. -->
-
-              <label class="f" style="margin-top:10px">Адрес</label>
-              <input class="inp" value="119019, Москва, ул. Воздвиженка, д. 10">
-
-              <!-- Куда писать по вопросам ПДн — независимый список правок,
-                   «Анкета», 25.08. Предзаполняем почтой аккаунта только для
-                   роли директор/сотрудник (via syncWhoFills) — для вебмастера
-                   и агентства поле пустое с явной подписью: они отвечают за
-                   техническую сторону, не за то, куда слать обращения
-                   субъектов ПДн. Мягкая подсказка на buh@/accounting@ — не
-                   блокирует ввод, просто предупреждает (см. script). -->
-              <label class="f" style="margin-top:10px">Куда писать по вопросам персональных данных</label>
-              <input class="inp" id="anketa-pd-contact" placeholder="Почта или телефон, куда придёт обращение">
-              <p class="tiny" id="anketa-pd-hint" style="display:none;margin-top:6px;color:var(--warn)">На бухгалтерскую почту такие обращения обычно теряются — лучше указать контакт, который точно проверяют.</p>
-
-              <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это спрашиваем ⌄</button>
-              <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Покажем внизу страниц через виджет.</p>
-            </div>
-            <div class="hr" style="margin-top:20px"></div>
-            <button type="button" class="btn solid wide" data-set-substep="2">Далее</button>
-          </div>
-
-          <!-- «О сайте» (второй раз в истории макета) — прямой запрос
-               пользователя, 27 августа. Раньше здесь был только вопрос про
-               платформу, ушёл в 6.38 как «нигде не используется» — ошибка
-               разбора: `data-set-platform` действительно читался (общий
-               [data-swap]-обработчик, script ~2727) и двигал `sitePlatform`,
-               которая через syncPayState() выставляла вкладку по умолчанию
-               на s-install — просто grep искал дефис `data-set-platform` в
-               HTML, не искал camelCase `dataset.setPlatform` в JS. Так что
-               6.38 не только убрал пустой экран, но и тихо снял рабочую
-               связь анкета→install-таб; это её и возвращает.
-
-               Три новых вопроса поверх платформы — не меняют пакет
-               документов (он фиксирован, см. PRODUCT.md), только уточняют
-               формулировки в cookie-политике/политике ПДн под то, что
-               реально есть на сайте. «Формы ОС» — единственный из новых
-               вопросов, который на что-то ветвится: определяет, идти ли
-               дальше на «Работа с клиентами» (там же живёт документ
-               «Согласие на рассылки», уже условный) или сразу на s-ready —
-               спрашивать про звонки/письма клиентам, когда сайт вообще не
-               собирает контакты через форму, было бы странно. -->
-          <div data-substep="2" style="display:none">
-            <button type="button" class="btn text sm" data-set-substep="1" style="margin-bottom:10px">← О компании</button>
             <h1>О сайте</h1>
             <p class="lead" style="margin-top:8px">Технические детали сайта — попадут в формулировки политики и cookie-документа.</p>
             <div class="cl-mobile-strip" data-cl-mobile-strip></div>
@@ -1306,13 +1222,36 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               </div>
             </div>
             <div class="hr" style="margin-top:20px"></div>
-            <button type="button" class="btn solid wide" id="anketa-site-next">Далее</button>
+            <div class="step-nav">
+              <button type="button" class="btn" data-go="s-anketa">← Назад</button>
+              <button type="button" class="btn solid" id="anketa-site-next">Далее →</button>
+            </div>
           </div>
 
-          <div data-substep="3" style="display:none">
-            <button type="button" class="btn text sm" data-set-substep="2" style="margin-bottom:10px">← О сайте</button>
+          <!-- «О сайте» (второй раз в истории макета) — прямой запрос
+               пользователя, 27 августа. Раньше здесь был только вопрос про
+               платформу, ушёл в 6.38 как «нигде не используется» — ошибка
+               разбора: `data-set-platform` действительно читался (общий
+               [data-swap]-обработчик, script ~2727) и двигал `sitePlatform`,
+               которая через syncPayState() выставляла вкладку по умолчанию
+               на s-install — просто grep искал дефис `data-set-platform` в
+               HTML, не искал camelCase `dataset.setPlatform` в JS. Так что
+               6.38 не только убрал пустой экран, но и тихо снял рабочую
+               связь анкета→install-таб; это её и возвращает.
+
+               Три новых вопроса поверх платформы — не меняют пакет
+               документов (он фиксирован, см. PRODUCT.md), только уточняют
+               формулировки в cookie-политике/политике ПДн под то, что
+               реально есть на сайте. «Формы ОС» — единственный из новых
+               вопросов, который на что-то ветвится: определяет, идти ли
+               дальше на «Работа с клиентами» (там же живёт документ
+               «Согласие на рассылки», уже условный) или сразу на s-ready —
+               спрашивать про звонки/письма клиентам, когда сайт вообще не
+               собирает контакты через форму, было бы странно. -->
+          <div data-substep="2" style="display:none">
             <h1>Работа с клиентами</h1>
             <p class="lead" style="margin-top:8px">Как вы собираете и используете контакты — попадёт в политику и согласия.</p>
+            <div class="cl-mobile-strip" data-cl-mobile-strip></div>
             <div class="card pad" id="anketa-clients-card" style="margin-top:16px">
               <p class="tiny" style="margin:0 0 12px">Звоните, пишете в мессенджеры или на почту по базе клиентов?</p>
               <div class="seg" id="anketa-calls-seg"><button type="button" class="on" data-swap="calls-yes">Да</button><button type="button" data-swap="calls-no">Нет</button></div>
@@ -1344,6 +1283,91 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  Живёт только на подшаге 3 (последнем) — раньше сидел
                  после всех трёх карточек разом, теперь после одной
                  короткой, ближе к вопросам, которые его наполняют. -->
+
+            <div class="hr" style="margin-top:20px"></div>
+            <div class="step-nav">
+              <button type="button" class="btn" data-set-substep="1">← Назад</button>
+              <button type="button" class="btn solid" data-set-substep="3">Далее →</button>
+            </div>
+          </div>
+
+          <div data-substep="3" style="display:none">
+            <h1>Реквизиты</h1>
+            <p class="lead" style="margin-top:8px">Реквизиты владельца сайта — обязательны по 149-ФЗ, пойдут в документы и в подвал сайта.</p>
+            <div class="card pad" id="anketa-req-card" style="margin-top:16px">
+              <!-- Форма собственности первым вопросом (независимый план
+                   исправлений, п.1.4, 25.08) — раньше ОГРН был безусловным
+                   полем, хотя у самозанятого нет ни ОГРН, ни расчётного
+                   счёта, а у ИП — ОГРНИП (другое число, другой реестр,
+                   ЕГРИП не ЕГРЮЛ), не «ОГРН». Подсказка «заполним сами»
+                   (см. modal-req-*) для них была бы неверна. Разграничение
+                   полей ниже — тот же `[data-swap]`/`[data-swapped]`
+                   приём, что уже используют «Платформа сайта» и способ
+                   продления на s-billing; scope — `.closest('.card')`,
+                   то есть эта карточка, соседние группы (платформа,
+                   работа с клиентами) не затронуты. ИНН и Адрес общие для
+                   всех трёх форм — не дублируются в панелях. Оплата
+                   «Самозанятый — карта, счёт не предлагаем» (из таблицы
+                   плана) в MVP не заведена отдельно: s-pay остаётся общим
+                   для всех форм собственности, это заметка на перенос в
+                   реальный код, не разрыв в макете. -->
+              <label class="f">Форма собственности</label>
+              <div class="seg" id="anketa-ownership-seg" style="margin:6px 0 4px">
+                <button type="button" class="on" data-swap="own-ooo" data-set-ownership="ooo">ООО</button>
+                <button type="button" data-swap="own-ip" data-set-ownership="ip">ИП</button>
+                <button type="button" data-swap="own-self" data-set-ownership="self">Самозанятый</button>
+              </div>
+
+              <div data-swapped="own-ooo" style="margin-top:10px">
+                <label class="f">Наименование</label>
+                <input class="inp" placeholder="ООО «Ромашка»" value="ООО «Альфа Образование»">
+              </div>
+              <div data-swapped="own-ip" style="display:none;margin-top:10px">
+                <label class="f">ФИО</label>
+                <input class="inp" placeholder="Иванова Мария Сергеевна" value="Иванова Мария Сергеевна">
+              </div>
+              <div data-swapped="own-self" style="display:none;margin-top:10px">
+                <label class="f">ФИО</label>
+                <input class="inp" placeholder="Иванова Мария Сергеевна" value="Иванова Мария Сергеевна">
+              </div>
+
+              <label class="f" style="margin-top:10px">ИНН</label>
+              <input class="inp mono" id="anketa-inn" placeholder="10 цифр для организации, 12 для ИП" value="7701234567" maxlength="12" inputmode="numeric">
+              <p class="tiny anketa-field-error" id="anketa-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
+
+              <div data-swapped="own-ooo" style="margin-top:10px">
+                <label class="f">ОГРН</label>
+                <input class="inp mono" id="anketa-ogrn" placeholder="13 цифр" value="1157746112233" maxlength="13" inputmode="numeric">
+                <p class="tiny anketa-field-error" id="anketa-ogrn-error" style="display:none;margin-top:5px;color:var(--danger)">ОГРН — 13 цифр. Проверьте, не пропущена ли часть номера.</p>
+                <p class="tiny" style="margin-top:6px">Подставим из ЕГРЮЛ по ИНН.</p>
+              </div>
+              <div data-swapped="own-ip" style="display:none;margin-top:10px">
+                <label class="f">ОГРНИП</label>
+                <input class="inp mono" id="anketa-ogrnip" placeholder="15 цифр" value="304770000000123" maxlength="15" inputmode="numeric">
+                <p class="tiny anketa-field-error" id="anketa-ogrnip-error" style="display:none;margin-top:5px;color:var(--danger)">ОГРНИП — 15 цифр. Проверьте, не пропущена ли часть номера.</p>
+                <p class="tiny" style="margin-top:6px">Подставим из ЕГРИП по ИНН.</p>
+              </div>
+              <!-- own-self: ни ОГРН, ни ОГРНИП — самозанятый регистрируется
+                   без записи в ЕГРЮЛ/ЕГРИП, поля для него попросту нет. -->
+
+              <label class="f" style="margin-top:10px">Адрес</label>
+              <input class="inp" placeholder="Индекс, город, улица, дом" value="119019, Москва, ул. Воздвиженка, д. 10">
+
+              <!-- Куда писать по вопросам ПДн — независимый список правок,
+                   «Анкета», 25.08. Предзаполняем почтой аккаунта только для
+                   роли директор/сотрудник (via syncWhoFills) — для вебмастера
+                   и агентства поле пустое с явной подписью: они отвечают за
+                   техническую сторону, не за то, куда слать обращения
+                   субъектов ПДн. Мягкая подсказка на buh@/accounting@ — не
+                   блокирует ввод, просто предупреждает (см. script). -->
+              <label class="f" style="margin-top:10px">Куда писать по вопросам персональных данных</label>
+              <input class="inp" id="anketa-pd-contact" placeholder="Почта или телефон, куда придёт обращение">
+              <p class="tiny anketa-field-error" id="anketa-pd-contact-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта (вида name@site.ru) или телефон — по этому контакту к вам будут обращаться по вопросам персональных данных.</p>
+              <p class="tiny" id="anketa-pd-hint" style="display:none;margin-top:6px;color:var(--warn)">На бухгалтерскую почту такие обращения обычно теряются — лучше указать контакт, который точно проверяют.</p>
+
+              <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это спрашиваем ⌄</button>
+              <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Покажем внизу страниц через виджет.</p>
+            </div>
             <div class="checklist-reveal">
               <div class="card pad">
                 <h2>Вот что вы получите</h2>
@@ -1360,7 +1384,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
 
             <div class="hr" style="margin-top:20px"></div>
-            <button type="button" class="btn solid wide" data-go="s-ready">Далее</button>
+            <div class="step-nav">
+              <button type="button" class="btn" data-set-substep="2">← Назад</button>
+              <button type="button" class="btn solid" data-go="s-ready">Далее →</button>
+            </div>
           </div>
 
         </div>
@@ -1417,12 +1444,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist"><a class="on">Подключение сайта</a></div>
       <div class="side-steps" data-side-steps>
-        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Начало</button>
-        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О компании</button>
-        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>О сайте</button>
-        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Работа с клиентами</button>
+        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
+        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
+        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>Работа с клиентами</button>
+        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Реквизиты</button>
         <button type="button" class="side-step" data-step="5"><span class="st-mark"></span>Что подготовили</button>
-        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка</button>
+        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка скрипта</button>
       </div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
@@ -1541,7 +1568,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          кнопки была бы обманом ещё раньше — здесь оплаты вообще нет,
          только запуск бесплатного 24-часового периода. -->
     <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-go="s-install">Поставить код на сайт → 24 часа бесплатно</button>
+    <div class="step-nav">
+      <button type="button" class="btn" id="ready-back">← Назад</button>
+      <button type="button" class="btn solid" data-go="s-install">Поставить код на сайт → 24 часа бесплатно</button>
+    </div>
     <p class="tiny" style="text-align:center;margin-top:10px">Дальше — установка скрипта, 2 минуты. Баннер и реквизиты появятся сразу, оплату можно отложить на 24 часа</p>
     </main>
   </div>
@@ -1707,12 +1737,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist"><a class="on">Подключение сайта</a></div>
       <div class="side-steps" data-side-steps>
-        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Начало</button>
-        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О компании</button>
-        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>О сайте</button>
-        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Работа с клиентами</button>
+        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
+        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
+        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>Работа с клиентами</button>
+        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Реквизиты</button>
         <button type="button" class="side-step" data-step="5"><span class="st-mark"></span>Что подготовили</button>
-        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка</button>
+        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка скрипта</button>
       </div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
@@ -1801,9 +1831,15 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     </div>
 
     <div class="hr" style="margin-top:20px"></div>
-    <button type="button" class="btn solid wide" data-install="found" data-go="s-project-paid" data-set-status="trial">Готово → в кабинет</button>
+    <div class="step-nav" data-install="found">
+      <button type="button" class="btn" data-go="s-ready">← Назад</button>
+      <button type="button" class="btn solid" data-go="s-project-paid" data-set-status="trial">Готово → в кабинет</button>
+    </div>
     <p class="tiny" data-install="found" style="text-align:center;margin-top:10px">Отсчёт бесплатных 24 часов начался с этого момента</p>
-    <button type="button" class="btn wide" data-install="notfound" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button>
+    <div class="step-nav" data-install="notfound">
+      <button type="button" class="btn" data-go="s-ready">← Назад</button>
+      <button type="button" class="btn solid" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button>
+    </div>
     <p class="tiny" data-install="notfound" style="text-align:center;margin-top:10px">В кабинете статус будет честным — «не установлено», пока проверка не найдёт скрипт</p>
     </main>
   </div>
@@ -2219,14 +2255,15 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <label class="f" style="margin-top:8px">Наименование</label>
     <input class="inp" id="modal-req-name-set" value="ООО «Альфа Образование»">
     <label class="f" style="margin-top:10px">ОГРН</label>
-    <input class="inp mono" value="1157746112233">
+    <input class="inp mono" id="modal-req-ogrn-set" placeholder="13 цифр" value="1157746112233" maxlength="13" inputmode="numeric">
+    <p class="tiny anketa-field-error" id="modal-req-ogrn-set-error" style="display:none;margin-top:5px;color:var(--danger)">ОГРН — 13 цифр. Проверьте, не пропущена ли часть номера.</p>
     <label class="f" style="margin-top:10px">ИНН</label>
     <input class="inp mono" id="modal-req-inn-set" value="7701234567">
 
     <div class="hr" style="margin-top:16px"></div>
     <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--danger)">заполнено вами — можно поправить</div>
     <label class="f" style="margin-top:8px">Адрес для переписки <span style="color:var(--danger)">*</span></label>
-    <input class="inp" value="119019, Москва, ул. Воздвиженка, д. 10">
+    <input class="inp" placeholder="Индекс, город, улица, дом" value="119019, Москва, ул. Воздвиженка, д. 10">
     <label class="f" style="margin-top:10px">Email для счёта <span style="color:var(--danger)">*</span></label>
     <input class="inp" value="buh@alfa-school.ru">
     <label class="f" style="margin-top:10px">Телефон <span style="color:var(--danger)">*</span></label>
@@ -2569,7 +2606,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 document.documentElement.className += ' js';
 
 var SCREENS = ['s-login','s-forgot','s-register','s-verify','s-status','s-anketa','s-anketa2','s-ready','s-pay','s-install','s-project-paid','s-docs','s-billing','s-widget','s-settings','s-support'];
-var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-status':'мои сайты','s-anketa':'шаг 1/4','s-anketa2':'шаг 2/4','s-ready':'шаг 3/4','s-pay':'оплата','s-install':'шаг 4/4','s-project-paid':'кабинет','s-docs':'документы','s-billing':'подписка','s-widget':'виджет','s-settings':'настройки','s-support':'поддержка'};
+var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-status':'мои сайты','s-anketa':'шаг 1/6','s-anketa2':'шаги 2-4/6','s-ready':'шаг 5/6','s-pay':'оплата','s-install':'шаг 6/6','s-project-paid':'кабинет','s-docs':'документы','s-billing':'подписка','s-widget':'виджет','s-settings':'настройки','s-support':'поддержка'};
 
 var nav = document.getElementById('scr-nav');
 var navMobile = document.getElementById('scr-nav-mobile');
@@ -2876,8 +2913,79 @@ function wireLengthValidation(inputId, errorId, validLengths){
   });
 }
 wireLengthValidation('anketa-inn', 'anketa-inn-error', [10, 12]);
+wireLengthValidation('anketa-ogrn', 'anketa-ogrn-error', [13]);
+wireLengthValidation('anketa-ogrnip', 'anketa-ogrnip-error', [15]);
+wireLengthValidation('modal-req-ogrn-set', 'modal-req-ogrn-set-error', [13]);
 wireLengthValidation('pay-invoice-inn', 'pay-invoice-inn-error', [10, 12]);
 wireLengthValidation('pay-invoice-account', 'pay-invoice-account-error', [20]);
+
+/* Проверка формата — тот же язык ошибки, что у wireLengthValidation
+   (.inp.error + подпись под полем), но по регулярке, а не по длине.
+   Прямая правка пользователя 7 сентября: «если человек в поле почты
+   вводит имя, подсветить красным, как на регистрации». Пустое поле не
+   ругаем на blur — это работа гейта на «Далее», иначе форма краснеет
+   ещё до того, как человек начал её заполнять. */
+function wirePatternValidation(inputId, errorId, test){
+  var input = document.getElementById(inputId);
+  var error = document.getElementById(errorId);
+  if (!input || !error) return;
+  input.addEventListener('blur', function(){
+    var v = input.value.trim();
+    var valid = v === '' || test(v);
+    input.classList.toggle('error', !valid);
+    error.style.display = valid ? 'none' : 'block';
+  });
+  input.addEventListener('input', function(){
+    if (input.classList.contains('error')) { input.classList.remove('error'); error.style.display = 'none'; }
+  });
+}
+var DOMAIN_RE = /^(?!-)[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/i;
+wirePatternValidation('add-domain', 'add-domain-error', function(v){
+  return DOMAIN_RE.test(v.replace(/^https?:\/\//i, '').replace(/\/.*$/, ''));
+});
+wirePatternValidation('anketa-pd-contact', 'anketa-pd-contact-error', function(v){
+  return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v) || /^[+\d][\d\s()\-]{9,}$/.test(v);
+});
+
+/* Гейт на «Далее»: до 7 сентября анкету можно было пройти насквозь с
+   пустыми полями — единственной формой файла с настоящей валидацией
+   была регистрация (wireRegisterGate). Тот же приём: data-go с кнопки
+   снят, переход делает сам гейт, иначе общий [data-go]-обработчик
+   увёл бы вперёд независимо от проверки. */
+function wireStepGate(btnId, fields, onPass){
+  var btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.addEventListener('click', function(){
+    var ok = true;
+    fields.forEach(function(f){
+      var input = document.getElementById(f.id);
+      var error = document.getElementById(f.errorId);
+      if (!input) return;
+      var v = input.value.trim();
+      var bad = v === '' || (f.test && !f.test(v));
+      input.classList.toggle('error', bad);
+      if (error) error.style.display = bad ? 'block' : 'none';
+      if (bad) ok = false;
+    });
+    if (ok) onPass();
+  });
+}
+var readyBack = document.getElementById('ready-back');
+if (readyBack) readyBack.addEventListener('click', function(){
+  anketaSubstep = 3;              // «Реквизиты» — последний подшаг анкеты
+  goScreen('s-anketa2');
+});
+
+wireStepGate('anketa-start-next', [
+  {id:'add-domain', errorId:'add-domain-error', test:function(v){
+    return DOMAIN_RE.test(v.replace(/^https?:\/\//i, '').replace(/\/.*$/, '')); }},
+  {id:'add-name', errorId:'add-name-error'}
+], function(){
+  hasSite = true;        // сайт появляется в «Моих сайтах» только после шага 1
+  hasIdentity = true;    // «кто заполняет» спрашиваем один раз на аккаунт
+  anketaSubstep = 1;
+  goScreen('s-anketa2');
+});
 
 // Копирование в буфер — независимый UX-аудит, критика A, P3: были молча
 // нерабочими, в отличие от «Проверить установку», у которого есть явный
@@ -3136,13 +3244,13 @@ if (callsSeg) {
 var siteNextBtn = document.getElementById('anketa-site-next');
 if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
   var formsYes = document.querySelector('#anketa-forms-seg [data-swap="forms-yes"]').classList.contains('on');
-  if (formsYes) {
-    anketaSubstep = 3;
-    syncAnketaSubstep();
-  } else {
+  if (!formsYes) {
+    // без форм на сайте вопрос «звоните/пишете клиентам» не про сайт —
+    // подшаг пропускается, «Согласие на рассылки» уходит из чек-листа
     document.querySelectorAll('[data-cl-marketing]').forEach(function(el){ el.hidden = true; });
-    goScreen('s-ready');
   }
+  anketaSubstep = formsYes ? 2 : 3;
+  syncAnketaSubstep();
 });
 
 /* сфера на s-anketa (Блок 1) помечена data-regulated у части option —
