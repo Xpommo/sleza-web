@@ -253,8 +253,8 @@ label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
   font-size:9.5px;font-weight:800;color:transparent}
 /* пройденный шаг кликабелен — вернуться и поправить ответ можно из любой
    точки пути, не только кнопкой «Назад» на соседнем шаге */
-.side-step.done{color:rgba(17,17,16,.62);cursor:pointer}
-.side-step.done:hover{background:var(--white);color:var(--ink)}
+.side-step.done,.side-step.seen{color:rgba(17,17,16,.62);cursor:pointer}
+.side-step.done:hover,.side-step.seen:hover{background:var(--white);color:var(--ink)}
 .side-step.done .st-mark{border:none;background:var(--ok-tint);color:var(--ok)}
 .side-step.done .st-mark::before{content:"✓"}
 .side-step.now{color:var(--ink);font-weight:700}
@@ -2757,7 +2757,14 @@ function syncFunnelSteps(){
     var n = parseInt(el.dataset.step, 10);
     el.hidden = n > maxStepReached;
     el.classList.toggle('now', n === cur);
-    el.classList.toggle('done', n <= maxStepReached && n !== cur);
+    // Галочка = шаг ЗАВЕРШЁН, то есть с него ушли вперёд (n < максимума
+    // пройденного), а не просто «здесь были». До 7 сентября хватало
+    // захода на шаг: вернувшись с «Установки» на «Что подготовили»,
+    // человек видел галочку на установке, которую не делал —
+    // прямая правка пользователя. Самый дальний посещённый шаг остаётся
+    // видимым и кликабельным (.seen), но без галочки: он открыт, не сделан.
+    el.classList.toggle('done', n < maxStepReached && n !== cur);
+    el.classList.toggle('seen', n === maxStepReached && n !== cur);
   });
   if (cur) {
     document.querySelectorAll('.screen.on [data-step-counter]').forEach(function(el){
@@ -2765,10 +2772,11 @@ function syncFunnelSteps(){
     });
   }
 }
-/* Клик по пройденному шагу — возврат к нему. Незаконченные шаги
-   некликабельны: перепрыгнуть вперёд через незаполненную анкету нельзя. */
+/* Клик по уже открытому шагу — возврат к нему (и по завершённому, и по
+   самому дальнему посещённому). Шаги, до которых ещё не доходили, скрыты
+   вовсе — перепрыгнуть вперёд через незаполненную анкету нельзя. */
 document.addEventListener('click', function(e){
-  var btn = e.target.closest ? e.target.closest('.side-step.done') : null;
+  var btn = e.target.closest ? e.target.closest('.side-step.done, .side-step.seen') : null;
   if (!btn) return;
   var st = FUNNEL_STEPS[parseInt(btn.dataset.step, 10) - 1];
   if (!st) return;
