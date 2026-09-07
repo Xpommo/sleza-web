@@ -2605,25 +2605,61 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 <script>
 document.documentElement.className += ' js';
 
-var SCREENS = ['s-login','s-forgot','s-register','s-verify','s-status','s-anketa','s-anketa2','s-ready','s-pay','s-install','s-project-paid','s-docs','s-billing','s-widget','s-settings','s-support'];
-var LABELS = {'s-login':'вход','s-forgot':'забыли пароль','s-register':'регистрация','s-verify':'подтвердите почту','s-status':'мои сайты','s-anketa':'шаг 1/6','s-anketa2':'шаги 2-4/6','s-ready':'шаг 5/6','s-pay':'оплата','s-install':'шаг 6/6','s-project-paid':'кабинет','s-docs':'документы','s-billing':'подписка','s-widget':'виджет','s-settings':'настройки','s-support':'поддержка'};
+/* Тулбар макета. Раньше три подшага анкеты (О сайте / Работа с клиентами /
+   Реквизиты) прятались за одной кнопкой «шаги 2-4/6» — открыть конкретный
+   шаг напрямую было нельзя, приходилось кликать «Далее» по цепочке. Теперь
+   у каждого шага своя кнопка (правка пользователя 7 сентября), поэтому
+   пункт хранит не только экран, но и подшаг.
+   «Оплата» переставлена после шага 6: она вне нумерации (решение 6.20), но
+   в реальном пути идёт уже после установки, а не между шагами 5 и 6. */
+var NAV_ITEMS = [
+  {screen:'s-login',        label:'вход'},
+  {screen:'s-forgot',       label:'забыли пароль'},
+  {screen:'s-register',     label:'регистрация'},
+  {screen:'s-verify',       label:'подтвердите почту'},
+  {screen:'s-status',       label:'мои сайты'},
+  {screen:'s-anketa',       label:'шаг 1/6'},
+  {screen:'s-anketa2', substep:1, label:'шаг 2/6'},
+  {screen:'s-anketa2', substep:2, label:'шаг 3/6'},
+  {screen:'s-anketa2', substep:3, label:'шаг 4/6'},
+  {screen:'s-ready',        label:'шаг 5/6'},
+  {screen:'s-install',      label:'шаг 6/6'},
+  {screen:'s-pay',          label:'оплата'},
+  {screen:'s-project-paid', label:'кабинет'},
+  {screen:'s-docs',         label:'документы'},
+  {screen:'s-billing',      label:'подписка'},
+  {screen:'s-widget',       label:'виджет'},
+  {screen:'s-settings',     label:'настройки'},
+  {screen:'s-support',      label:'поддержка'}
+];
+function navKey(screen, substep){ return substep ? screen + '#' + substep : screen; }
 
 var nav = document.getElementById('scr-nav');
 var navMobile = document.getElementById('scr-nav-mobile');
-SCREENS.forEach(function(id){
+NAV_ITEMS.forEach(function(item){
+  var key = navKey(item.screen, item.substep);
+  var open = function(){
+    if (item.substep) anketaSubstep = item.substep;
+    goScreen(item.screen);
+  };
+
   var b = document.createElement('button');
-  b.textContent = LABELS[id];
+  b.textContent = item.label;
   b.style.cssText = 'background:none;border:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;padding:2px 6px;border-radius:5px;cursor:pointer';
-  b.addEventListener('click', function(){ goScreen(id); });
-  b.dataset.navFor = id;
+  b.addEventListener('click', open);
+  b.dataset.navFor = key;
   nav.appendChild(b);
 
   var o = document.createElement('option');
-  o.value = id;
-  o.textContent = LABELS[id];
+  o.value = key;
+  o.textContent = item.label;
   navMobile.appendChild(o);
 });
-navMobile.addEventListener('change', function(){ goScreen(navMobile.value); });
+navMobile.addEventListener('change', function(){
+  var parts = navMobile.value.split('#');
+  if (parts[1]) anketaSubstep = parseInt(parts[1], 10);
+  goScreen(parts[0]);
+});
 
 var dbgPaymentIssue = document.getElementById('dbg-payment-issue');
 dbgPaymentIssue.addEventListener('change', function(){
@@ -2632,11 +2668,13 @@ dbgPaymentIssue.addEventListener('change', function(){
 });
 
 function paintNav(id){
+  // у анкеты три подшага и три кнопки — активную определяет ещё и substep
+  var key = (id === 's-anketa2') ? navKey(id, anketaSubstep) : id;
   document.querySelectorAll('[data-nav-for]').forEach(function(b){
-    b.style.background = (b.dataset.navFor === id) ? 'var(--ink)' : 'none';
-    b.style.color = (b.dataset.navFor === id) ? '#fff' : 'inherit';
+    b.style.background = (b.dataset.navFor === key) ? 'var(--ink)' : 'none';
+    b.style.color = (b.dataset.navFor === key) ? '#fff' : 'inherit';
   });
-  navMobile.value = id;
+  navMobile.value = key;
 }
 
 /* тулбар макета переносится по строкам (зависит от ширины окна) и перекрывал
@@ -2780,6 +2818,10 @@ function syncAnketaSubstep(){
     el.style.display = (parseInt(el.dataset.substep, 10) === anketaSubstep) ? '' : 'none';
   });
   syncFunnelSteps();
+  // подшаг меняется и без смены экрана (кнопки «Далее»/«Назад» внутри
+  // анкеты) — тулбар макета должен переподсветиться и в этом случае
+  var open = document.querySelector('.screen.on');
+  if (open && open.id === 's-anketa2') paintNav('s-anketa2');
 }
 
 /* ══ Сквозная шкала подключения: 6 шагов, один счётчик, одно место ══
