@@ -1741,20 +1741,6 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <li>Если не знаете, где шаблон — отправьте инструкцию тому, кто ведёт сайт (ниже)</li>
       </ol>
       </div>
-      <div class="hr" style="margin-top:16px"></div>
-      <button type="button" class="btn solid wide" id="install-action-btn">↻ Проверить скрипт на сайте</button>
-      <p class="tiny" id="install-action-note" style="text-align:center;margin-top:8px">Проверим, появился ли код на сайте. Пробный период начнётся с момента запуска — 24 часа с этой минуты</p>
-
-      <!-- Результат проверки показывается здесь же, а не всплывающим окном
-           (8 сентября): окно по центру экрана выпадало из языка кабинета, а
-           ответ на «нажми проверить» логично видеть там, где нажал. До
-           первой проверки блок пуст — красная плашка «не найден» больше не
-           встречает человека до того, как он что-то сделал. -->
-      <div data-install="notfound" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--danger-tint);border:1px solid rgba(214,56,22,.25)">
-        <div class="b red" style="font-size:14px">✕ Не видим скрипт на <span data-site-domain>alfa-school.ru</span></div>
-        <p class="tiny" style="margin-top:5px">Проверьте, что строка вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда мешает кеш. Не находит и через 10 минут — напишите в поддержку.</p>
-        <button class="btn text sm" style="padding:0;margin-top:6px" data-go="s-support">Написать в поддержку →</button>
-      </div>
       <div data-install="found" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--ok-tint);border:1px solid rgba(26,122,82,.25)">
         <div class="b green" style="font-size:14px">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
         <p class="tiny" style="margin-top:5px">Всё на месте. Осталось активировать пробный период — 24 часа документы и виджет работают бесплатно.</p>
@@ -1801,8 +1787,10 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <div class="hr" style="margin-top:20px"></div>
     <div class="step-nav">
       <button type="button" class="btn" data-go="s-ready">← Назад</button>
-      <button type="button" class="btn" style="flex:1" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button>
+      <button type="button" class="btn solid" id="install-action-btn">↻ Проверить скрипт на сайте</button>
     </div>
+    <p class="tiny" id="install-action-note" style="text-align:center;margin-top:10px">Проверим, появился ли код на сайте. Пробный период начнётся с момента активации — 24 часа с этой минуты</p>
+    <p class="tiny" style="text-align:center;margin-top:12px"><button type="button" class="btn text sm" style="padding:0" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button></p>
     </main>
   </div>
   <div class="sticky-cta solo"><button type="button" class="btn solid check-install-btn">↻ Проверить установку</button></div>
@@ -2302,6 +2290,21 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <div class="row" style="margin-top:16px">
       <button class="btn solid" data-modal-close="modal-no-calls">Вернуться и отметить</button>
       <button class="btn text" id="no-calls-continue" data-modal-close="modal-no-calls">Понятно, дальше</button>
+    </div>
+  </div>
+</div>
+
+<!-- Неудачная проверка показывается попапом, а не блоком в потоке
+     (8 сентября, вторая итерация): инлайн удлинял и без того длинный шаг,
+     а ответ на нажатие должен попасться на глаза сразу. Тон лояльный —
+     код мог не успеть попасть в кеш, это нормально, а не ошибка человека. -->
+<div class="modal-overlay" data-state="closed" id="modal-no-script" role="dialog" aria-modal="true" aria-labelledby="modal-no-script-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
+    <div class="row" style="justify-content:space-between"><h3 id="modal-no-script-title">Пока не видим скрипт</h3><button class="btn text sm" data-modal-close="modal-no-script">✕</button></div>
+    <p class="tiny" style="margin-top:10px">Не нашли код на сайте <b data-site-domain>alfa-school.ru</b>. Проверьте, что строка вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда мешает кеш.</p>
+    <div class="row" style="margin-top:16px">
+      <button class="btn solid" data-modal-close="modal-no-script">Попробую ещё раз</button>
+      <button class="btn text" data-go="s-support" data-modal-close="modal-no-script">Написать в поддержку</button>
     </div>
   </div>
 </div>
@@ -3256,6 +3259,8 @@ if (installActionBtn) installActionBtn.addEventListener('click', function(){
     syncPayState();
     syncInstallAction();
     if (installCheck !== 'found') {
+      var m = document.getElementById('modal-no-script');
+      if (m) openModal(m, installActionBtn);
     }
   }, 1500);
 });
