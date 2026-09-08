@@ -389,12 +389,6 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
 
 .main{padding:26px 30px 90px}
 .main.narrow{max-width:820px}
-   Раньше он был просто .main без ограничения и растекался на всю ширину
-   монитора: карточки вопросов раздувались, чек-лист улетал к правому
-   краю, а на следующем шаге контент возвращался к 820px — ширина колонки
-   прыгала от шага к шагу (прямая жалоба пользователя 7 сентября: «нет
-   однообразия, кажется, что всё разное»). 820 + 24 gap + 272 чек-лист:
-   колонка вопросов теперь ровно та же, что на всех остальных экранах. */
 @media(max-width:820px){
   .js .appwrap.sidebar{display:block}
   .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;padding:12px 14px;border-right:0;border-bottom:1px solid var(--line)}
