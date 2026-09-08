@@ -1028,8 +1028,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <h3>Домен и название сайта</h3>
         <input class="inp mono" id="add-domain" aria-label="Домен сайта" placeholder="alfa-school.ru" style="margin-top:10px">
         <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
-        <input class="inp" id="add-name" aria-label="Название компании или сайта" placeholder="Название компании или сайта" style="margin-top:10px">
-        <p class="tiny anketa-field-error" id="add-name-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите название — так сайт будет называться в кабинете.</p>
+        <input class="inp" id="add-name" aria-label="Название компании" placeholder="Название компании" style="margin-top:10px">
       </div>
 
       <div class="card pad" style="margin-top:10px">
@@ -2922,7 +2921,6 @@ if (readyBack) readyBack.addEventListener('click', function(){
 wireStepGate('anketa-start-next', [
   {id:'add-domain', errorId:'add-domain-error', test:function(v){
     return DOMAIN_RE.test(v.replace(/^https?:\/\//i, '').replace(/\/.*$/, '')); }},
-  {id:'add-name', errorId:'add-name-error'},
   {id:'anketa-person-name', errorId:'anketa-person-name-error'},
   {id:'anketa-person-mail', errorId:'anketa-person-mail-error', test:function(v){
     return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v); }}
