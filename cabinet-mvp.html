@@ -762,21 +762,25 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <h1 style="margin-bottom:6px">Регистрация</h1>
         <p class="lead" style="margin-bottom:22px">Демо: подойдут любые данные — заполнять по-настоящему не нужно.</p>
 
+        <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
+        <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
+        <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
         <!-- ВОПРОС ОТКРЫТ (8 сентября): точную формулировку и связку
              «политика ПДн + оферта» уточняет юрист. Пока одним чекбоксом до
              входа — по его разъяснению согласие на обработку ПДн принимается
              до регистрации при любом способе входа, а правила сервиса обычно
              зашивают туда же. Не отмечен по умолчанию: продукт существует
              ради 152-ФЗ ч.1 ст.9, преднастроенное «да» на собственной
-             регистрации противоречило бы тому, что он продаёт. -->
-        <label class="check" style="margin-bottom:14px">
+             регистрации противоречило бы тому, что он продаёт.
+             Стоит под кнопками (правка пользователя 8 сентября) — юридически
+             это ничего не меняет: кнопка провайдера всё равно не сработает,
+             пока согласие не отмечено. -->
+        <label class="check" style="margin-top:16px">
           <input type="checkbox" id="r-consent">
           <span class="t">Принимаю <a href="#" style="text-decoration:underline">политику обработки персональных данных</a> и условия <a href="#" style="text-decoration:underline">оферты</a></span>
         </label>
-        <p class="tiny anketa-field-error" id="r-consent-error" style="display:none;margin:-8px 0 12px;color:var(--danger)">Без согласия зарегистрировать аккаунт нельзя.</p>
-        <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
-        <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
-        <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
+        <p class="tiny anketa-field-error" id="r-consent-error" style="display:none;margin-top:6px;color:var(--danger)">Без согласия зарегистрировать аккаунт нельзя.</p>
+
         <p class="tiny" style="text-align:center;margin-top:24px">Уже есть аккаунт? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
       </div>
     </div>
