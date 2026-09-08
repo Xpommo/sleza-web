@@ -171,6 +171,22 @@ p{margin:0}
 .find .n{font-size:14px;font-weight:700}
 .find .w{font-size:12.5px;color:rgba(17,17,16,.6);margin-top:1px}
 
+/* Вход через Telegram/Яндекс (8 сентября, правка пользователя: «почему
+   вход только через почту»). Соцкнопки стоят ПЕРЕД формой — это более
+   быстрый путь, и он же снимает пароль как сущность: после такого входа
+   восстанавливать нечего. Почту у таких аккаунтов всё равно спросим —
+   на первом шаге анкеты, без неё некуда слать счёт и письмо о продлении. */
+.btn-social{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  padding:11px 20px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--white);
+  font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;
+  transition:border-color .15s ease-out,transform 160ms ease-out}
+.btn-social + .btn-social{margin-top:8px}
+.btn-social:hover{border-color:var(--ink)}
+.btn-social:active{transform:scale(.99)}
+.btn-social svg{flex:none}
+.or-div{display:flex;align-items:center;gap:12px;margin:16px 0;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45)}
+.or-div::before,.or-div::after{content:"";flex:1;height:1px;background:var(--line)}
 label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
 h3 + label.f,.card h3 + .f{margin-top:12px}
 .inp{width:100%;border:1.5px solid var(--line-2);border-radius:10px;padding:11px 13px;background:var(--white);
@@ -679,7 +695,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </div>
     <h1>Вход в кабинет</h1>
 
-    <div style="margin-top:20px"><label class="f" for="l-mail">Email</label><input class="inp" id="l-mail" type="email" autocomplete="email" placeholder="you@company.ru"></div>
+<div style="margin-top:20px">
+        <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
+        <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
+        <div class="or-div">или по почте</div>
+    </div>
+    <div><label class="f" for="l-mail">Email</label><input class="inp" id="l-mail" type="email" autocomplete="email" placeholder="you@company.ru"></div>
 
     <div style="margin-top:16px">
       <div class="row" style="justify-content:space-between;margin-bottom:6px">
@@ -719,6 +740,11 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <div class="state on" data-state="request">
       <h1>Восстановление пароля</h1>
       <p class="lead" style="margin-top:8px">Укажите почту, на которую регистрировались — пришлём ссылку для смены пароля.</p>
+      <div class="card pad" style="margin-top:16px">
+        <p class="tiny" style="margin-bottom:10px"><b style="color:var(--ink)">Входили через Telegram или Яндекс?</b> Тогда пароля у аккаунта нет — восстанавливать нечего, войдите тем же способом.</p>
+        <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
+        <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
+      </div>
       <div style="margin-top:20px"><label class="f" for="f-mail">Email</label><input class="inp" id="f-mail" type="email" autocomplete="email" placeholder="you@company.ru"></div>
       <button type="button" class="btn solid wide" style="margin-top:20px" data-state-to="sent">Отправить ссылку</button>
       <p class="tiny" style="text-align:center;margin-top:24px">Вспомнили пароль? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
@@ -754,6 +780,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <h1 style="margin-bottom:6px">Регистрация</h1>
         <p class="lead" style="margin-bottom:22px">Демо: подойдут любые данные — заполнять по-настоящему не нужно.</p>
 
+        <button type="button" class="btn-social" data-go="s-status" data-set-hassite="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
+        <button type="button" class="btn-social" data-go="s-status" data-set-hassite="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
+        <div class="or-div">или по почте</div>
         <div><label class="f" for="r-mail">Email</label><input class="inp" id="r-mail" type="email" autocomplete="email" placeholder="you@company.ru">
         <p class="tiny anketa-field-error" id="r-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите email — на него придёт подтверждение.</p></div>
 
