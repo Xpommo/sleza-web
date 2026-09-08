@@ -172,6 +172,7 @@ p{margin:0}
 .find .w{font-size:12.5px;color:rgba(17,17,16,.6);margin-top:1px}
 
 label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
+h3 + label.f,.card h3 + .f{margin-top:12px}
 .inp{width:100%;border:1.5px solid var(--line-2);border-radius:10px;padding:11px 13px;background:var(--white);
   font-size:15px;color:var(--ink)}
 .inp:focus{outline:none;border-color:var(--brand);box-shadow:var(--ring)}
@@ -1013,17 +1014,15 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
       <div class="card pad state" data-has-identity="false" style="margin-top:16px">
         <h3>Кто заполняет анкету?</h3>
-        <p class="tiny" style="margin:6px 0 12px">По бизнесу и по технической стороне сайта уточняем у разных людей — сразу спросим у того, кто знает ответ. Это единственный вопрос на весь аккаунт: для следующих сайтов больше не спросим.</p>
-        <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник компании</button><button type="button" data-swap="who-webmaster" data-set-who="webmaster">Веб-мастер / разработчик</button><button type="button" data-swap="who-agency" data-set-who="agency">Агентство</button></div>
+        <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник</button><button type="button" data-swap="who-contractor" data-set-who="contractor">Подрядчик</button></div>
+        <p class="tiny" style="margin-top:8px">Агентство или фрилансер — тоже подрядчик.</p>
       </div>
 
       <div class="card pad" style="margin-top:10px">
         <h3>Домен и название сайта</h3>
-        <p class="tiny" style="margin:6px 0 12px">Домен — на него подключим виджет и привяжем документы; название — как называть сайт в кабинете.</p>
         <label class="f" for="add-domain">Домен сайта</label>
         <input class="inp mono" id="add-domain" placeholder="alfa-school.ru">
         <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
-        <p class="tiny" style="margin-top:6px">Бесплатный период даётся один раз на домен — повторно на уже использованный домен не откроется.</p>
         <label class="f" style="margin-top:10px" for="add-name">Название компании или сайта</label>
         <input class="inp" id="add-name" placeholder="Альфа Образование">
         <p class="tiny anketa-field-error" id="add-name-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите название — так сайт будет называться в кабинете.</p>
@@ -1031,7 +1030,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
       <div class="card pad" style="margin-top:10px">
         <h3>Какая у вас сфера?</h3>
-        <p class="tiny" style="margin:6px 0 12px">Сфера влияет на формулировки в документах. Для отдельных сфер — медицина, финансы, работа с детьми — есть дополнительные отраслевые требования, которые этот пакет не покрывает; для них уточним отдельно (см. чек-лист на следующем шаге).</p>
+        <p class="tiny" style="margin:6px 0 12px">От неё зависят формулировки в документах.</p>
         <select class="inp" id="anketa-sphere-select">
           <option data-sphere="school">Онлайн-школа, курсы, репетиторство</option>
           <option data-regulated="1" data-sphere="kids">Детский центр, кружки, секции</option>
@@ -1122,7 +1121,6 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <button type="button" data-swap="cms-bitrix" data-set-platform="bitrix">Битрикс</button>
               <button type="button" data-swap="cms-other" data-set-platform="other">Другое</button>
             </div>
-            <p class="tiny" style="margin-top:6px">Пригодится на шаге установки — покажем инструкцию именно под неё.</p>
 
             <div class="hr" style="margin:14px 0"></div>
             <label class="f">Стоит аналитика — Яндекс.Метрика, Google Analytics?</label>
@@ -1354,7 +1352,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="anketa-step" data-step-counter>Шаг 5 из 6</div>
     <div class="b green" style="font-size:15px">✓ Пакет документов готов</div>
     <h1 style="margin-top:6px">Осталось поставить на сайт</h1>
-    <p class="lead" style="margin-top:8px">Собрали пакет документов под alfa-school.ru — превью открыто уже сейчас, ниже. Рабочие ссылки и виджет включатся после установки, без оплаты — 24 часа бесплатно.</p>
+    <p class="lead" style="margin-top:8px">Собрали пакет документов под alfa-school.ru — превью открыто уже сейчас, ниже. Рабочие ссылки и виджет включатся после установки и будут работать 24 часа бесплатно.</p>
 
     <h2 style="margin-top:20px">Что подготовили</h2>
     <!-- «Что подготовили» и «Документы» были двумя списками из тех же 5
@@ -1451,11 +1449,6 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         </div>
       </div>
     </details>
-
-    <div class="card pad" style="margin-top:16px">
-      <div class="row" style="justify-content:space-between"><span class="small muted">Подписка</span><span style="font-size:19px;font-weight:800">29 900 ₽/год</span></div>
-      <p class="tiny" style="margin-top:5px">Спишется один раз в год — о продлении напомним письмом заранее. Отменить можно в любой момент.</p>
-    </div>
 
     <!-- HANDOFF 6.15 п.8 — установка идёт до оплаты, не после: кнопка
          теперь ведёт на s-install, не s-pay. «Оплатить 29 900 ₽» как текст
@@ -1649,10 +1642,31 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <h1 style="margin-top:6px">Осталось установить скрипт</h1>
     <p class="lead" style="margin-top:8px">Одна строчка кода. Она покажет баннер, реквизиты и ссылки на документы прямо сейчас — оплатить можно в любой момент в течение суток, дальше мы обновляем всё сами.</p>
 
-    <!-- «Поручить» теперь первым блоком, «Сделать самому» — вторым: для
-         основной персоны (не технарь, сайт делали давно и не он) это
-         экран, где выше всего риск упереться в «я сайт не трогаю» —
-         сначала показываем вариант, который снимает этот страх, а не код. -->
+    <!-- Платформа и код — первым блоком (правка пользователя 8 сентября:
+         «перенести сюда на самый верх, после выбора показывать скрипт с
+         кнопкой скопировать и инструкцией»). Этим отменяется решение от
+         2 сентября, по которому код прятался в закрытый аккордеон ниже
+         блока «Поручить»: там исходили из того, что чёрный код-блок
+         пугает нетехническую персону, поэтому сначала показывали
+         делегирование. Теперь наоборот — установка на первом плане,
+         делегирование следом. -->
+    <h2 style="margin-top:20px">Поставить самому</h2>
+    <div class="card pad">
+      <label class="f" style="margin:0">На какой платформе сайт</label>
+      <div class="tabs" id="install-cms-tabs" style="margin-top:8px"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
+      <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
+data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
+      <button class="btn sm copy-code-btn" data-copy-target="install-code" style="margin-top:10px">Скопировать код</button>
+      <div class="hr"></div>
+      <div class="small" data-swapped="t1">Настройки сайта → Ещё → HTML-код для вставки внутрь HEAD → вставить строку → Опубликовать все страницы.</div>
+      <div class="small" data-swapped="t2" style="display:none">Внешний вид → Редактор тем → header.php → вставить перед &lt;/head&gt;.</div>
+      <div class="small" data-swapped="t3" style="display:none">Настройки → Настройки продукта → Сайты → шаблон сайта → вставить в секцию HEAD.</div>
+      <div class="small" data-swapped="t4" style="display:none">Вставьте строку в HTML любой страницы перед закрывающим тегом &lt;/head&gt;.</div>
+    </div>
+
+    <!-- «Поручить» — вторым блоком, после установки самому: для
+         персоны, которая сайт не трогает, это выход — переслать тому,
+         кто ведёт сайт. -->
     <h2 style="margin-top:20px">Поручить тому, кто делает сайт</h2>
     <div class="card pad">
       <p class="tiny" style="margin-bottom:10px">Не нужно разбираться самим — перешлите тому, кто ведёт сайт. Без регистрации и входа в кабинет, только вставить одну строку кода.</p>
@@ -1668,30 +1682,6 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <label class="f">Почта</label><input class="inp mono" id="install-self-email" value="director@alfa-school.ru"><p class="tiny anketa-field-error" id="install-self-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту — иначе некуда отправлять.</p><button id="send-self-btn" class="btn solid sm" style="margin-top:10px">Отправить себе</button>
     </div>
 
-    <!-- Закрыт по умолчанию даже на десктопе (impeccable critique, 2
-         сентября) — раньше был open здесь же, мобильный JS ниже
-         сворачивал его только на ≤640px. Замысел секции — «сначала
-         снимаем страх делегированием, не код» — не срабатывал именно на
-         десктопе: чёрный код-блок доминирует над страницей визуально
-         независимо от намерения, прямо под белой карточкой «Поручить». -->
-    <details class="acc" style="margin-top:18px">
-    <summary class="acc-title"><h3>Сделать самому</h3></summary>
-    <div class="card pad">
-      <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
-data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
-      <button class="btn sm copy-code-btn" data-copy-target="install-code" style="margin-top:10px">Скопировать код</button>
-      <div class="hr"></div>
-      <!-- Единственное место, где спрашиваем платформу сайта (27 августа —
-           раньше тот же вопрос дублировался отдельным подшагом анкеты,
-           убран: там выбор ни на что не влиял, здесь он сразу показывает
-           нужную инструкцию — вопрос имеет смысл только рядом с ответом). -->
-      <div class="tabs" id="install-cms-tabs"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
-      <div class="small" data-swapped="t1">Настройки сайта → Ещё → HTML-код для вставки внутрь HEAD → вставить строку → Опубликовать все страницы.</div>
-      <div class="small" data-swapped="t2" style="display:none">Внешний вид → Редактор тем → header.php → вставить перед &lt;/head&gt;.</div>
-      <div class="small" data-swapped="t3" style="display:none">Настройки → Настройки продукта → Сайты → шаблон сайта → вставить в секцию HEAD.</div>
-      <div class="small" data-swapped="t4" style="display:none">Вставьте строку в HTML любой страницы перед закрывающим тегом &lt;/head&gt;.</div>
-    </div>
-    </details>
 
     <!-- Два исхода проверки, не один статичный «не найдено» (независимый
          план исправлений, п.1.2, 25.08). Третий исход из плана («нашли,
@@ -1718,10 +1708,6 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <button class="btn solid sm check-install-btn">↻ Проверить установку</button>
         <button class="btn sm" data-go="s-support">Написать в поддержку</button>
       </div>
-    </div>
-    <div class="card pad" data-install="found" style="margin-top:14px;border-color:rgba(26,122,82,.3)">
-      <div class="b green">✓ Скрипт найден — виджет работает на alfa-school.ru</div>
-      <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили alfa-school.ru минуту назад. Письмо с подтверждением отправили на director@alfa-school.ru.</p>
     </div>
 
     <div class="hr" style="margin-top:20px"></div>
