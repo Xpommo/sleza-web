@@ -1122,7 +1122,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <h1>О сайте</h1>
           <p class="lead" style="margin-top:8px">Технические детали сайта — попадут в формулировки политики и cookie-документа.</p>
           <div class="card pad" id="anketa-site-card" style="margin-top:16px">
-            <label class="f">На какой платформе сайт?</label>
+            <h3 style="margin-bottom:8px">На какой платформе сайт?</h3>
             <!-- Платформа одна, поэтому чекбоксы ведут себя как радио: выбор
                  переключается, снять последний нельзя. Вид общий с остальными
                  вопросами шага (правка пользователя 8 сентября), но множественный
@@ -1136,7 +1136,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
-            <label class="f">Какая аналитика стоит на сайте</label>
+            <h3 style="margin-bottom:8px">Какая аналитика стоит на сайте</h3>
             <div style="margin-top:4px">
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Яндекс.Метрика</span></label>
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Google Analytics</span></label>
@@ -1144,7 +1144,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
-            <label class="f">Есть ли на сайте</label>
+            <h3 style="margin-bottom:8px">Есть ли на сайте</h3>
             <div style="margin-top:4px">
               <label class="check"><input type="checkbox" data-excl="features"><span class="t">Корзина</span></label>
               <label class="check"><input type="checkbox" data-excl="features"><span class="t">Личный кабинет</span></label>
@@ -1186,10 +1186,11 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <h1>Работа с клиентами</h1>
           <p class="lead" style="margin-top:8px">Как вы собираете и используете контакты — попадёт в политику и согласия.</p>
           <div class="card pad" id="anketa-clients-card" style="margin-top:16px">
-            <p class="tiny" style="margin:0 0 12px">Звоните, пишете в мессенджеры или на почту по базе клиентов?</p>
-            <div class="seg" id="anketa-calls-seg"><button type="button" class="on" data-swap="calls-yes">Да</button><button type="button" data-swap="calls-no">Нет</button></div>
+            <h3 style="margin-bottom:8px">Звоните, пишете в мессенджеры или на почту по базе клиентов?</h3>
+            <label class="check"><input type="checkbox" data-calls="yes" checked><span class="t">Да</span></label>
+            <label class="check"><input type="checkbox" data-calls="no"><span class="t">Нет</span></label>
             <div class="hr" style="margin:14px 0"></div>
-            <p class="tiny" style="margin:0 0 10px">Для чего вы собираете контакты — отметьте своё, попадёт в политику. Список подстроен под сферу, выбранную на первом шаге.</p>
+            <h3 style="margin-bottom:8px">Для чего вы собираете контакты — отметьте своё</h3>
             <!-- Раньше — 3 галочки под одну сферу (онлайн-школа), все
                  предзаполнены checked без участия человека: для остальных
                  12 сфер список не подходил и выглядел решённым за
@@ -1209,7 +1210,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check" data-purpose="inquiry"><input type="checkbox"><span class="t">Ответить на обращение</span></label>
             <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях</span></label>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем нужно отдельное согласие на рассылки ⌄</button>
-            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">ФЗ «О рекламе» ст.18 требует отдельное согласие получателя на рекламные рассылки (email, смс, мессенджеры) — без него рассылка технически возможна, но незаконна.</p>
+            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Ваши ответы попадут в документы. ФЗ «О рекламе» ст.18 требует отдельное согласие получателя на рекламные рассылки — email, смс, мессенджеры: без него рассылка технически возможна, но незаконна.</p>
           </div>
 
           <!-- мобильный интерстишл — см. комментарий у секции выше.
@@ -1220,7 +1221,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <div class="hr" style="margin-top:20px"></div>
           <div class="step-nav">
             <button type="button" class="btn" data-set-substep="1">← Назад</button>
-            <button type="button" class="btn solid" data-set-substep="3">Далее →</button>
+            <button type="button" class="btn solid" id="anketa-clients-next">Далее →</button>
           </div>
         </div>
 
@@ -2218,6 +2219,22 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
   </div>
 </div>
 
+<!-- Предупреждение при ответе «Нет» на вопрос о работе по базе клиентов
+     (8 сентября). Ответ убирает из пакета «Согласие на рассылки», а без
+     него любая рассылка по базе незаконна — человек должен увидеть цену
+     ответа до того, как пойдёт дальше, а не обнаружить нехватку документа
+     в конце. Не блокирует: «Продолжить без него» уводит на следующий шаг. -->
+<div class="modal-overlay" data-state="closed" id="modal-no-calls" role="dialog" aria-modal="true" aria-labelledby="modal-no-calls-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
+    <div class="row" style="justify-content:space-between"><h3 id="modal-no-calls-title">Тогда согласия на рассылки не будет</h3><button class="btn text sm" data-modal-close="modal-no-calls">✕</button></div>
+    <p class="tiny" style="margin-top:10px">Вы ответили, что не пишете и не звоните по базе клиентов — значит документ «Согласие на рассылки» в пакет не войдёт. Если однажды отправите письмо или сообщение по этой базе, оно будет незаконным: ФЗ «О рекламе» ст.18 требует отдельное согласие получателя. Документ входит в пакет и отдельно ничего не стоит.</p>
+    <div class="row" style="margin-top:16px">
+      <button class="btn solid" data-modal-close="modal-no-calls">Вернуться и отметить</button>
+      <button class="btn text" id="no-calls-continue" data-modal-close="modal-no-calls">Продолжить без него</button>
+    </div>
+  </div>
+</div>
+
 <!-- модалка отмены подписки — раньше срабатывала мгновенно по клику,
      без подтверждения и без опоры на текст последствий, который уже
      есть на s-project-paid. Тот же текст закрепляется здесь, на шаге,
@@ -3046,6 +3063,43 @@ document.querySelectorAll('[data-find]').forEach(function(b){
 /* Платформа: выбор строго один, снять последний нельзя — иначе на шаге
    установки нечего было бы открывать. sitePlatform двигается здесь же,
    эту связь анкета→install-таб однажды уже случайно рвали (см. 6.38). */
+/* «Звоните, пишете по базе клиентов?» — два чекбокса вместо Да/Нет,
+   ответ обязателен: снять последний нельзя. «Да» предотмечен, потому что
+   так у большинства, а цена ошибки несимметрична — пропустить нужный
+   документ хуже, чем получить лишний. */
+document.querySelectorAll('[data-calls]').forEach(function(box){
+  box.addEventListener('change', function(){
+    if (!box.checked) { box.checked = true; return; }
+    document.querySelectorAll('[data-calls]').forEach(function(other){
+      if (other !== box) other.checked = false;
+    });
+  });
+});
+function callsAnswerIsNo(){
+  var no = document.querySelector('[data-calls="no"]');
+  return !!(no && no.checked);
+}
+/* «Далее» с этого подшага: при ответе «Нет» сначала предупреждение —
+   документ «Согласие на рассылки» уйдёт из пакета. data-set-substep с
+   кнопки снят, переход делает обработчик (иначе общий увёл бы вперёд
+   мимо модалки). */
+var clientsNextBtn = document.getElementById('anketa-clients-next');
+function goToRequisites(){
+  document.querySelectorAll('[data-cl-marketing]').forEach(function(el){ el.hidden = callsAnswerIsNo(); });
+  anketaSubstep = 3;
+  syncAnketaSubstep();
+  window.scrollTo(0,0);
+}
+if (clientsNextBtn) clientsNextBtn.addEventListener('click', function(){
+  if (callsAnswerIsNo()) {
+    var m = document.getElementById('modal-no-calls');
+    if (m) { openModal(m, clientsNextBtn); return; }
+  }
+  goToRequisites();
+});
+var noCallsContinue = document.getElementById('no-calls-continue');
+if (noCallsContinue) noCallsContinue.addEventListener('click', goToRequisites);
+
 document.querySelectorAll('[data-platform-pick]').forEach(function(box){
   box.addEventListener('change', function(){
     if (!box.checked) { box.checked = true; return; }
