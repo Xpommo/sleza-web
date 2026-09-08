@@ -1149,12 +1149,6 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это спрашиваем ⌄</button>
             <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Куки-баннер и cookie-политика входят в пакет всегда — ответы не убирают и не добавляют документ, только делают его текст точным: что именно на сайте собирается, а не общая формулировка на все случаи.</p>
 
-            <div class="hr" style="margin:14px 0"></div>
-            <label class="f">Есть на сайте формы — заявка, запись, обратный звонок?</label>
-            <div class="seg" id="anketa-forms-seg" style="margin-top:6px">
-              <button type="button" class="on" data-swap="forms-yes">Да</button>
-              <button type="button" data-swap="forms-no">Нет</button>
-            </div>
           </div>
           <div class="hr" style="margin-top:20px"></div>
           <div class="step-nav">
@@ -3142,14 +3136,15 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
 
 
 
-/* «Далее» на подшаге «О сайте» ветвится по ответу «Есть формы ОС?» —
-   без формы сайт не собирает контакты от посетителей, спрашивать
+/* «Далее» на подшаге «О сайте» ветвится по блоку «Есть ли на сайте» —
+   при «Нет ничего» сайт не собирает контакты от посетителей, спрашивать
    дальше «звоните/пишете ли этим контактам» было бы про базу клиентов
    вообще, не про сайт (сама анкета — про сайт). «Нет» пропускает
    подшаг «Работа с клиентами» и ведёт сразу на «Реквизиты». */
 var siteNextBtn = document.getElementById('anketa-site-next');
 if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
-  var formsYes = document.querySelector('#anketa-forms-seg [data-swap="forms-yes"]').classList.contains('on');
+  var noneBox = document.querySelector('[data-excl="features"][data-excl-none]');
+  var formsYes = !(noneBox && noneBox.checked);
   // без форм на сайте вопрос «звоните/пишете клиентам» не про сайт — подшаг пропускается
   anketaSubstep = formsYes ? 2 : 3;
   syncAnketaSubstep();
