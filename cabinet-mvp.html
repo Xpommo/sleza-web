@@ -1227,86 +1227,106 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
         <div data-substep="3" style="display:none">
           <h1>Реквизиты</h1>
-          <p class="lead" style="margin-top:8px">Реквизиты владельца сайта — обязательны по 149-ФЗ, пойдут в документы и в подвал сайта.</p>
+          <p class="lead" style="margin-top:8px">Пойдут в подвал сайта и в документы. По ним бухгалтер контрагента выставит счёт и составит договор, ничего не запрашивая дополнительно.</p>
+
+          <!-- Реквизиты разложены по источнику данных, а не по алфавиту
+               (8 сентября, разбор с пользователем по шаблону реквизитов):
+               что подтягивается из реестров по ИНН, что знает только сам
+               владелец, что нужно банку. Так человеку видно, почему часть
+               полей уже заполнена, и что именно от него хотят. Формы
+               собственности разводятся тем же [data-swap]/[data-swapped],
+               что и раньше: у ИП вместо ОГРН — ОГРНИП (другой реестр),
+               у самозанятого нет ни ОГРН, ни КПП. -->
           <div class="card pad" id="anketa-req-card" style="margin-top:16px">
-            <!-- Форма собственности первым вопросом (независимый план
-                 исправлений, п.1.4, 25.08) — раньше ОГРН был безусловным
-                 полем, хотя у самозанятого нет ни ОГРН, ни расчётного
-                 счёта, а у ИП — ОГРНИП (другое число, другой реестр,
-                 ЕГРИП не ЕГРЮЛ), не «ОГРН». Подсказка «заполним сами»
-                 (см. modal-req-*) для них была бы неверна. Разграничение
-                 полей ниже — тот же `[data-swap]`/`[data-swapped]`
-                 приём, что уже используют «Платформа сайта» и способ
-                 продления на s-billing; scope — `.closest('.card')`,
-                 то есть эта карточка, соседние группы (платформа,
-                 работа с клиентами) не затронуты. ИНН и Адрес общие для
-                 всех трёх форм — не дублируются в панелях. Оплата
-                 «Самозанятый — карта, счёт не предлагаем» (из таблицы
-                 плана) в MVP не заведена отдельно: s-pay остаётся общим
-                 для всех форм собственности, это заметка на перенос в
-                 реальный код, не разрыв в макете. -->
-            <label class="f">Форма собственности</label>
-            <div class="seg" id="anketa-ownership-seg" style="margin:6px 0 4px">
-              <button type="button" class="on" data-swap="own-ooo" data-set-ownership="ooo">ООО</button>
-              <button type="button" data-swap="own-ip" data-set-ownership="ip">ИП</button>
-              <button type="button" data-swap="own-self" data-set-ownership="self">Самозанятый</button>
-            </div>
+            <h3 style="margin-bottom:8px">Форма собственности</h3>
+            <label class="check"><input type="checkbox" data-ownership-pick="ooo" checked><span class="t">ООО</span></label>
+            <label class="check"><input type="checkbox" data-ownership-pick="ip"><span class="t">ИП</span></label>
+            <label class="check"><input type="checkbox" data-ownership-pick="self"><span class="t">Самозанятый</span></label>
+          </div>
+
+          <div class="card pad" style="margin-top:10px">
+            <h3 style="margin-bottom:8px">Заполним по ИНН</h3>
+            <label class="f" for="anketa-inn">ИНН <span style="color:var(--danger)">*</span></label>
+            <input class="inp mono" id="anketa-inn" placeholder="10 цифр для организации, 12 для ИП и самозанятого" maxlength="12" inputmode="numeric">
+            <p class="tiny anketa-field-error" id="anketa-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
+            <p class="tiny" id="anketa-inn-found" style="display:none;margin-top:6px;color:var(--ok)">✓ Нашли по ИНН — проверьте, что всё верно</p>
 
             <div data-swapped="own-ooo" style="margin-top:10px">
-              <label class="f">Наименование</label>
-              <input class="inp" placeholder="ООО «Ромашка»" value="ООО «Альфа Образование»">
+              <label class="f" for="req-name-ooo">Наименование <span style="color:var(--danger)">*</span></label>
+              <input class="inp" id="req-name-ooo" placeholder="ООО «Ромашка»">
             </div>
             <div data-swapped="own-ip" style="display:none;margin-top:10px">
-              <label class="f">ФИО</label>
-              <input class="inp" placeholder="Иванова Мария Сергеевна" value="Иванова Мария Сергеевна">
+              <label class="f" for="req-name-ip">ФИО <span style="color:var(--danger)">*</span></label>
+              <input class="inp" id="req-name-ip" placeholder="Иванова Мария Сергеевна">
             </div>
             <div data-swapped="own-self" style="display:none;margin-top:10px">
-              <label class="f">ФИО</label>
-              <input class="inp" placeholder="Иванова Мария Сергеевна" value="Иванова Мария Сергеевна">
+              <label class="f" for="req-name-self">ФИО <span style="color:var(--danger)">*</span></label>
+              <input class="inp" id="req-name-self" placeholder="Иванова Мария Сергеевна">
             </div>
 
-            <label class="f" style="margin-top:10px">ИНН</label>
-            <input class="inp mono" id="anketa-inn" placeholder="10 цифр для организации, 12 для ИП" value="7701234567" maxlength="12" inputmode="numeric">
-            <p class="tiny anketa-field-error" id="anketa-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
-
-            <div data-swapped="own-ooo" style="margin-top:10px">
-              <label class="f">ОГРН</label>
-              <input class="inp mono" id="anketa-ogrn" placeholder="13 цифр" value="1157746112233" maxlength="13" inputmode="numeric">
+            <div data-swapped="own-ooo">
+              <label class="f" style="margin-top:10px" for="anketa-ogrn">ОГРН <span style="color:var(--danger)">*</span></label>
+              <input class="inp mono" id="anketa-ogrn" placeholder="13 цифр" maxlength="13" inputmode="numeric">
               <p class="tiny anketa-field-error" id="anketa-ogrn-error" style="display:none;margin-top:5px;color:var(--danger)">ОГРН — 13 цифр. Проверьте, не пропущена ли часть номера.</p>
-              <p class="tiny" style="margin-top:6px">Подставим из ЕГРЮЛ по ИНН.</p>
+              <label class="f" style="margin-top:10px" for="anketa-kpp">КПП <span style="color:var(--danger)">*</span></label>
+              <input class="inp mono" id="anketa-kpp" placeholder="9 цифр" maxlength="9" inputmode="numeric">
+              <p class="tiny anketa-field-error" id="anketa-kpp-error" style="display:none;margin-top:5px;color:var(--danger)">КПП — 9 цифр.</p>
             </div>
-            <div data-swapped="own-ip" style="display:none;margin-top:10px">
-              <label class="f">ОГРНИП</label>
-              <input class="inp mono" id="anketa-ogrnip" placeholder="15 цифр" value="304770000000123" maxlength="15" inputmode="numeric">
+            <div data-swapped="own-ip" style="display:none">
+              <label class="f" style="margin-top:10px" for="anketa-ogrnip">ОГРНИП <span style="color:var(--danger)">*</span></label>
+              <input class="inp mono" id="anketa-ogrnip" placeholder="15 цифр" maxlength="15" inputmode="numeric">
               <p class="tiny anketa-field-error" id="anketa-ogrnip-error" style="display:none;margin-top:5px;color:var(--danger)">ОГРНИП — 15 цифр. Проверьте, не пропущена ли часть номера.</p>
-              <p class="tiny" style="margin-top:6px">Подставим из ЕГРИП по ИНН.</p>
             </div>
-            <!-- own-self: ни ОГРН, ни ОГРНИП — самозанятый регистрируется
-                 без записи в ЕГРЮЛ/ЕГРИП, поля для него попросту нет. -->
 
-            <label class="f" style="margin-top:10px">Адрес</label>
-            <input class="inp" placeholder="Индекс, город, улица, дом" value="119019, Москва, ул. Воздвиженка, д. 10">
+            <label class="f" style="margin-top:10px" for="anketa-addr">Юридический адрес <span style="color:var(--danger)">*</span></label>
+            <input class="inp" id="anketa-addr" placeholder="Индекс, город, улица, дом">
+          </div>
 
-            <!-- Куда писать по вопросам ПДн — независимый список правок,
-                 «Анкета», 25.08. Предзаполняем почтой аккаунта только для
-                 роли директор/сотрудник (via syncWhoFills) — для вебмастера
-                 и агентства поле пустое с явной подписью: они отвечают за
-                 техническую сторону, не за то, куда слать обращения
-                 субъектов ПДн. Мягкая подсказка на buh@/accounting@ — не
-                 блокирует ввод, просто предупреждает (см. script). -->
-            <label class="f" style="margin-top:10px">Куда писать по вопросам персональных данных</label>
+          <div class="card pad" style="margin-top:10px">
+            <h3 style="margin-bottom:8px">Контакты</h3>
+            <label class="f" for="anketa-company-mail">Email компании <span style="color:var(--danger)">*</span></label>
+            <input class="inp" id="anketa-company-mail" type="email" placeholder="info@alfa-school.ru">
+            <p class="tiny anketa-field-error" id="anketa-company-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — её увидят в подвале сайта.</p>
+
+            <label class="f" style="margin-top:10px" for="anketa-company-phone">Телефон <span style="color:var(--danger)">*</span></label>
+            <input class="inp mono" id="anketa-company-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
+            <p class="tiny anketa-field-error" id="anketa-company-phone-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите телефон — он пойдёт в реквизиты.</p>
+
+            <label class="f" style="margin-top:10px" for="anketa-post-addr">Адрес для переписки</label>
+            <input class="inp" id="anketa-post-addr" placeholder="Если отличается от юридического">
+
+            <label class="f" style="margin-top:10px" for="anketa-pd-contact">Куда писать по вопросам персональных данных <span style="color:var(--danger)">*</span></label>
             <input class="inp" id="anketa-pd-contact" placeholder="Почта или телефон, куда придёт обращение">
             <p class="tiny anketa-field-error" id="anketa-pd-contact-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта (вида name@site.ru) или телефон — по этому контакту к вам будут обращаться по вопросам персональных данных.</p>
             <p class="tiny" id="anketa-pd-hint" style="display:none;margin-top:6px;color:var(--warn)">На бухгалтерскую почту такие обращения обычно теряются — лучше указать контакт, который точно проверяют.</p>
+          </div>
 
-            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это спрашиваем ⌄</button>
-            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Покажем внизу страниц через виджет.</p>
+          <div class="card pad" style="margin-top:10px">
+            <h3 style="margin-bottom:8px">Банковские реквизиты</h3>
+            <label class="f" for="anketa-account">Расчётный счёт <span style="color:var(--danger)">*</span></label>
+            <input class="inp mono" id="anketa-account" inputmode="numeric" maxlength="20" placeholder="40702810...">
+            <p class="tiny anketa-field-error" id="anketa-account-error" style="display:none;margin-top:5px;color:var(--danger)">Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
+
+            <label class="f" style="margin-top:10px" for="anketa-bank">Банк <span style="color:var(--danger)">*</span></label>
+            <input class="inp" id="anketa-bank" placeholder="ПАО «Сбербанк»">
+            <p class="tiny anketa-field-error" id="anketa-bank-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите банк, в котором открыт счёт.</p>
+
+            <label class="f" style="margin-top:10px" for="anketa-bik">БИК <span style="color:var(--danger)">*</span></label>
+            <input class="inp mono" id="anketa-bik" inputmode="numeric" maxlength="9" placeholder="9 цифр">
+            <p class="tiny anketa-field-error" id="anketa-bik-error" style="display:none;margin-top:5px;color:var(--danger)">БИК — 9 цифр.</p>
+
+            <label class="f" style="margin-top:10px" for="anketa-corr">Корреспондентский счёт <span style="color:var(--danger)">*</span></label>
+            <input class="inp mono" id="anketa-corr" inputmode="numeric" maxlength="20" placeholder="30101810...">
+            <p class="tiny anketa-field-error" id="anketa-corr-error" style="display:none;margin-top:5px;color:var(--danger)">Корреспондентский счёт — 20 цифр.</p>
+
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Покажем их внизу страниц через виджет. Банковские реквизиты нужны, чтобы по вашему подвалу можно было выставить счёт и составить договор, не запрашивая ничего дополнительно.</p>
           </div>
 
           <div class="hr" style="margin-top:20px"></div>
           <div class="step-nav">
             <button type="button" class="btn" data-set-substep="2">← Назад</button>
-            <button type="button" class="btn solid" data-go="s-ready">Далее →</button>
+            <button type="button" class="btn solid" id="anketa-req-next">Далее →</button>
           </div>
         </div>
 
@@ -2872,6 +2892,10 @@ function wireLengthValidation(inputId, errorId, validLengths){
 wireLengthValidation('anketa-inn', 'anketa-inn-error', [10, 12]);
 wireLengthValidation('anketa-ogrn', 'anketa-ogrn-error', [13]);
 wireLengthValidation('anketa-ogrnip', 'anketa-ogrnip-error', [15]);
+wireLengthValidation('anketa-kpp', 'anketa-kpp-error', [9]);
+wireLengthValidation('anketa-account', 'anketa-account-error', [20]);
+wireLengthValidation('anketa-bik', 'anketa-bik-error', [9]);
+wireLengthValidation('anketa-corr', 'anketa-corr-error', [20]);
 wireLengthValidation('modal-req-ogrn-set', 'modal-req-ogrn-set-error', [13]);
 wireLengthValidation('pay-invoice-inn', 'pay-invoice-inn-error', [10, 12]);
 wireLengthValidation('pay-invoice-account', 'pay-invoice-account-error', [20]);
@@ -2901,6 +2925,9 @@ wirePatternValidation('add-domain', 'add-domain-error', function(v){
   return DOMAIN_RE.test(v.replace(/^https?:\/\//i, '').replace(/\/.*$/, ''));
 });
 wirePatternValidation('anketa-person-mail', 'anketa-person-mail-error', function(v){
+  return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v);
+});
+wirePatternValidation('anketa-company-mail', 'anketa-company-mail-error', function(v){
   return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v);
 });
 wirePatternValidation('anketa-pd-contact', 'anketa-pd-contact-error', function(v){
@@ -2939,6 +2966,28 @@ if (readyBack) readyBack.addEventListener('click', function(){
   anketaSubstep = 3;              // «Реквизиты» — последний подшаг анкеты
   goScreen('s-anketa2');
 });
+
+/* Гейт шага «Реквизиты»: поля разных форм собственности лежат в скрытых
+   панелях, поэтому проверяются только видимые (wireStepGate сам пропускает
+   скрытые) — у ИП не спросят КПП, у самозанятого ОГРН. */
+wireStepGate('anketa-req-next', [
+  {id:'anketa-inn', errorId:'anketa-inn-error', test:function(v){
+    var d = v.replace(/\D/g,''); return d.length === 10 || d.length === 12; }},
+  {id:'req-name-ooo'}, {id:'req-name-ip'}, {id:'req-name-self'},
+  {id:'anketa-ogrn', errorId:'anketa-ogrn-error', test:function(v){ return v.replace(/\D/g,'').length === 13; }},
+  {id:'anketa-kpp', errorId:'anketa-kpp-error', test:function(v){ return v.replace(/\D/g,'').length === 9; }},
+  {id:'anketa-ogrnip', errorId:'anketa-ogrnip-error', test:function(v){ return v.replace(/\D/g,'').length === 15; }},
+  {id:'anketa-addr'},
+  {id:'anketa-company-mail', errorId:'anketa-company-mail-error', test:function(v){
+    return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v); }},
+  {id:'anketa-company-phone', errorId:'anketa-company-phone-error'},
+  {id:'anketa-pd-contact', errorId:'anketa-pd-contact-error', test:function(v){
+    return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v) || /^[+\d][\d\s()\-]{9,}$/.test(v); }},
+  {id:'anketa-account', errorId:'anketa-account-error', test:function(v){ return v.replace(/\D/g,'').length === 20; }},
+  {id:'anketa-bank', errorId:'anketa-bank-error'},
+  {id:'anketa-bik', errorId:'anketa-bik-error', test:function(v){ return v.replace(/\D/g,'').length === 9; }},
+  {id:'anketa-corr', errorId:'anketa-corr-error', test:function(v){ return v.replace(/\D/g,'').length === 20; }}
+], function(){ goScreen('s-ready'); });
 
 wireStepGate('anketa-start-next', [
   {id:'add-domain', errorId:'add-domain-error', test:function(v){
@@ -3098,6 +3147,48 @@ if (clientsNextBtn) clientsNextBtn.addEventListener('click', function(){
 });
 var noCallsContinue = document.getElementById('no-calls-continue');
 if (noCallsContinue) noCallsContinue.addEventListener('click', goToRequisites);
+
+/* Форма собственности — те же чекбоксы-как-радио, что у платформы:
+   вид общий со всей анкетой, но выбор один. Панели полей переключаются
+   тем же [data-swapped], что и раньше. */
+document.querySelectorAll('[data-ownership-pick]').forEach(function(box){
+  box.addEventListener('change', function(){
+    if (!box.checked) { box.checked = true; return; }
+    document.querySelectorAll('[data-ownership-pick]').forEach(function(other){
+      if (other !== box) other.checked = false;
+    });
+    siteOwnership = box.dataset.ownershipPick;
+    var card = box.closest('.anketa-col') || document;
+    card.querySelectorAll('[data-swapped^="own-"]').forEach(function(panel){
+      panel.style.display = (panel.dataset.swapped === 'own-' + siteOwnership) ? '' : 'none';
+    });
+    syncPayState();
+  });
+});
+
+/* Автоподстановка по ИНН (решение пользователя 8 сентября: без кнопки —
+   довёл до нужной длины, поля заполнились). В макете данные демо-фикстура:
+   какой бы ИНН ни ввели, подставляем один и тот же набор — источник
+   (ЕГРЮЛ/ЕГРИП) появится в реальном коде. Заполняем только пустые поля:
+   если человек уже поправил наименование руками, затирать его ответ нельзя. */
+var INN_LOOKUP = {
+  ooo:  {'req-name-ooo':'ООО «Альфа Образование»', 'anketa-ogrn':'1157746112233', 'anketa-kpp':'770101001', 'anketa-addr':'119019, Москва, ул. Воздвиженка, д. 10'},
+  ip:   {'req-name-ip':'Иванова Мария Сергеевна', 'anketa-ogrnip':'304770000000123', 'anketa-addr':'119019, Москва, ул. Воздвиженка, д. 10'},
+  self: {'req-name-self':'Иванова Мария Сергеевна', 'anketa-addr':'119019, Москва, ул. Воздвиженка, д. 10'}
+};
+var innInput = document.getElementById('anketa-inn');
+if (innInput) innInput.addEventListener('input', function(){
+  var digits = innInput.value.replace(/\D/g, '');
+  var found = document.getElementById('anketa-inn-found');
+  var fits = (digits.length === 10 || digits.length === 12);
+  if (!fits) { if (found) found.style.display = 'none'; return; }
+  var map = INN_LOOKUP[siteOwnership] || {};
+  Object.keys(map).forEach(function(id){
+    var el = document.getElementById(id);
+    if (el && !el.value.trim()) el.value = map[id];
+  });
+  if (found) found.style.display = 'block';
+});
 
 document.querySelectorAll('[data-platform-pick]').forEach(function(box){
   box.addEventListener('change', function(){
