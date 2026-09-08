@@ -2334,7 +2334,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <div class="row" style="justify-content:space-between"><h3 id="modal-no-script-title">Пока не видим скрипт</h3><button class="btn text sm" data-modal-close="modal-no-script">✕</button></div>
     <p class="tiny" style="margin-top:10px">Не нашли код на сайте <b data-site-domain>alfa-school.ru</b>. Проверьте, что строка вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда мешает кеш.</p>
     <div class="row" style="margin-top:16px">
-      <button class="btn solid" data-modal-close="modal-no-script">Попробую ещё раз</button>
+      <button class="btn solid" id="no-script-retry" data-modal-close="modal-no-script">Проверить ещё раз</button>
       <button class="btn text" data-go="s-support" data-modal-close="modal-no-script">Написать в поддержку</button>
     </div>
   </div>
@@ -3282,6 +3282,17 @@ if (installActivateBtn) installActivateBtn.addEventListener('click', function(){
   if (installCheck !== 'found') return;
   siteStatus = 'trial';
   goScreen('s-project-paid');
+});
+
+/* «Проверить ещё раз» в попапе перезапускает ту же проверку. Без этого
+   кнопка только закрывала окно, и повторное нажатие «Проверить» под ним не
+   проходило — казалось, что экран сломался. */
+var noScriptRetry = document.getElementById('no-script-retry');
+if (noScriptRetry) noScriptRetry.addEventListener('click', function(){
+  setTimeout(function(){
+    var b = document.getElementById('install-action-btn');
+    if (b && !b.disabled) b.click();
+  }, 0);
 });
 
 var installActionBtn = document.getElementById('install-action-btn');
