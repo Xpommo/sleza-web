@@ -1685,9 +1685,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </aside>
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 6 из 6</div>
-    <div class="b green" style="font-size:15px">✓ Без оплаты — 24 часа бесплатно</div>
-    <h1 style="margin-top:6px">Осталось установить скрипт</h1>
-    <p class="lead" style="margin-top:8px">Одна строчка кода. Рабочие ссылки и виджет включатся сразу после установки и будут работать 24 часа бесплатно — оплатить можно в любой момент в течение суток, дальше мы обновляем всё сами.</p>
+    <h1>Установка скрипта</h1>
+    <p class="lead" style="margin-top:8px">Одна строчка кода в шаблон сайта — и всё, что собрали, начинает работать: куки-баннер, реквизиты в подвале, рабочие ссылки на документы.</p>
 
     <!-- Платформа и код — первым блоком (правка пользователя 8 сентября:
          «перенести сюда на самый верх, после выбора показывать скрипт с
@@ -1699,23 +1698,56 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          делегирование следом. -->
     <h2 style="margin-top:20px">Поставить самому</h2>
     <div class="card pad">
-      <label class="f" style="margin:0">На какой платформе сайт</label>
+      <label class="f" style="margin:0">Инструкция для вашей платформы</label>
+      <p class="tiny" style="margin-top:4px">Выбрали на шаге «О сайте». Если платформа другая — переключите.</p>
       <div class="tabs" id="install-cms-tabs" style="margin-top:8px"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
       <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <button class="btn sm copy-code-btn" data-copy-target="install-code" style="margin-top:10px">Скопировать код</button>
       <div class="hr"></div>
-      <div class="small" data-swapped="t1">Настройки сайта → Ещё → HTML-код для вставки внутрь HEAD → вставить строку → Опубликовать все страницы.</div>
-      <div class="small" data-swapped="t2" style="display:none">Внешний вид → Редактор тем → header.php → вставить перед &lt;/head&gt;.</div>
-      <div class="small" data-swapped="t3" style="display:none">Настройки → Настройки продукта → Сайты → шаблон сайта → вставить в секцию HEAD.</div>
-      <div class="small" data-swapped="t4" style="display:none">Вставьте строку в HTML любой страницы перед закрывающим тегом &lt;/head&gt;.</div>
+      <div class="small" data-swapped="t1">
+      <ol class="install-steps">
+        <li>Откройте <b>Настройки сайта</b> в панели Тильды</li>
+        <li>Перейдите в раздел <b>Ещё</b></li>
+        <li>Найдите поле <b>HTML-код для вставки внутрь HEAD</b></li>
+        <li>Вставьте туда скопированную строку</li>
+        <li>Нажмите <b>Опубликовать все страницы</b> — без этого код не появится на сайте</li>
+      </ol>
+      </div>
+      <div class="small" data-swapped="t2" style="display:none">
+      <ol class="install-steps">
+        <li>В админке WordPress откройте <b>Внешний вид → Редактор тем</b></li>
+        <li>Выберите файл <b>header.php</b></li>
+        <li>Найдите строку <b>&lt;/head&gt;</b></li>
+        <li>Вставьте скопированный код перед ней</li>
+        <li>Нажмите <b>Обновить файл</b></li>
+      </ol>
+      </div>
+      <div class="small" data-swapped="t3" style="display:none">
+      <ol class="install-steps">
+        <li>В админке Битрикса откройте <b>Настройки → Настройки продукта → Сайты</b></li>
+        <li>Выберите ваш сайт и откройте его <b>шаблон</b></li>
+        <li>Найдите секцию <b>HEAD</b></li>
+        <li>Вставьте туда скопированный код</li>
+        <li>Сохраните шаблон</li>
+      </ol>
+      </div>
+      <div class="small" data-swapped="t4" style="display:none">
+      <ol class="install-steps">
+        <li>Откройте HTML-шаблон сайта — тот файл, что подключается на всех страницах</li>
+        <li>Найдите закрывающий тег <b>&lt;/head&gt;</b></li>
+        <li>Вставьте скопированный код прямо перед ним</li>
+        <li>Сохраните и опубликуйте изменения</li>
+        <li>Если не знаете, где шаблон — отправьте инструкцию тому, кто ведёт сайт (ниже)</li>
+      </ol>
+      </div>
     </div>
 
     <!-- «Поручить» — вторым блоком, после установки самому: для
          персоны, которая сайт не трогает, это выход — переслать тому,
          кто ведёт сайт. -->
-    <h2 style="margin-top:20px">Поручить тому, кто делает сайт</h2>
-    <div class="card pad">
+    <h2 style="margin-top:20px" data-who-visible="owner staff">Поручить установку ответственному</h2>
+    <div class="card pad" data-who-visible="owner staff">
       <p class="tiny" style="margin-bottom:10px">Не нужно разбираться самим — перешлите тому, кто ведёт сайт. Без регистрации и входа в кабинет, только вставить одну строку кода.</p>
       <label class="f">Почта разработчика</label><input class="inp mono" id="install-dev-email" placeholder="dev@studio.ru"><p class="tiny anketa-field-error" id="install-dev-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту разработчика — иначе некуда отправлять.</p><button id="send-instructions-btn" class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
     </div>
@@ -1750,24 +1782,29 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
          между ними целиком на `syncPayState()`. -->
     <div class="card pad" data-install="notfound" style="margin-top:14px">
       <div class="b red">✕ Скрипт на сайте не найден</div>
-      <p class="small" style="margin-top:6px;color:var(--ink-2)">Проверили alfa-school.ru минуту назад. Если только что вставили — подождите минуту и проверьте ещё раз, часто дело в кеше. Публикуете через конструктор (Тильда, Битрикс) — убедитесь, что нажали «Опубликовать». Не находит и через 10 минут — напишите в поддержку.</p>
-      <div class="row" style="margin-top:10px;gap:8px">
-        <button class="btn solid sm check-install-btn">↻ Проверить установку</button>
-        <button class="btn sm" data-go="s-support">Написать в поддержку</button>
-      </div>
+      <p class="small" style="margin-top:6px;color:var(--ink-2)">Если только что вставили — подождите минуту и проверьте ещё раз, часто дело в кеше. Публикуете через конструктор (Тильда, Битрикс) — убедитесь, что нажали «Опубликовать». Не находит и через 10 минут — напишите в поддержку.</p>
+      <button class="btn sm" style="margin-top:10px" data-go="s-support">Написать в поддержку</button>
+    </div>
+
+    <div class="card pad" data-install="found" style="margin-top:14px;border-color:rgba(26,122,82,.3)">
+      <div class="b green">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
+      <p class="small" style="margin-top:6px;color:var(--ink-2)">Всё на месте. Осталось запустить пробный период — с этой минуты 24 часа документы и виджет работают бесплатно, оплатить можно в любой момент внутри этих суток.</p>
     </div>
 
     <div class="hr" style="margin-top:20px"></div>
-    <div class="step-nav" data-install="found">
+    <!-- Одна кнопка на два состояния (8 сентября, замысел пользователя):
+         пока скрипт не найден — «Проверить скрипт на сайте», после
+         нахождения — «Запустить пробный период». Отсчёт 24 часов начинается
+         именно с нажатия, а не с установки кода: так у границы бесплатных
+         суток есть понятный момент старта, о котором человек знает заранее. -->
+    <div class="step-nav">
       <button type="button" class="btn" data-go="s-ready">← Назад</button>
-      <button type="button" class="btn solid" data-go="s-project-paid" data-set-status="trial">Готово → в кабинет</button>
+      <button type="button" class="btn solid" id="install-action-btn">↻ Проверить скрипт на сайте</button>
     </div>
-    <p class="tiny" data-install="found" style="text-align:center;margin-top:10px">Отсчёт бесплатных 24 часов начался с этого момента</p>
-    <div class="step-nav" data-install="notfound">
-      <button type="button" class="btn" data-go="s-ready">← Назад</button>
-      <button type="button" class="btn solid" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button>
+    <p class="tiny" id="install-action-note" style="text-align:center;margin-top:10px">Проверим, появился ли код на сайте. Пробный период запустится следующим шагом — 24 часа с момента запуска</p>
+    <div class="step-nav" data-install="notfound" style="margin-top:10px">
+      <button type="button" class="btn" style="width:100%" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button>
     </div>
-    <p class="tiny" data-install="notfound" style="text-align:center;margin-top:10px">В кабинете статус будет честным — «не установлено», пока проверка не найдёт скрипт</p>
     </main>
   </div>
   <div class="sticky-cta solo"><button type="button" class="btn solid check-install-btn">↻ Проверить установку</button></div>
@@ -2271,6 +2308,21 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
   </div>
 </div>
 
+<!-- Алерт при неудачной проверке (8 сентября, замысел пользователя):
+     лояльный тон вместо ошибки — код мог не успеть попасть в кеш, это
+     нормально. Домен подставляется, чтобы было видно, что именно
+     проверяли. -->
+<div class="modal-overlay" data-state="closed" id="modal-no-script" role="dialog" aria-modal="true" aria-labelledby="modal-no-script-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
+    <div class="row" style="justify-content:space-between"><h3 id="modal-no-script-title">Пока не видим скрипт</h3><button class="btn text sm" data-modal-close="modal-no-script">✕</button></div>
+    <p class="tiny" style="margin-top:10px">Не нашли код на сайте <b data-site-domain>alfa-school.ru</b>. Проверьте, что строка вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда мешает кеш.</p>
+    <div class="row" style="margin-top:16px">
+      <button class="btn solid" data-modal-close="modal-no-script">Попробую ещё раз</button>
+      <button class="btn text" data-go="s-support" data-modal-close="modal-no-script">Написать в поддержку</button>
+    </div>
+  </div>
+</div>
+
 <!-- модалка отмены подписки — раньше срабатывала мгновенно по клику,
      без подтверждения и без опоры на текст последствий, который уже
      есть на s-project-paid. Тот же текст закрепляется здесь, на шаге,
@@ -2677,7 +2729,10 @@ function syncPdContact(){
 // проходит через siteStatus='unpaid', с которым «уже работают» и так
 // нигде не соседствует — см. кнопку «Поставлю позже →» на s-install).
 // 'notfound' — демо через dev-console: installCheck='notfound'; syncPayState();
-var installCheck = 'found';
+// Скрипт не проверен, пока человек не нажал «Проверить» — до этого
+// момента у кабинета нет оснований считать его установленным (8 сентября:
+// кнопка на шаге 6 сама переводит состояние в 'found').
+var installCheck = 'notfound';
 // 'none' | 'sbp-declined' | 'invoice-stalled' — независимый UX-аудит, критика A,
 // приоритет P1: не было ни одного состояния отказа оплаты. Реального бэкенда
 // нет, недостижимо кликом — тот же паттерн, что installCheck/'expired': демо
@@ -2849,6 +2904,8 @@ function goScreen(id){
   syncPayState();
   syncAnketaSubstep();
   syncSiteNaming();
+  syncWhoVisible();
+  syncInstallAction();
   paintNav(id);
   window.scrollTo(0,0);
 }
@@ -3186,6 +3243,50 @@ if (noCallsContinue) noCallsContinue.addEventListener('click', goToRequisites);
 /* Форма собственности — те же чекбоксы-как-радио, что у платформы:
    вид общий со всей анкетой, но выбор один. Панели полей переключаются
    тем же [data-swapped], что и раньше. */
+/* Кнопка установки живёт в двух состояниях. Пока скрипт не найден — она
+   проверяет сайт; найдя — превращается в «Запустить пробный период», и
+   отсчёт 24 часов идёт с нажатия. В макете первая проверка всегда
+   неуспешна, вторая находит: так без dev-переключателя видно оба исхода —
+   и алерт, и запуск. */
+var installProbes = 0;
+function syncInstallAction(){
+  var btn = document.getElementById('install-action-btn');
+  var note = document.getElementById('install-action-note');
+  if (!btn) return;
+  var found = installCheck === 'found';
+  btn.textContent = found ? 'Запустить пробный период →' : '↻ Проверить скрипт на сайте';
+  if (note) note.textContent = found
+    ? 'Отсчёт 24 бесплатных часов начнётся с этого нажатия'
+    : 'Проверим, появился ли код на сайте. Пробный период запустится следующим шагом — 24 часа с момента запуска';
+}
+var installActionBtn = document.getElementById('install-action-btn');
+if (installActionBtn) installActionBtn.addEventListener('click', function(){
+  if (installCheck === 'found') {
+    siteStatus = 'trial';
+    goScreen('s-project-paid');
+    return;
+  }
+  flashChecking(installActionBtn);
+  setTimeout(function(){
+    installProbes++;
+    installCheck = (installProbes >= 2) ? 'found' : 'notfound';
+    syncPayState();
+    syncInstallAction();
+    if (installCheck !== 'found') {
+      var m = document.getElementById('modal-no-script');
+      if (m) openModal(m, installActionBtn);
+    }
+  }, 1500);
+});
+
+/* Блок «поручить установку» не показываем подрядчикам: веб-мастер или
+   агентство и есть тот, кому это поручают (правка пользователя). */
+function syncWhoVisible(){
+  document.querySelectorAll('[data-who-visible]').forEach(function(el){
+    el.style.display = el.dataset.whoVisible.split(' ').indexOf(whoFills) === -1 ? 'none' : '';
+  });
+}
+
 document.querySelectorAll('[data-ownership-pick]').forEach(function(box){
   box.addEventListener('change', function(){
     if (!box.checked) { box.checked = true; return; }
@@ -3319,7 +3420,7 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
     });
     if (b.dataset.setPlatform) sitePlatform = b.dataset.setPlatform;
     if (b.dataset.setOwnership) { siteOwnership = b.dataset.setOwnership; syncPayState(); }
-    if (b.dataset.setWho) { whoFills = b.dataset.setWho; syncPdContact(); }
+    if (b.dataset.setWho) { whoFills = b.dataset.setWho; syncPdContact(); syncWhoVisible(); }
   });
 });
 
