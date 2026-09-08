@@ -208,7 +208,7 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
 .check[hidden]{display:none}
 .check input{appearance:none;width:19px;height:19px;flex:none;margin-top:1px;border:1.5px solid var(--line-2);
   border-radius:6px;background:#fff;cursor:pointer;position:relative}
-.check input:checked{background:var(--ink);border-color:var(--ink)}
+.check input:checked{background:var(--ok);border-color:var(--ok)}
 .check input:checked::after{content:"";position:absolute;left:6px;top:2px;width:4px;height:9px;
   border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
 .check .t{font-size:14px}
@@ -1057,7 +1057,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <!-- data-go снят намеренно: переход делает wireStepGate после проверки
            домена и названия, иначе общий [data-go]-обработчик увёл бы вперёд
            независимо от гейта (та же грабля, что уже ловили на регистрации). -->
-      <button type="button" class="btn solid wide" id="anketa-start-next">Далее →</button>
+      <div class="step-nav">
+        <button type="button" class="btn" data-go="s-status">← Назад</button>
+        <button type="button" class="btn solid" id="anketa-start-next">Далее →</button>
+      </div>
     </main>
   </div>
 </section>
@@ -1128,17 +1131,20 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
-            <label class="f">Стоит аналитика — Яндекс.Метрика, Google Analytics?</label>
-            <div class="seg" id="anketa-analytics-seg" style="margin-top:6px">
-              <button type="button" data-swap="analytics-no">Нет</button>
-              <button type="button" class="on" data-swap="analytics-yes">Да</button>
+            <label class="f">Какая аналитика стоит на сайте</label>
+            <div style="margin-top:4px">
+              <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Яндекс.Метрика</span></label>
+              <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Google Analytics</span></label>
+              <label class="check"><input type="checkbox" data-excl="analytics" data-excl-none><span class="t">Нет аналитики</span></label>
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
-            <label class="f">Сайт использует куки ещё для чего-то — корзина, авторизация, персонализация?</label>
-            <div class="seg" id="anketa-cookies-seg" style="margin-top:6px">
-              <button type="button" class="on" data-swap="cookies-no">Нет</button>
-              <button type="button" data-swap="cookies-yes">Да</button>
+            <label class="f">Есть ли на сайте</label>
+            <div style="margin-top:4px">
+              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Корзина</span></label>
+              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Личный кабинет</span></label>
+              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Виджеты обратной связи</span></label>
+              <label class="check"><input type="checkbox" data-excl="features" data-excl-none><span class="t">Нет ничего</span></label>
             </div>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это спрашиваем ⌄</button>
             <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Куки-баннер и cookie-политика входят в пакет всегда — ответы не убирают и не добавляют документ, только делают его текст точным: что именно на сайте собирается, а не общая формулировка на все случаи.</p>
@@ -3034,6 +3040,22 @@ if (consentBox) consentBox.addEventListener('change', function(){
 document.querySelectorAll('[data-find]').forEach(function(b){
   b.addEventListener('click', function(){ b.closest('.find').classList.toggle('open'); });
 });
+/* Варианты «Нет аналитики» и «Нет ничего» исключают остальные в своей
+   группе и наоборот — иначе можно отметить и «Яндекс.Метрика», и «Нет
+   аналитики» разом. Группа задаётся data-excl, отрицающий вариант —
+   data-excl-none. */
+document.querySelectorAll('[data-excl]').forEach(function(box){
+  box.addEventListener('change', function(){
+    if (!box.checked) return;
+    var group = box.dataset.excl;
+    var isNone = box.hasAttribute('data-excl-none');
+    document.querySelectorAll('[data-excl="' + group + '"]').forEach(function(other){
+      if (other === box) return;
+      if (isNone || other.hasAttribute('data-excl-none')) other.checked = false;
+    });
+  });
+});
+
 document.querySelectorAll('[data-fold]').forEach(function(b){
   b.addEventListener('click', function(){
     var box = document.getElementById(b.dataset.fold);
