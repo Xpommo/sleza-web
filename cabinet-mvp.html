@@ -1903,9 +1903,13 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
       <div class="state" data-pay-state="unpaid" style="margin-top:16px">
         <div class="card pad">
           <span class="b" style="font-size:16px;color:rgba(17,17,16,.62)">— Пока не установлено</span>
-          <p class="lead" style="margin-top:8px">Документы ещё не подключены к сайту.</p>
+          <p class="lead" style="margin-top:8px">Документы собраны, но скрипт ещё не стоит на сайте — поэтому виджет не работает и пробный период не запущен.</p>
           <div class="hr"></div>
-          <button type="button" class="btn solid sm" data-go="s-ready">Продолжить настройку →</button>
+          <!-- Ведёт на установку, а не на «Что подготовили» (правка пользователя
+               8 сентября): в этом состоянии человек ушёл именно с шага установки,
+               нажав «Поставлю позже» — возвращать его на шаг назад значит
+               заставить пройти уже пройденное. -->
+          <button type="button" class="btn solid sm" data-go="s-install">Установить скрипт →</button>
         </div>
       </div>
 
