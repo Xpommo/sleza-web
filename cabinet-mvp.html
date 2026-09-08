@@ -1003,27 +1003,36 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 1 из 6</div>
       <h1>Знакомство</h1>
-      <p class="lead" style="margin-top:8px">Пара минут на знакомство, дальше вопросы о сайте. Реквизиты понадобятся на последнем шаге — держите под рукой.</p>
+      <p class="lead" style="margin-top:8px">Пара минут на знакомство, дальше вопросы о сайте.</p>
 
       <div class="card pad state" data-has-identity="false" style="margin-top:16px">
         <h3>Кто заполняет анкету?</h3>
         <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник</button><button type="button" data-swap="who-contractor" data-set-who="contractor">Подрядчик</button></div>
         <p class="tiny" style="margin-top:8px">Агентство или фрилансер — тоже подрядчик.</p>
+
+        <label class="f" style="margin-top:14px" for="anketa-person-name">Как к вам обращаться</label>
+        <input class="inp" id="anketa-person-name" placeholder="Кирилл">
+        <p class="tiny anketa-field-error" id="anketa-person-name-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите имя — так будем обращаться в письмах.</p>
+
+        <label class="f" style="margin-top:10px" for="anketa-person-mail">Почта</label>
+        <input class="inp" id="anketa-person-mail" type="email" placeholder="kirill@alfa-school.ru">
+        <p class="tiny anketa-field-error" id="anketa-person-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придут счёт и письма о продлении.</p>
+
+        <label class="f" style="margin-top:10px" for="anketa-person-backup">Резервная связь</label>
+        <input class="inp" id="anketa-person-backup" placeholder="Телефон или @ник в Telegram">
+        <p class="tiny" style="margin-top:5px">Необязательно. Напишем сюда, если письма перестанут доходить, а с сайтом что-то не так.</p>
       </div>
 
       <div class="card pad" style="margin-top:10px">
         <h3>Домен и название сайта</h3>
-        <label class="f" for="add-domain">Домен сайта</label>
-        <input class="inp mono" id="add-domain" placeholder="alfa-school.ru">
+        <input class="inp mono" id="add-domain" aria-label="Домен сайта" placeholder="alfa-school.ru" style="margin-top:10px">
         <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
-        <label class="f" style="margin-top:10px" for="add-name">Название компании или сайта</label>
-        <input class="inp" id="add-name" placeholder="Альфа Образование">
+        <input class="inp" id="add-name" aria-label="Название компании или сайта" placeholder="Название компании или сайта" style="margin-top:10px">
         <p class="tiny anketa-field-error" id="add-name-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите название — так сайт будет называться в кабинете.</p>
       </div>
 
       <div class="card pad" style="margin-top:10px">
-        <h3>Какая у вас сфера?</h3>
-        <p class="tiny" style="margin:6px 0 12px">От неё зависят формулировки в документах.</p>
+        <h3 style="margin-bottom:10px">Какая у вас сфера?</h3>
         <select class="inp" id="anketa-sphere-select">
           <option data-sphere="school">Онлайн-школа, курсы, репетиторство</option>
           <option data-regulated="1" data-sphere="kids">Детский центр, кружки, секции</option>
@@ -1039,6 +1048,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <option data-sphere="manuf">Производство</option>
           <option data-sphere="other">Другое</option>
         </select>
+      
+        <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-sphere">Зачем это нужно ⌄</button>
+        <p class="tiny" id="fold-sphere" style="display:none;margin-top:8px">От сферы зависят формулировки в документах: цели сбора контактов, состав данных, оговорки. Для медицины, финансов и работы с детьми есть отраслевые требования — их этот пакет не покрывает, о них скажем отдельно.</p>
       </div>
 
       <div class="hr" style="margin-top:20px"></div>
@@ -2866,6 +2878,9 @@ var DOMAIN_RE = /^(?!-)[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/i;
 wirePatternValidation('add-domain', 'add-domain-error', function(v){
   return DOMAIN_RE.test(v.replace(/^https?:\/\//i, '').replace(/\/.*$/, ''));
 });
+wirePatternValidation('anketa-person-mail', 'anketa-person-mail-error', function(v){
+  return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v);
+});
 wirePatternValidation('anketa-pd-contact', 'anketa-pd-contact-error', function(v){
   return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v) || /^[+\d][\d\s()\-]{9,}$/.test(v);
 });
@@ -2902,7 +2917,10 @@ if (readyBack) readyBack.addEventListener('click', function(){
 wireStepGate('anketa-start-next', [
   {id:'add-domain', errorId:'add-domain-error', test:function(v){
     return DOMAIN_RE.test(v.replace(/^https?:\/\//i, '').replace(/\/.*$/, '')); }},
-  {id:'add-name', errorId:'add-name-error'}
+  {id:'add-name', errorId:'add-name-error'},
+  {id:'anketa-person-name', errorId:'anketa-person-name-error'},
+  {id:'anketa-person-mail', errorId:'anketa-person-mail-error', test:function(v){
+    return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v); }}
 ], function(){
   hasSite = true;        // сайт появляется в «Моих сайтах» только после шага 1
   hasIdentity = true;    // «кто заполняет» спрашиваем один раз на аккаунт
