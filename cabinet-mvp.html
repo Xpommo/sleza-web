@@ -1129,11 +1129,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  выбор здесь был бы враньём — от платформы зависит, какую одну
                  инструкцию открыть на шаге установки (sitePlatform). -->
             <div style="margin-top:4px">
-              <label class="check"><input type="checkbox" data-platform-pick="tilda" checked><span class="t">Тильда</span></label>
+              <label class="check"><input type="checkbox" data-platform-pick="tilda"><span class="t">Тильда</span></label>
               <label class="check"><input type="checkbox" data-platform-pick="wp"><span class="t">WordPress</span></label>
               <label class="check"><input type="checkbox" data-platform-pick="bitrix"><span class="t">Битрикс</span></label>
               <label class="check"><input type="checkbox" data-platform-pick="other"><span class="t">Другое</span></label>
             </div>
+            <p class="tiny anketa-field-error" id="anketa-platform-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите платформу — от неё зависит инструкция по установке на последнем шаге.</p>
 
             <div class="hr" style="margin:14px 0"></div>
             <h3 style="margin-bottom:8px">Какая аналитика стоит на сайте</h3>
@@ -1239,9 +1240,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                у самозанятого нет ни ОГРН, ни КПП. -->
           <div class="card pad" id="anketa-req-card" style="margin-top:16px">
             <h3 style="margin-bottom:8px">Форма собственности</h3>
-            <label class="check"><input type="checkbox" data-ownership-pick="ooo" checked><span class="t">ООО</span></label>
+            <label class="check"><input type="checkbox" data-ownership-pick="ooo"><span class="t">ООО</span></label>
             <label class="check"><input type="checkbox" data-ownership-pick="ip"><span class="t">ИП</span></label>
             <label class="check"><input type="checkbox" data-ownership-pick="self"><span class="t">Самозанятый</span></label>
+            <p class="tiny anketa-field-error" id="anketa-ownership-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите форму собственности — от неё зависит, какие реквизиты спрашивать.</p>
           </div>
 
           <div class="card pad" style="margin-top:10px">
@@ -1251,7 +1253,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <p class="tiny anketa-field-error" id="anketa-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
             <p class="tiny" id="anketa-inn-found" style="display:none;margin-top:6px;color:var(--ok)">✓ Нашли по ИНН — проверьте, что всё верно</p>
 
-            <div data-swapped="own-ooo" style="margin-top:10px">
+            <div data-swapped="own-ooo" style="display:none;margin-top:10px">
               <label class="f" for="req-name-ooo">Наименование <span style="color:var(--danger)">*</span></label>
               <input class="inp" id="req-name-ooo" placeholder="ООО «Ромашка»">
             </div>
@@ -1264,7 +1266,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <input class="inp" id="req-name-self" placeholder="Иванова Мария Сергеевна">
             </div>
 
-            <div data-swapped="own-ooo">
+            <div data-swapped="own-ooo" style="display:none">
               <label class="f" style="margin-top:10px" for="anketa-ogrn">ОГРН <span style="color:var(--danger)">*</span></label>
               <input class="inp mono" id="anketa-ogrn" placeholder="13 цифр" maxlength="13" inputmode="numeric">
               <p class="tiny anketa-field-error" id="anketa-ogrn-error" style="display:none;margin-top:5px;color:var(--danger)">ОГРН — 13 цифр. Проверьте, не пропущена ли часть номера.</p>
@@ -2939,11 +2941,11 @@ wirePatternValidation('anketa-pd-contact', 'anketa-pd-contact-error', function(v
    была регистрация (wireRegisterGate). Тот же приём: data-go с кнопки
    снят, переход делает сам гейт, иначе общий [data-go]-обработчик
    увёл бы вперёд независимо от проверки. */
-function wireStepGate(btnId, fields, onPass){
+function wireStepGate(btnId, fields, onPass, extraCheck){
   var btn = document.getElementById(btnId);
   if (!btn) return;
   btn.addEventListener('click', function(){
-    var ok = true;
+    var ok = extraCheck ? extraCheck() : true;
     fields.forEach(function(f){
       var input = document.getElementById(f.id);
       var error = document.getElementById(f.errorId);
@@ -2987,7 +2989,14 @@ wireStepGate('anketa-req-next', [
   {id:'anketa-bank', errorId:'anketa-bank-error'},
   {id:'anketa-bik', errorId:'anketa-bik-error', test:function(v){ return v.replace(/\D/g,'').length === 9; }},
   {id:'anketa-corr', errorId:'anketa-corr-error', test:function(v){ return v.replace(/\D/g,'').length === 20; }}
-], function(){ goScreen('s-ready'); });
+], function(){ goScreen('s-ready'); }, function(){
+  // форма собственности не поле ввода, поэтому проверяется отдельным
+  // условием: без неё непонятно, какие из скрытых полей вообще нужны
+  var picked = document.querySelector('[data-ownership-pick]:checked');
+  var err = document.getElementById('anketa-ownership-error');
+  if (err) err.style.display = picked ? 'none' : 'block';
+  return !!picked;
+});
 
 wireStepGate('anketa-start-next', [
   {id:'add-domain', errorId:'add-domain-error', test:function(v){
@@ -3158,6 +3167,8 @@ document.querySelectorAll('[data-ownership-pick]').forEach(function(box){
       if (other !== box) other.checked = false;
     });
     siteOwnership = box.dataset.ownershipPick;
+    var ownErr = document.getElementById('anketa-ownership-error');
+    if (ownErr) ownErr.style.display = 'none';
     var card = box.closest('.anketa-col') || document;
     card.querySelectorAll('[data-swapped^="own-"]').forEach(function(panel){
       panel.style.display = (panel.dataset.swapped === 'own-' + siteOwnership) ? '' : 'none';
@@ -3182,7 +3193,9 @@ if (innInput) innInput.addEventListener('input', function(){
   var found = document.getElementById('anketa-inn-found');
   var fits = (digits.length === 10 || digits.length === 12);
   if (!fits) { if (found) found.style.display = 'none'; return; }
-  var map = INN_LOOKUP[siteOwnership] || {};
+  var picked = document.querySelector('[data-ownership-pick]:checked');
+  if (!picked) { if (found) found.style.display = 'none'; return; }
+  var map = INN_LOOKUP[picked.dataset.ownershipPick] || {};
   Object.keys(map).forEach(function(id){
     var el = document.getElementById(id);
     if (el && !el.value.trim()) el.value = map[id];
@@ -3197,6 +3210,8 @@ document.querySelectorAll('[data-platform-pick]').forEach(function(box){
       if (other !== box) other.checked = false;
     });
     sitePlatform = box.dataset.platformPick;
+    var platErr = document.getElementById('anketa-platform-error');
+    if (platErr) platErr.style.display = 'none';
     syncPayState();
   });
 });
@@ -3306,6 +3321,10 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
    подшаг «Работа с клиентами» и ведёт сразу на «Реквизиты». */
 var siteNextBtn = document.getElementById('anketa-site-next');
 if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
+  var platformPicked = document.querySelector('[data-platform-pick]:checked');
+  var platformErr = document.getElementById('anketa-platform-error');
+  if (platformErr) platformErr.style.display = platformPicked ? 'none' : 'block';
+  if (!platformPicked) return;
   var noneBox = document.querySelector('[data-excl="features"][data-excl-none]');
   var formsYes = !(noneBox && noneBox.checked);
   // без форм на сайте вопрос «звоните/пишете клиентам» не про сайт — подшаг пропускается
