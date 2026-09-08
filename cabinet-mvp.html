@@ -1008,19 +1008,20 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="card pad state" data-has-identity="false" style="margin-top:16px">
         <h3>Кто заполняет анкету?</h3>
         <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник</button><button type="button" data-swap="who-contractor" data-set-who="contractor">Подрядчик</button></div>
-        <p class="tiny" style="margin-top:8px">Агентство или фрилансер — тоже подрядчик.</p>
 
-        <label class="f" style="margin-top:14px" for="anketa-person-name">Как к вам обращаться</label>
+        <label class="f" style="margin-top:14px" for="anketa-person-name">Как к вам обращаться <span style="color:var(--danger)">*</span></label>
         <input class="inp" id="anketa-person-name" placeholder="Кирилл">
         <p class="tiny anketa-field-error" id="anketa-person-name-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите имя — так будем обращаться в письмах.</p>
 
-        <label class="f" style="margin-top:10px" for="anketa-person-mail">Почта</label>
+        <label class="f" style="margin-top:10px" for="anketa-person-mail">Почта <span style="color:var(--danger)">*</span></label>
         <input class="inp" id="anketa-person-mail" type="email" placeholder="kirill@alfa-school.ru">
         <p class="tiny anketa-field-error" id="anketa-person-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придут счёт и письма о продлении.</p>
 
         <label class="f" style="margin-top:10px" for="anketa-person-backup">Резервная связь</label>
-        <input class="inp" id="anketa-person-backup" placeholder="Телефон или @ник в Telegram">
-        <p class="tiny" style="margin-top:5px">Необязательно. Напишем сюда, если письма перестанут доходить, а с сайтом что-то не так.</p>
+        <input class="inp mono" id="anketa-person-backup" inputmode="tel" placeholder="+7 (___) ___-__-__">
+
+        <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-person">Зачем это нужно ⌄</button>
+        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">Агентство или фрилансер — тоже подрядчик: спрашиваем, чтобы задавать вопросы тому, кто знает ответ. На почту придут счёт, письма о продлении и сообщения, если виджет перестанет работать. Резервная связь необязательна — позвоним по ней, только если письма перестанут доходить.</p>
       </div>
 
       <div class="card pad" style="margin-top:10px">
@@ -2899,6 +2900,10 @@ function wireStepGate(btnId, fields, onPass){
       var input = document.getElementById(f.id);
       var error = document.getElementById(f.errorId);
       if (!input) return;
+      // скрытое поле не проверяем: карточка «кто заполняет» вместе с
+      // контактами показывается только на первом сайте (data-has-identity),
+      // на втором её нет — иначе гейт требовал бы заполнить то, чего не видно
+      if (!input.offsetParent) return;
       var v = input.value.trim();
       var bad = v === '' || (f.test && !f.test(v));
       input.classList.toggle('error', bad);
