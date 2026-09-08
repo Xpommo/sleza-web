@@ -1050,7 +1050,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         </select>
       
         <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-sphere">Зачем это нужно ⌄</button>
-        <p class="tiny" id="fold-sphere" style="display:none;margin-top:8px">От сферы зависят формулировки в документах: цели сбора контактов, состав данных, оговорки. Для медицины, финансов и работы с детьми есть отраслевые требования — их этот пакет не покрывает, о них скажем отдельно.</p>
+        <p class="tiny" id="fold-sphere" style="display:none;margin-top:8px">От сферы зависят формулировки в документах: цели сбора контактов, состав данных, оговорки.</p>
       </div>
 
       <div class="hr" style="margin-top:20px"></div>
@@ -3130,11 +3130,13 @@ if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
   syncAnketaSubstep();
 });
 
-/* сфера на s-anketa (Блок 1) помечена data-regulated у части option —
-   медицина/финансы/детские центры имеют отраслевые требования, которых
-   пакет 1+2+2 не покрывает (дыра #3 из независимого ревью, 24.08).
-   Чек-лист живёт на s-anketa2 (Блок 2), оба экрана в одном DOM — просто
-   переключаем hidden у уже отрисованной строки, без ожидания перехода. */
+/* ОТКРЫТЫЙ ВОПРОС: медицина/финансы/детские центры помечены
+   data-regulated — у них есть отраслевые требования, которых пакет не
+   покрывает (дыра #3 из независимого ревью, 24.08). Предупреждение об
+   этом жило строкой в чек-листе анкеты; чек-лист убран 7 сентября, а
+   оговорку в развороте «Зачем это нужно» пользователь убрал 8 сентября —
+   сейчас продукт об этом ограничении не говорит нигде. Атрибуты
+   оставлены, чтобы вернуть предупреждение без повторного разбора. */
 /* «Для чего вы собираете контакты» (s-anketa2, подшаг 3) — пул из 8
    целей, видимые зависят от сферы, выбранной здесь же на s-anketa.
    Ключи — data-sphere у <option>, значения — data-purpose у .check.
@@ -3170,8 +3172,6 @@ var sphereSelect = document.getElementById('anketa-sphere-select');
 if (sphereSelect) {
   syncPurposes();
   sphereSelect.addEventListener('change', function(){
-    var regulated = sphereSelect.selectedOptions[0].hasAttribute('data-regulated');
-    document.querySelectorAll('[data-cl-industry]').forEach(function(el){ el.hidden = !regulated; });
     syncPurposes();
   });
 }
