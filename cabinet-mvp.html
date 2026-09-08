@@ -1741,6 +1741,24 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <li>Если не знаете, где шаблон — отправьте инструкцию тому, кто ведёт сайт (ниже)</li>
       </ol>
       </div>
+      <div class="hr" style="margin-top:16px"></div>
+      <button type="button" class="btn solid wide" id="install-action-btn">↻ Проверить скрипт на сайте</button>
+      <p class="tiny" id="install-action-note" style="text-align:center;margin-top:8px">Проверим, появился ли код на сайте. Пробный период начнётся с момента запуска — 24 часа с этой минуты</p>
+
+      <!-- Результат проверки показывается здесь же, а не всплывающим окном
+           (8 сентября): окно по центру экрана выпадало из языка кабинета, а
+           ответ на «нажми проверить» логично видеть там, где нажал. До
+           первой проверки блок пуст — красная плашка «не найден» больше не
+           встречает человека до того, как он что-то сделал. -->
+      <div data-install="notfound" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--danger-tint);border:1px solid rgba(214,56,22,.25)">
+        <div class="b red" style="font-size:14px">✕ Не видим скрипт на <span data-site-domain>alfa-school.ru</span></div>
+        <p class="tiny" style="margin-top:5px">Проверьте, что строка вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда мешает кеш. Не находит и через 10 минут — напишите в поддержку.</p>
+        <button class="btn text sm" style="padding:0;margin-top:6px" data-go="s-support">Написать в поддержку →</button>
+      </div>
+      <div data-install="found" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--ok-tint);border:1px solid rgba(26,122,82,.25)">
+        <div class="b green" style="font-size:14px">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
+        <p class="tiny" style="margin-top:5px">Всё на месте. Осталось активировать пробный период — 24 часа документы и виджет работают бесплатно.</p>
+      </div>
     </div>
 
     <!-- «Поручить» — вторым блоком, после установки самому: для
@@ -1780,30 +1798,10 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
          проставлен ни на одной из карточек — обе видны в no-JS фолбэке
          (тот же принцип, что `.state` без класса `.js` на body), выбор
          между ними целиком на `syncPayState()`. -->
-    <div class="card pad" data-install="notfound" style="margin-top:14px">
-      <div class="b red">✕ Скрипт на сайте не найден</div>
-      <p class="small" style="margin-top:6px;color:var(--ink-2)">Если только что вставили — подождите минуту и проверьте ещё раз, часто дело в кеше. Публикуете через конструктор (Тильда, Битрикс) — убедитесь, что нажали «Опубликовать». Не находит и через 10 минут — напишите в поддержку.</p>
-      <button class="btn sm" style="margin-top:10px" data-go="s-support">Написать в поддержку</button>
-    </div>
-
-    <div class="card pad" data-install="found" style="margin-top:14px;border-color:rgba(26,122,82,.3)">
-      <div class="b green">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
-      <p class="small" style="margin-top:6px;color:var(--ink-2)">Всё на месте. Осталось запустить пробный период — с этой минуты 24 часа документы и виджет работают бесплатно, оплатить можно в любой момент внутри этих суток.</p>
-    </div>
-
     <div class="hr" style="margin-top:20px"></div>
-    <!-- Одна кнопка на два состояния (8 сентября, замысел пользователя):
-         пока скрипт не найден — «Проверить скрипт на сайте», после
-         нахождения — «Запустить пробный период». Отсчёт 24 часов начинается
-         именно с нажатия, а не с установки кода: так у границы бесплатных
-         суток есть понятный момент старта, о котором человек знает заранее. -->
     <div class="step-nav">
       <button type="button" class="btn" data-go="s-ready">← Назад</button>
-      <button type="button" class="btn solid" id="install-action-btn">↻ Проверить скрипт на сайте</button>
-    </div>
-    <p class="tiny" id="install-action-note" style="text-align:center;margin-top:10px">Проверим, появился ли код на сайте. Пробный период запустится следующим шагом — 24 часа с момента запуска</p>
-    <div class="step-nav" data-install="notfound" style="margin-top:10px">
-      <button type="button" class="btn" style="width:100%" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button>
+      <button type="button" class="btn" style="flex:1" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button>
     </div>
     </main>
   </div>
@@ -2308,21 +2306,6 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
   </div>
 </div>
 
-<!-- Алерт при неудачной проверке (8 сентября, замысел пользователя):
-     лояльный тон вместо ошибки — код мог не успеть попасть в кеш, это
-     нормально. Домен подставляется, чтобы было видно, что именно
-     проверяли. -->
-<div class="modal-overlay" data-state="closed" id="modal-no-script" role="dialog" aria-modal="true" aria-labelledby="modal-no-script-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
-  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
-    <div class="row" style="justify-content:space-between"><h3 id="modal-no-script-title">Пока не видим скрипт</h3><button class="btn text sm" data-modal-close="modal-no-script">✕</button></div>
-    <p class="tiny" style="margin-top:10px">Не нашли код на сайте <b data-site-domain>alfa-school.ru</b>. Проверьте, что строка вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда мешает кеш.</p>
-    <div class="row" style="margin-top:16px">
-      <button class="btn solid" data-modal-close="modal-no-script">Попробую ещё раз</button>
-      <button class="btn text" data-go="s-support" data-modal-close="modal-no-script">Написать в поддержку</button>
-    </div>
-  </div>
-</div>
-
 <!-- модалка отмены подписки — раньше срабатывала мгновенно по клику,
      без подтверждения и без опоры на текст последствий, который уже
      есть на s-project-paid. Тот же текст закрепляется здесь, на шаге,
@@ -2729,10 +2712,10 @@ function syncPdContact(){
 // проходит через siteStatus='unpaid', с которым «уже работают» и так
 // нигде не соседствует — см. кнопку «Поставлю позже →» на s-install).
 // 'notfound' — демо через dev-console: installCheck='notfound'; syncPayState();
-// Скрипт не проверен, пока человек не нажал «Проверить» — до этого
-// момента у кабинета нет оснований считать его установленным (8 сентября:
-// кнопка на шаге 6 сама переводит состояние в 'found').
-var installCheck = 'notfound';
+// 'unknown' — ещё не проверяли: ни одна плашка результата не показывается,
+// человека не встречает красное «не найден» до того, как он что-то сделал.
+// Дальше кнопка на шаге 6 переводит состояние в 'notfound' или 'found'.
+var installCheck = 'unknown';
 // 'none' | 'sbp-declined' | 'invoice-stalled' — независимый UX-аудит, критика A,
 // приоритет P1: не было ни одного состояния отказа оплаты. Реального бэкенда
 // нет, недостижимо кликом — тот же паттерн, что installCheck/'expired': демо
@@ -3254,10 +3237,10 @@ function syncInstallAction(){
   var note = document.getElementById('install-action-note');
   if (!btn) return;
   var found = installCheck === 'found';
-  btn.textContent = found ? 'Запустить пробный период →' : '↻ Проверить скрипт на сайте';
+  btn.textContent = found ? 'Активировать пробный период →' : '↻ Проверить скрипт на сайте';
   if (note) note.textContent = found
     ? 'Отсчёт 24 бесплатных часов начнётся с этого нажатия'
-    : 'Проверим, появился ли код на сайте. Пробный период запустится следующим шагом — 24 часа с момента запуска';
+    : 'Проверим, появился ли код на сайте. Пробный период начнётся с момента активации — 24 часа с этой минуты';
 }
 var installActionBtn = document.getElementById('install-action-btn');
 if (installActionBtn) installActionBtn.addEventListener('click', function(){
@@ -3273,8 +3256,6 @@ if (installActionBtn) installActionBtn.addEventListener('click', function(){
     syncPayState();
     syncInstallAction();
     if (installCheck !== 'found') {
-      var m = document.getElementById('modal-no-script');
-      if (m) openModal(m, installActionBtn);
     }
   }, 1500);
 });
