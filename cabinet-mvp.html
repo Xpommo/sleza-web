@@ -1782,8 +1782,9 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
          кто ведёт сайт. -->
     <h2 style="margin-top:20px" data-who-visible="owner staff">Поручить установку ответственному</h2>
     <div class="card pad" data-who-visible="owner staff">
-      <p class="tiny" style="margin-bottom:10px">Не нужно разбираться самим — перешлите тому, кто ведёт сайт. Без регистрации и входа в кабинет, только вставить одну строку кода.</p>
-      <label class="f">Почта разработчика</label><input class="inp mono" id="install-dev-email" placeholder="dev@studio.ru"><p class="tiny anketa-field-error" id="install-dev-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту разработчика — иначе некуда отправлять.</p><button id="send-instructions-btn" class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
+      <label class="f" style="margin-top:0">Почта ответственного</label><input class="inp mono" id="install-dev-email" placeholder="dev@studio.ru"><p class="tiny anketa-field-error" id="install-dev-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту — иначе некуда отправлять.</p><button id="send-instructions-btn" class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
+      <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-delegate">Зачем это нужно ⌄</button>
+      <p class="tiny" id="fold-delegate" style="display:none;margin-top:8px">Разбираться самим не обязательно — перешлите тому, кто ведёт сайт: разработчику, агентству или веб-мастеру. Ему не нужны регистрация и вход в кабинет, только вставить одну строку кода.</p>
     </div>
 
     <!-- только мобильный (разд.3.6 ТЗ 12.08) — на телефоне лезть в
