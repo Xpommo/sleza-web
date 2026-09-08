@@ -624,6 +624,21 @@ details.acc:first-child{margin-top:0}
    документов у Блока 2. Брейкпоинт 820px — тот же, на котором сайдбар
    схлопывается (не 640px, как у мелких мобильных правок выше): чек-лист
    сбоку нужен именно та ширина, которую даёт сайдбарная раскладка. */
+/* Инструкция установки: пять пунктов раскрытыми занимали половину экрана
+   и отодвигали кнопку проверки, поэтому свёрнуты (8 сентября). Заголовок
+   оформлен рамкой, чтобы читался как «здесь есть что открыть», а не как
+   обычная подпись. */
+.install-howto{margin:0}
+.install-howto>.acc-title{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin:0;padding:10px 13px;border:1.5px solid var(--line-2);border-radius:10px;
+  background:var(--paper);font-size:14px;list-style:none}
+.install-howto>.acc-title:hover{border-color:var(--ink)}
+.install-howto[open]>.acc-title{border-radius:10px 10px 0 0;border-bottom-color:transparent}
+.install-howto[open] .howto-chev{transform:rotate(180deg)}
+.howto-chev{transition:transform .15s ease-out;color:rgba(17,17,16,.5)}
+.install-steps{margin:0;padding:12px 20px 14px 36px;display:flex;flex-direction:column;gap:7px;
+  border:1.5px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px}
+.install-steps li{line-height:1.5}
 .anketa-step{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.62);margin-bottom:6px}
 /* Крошки подшагов («О компании · О сайте · Работа с клиентами») отсюда
    убраны 7 сентября: те же три названия теперь стоят в степпере сайдбара,
@@ -1703,9 +1718,14 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="tabs" id="install-cms-tabs" style="margin-top:8px"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
       <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
 data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
-      <button class="btn sm copy-code-btn" data-copy-target="install-code" style="margin-top:10px">Скопировать код</button>
+      <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
+        <button class="btn sm copy-code-btn" data-copy-target="install-code">Скопировать код</button>
+        <button type="button" class="btn sm solid" id="install-action-btn">↻ Проверить скрипт на сайте</button>
+      </div>
       <div class="hr"></div>
       <div class="small" data-swapped="t1">
+      <details class="acc install-howto">
+      <summary class="acc-title">Как вставить код <span class="howto-chev">⌄</span></summary>
       <ol class="install-steps">
         <li>Откройте <b>Настройки сайта</b> в панели Тильды</li>
         <li>Перейдите в раздел <b>Ещё</b></li>
@@ -1713,8 +1733,11 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <li>Вставьте туда скопированную строку</li>
         <li>Нажмите <b>Опубликовать все страницы</b> — без этого код не появится на сайте</li>
       </ol>
+      </details>
       </div>
       <div class="small" data-swapped="t2" style="display:none">
+      <details class="acc install-howto">
+      <summary class="acc-title">Как вставить код <span class="howto-chev">⌄</span></summary>
       <ol class="install-steps">
         <li>В админке WordPress откройте <b>Внешний вид → Редактор тем</b></li>
         <li>Выберите файл <b>header.php</b></li>
@@ -1722,8 +1745,11 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <li>Вставьте скопированный код перед ней</li>
         <li>Нажмите <b>Обновить файл</b></li>
       </ol>
+      </details>
       </div>
       <div class="small" data-swapped="t3" style="display:none">
+      <details class="acc install-howto">
+      <summary class="acc-title">Как вставить код <span class="howto-chev">⌄</span></summary>
       <ol class="install-steps">
         <li>В админке Битрикса откройте <b>Настройки → Настройки продукта → Сайты</b></li>
         <li>Выберите ваш сайт и откройте его <b>шаблон</b></li>
@@ -1731,8 +1757,11 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <li>Вставьте туда скопированный код</li>
         <li>Сохраните шаблон</li>
       </ol>
+      </details>
       </div>
       <div class="small" data-swapped="t4" style="display:none">
+      <details class="acc install-howto">
+      <summary class="acc-title">Как вставить код <span class="howto-chev">⌄</span></summary>
       <ol class="install-steps">
         <li>Откройте HTML-шаблон сайта — тот файл, что подключается на всех страницах</li>
         <li>Найдите закрывающий тег <b>&lt;/head&gt;</b></li>
@@ -1740,6 +1769,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <li>Сохраните и опубликуйте изменения</li>
         <li>Если не знаете, где шаблон — отправьте инструкцию тому, кто ведёт сайт (ниже)</li>
       </ol>
+      </details>
       </div>
       <div data-install="found" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--ok-tint);border:1px solid rgba(26,122,82,.25)">
         <div class="b green" style="font-size:14px">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
@@ -1787,9 +1817,9 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
     <div class="hr" style="margin-top:20px"></div>
     <div class="step-nav">
       <button type="button" class="btn" data-go="s-ready">← Назад</button>
-      <button type="button" class="btn solid" id="install-action-btn">↻ Проверить скрипт на сайте</button>
+      <button type="button" class="btn solid" id="install-activate-btn" disabled>Активировать пробный период →</button>
     </div>
-    <p class="tiny" id="install-action-note" style="text-align:center;margin-top:10px">Проверим, появился ли код на сайте. Пробный период начнётся с момента активации — 24 часа с этой минуты</p>
+    <p class="tiny" id="install-action-note" style="text-align:center;margin-top:10px">Сначала проверьте скрипт — кнопка выше в блоке с кодом. Пробный период начнётся с момента активации, 24 часа с этой минуты</p>
     <p class="tiny" style="text-align:center;margin-top:12px"><button type="button" class="btn text sm" style="padding:0" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button></p>
     </main>
   </div>
@@ -3236,22 +3266,25 @@ if (noCallsContinue) noCallsContinue.addEventListener('click', goToRequisites);
    и алерт, и запуск. */
 var installProbes = 0;
 function syncInstallAction(){
-  var btn = document.getElementById('install-action-btn');
+  var check = document.getElementById('install-action-btn');
+  var activate = document.getElementById('install-activate-btn');
   var note = document.getElementById('install-action-note');
-  if (!btn) return;
   var found = installCheck === 'found';
-  btn.textContent = found ? 'Активировать пробный период →' : '↻ Проверить скрипт на сайте';
+  if (check) check.textContent = found ? '↻ Проверить ещё раз' : '↻ Проверить скрипт на сайте';
+  if (activate) activate.disabled = !found;
   if (note) note.textContent = found
     ? 'Отсчёт 24 бесплатных часов начнётся с этого нажатия'
-    : 'Проверим, появился ли код на сайте. Пробный период начнётся с момента активации — 24 часа с этой минуты';
+    : 'Сначала проверьте скрипт — кнопка выше в блоке с кодом. Пробный период начнётся с момента активации, 24 часа с этой минуты';
 }
+var installActivateBtn = document.getElementById('install-activate-btn');
+if (installActivateBtn) installActivateBtn.addEventListener('click', function(){
+  if (installCheck !== 'found') return;
+  siteStatus = 'trial';
+  goScreen('s-project-paid');
+});
+
 var installActionBtn = document.getElementById('install-action-btn');
 if (installActionBtn) installActionBtn.addEventListener('click', function(){
-  if (installCheck === 'found') {
-    siteStatus = 'trial';
-    goScreen('s-project-paid');
-    return;
-  }
   flashChecking(installActionBtn);
   setTimeout(function(){
     installProbes++;
