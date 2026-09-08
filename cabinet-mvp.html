@@ -1123,11 +1123,16 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <p class="lead" style="margin-top:8px">Технические детали сайта — попадут в формулировки политики и cookie-документа.</p>
           <div class="card pad" id="anketa-site-card" style="margin-top:16px">
             <label class="f">На какой платформе сайт?</label>
-            <div class="seg" id="anketa-platform-seg" style="margin-top:6px">
-              <button type="button" class="on" data-swap="cms-tilda" data-set-platform="tilda">Тильда</button>
-              <button type="button" data-swap="cms-wp" data-set-platform="wp">WordPress</button>
-              <button type="button" data-swap="cms-bitrix" data-set-platform="bitrix">Битрикс</button>
-              <button type="button" data-swap="cms-other" data-set-platform="other">Другое</button>
+            <!-- Платформа одна, поэтому чекбоксы ведут себя как радио: выбор
+                 переключается, снять последний нельзя. Вид общий с остальными
+                 вопросами шага (правка пользователя 8 сентября), но множественный
+                 выбор здесь был бы враньём — от платформы зависит, какую одну
+                 инструкцию открыть на шаге установки (sitePlatform). -->
+            <div style="margin-top:4px">
+              <label class="check"><input type="checkbox" data-platform-pick="tilda" checked><span class="t">Тильда</span></label>
+              <label class="check"><input type="checkbox" data-platform-pick="wp"><span class="t">WordPress</span></label>
+              <label class="check"><input type="checkbox" data-platform-pick="bitrix"><span class="t">Битрикс</span></label>
+              <label class="check"><input type="checkbox" data-platform-pick="other"><span class="t">Другое</span></label>
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
@@ -3038,6 +3043,20 @@ document.querySelectorAll('[data-find]').forEach(function(b){
    группе и наоборот — иначе можно отметить и «Яндекс.Метрика», и «Нет
    аналитики» разом. Группа задаётся data-excl, отрицающий вариант —
    data-excl-none. */
+/* Платформа: выбор строго один, снять последний нельзя — иначе на шаге
+   установки нечего было бы открывать. sitePlatform двигается здесь же,
+   эту связь анкета→install-таб однажды уже случайно рвали (см. 6.38). */
+document.querySelectorAll('[data-platform-pick]').forEach(function(box){
+  box.addEventListener('change', function(){
+    if (!box.checked) { box.checked = true; return; }
+    document.querySelectorAll('[data-platform-pick]').forEach(function(other){
+      if (other !== box) other.checked = false;
+    });
+    sitePlatform = box.dataset.platformPick;
+    syncPayState();
+  });
+});
+
 document.querySelectorAll('[data-excl]').forEach(function(box){
   box.addEventListener('change', function(){
     if (!box.checked) return;
