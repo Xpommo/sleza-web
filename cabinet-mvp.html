@@ -2220,17 +2220,17 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
 </div>
 
 <!-- Предупреждение при ответе «Нет» на вопрос о работе по базе клиентов
-     (8 сентября). Ответ убирает из пакета «Согласие на рассылки», а без
-     него любая рассылка по базе незаконна — человек должен увидеть цену
-     ответа до того, как пойдёт дальше, а не обнаружить нехватку документа
-     в конце. Не блокирует: «Продолжить без него» уводит на следующий шаг. -->
+     (8 сентября). Документ «Согласие на рассылки» выдаётся в пакете в любом
+     случае, в том числе на вырост — модалка не про его отсутствие, а про то,
+     что рассылка без согласия незаконна, если человек однажды всё-таки
+     начнёт писать. Не блокирует переход. -->
 <div class="modal-overlay" data-state="closed" id="modal-no-calls" role="dialog" aria-modal="true" aria-labelledby="modal-no-calls-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
-    <div class="row" style="justify-content:space-between"><h3 id="modal-no-calls-title">Тогда согласия на рассылки не будет</h3><button class="btn text sm" data-modal-close="modal-no-calls">✕</button></div>
-    <p class="tiny" style="margin-top:10px">Вы ответили, что не пишете и не звоните по базе клиентов — значит документ «Согласие на рассылки» в пакет не войдёт. Если однажды отправите письмо или сообщение по этой базе, оно будет незаконным: ФЗ «О рекламе» ст.18 требует отдельное согласие получателя. Документ входит в пакет и отдельно ничего не стоит.</p>
+    <div class="row" style="justify-content:space-between"><h3 id="modal-no-calls-title">Если однажды начнёте писать по базе</h3><button class="btn text sm" data-modal-close="modal-no-calls">✕</button></div>
+    <p class="tiny" style="margin-top:10px">Вы ответили, что не пишете и не звоните по базе клиентов. Если однажды отправите письмо или сообщение по базе контактов, оно будет незаконным: ФЗ «О рекламе» ст.18 требует отдельное согласие получателя. Документ входит в пакет и отдельно ничего не стоит.</p>
     <div class="row" style="margin-top:16px">
       <button class="btn solid" data-modal-close="modal-no-calls">Вернуться и отметить</button>
-      <button class="btn text" id="no-calls-continue" data-modal-close="modal-no-calls">Продолжить без него</button>
+      <button class="btn text" id="no-calls-continue" data-modal-close="modal-no-calls">Понятно, дальше</button>
     </div>
   </div>
 </div>
@@ -3085,7 +3085,6 @@ function callsAnswerIsNo(){
    мимо модалки). */
 var clientsNextBtn = document.getElementById('anketa-clients-next');
 function goToRequisites(){
-  document.querySelectorAll('[data-cl-marketing]').forEach(function(el){ el.hidden = callsAnswerIsNo(); });
   anketaSubstep = 3;
   syncAnketaSubstep();
   window.scrollTo(0,0);
