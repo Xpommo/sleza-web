@@ -1951,7 +1951,6 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <p class="tiny" style="text-align:center;margin-top:12px"><button type="button" class="btn text sm" style="padding:0" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button></p>
     </main>
   </div>
-  <div class="sticky-cta solo"><button type="button" class="btn solid check-install-btn">↻ Проверить установку</button></div>
 </section>
 
 <!-- ══════════════════ КАБИНЕТ — ОБЗОР, ОДНА СТРАНИЦА ═══════════════════
@@ -1982,7 +1981,6 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             <span class="tiny mono">установка проверена сегодня</span>
           </div>
         </div>
-        <button class="btn sm check-install-btn">↻ Проверить установку</button>
       </div>
       <!-- HANDOFF 6.15 п.8 — карточка сверху раньше была одна и всегда
            «✓ Документы актуальны» независимо от реального siteStatus
@@ -1994,8 +1992,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="state" data-pay-state="trial" style="margin-top:16px">
         <div class="card pad" style="border-color:rgba(184,121,0,.35)">
           <span class="b amber" style="font-size:16px">🕐 Пробный период — осталось 21 ч 43 мин</span>
-          <p class="lead" style="margin-top:8px">Документы и виджет уже работают на <span data-site-domain>alfa-school.ru</span>. Оплатите в любой момент — доступ не прервётся.</p>
-          <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.55)">Не успеете — напишем на почту заранее, до того как виджет отключится.</p>
+          <p class="lead" style="margin-top:8px">Документы и виджет уже работают на <span data-site-domain>alfa-school.ru</span>. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва, и мы напомним письмом заранее.</p>
           <div class="hr"></div>
           <button type="button" class="btn solid sm" data-go="s-pay">Оплатить сейчас →</button>
         </div>
@@ -2066,7 +2063,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           </div>
           <div class="state" data-pay-state="trial">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">пробный период</span></div>
-            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Осталось</span><span class="small" style="font-weight:700">21 ч 43 мин</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">29 900 ₽/год</span></div>
           </div>
           <div class="state" data-pay-state="expired">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">пробный период закончился</span></div>
@@ -2648,7 +2645,6 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
 data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <div class="row" style="margin-top:10px;gap:8px">
             <button class="btn sm copy-code-btn" data-copy-target="widget-code-block">Скопировать код</button>
-            <button class="btn sm check-install-btn">↻ Проверить установку</button>
           </div>
         </div>
       </div>
@@ -3438,21 +3434,19 @@ document.querySelectorAll('.copy-code-btn').forEach(function(btn){
   });
 });
 
-/* «Проверить установку» — независимый UX-аудит (impeccable critique,
-   2 сентября): комментарий выше про «честную имитацию» объясняет, почему
-   кнопка не подделывает ДРУГОЙ результат — но не запрещает честное
-   «проверяем…»-состояние. Без него кнопка неотличима от сломанной. Тот
-   же приём, что flashCopied — временный текст, возврат к исходному, не
-   к новому статусу (installCheck не меняется). */
+/* Состояние «проверяем…» у настоящей кнопки проверки на шаге 6 (шаг ③).
+   Комментарий выше про «честную имитацию» объясняет, почему кнопка не
+   подделывает ДРУГОЙ результат — но не запрещает честное «проверяем…».
+   Без него кнопка неотличима от сломанной. Декоративные копии этой кнопки
+   в Кабинете, в «Виджете» и липкая на мобильном шаге 6 убраны 9 сентября:
+   они только мигали этим состоянием, настоящую проверку не запускали, и
+   пользователь справедливо назвал их «ничего не делает». */
 function flashChecking(btn){
   var original = btn.textContent;
   btn.textContent = 'Проверяем…';
   btn.disabled = true;
   setTimeout(function(){ btn.textContent = original; btn.disabled = false; }, 1500);
 }
-document.querySelectorAll('.check-install-btn').forEach(function(btn){
-  btn.addEventListener('click', function(){ flashChecking(btn); });
-});
 
 // Отправить инструкцию/себе, Сохранить×2 — независимый UX-аудит, критика A,
 // P2: были молча нерабочими рядом с реально работающими solid-кнопками
