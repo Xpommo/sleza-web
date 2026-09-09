@@ -76,7 +76,11 @@
   --line:#e8e4dd; --line-2:#dcd6cc;
   --sans:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;
   --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
-  --ring:0 0 0 4px rgba(31,31,230,.08);
+  /* контраст 1.15:1 при норме WCAG 2.2 §1.4.11 в 3:1 — фокус клавиатуры
+     был практически невидим на кнопках, ссылках и шагах сайдбара (поля
+     спасала синяя рамка). Двойное кольцо: светлый ободок читается на
+     тёмных кнопках, брендовый — на светлом фоне страницы. */
+  --ring:0 0 0 2px var(--paper), 0 0 0 4px var(--brand);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -119,6 +123,15 @@ p{margin:0}
 .btn.text{border-color:transparent;background:none;padding:12px 4px;color:rgba(17,17,16,.7)}
 .btn.text:hover{color:var(--ink);background:none}
 .btn.sm{padding:8px 14px;font-size:13px;border-radius:9px}
+/* На телефоне .btn.sm и вкладки платформы были 35px в высоту при норме
+   44px (WCAG 2.5.8). Больнее всего на шаге 6: четыре вкладки платформы
+   стоят в ряд, промахнуться по соседней легко. Инлайновые ссылки внутри
+   предложений («оферты», «Войти») не трогаем — для них в норме есть
+   исключение, и растягивать их значило бы ломать строку. */
+@media(max-width:640px){
+  .btn.sm{min-height:44px;padding-top:0;padding-bottom:0}
+  .tabs button{min-height:44px}
+}
 .btn.wide{width:100%}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
 
@@ -239,7 +252,7 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
 .logo svg{flex:none}
 .logo b{font-size:14px;font-weight:800;letter-spacing:-.02em}
 .backlink,button.backlink{display:inline-flex;align-items:center;gap:6px;padding:0 10px;margin-bottom:10px;
-  font-size:12px;font-weight:700;color:rgba(17,17,16,.55);background:none;border:0;cursor:pointer;font-family:inherit}
+  font-size:12px;font-weight:700;color:rgba(17,17,16,.62);background:none;border:0;cursor:pointer;font-family:inherit}
 .backlink:hover{color:var(--ink)}
 .navlist{display:flex;flex-direction:column;gap:2px}
 .navlist a,.navlist button{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;
@@ -285,7 +298,7 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
   font-size:12px;font-weight:800;flex:none}
 .acct-btn .who{min-width:0;flex:1}
 .acct-btn .name{display:block;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.acct-btn .mail{display:block;font-size:11px;color:rgba(17,17,16,.5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-btn .mail{display:block;font-size:11px;color:rgba(17,17,16,.62);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acct-menu{display:none;position:absolute;left:0;right:0;bottom:calc(100% + 6px);background:var(--white);
   border:1px solid var(--line-2);border-radius:11px;box-shadow:0 10px 30px rgba(17,17,16,.14);padding:6px;z-index:20;
   transform-origin:bottom left;opacity:0;transform:scale(.95);
@@ -698,7 +711,10 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
 @media(max-width:640px){
   .preview-block{display:none}
   .preview-accordion{display:block;margin-top:18px}
-  .preview-accordion summary{cursor:pointer;font-size:15px;font-weight:800;letter-spacing:-.02em;list-style:none}
+  /* заголовок разворота — единственный тап-таргет на этом экране ниже
+     44px (был 23px, по высоте строки) */
+  .preview-accordion summary{cursor:pointer;font-size:15px;font-weight:800;letter-spacing:-.02em;
+    list-style:none;min-height:44px;display:flex;align-items:center}
   .preview-accordion summary::-webkit-details-marker{display:none}
   .preview-accordion summary::after{content:"⌄";float:right;color:rgba(17,17,16,.4)}
   .preview-accordion[open] summary::after{content:"⌃"}
@@ -1608,7 +1624,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          брейкпоинту дублируем разметку, тот же приём, что и .support-mobile -->
     <div class="preview-block">
       <h2 style="margin-top:18px">Вот что появится на сайте</h2>
-      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.45);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
+      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
         <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
@@ -1621,7 +1637,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </div>
     <details class="preview-accordion">
       <summary>Вот что появится на сайте</summary>
-      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.45);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
+      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
         <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
