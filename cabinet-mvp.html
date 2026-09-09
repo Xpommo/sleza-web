@@ -443,18 +443,89 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    с нашим --brand без правок (#0000E6 у них, #1f1fe6 у нас), атрибуция как
    скруглённая пилюля-бейдж в духе их круглой кнопки «подключить», но в наших
    токенах и меньшего размера — не копия, отдельный стиль на тех же мотивах. */
-.dark-footer{border-radius:10px;overflow:hidden;border:1px solid var(--line-2)}
-.dark-footer .lbl{background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;
-  text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.62);border-bottom:1px solid var(--line-2)}
-.dark-footer .body{background:var(--ink);padding:16px}
-.dark-footer .row2{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
-.dark-footer .org{font-size:12.5px;font-weight:700;color:#fff}
-.dark-footer .links{margin-top:9px;display:flex;flex-wrap:wrap;gap:14px}
-.dark-footer .links span{font-size:11px;color:rgba(255,255,255,.7);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)}
-.dark-footer .badge{display:inline-flex;align-items:center;gap:5px;flex:none;white-space:nowrap;
-  background:rgba(255,255,255,.14);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.01em;
-  padding:7px 14px;border-radius:999px}
-.dark-footer .badge b{font-weight:800}
+/* ── превью подвала сайта: виджет «Слеза» ────────────────────────────────
+   Портирован из макета коллеги (9 сентября) взамен прежнего .dark-footer —
+   тот был статичной строкой реквизитов с тремя словами-ссылками. Новый
+   подвал — панель соответствия: категории раскрываются в карточку со
+   ссылкой на статью закона, объяснением и либо пометкой «отключить
+   нельзя», либо настоящим переключателем. Палитра своя, в --w-*, чтобы
+   не задевать токены кабинета: виджет живёт на чужом сайте и красится
+   под него, а не под нас. Шрифты подменены нашими (Onest вместо
+   Unbounded/Manrope, JetBrains Mono вместо IBM Plex) — тянуть три лишних
+   семейства ради превью дорого, визуально разница незаметна. */
+.fpreview{border-radius:10px;border:1px solid var(--line-2)}
+.fpreview .lbl{background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;
+  text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.62);border-bottom:1px solid var(--line-2);
+  border-radius:9px 9px 0 0}
+.sleza-widget{position:relative;display:flex;flex-wrap:wrap;align-items:center;row-gap:10px;column-gap:16px;
+  padding:13px 16px;min-height:60px;border-radius:0 0 9px 9px;font-family:var(--sans)}
+.sleza-widget[data-skin="dark"]{--w-bg:#0A0C10;--w-text:#ECEEF1;--w-muted:#9AA1AB;--w-line:#23272D;
+  --w-accent:#6E9BFF;--w-accent-soft:#182238;--w-amber:#E7A855;--w-amber-soft:#2E2415;--w-hover:#15181D}
+.sleza-widget[data-skin="light"]{--w-bg:#FBFBF9;--w-text:#14181C;--w-muted:#6B7280;--w-line:#E3E5DD;
+  --w-accent:#2E5FE0;--w-accent-soft:#E4EAFC;--w-amber:#A15E1A;--w-amber-soft:#F3E6D2;--w-hover:#F1F1EC}
+.sleza-widget{background:var(--w-bg);color:var(--w-text)}
+.w-brand{display:flex;align-items:center;gap:8px;flex:none;text-decoration:none;color:var(--w-text)}
+.w-brand svg{width:18px;height:18px;color:var(--w-accent);flex:none}
+.w-brand-name{font-weight:700;font-size:14px;letter-spacing:-.01em}
+.w-sep{width:1px;height:22px;align-self:center;background:var(--w-line);flex:none}
+.w-pills{display:flex;flex-wrap:wrap;align-items:center;gap:6px;row-gap:8px}
+.pill-wrap{position:relative;flex:none}
+.pill{display:flex;align-items:center;gap:7px;font:inherit;font-size:12.5px;font-weight:600;color:var(--w-muted);
+  background:transparent;border:1px solid transparent;padding:7px 11px;border-radius:9px;cursor:pointer;
+  white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.pill:hover{background:var(--w-hover);color:var(--w-text)}
+.pill[aria-expanded="true"]{background:var(--w-hover);border-color:var(--w-line);color:var(--w-text)}
+.pill svg{width:15px;height:15px;flex:none}
+.pill .dot{width:6px;height:6px;border-radius:50%;flex:none;border:1.4px solid var(--w-muted)}
+.pill.on .dot{background:var(--w-accent);border-color:var(--w-accent)}
+.pill.locked .dot{display:none}
+.pill .lockmark{width:11px;height:11px;color:var(--w-amber);flex:none}
+.pill:not(.locked) .lockmark{display:none}
+.pill-wrap.disabled .pill{opacity:.42}
+.w-links{display:flex;align-items:center;gap:12px;flex:none;margin-left:auto;padding-left:12px;
+  font-size:12px;color:var(--w-muted)}
+.w-links a{color:var(--w-muted);text-decoration:none;cursor:pointer}
+.w-links a:hover{color:var(--w-text);text-decoration:underline}
+.w-links .dot-sep{opacity:.5}
+/* карточка категории. Живёт внутри своей .pill-wrap, а не в общем слое с
+   JS-координатами, как в исходнике: там подвал лежал в рамке «браузера» на
+   весь экран, у нас — узкий блок превью. Горизонтальный сдвиг всё же
+   считается скриптом, иначе крайние правые карточки вылезают за край. */
+.w-pop{position:absolute;bottom:calc(100% + 10px);left:0;width:272px;max-width:min(272px,78vw);
+  background:var(--w-bg);color:var(--w-text);border:1px solid var(--w-line);border-radius:12px;
+  padding:16px 16px 14px;box-shadow:0 20px 44px -16px rgba(0,0,0,.45);z-index:6;text-align:left;
+  white-space:normal;font-family:var(--sans)}
+.w-pop[hidden]{display:none}
+.pop-close{position:absolute;top:10px;right:10px;width:20px;height:20px;border:0;background:none;
+  color:var(--w-muted);cursor:pointer;display:grid;place-items:center;border-radius:5px;font-size:13px;line-height:1}
+.pop-close:hover{background:var(--w-hover);color:var(--w-text)}
+.pop-meta{font-family:var(--mono);font-size:10px;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--w-amber);margin:0 0 8px;line-height:1.5;padding-right:14px}
+.pop-title{font-weight:700;font-size:14px;line-height:1.3;margin:0 0 8px;padding-right:14px}
+.pop-body{font-size:12.5px;line-height:1.55;color:var(--w-muted);margin:0 0 12px}
+.pop-lock{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--w-amber);
+  background:var(--w-amber-soft);border-radius:7px;padding:7px 9px;margin-bottom:10px}
+.pop-lock svg{width:12px;height:12px;flex:none}
+.pop-hint{font-size:11.5px;color:var(--w-amber);background:var(--w-amber-soft);border-radius:7px;
+  padding:7px 9px;margin:0 0 10px}
+.pop-hint[hidden]{display:none}
+.w-switch-row{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;margin-bottom:8px;
+  font-size:12.5px;font-weight:600;cursor:pointer}
+.w-sw{position:relative;display:inline-flex;width:34px;height:20px;flex:none}
+.w-sw input{position:absolute;inset:0;z-index:1;opacity:0;margin:0;cursor:pointer}
+.w-sw .track{position:absolute;inset:0;background:var(--w-line);border-radius:999px;transition:background .15s}
+.w-sw .track::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
+  background:var(--w-bg);box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+.w-sw input:checked + .track{background:var(--w-accent)}
+.w-sw input:checked + .track::after{transform:translateX(14px);background:#fff}
+.w-sw input:disabled + .track{opacity:.4;cursor:not-allowed}
+.pop-links{display:flex;flex-direction:column;gap:6px}
+.pop-links a{font-size:12px;font-weight:600;color:var(--w-accent);text-decoration:none;cursor:pointer}
+.pop-links a:hover{text-decoration:underline}
+@media(max-width:640px){
+  .sleza-widget{padding:12px 14px}
+  .w-links{margin-left:0;flex-basis:100%;padding-left:0;padding-top:10px;border-top:1px solid var(--w-line)}
+}
 
 /* ── вход / регистрация — портировано из frontend/app/app/login/LoginClient.js,
      провайдеры (Telegram/ВК/MAX) сознательно не переносим — см. шапку файла ── */
@@ -758,7 +829,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <span class="kicker">слеза белый сайт</span>
       <p class="split-tagline">Документы для сайта — готовим и держим в порядке</p>
       <div class="why"><div><b>Соберём под вашу компанию</b><span>Заполните анкету о сайте и компании — документы соберём под ваши данные и вашу сферу деятельности.</span></div></div>
-      <div class="why"><div><b>Виджет на сайт</b><span>Один скрипт: показывает cookie-уведомление, выводит реквизиты в подвал и держит ссылки на документы рабочими.</span></div></div>
+      <div class="why"><div><b>Виджет на сайт</b><span>Один скрипт: показывает cookie-уведомление, ставит внизу страниц подвал со ссылками на документы и реквизиты и держит эти ссылки рабочими.</span></div></div>
       <div class="why"><div><b>Следим, что всё работает</b><span>Проверяем, что виджет и документы на сайте работают исправно — не нужно проверять это самим.</span></div></div>
       <div class="why"><div><b>Когда поменяется закон, перепишем сами</b><span>Вам придёт письмо, что документы уже обновлены.</span></div></div>
     </div>
@@ -1031,7 +1102,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <input class="inp mono" id="anketa-person-backup" inputmode="tel" placeholder="+7 (___) ___-__-__">
 
         <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-person">Зачем это нужно ⌄</button>
-        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">На почту придут счёт, письма о продлении и сообщения об обновлении и изменениях в документах. Резервная связь необязательна — позвоним по ней, только если письма перестанут доходить. Менять их можно в Настройках, в разделе «Контакты». В документы и в подвал сайта они не попадут — контакты для сайта спросим отдельно, на шаге «Реквизиты».</p>
+        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">На почту придут счёт, письма о продлении и сообщения об обновлении и изменениях в документах. Резервная связь необязательна — позвоним по ней, только если письма перестанут доходить. Менять их можно в Настройках, в разделе «Контакты». В документы и в реквизиты на сайте они не попадут — контакты для сайта спросим отдельно, на шаге «Реквизиты».</p>
       </div>
 
       <div class="card pad" style="margin-top:10px">
@@ -1238,7 +1309,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
         <div data-substep="3" style="display:none">
           <h1>Реквизиты</h1>
-          <p class="lead" style="margin-top:8px">Пойдут в подвал сайта и в документы. По ним бухгалтер контрагента выставит счёт и составит договор, ничего не запрашивая дополнительно.</p>
+          <p class="lead" style="margin-top:8px">Пойдут в документы и в реквизиты — их открывают из подвала сайта. По ним бухгалтер контрагента выставит счёт и составит договор, ничего не запрашивая дополнительно.</p>
 
           <!-- Реквизиты разложены по источнику данных, а не по алфавиту
                (8 сентября, разбор с пользователем по шаблону реквизитов):
@@ -1266,17 +1337,17 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <div data-swapped="own-ooo" style="display:none;margin-top:10px">
               <label class="f" for="req-name-ooo">Наименование <span style="color:var(--danger)">*</span></label>
               <input class="inp" id="req-name-ooo" placeholder="ООО «Ромашка»">
-              <p class="tiny anketa-field-error" id="req-name-ooo-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите наименование — оно попадёт в документы и в подвал сайта.</p>
+              <p class="tiny anketa-field-error" id="req-name-ooo-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите наименование — оно попадёт в документы и в реквизиты на сайте.</p>
             </div>
             <div data-swapped="own-ip" style="display:none;margin-top:10px">
               <label class="f" for="req-name-ip">ФИО <span style="color:var(--danger)">*</span></label>
               <input class="inp" id="req-name-ip" placeholder="Иванова Мария Сергеевна">
-              <p class="tiny anketa-field-error" id="req-name-ip-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите ФИО — оно попадёт в документы и в подвал сайта.</p>
+              <p class="tiny anketa-field-error" id="req-name-ip-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите ФИО — оно попадёт в документы и в реквизиты на сайте.</p>
             </div>
             <div data-swapped="own-self" style="display:none;margin-top:10px">
               <label class="f" for="req-name-self">ФИО <span style="color:var(--danger)">*</span></label>
               <input class="inp" id="req-name-self" placeholder="Иванова Мария Сергеевна">
-              <p class="tiny anketa-field-error" id="req-name-self-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите ФИО — оно попадёт в документы и в подвал сайта.</p>
+              <p class="tiny anketa-field-error" id="req-name-self-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите ФИО — оно попадёт в документы и в реквизиты на сайте.</p>
             </div>
 
             <div data-swapped="own-ooo" style="display:none">
@@ -1295,14 +1366,14 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
             <label class="f" style="margin-top:10px" for="anketa-addr" id="anketa-addr-label">Юридический адрес <span style="color:var(--danger)">*</span></label>
             <input class="inp" id="anketa-addr" placeholder="Индекс, город, улица, дом">
-              <p class="tiny anketa-field-error" id="anketa-addr-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите адрес — он попадёт в реквизиты в подвале сайта.</p>
+              <p class="tiny anketa-field-error" id="anketa-addr-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите адрес — он попадёт в реквизиты на сайте.</p>
           </div>
 
           <div class="card pad" style="margin-top:10px">
             <h3 style="margin-bottom:8px">Контакты</h3>
             <label class="f" for="anketa-company-mail">Email компании <span style="color:var(--danger)">*</span></label>
             <input class="inp" id="anketa-company-mail" type="email" placeholder="info@alfa-school.ru">
-            <p class="tiny anketa-field-error" id="anketa-company-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — её увидят в подвале сайта.</p>
+            <p class="tiny anketa-field-error" id="anketa-company-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — её увидят в реквизитах на сайте.</p>
 
             <label class="f" style="margin-top:10px" for="anketa-company-phone">Телефон <span style="color:var(--danger)">*</span></label>
             <input class="inp mono" id="anketa-company-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
@@ -1323,7 +1394,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  Правило объясняется с обеих сторон, иначе третья подряд
                  просьба указать почту читается как небрежность. -->
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-contacts">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-contacts" style="display:none;margin-top:8px">Это контакты компании — они попадут в подвал сайта и в документы, их увидят посетители.</p>
+            <p class="tiny" id="fold-contacts" style="display:none;margin-top:8px">Это контакты компании — они попадут в документы и в реквизиты, которые посетитель открывает из подвала сайта.</p>
           </div>
 
           <div class="card pad" style="margin-top:10px">
@@ -1423,7 +1494,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          не условие доступа, документы и виджет включаются установкой. -->
     <p class="tiny" style="margin:6px 0 12px">Нажмите на документ, чтобы прочитать</p>
     <div class="find">
-      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">149-ФЗ · реквизиты владельца</span><span class="w" style="display:block">Покажем внизу страниц сайта через виджет — по данным из анкеты.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">149-ФЗ · реквизиты владельца</span><span class="w" style="display:block">Виджет внизу страниц откроет их по данным из анкеты.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233 · 119019, Москва, ул. Воздвиженка, д. 10…</div>
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/01 — откроется после установки</p></div>
     </div>
@@ -1482,18 +1553,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <button class="btn sm solid" style="flex:none">Принять</button>
         </div>
       </div>
-      <div class="dark-footer" style="margin-top:14px">
+      <div class="fpreview" style="margin-top:14px">
         <div class="lbl">подвал сайта после установки</div>
-        <div class="body">
-          <div class="row2">
-            <div>
-              <div class="org">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233</div>
-              <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">119019, Москва, ул. Воздвиженка, д. 10 · buh@alfa-school.ru</div>
-              <div class="links"><span>Политика обработки ПДн</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
-            </div>
-            <div class="badge">Документы <b>Белый Сайт</b></div>
-          </div>
-        </div>
+        <div class="sleza-widget" data-skin="dark"><a class="w-brand"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z"></path></svg><span class="w-brand-name">Слеза</span></a><span class="w-sep"></span><div class="w-pills"><div class="pill-wrap"><button type="button" class="pill locked" data-pill="cookie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg><span>Cookie</span><span class="dot"></span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Обработка cookie" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.3, 6, 9 №152-ФЗ · ч.1 ст.13.11 КоАП</p><h4 class="pop-title">Обработка cookie</h4><p class="pop-body">Сайт использует файлы cookie для аналитики и корректной работы сервисов. Согласие вы уже дали в баннере при заходе на сайт — отдельно отключить его здесь нельзя. Состав собираемых данных и цели — в политике ниже.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательное согласие — уже подтверждено</div><div class="pop-links"><a>Политика обработки cookie →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill" data-pill="pd" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.6 5.3 6v5.4c0 4.4 2.9 7.6 6.7 8.9 3.8-1.3 6.7-4.5 6.7-8.9V6L12 3.6Z"></path><path d="M9 12l2 2 4-4.3" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Персональные данные</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на обработку персональных данных" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">№152-ФЗ · ч.2 ст.13.11 КоАП</p><h4 class="pop-title">Согласие на обработку персональных данных</h4><p class="pop-body">Разрешает сайту обрабатывать данные, которые вы оставляете в формах — имя, телефон, email. Действует сразу на все формы сайта: включили здесь — включено везде, и наоборот.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="pd"><span class="track"></span></span></label><div class="pop-links"><a>Политика обработки персональных данных →</a><a>Текст согласия на обработку персональных данных →</a></div></div></div><div class="pill-wrap marketing-wrap disabled"><button type="button" class="pill" data-pill="marketing" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.2v3.6a1 1 0 0 0 1 1h2l1 4h2l-1-4h1l9 3.4V6.8L9 10.2H4a1 1 0 0 0-1 1Z" stroke-linejoin="round"></path><path d="M19 9.6a3 3 0 0 1 0 5" stroke-linecap="round"></path></svg><span>Реклама</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на рекламные рассылки" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ч.1 ст.18 №38-ФЗ «О рекламе» · ч.4.1 ст.14.3 КоАП</p><h4 class="pop-title">Согласие на рекламные рассылки</h4><p class="pop-body">Разрешает присылать вам рекламные материалы и рассылки.</p><p class="pop-hint" data-w-hint>Сначала включите согласие на персональные данные — без него рассылка недоступна.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="marketing" disabled><span class="track"></span></span></label><div class="pop-links"><a>Текст согласия на рассылку →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill locked" data-pill="marking" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c3.6 4.1 6 7.3 6 10.6A6 6 0 1 1 6 13.6C6 10.3 8.4 7.1 12 3Z"></path></svg><span>Маркировка</span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Маркировка" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.4 закона «О СМИ» · 114-ФЗ · ч.1 ст.13.15 КоАП · ч.1 ст.6.13 КоАП</p><h4 class="pop-title">Маркировка</h4><p class="pop-body">Скрипт Слезы автоматически помечает на сайте упоминания лиц и организаций из реестров: иностранные агенты, экстремистские и террористические организации, а также упоминания наркотических веществ.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательно по закону — отключить нельзя</div></div></div></div><div class="w-links"><a>Оферта</a><span class="dot-sep">·</span><a>Реквизиты</a></div></div>
       </div>
     </div>
     <details class="preview-accordion">
@@ -1506,18 +1568,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <button class="btn sm solid" style="flex:none">Принять</button>
         </div>
       </div>
-      <div class="dark-footer" style="margin-top:14px">
+      <div class="fpreview" style="margin-top:14px">
         <div class="lbl">подвал сайта после установки</div>
-        <div class="body">
-          <div class="row2">
-            <div>
-              <div class="org">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233</div>
-              <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">119019, Москва, ул. Воздвиженка, д. 10 · buh@alfa-school.ru</div>
-              <div class="links"><span>Политика обработки ПДн</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
-            </div>
-            <div class="badge">Документы <b>Белый Сайт</b></div>
-          </div>
-        </div>
+        <div class="sleza-widget" data-skin="dark"><a class="w-brand"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z"></path></svg><span class="w-brand-name">Слеза</span></a><span class="w-sep"></span><div class="w-pills"><div class="pill-wrap"><button type="button" class="pill locked" data-pill="cookie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg><span>Cookie</span><span class="dot"></span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Обработка cookie" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.3, 6, 9 №152-ФЗ · ч.1 ст.13.11 КоАП</p><h4 class="pop-title">Обработка cookie</h4><p class="pop-body">Сайт использует файлы cookie для аналитики и корректной работы сервисов. Согласие вы уже дали в баннере при заходе на сайт — отдельно отключить его здесь нельзя. Состав собираемых данных и цели — в политике ниже.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательное согласие — уже подтверждено</div><div class="pop-links"><a>Политика обработки cookie →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill" data-pill="pd" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.6 5.3 6v5.4c0 4.4 2.9 7.6 6.7 8.9 3.8-1.3 6.7-4.5 6.7-8.9V6L12 3.6Z"></path><path d="M9 12l2 2 4-4.3" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Персональные данные</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на обработку персональных данных" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">№152-ФЗ · ч.2 ст.13.11 КоАП</p><h4 class="pop-title">Согласие на обработку персональных данных</h4><p class="pop-body">Разрешает сайту обрабатывать данные, которые вы оставляете в формах — имя, телефон, email. Действует сразу на все формы сайта: включили здесь — включено везде, и наоборот.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="pd"><span class="track"></span></span></label><div class="pop-links"><a>Политика обработки персональных данных →</a><a>Текст согласия на обработку персональных данных →</a></div></div></div><div class="pill-wrap marketing-wrap disabled"><button type="button" class="pill" data-pill="marketing" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.2v3.6a1 1 0 0 0 1 1h2l1 4h2l-1-4h1l9 3.4V6.8L9 10.2H4a1 1 0 0 0-1 1Z" stroke-linejoin="round"></path><path d="M19 9.6a3 3 0 0 1 0 5" stroke-linecap="round"></path></svg><span>Реклама</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на рекламные рассылки" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ч.1 ст.18 №38-ФЗ «О рекламе» · ч.4.1 ст.14.3 КоАП</p><h4 class="pop-title">Согласие на рекламные рассылки</h4><p class="pop-body">Разрешает присылать вам рекламные материалы и рассылки.</p><p class="pop-hint" data-w-hint>Сначала включите согласие на персональные данные — без него рассылка недоступна.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="marketing" disabled><span class="track"></span></span></label><div class="pop-links"><a>Текст согласия на рассылку →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill locked" data-pill="marking" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c3.6 4.1 6 7.3 6 10.6A6 6 0 1 1 6 13.6C6 10.3 8.4 7.1 12 3Z"></path></svg><span>Маркировка</span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Маркировка" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.4 закона «О СМИ» · 114-ФЗ · ч.1 ст.13.15 КоАП · ч.1 ст.6.13 КоАП</p><h4 class="pop-title">Маркировка</h4><p class="pop-body">Скрипт Слезы автоматически помечает на сайте упоминания лиц и организаций из реестров: иностранные агенты, экстремистские и террористические организации, а также упоминания наркотических веществ.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательно по закону — отключить нельзя</div></div></div></div><div class="w-links"><a>Оферта</a><span class="dot-sep">·</span><a>Реквизиты</a></div></div>
       </div>
     </details>
 
@@ -1566,7 +1619,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <h2 style="margin-top:20px">Что входит</h2>
     <div class="card pad" style="margin-top:12px">
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Уже работает — бесплатно, 24 часа</h3>
-      <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: куки-баннер и реквизиты в подвале<br>· Постоянные ссылки на документы</div>
+      <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: куки-баннер и подвал со ссылками на документы и реквизиты<br>· Постоянные ссылки на документы</div>
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62);margin-top:14px">Оплата продлевает</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Доступ не прерывается после пробного периода<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
       <div class="hr"></div>
@@ -1709,7 +1762,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 6 из 6</div>
     <h1>Установка скрипта</h1>
-    <p class="lead" style="margin-top:8px">Одна строчка кода в шаблон сайта — и всё, что собрали, начинает работать: куки-баннер, реквизиты в подвале, рабочие ссылки на документы.</p>
+    <p class="lead" style="margin-top:8px">Одна строчка кода в шаблон сайта — и всё, что собрали, начинает работать: куки-баннер, подвал со ссылками на документы и реквизиты, и сами ссылки — рабочие.</p>
 
     <!-- Платформа и код — первым блоком (правка пользователя 8 сентября:
          «перенести сюда на самый верх, после выбора показывать скрипт с
@@ -2141,7 +2194,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div><div style="font-weight:700;font-size:14.5px" id="req-name-set">ООО «Альфа Образование»</div><div class="tiny mono" id="req-inn-set">ИНН 7701234567</div></div>
         <button class="btn sm" data-go-modal="modal-req-set">Проверить и изменить</button>
       </div>
-      <p class="tiny" style="margin-top:7px">Заполним сами по ИНН — вам нужно только проверить. Используются в документах и в подвале сайта.</p>
+      <p class="tiny" style="margin-top:7px">Заполним сами по ИНН — вам нужно только проверить. Используются в документах и в реквизитах на сайте.</p>
       </details>
 
       <!-- независимый обзор кабинета: единственный контакт в аккаунте —
@@ -2503,18 +2556,9 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div class="hr" style="margin-top:12px"></div>
 
         <div id="footer-live-content">
-        <div class="dark-footer">
+        <div class="fpreview">
           <div class="lbl">подвал сайта</div>
-          <div class="body">
-            <div class="row2">
-              <div>
-                <div class="org">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233</div>
-                <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">119019, Москва, ул. Воздвиженка, д. 10 · buh@alfa-school.ru</div>
-                <div class="links"><span>Политика обработки ПДн</span><span>Согласие на обработку ПДн</span><span>Cookie</span></div>
-              </div>
-              <div class="badge">Документы <b>Белый Сайт</b></div>
-            </div>
-          </div>
+          <div class="sleza-widget" data-skin="dark"><a class="w-brand"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z"></path></svg><span class="w-brand-name">Слеза</span></a><span class="w-sep"></span><div class="w-pills"><div class="pill-wrap"><button type="button" class="pill locked" data-pill="cookie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg><span>Cookie</span><span class="dot"></span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Обработка cookie" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.3, 6, 9 №152-ФЗ · ч.1 ст.13.11 КоАП</p><h4 class="pop-title">Обработка cookie</h4><p class="pop-body">Сайт использует файлы cookie для аналитики и корректной работы сервисов. Согласие вы уже дали в баннере при заходе на сайт — отдельно отключить его здесь нельзя. Состав собираемых данных и цели — в политике ниже.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательное согласие — уже подтверждено</div><div class="pop-links"><a>Политика обработки cookie →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill" data-pill="pd" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.6 5.3 6v5.4c0 4.4 2.9 7.6 6.7 8.9 3.8-1.3 6.7-4.5 6.7-8.9V6L12 3.6Z"></path><path d="M9 12l2 2 4-4.3" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Персональные данные</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на обработку персональных данных" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">№152-ФЗ · ч.2 ст.13.11 КоАП</p><h4 class="pop-title">Согласие на обработку персональных данных</h4><p class="pop-body">Разрешает сайту обрабатывать данные, которые вы оставляете в формах — имя, телефон, email. Действует сразу на все формы сайта: включили здесь — включено везде, и наоборот.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="pd"><span class="track"></span></span></label><div class="pop-links"><a>Политика обработки персональных данных →</a><a>Текст согласия на обработку персональных данных →</a></div></div></div><div class="pill-wrap marketing-wrap disabled"><button type="button" class="pill" data-pill="marketing" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.2v3.6a1 1 0 0 0 1 1h2l1 4h2l-1-4h1l9 3.4V6.8L9 10.2H4a1 1 0 0 0-1 1Z" stroke-linejoin="round"></path><path d="M19 9.6a3 3 0 0 1 0 5" stroke-linecap="round"></path></svg><span>Реклама</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на рекламные рассылки" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ч.1 ст.18 №38-ФЗ «О рекламе» · ч.4.1 ст.14.3 КоАП</p><h4 class="pop-title">Согласие на рекламные рассылки</h4><p class="pop-body">Разрешает присылать вам рекламные материалы и рассылки.</p><p class="pop-hint" data-w-hint>Сначала включите согласие на персональные данные — без него рассылка недоступна.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="marketing" disabled><span class="track"></span></span></label><div class="pop-links"><a>Текст согласия на рассылку →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill locked" data-pill="marking" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c3.6 4.1 6 7.3 6 10.6A6 6 0 1 1 6 13.6C6 10.3 8.4 7.1 12 3Z"></path></svg><span>Маркировка</span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Маркировка" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.4 закона «О СМИ» · 114-ФЗ · ч.1 ст.13.15 КоАП · ч.1 ст.6.13 КоАП</p><h4 class="pop-title">Маркировка</h4><p class="pop-body">Скрипт Слезы автоматически помечает на сайте упоминания лиц и организаций из реестров: иностранные агенты, экстремистские и террористические организации, а также упоминания наркотических веществ.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательно по закону — отключить нельзя</div></div></div></div><div class="w-links"><a>Оферта</a><span class="dot-sep">·</span><a>Реквизиты</a></div></div>
         </div>
         </div>
         <div id="footer-off-placeholder" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:20px 16px;text-align:center">
@@ -3221,6 +3265,63 @@ function flashCopied(btn){
 // Копирование ссылки на документ или на весь раздел — тот же flashCopied,
 // что и у кода установки; текст берётся из data-copy-text, а не из DOM,
 // потому что в разметке адрес разбит на текст и <span data-site-id>.
+/* ── подвал сайта: раскрывающиеся категории ──────────────────────────────
+   Виджет стоит в трёх местах (шаг 5 — десктоп и мобильный разворот,
+   раздел «Виджет»), поэтому всё на классах и data-атрибутах: id здесь
+   означали бы тройные дубли. Каждая карточка лежит внутри своей
+   .pill-wrap, а не в общем слое с посчитанными координатами, как в
+   исходнике коллеги: там подвал стоял в рамке «браузера» во всю ширину,
+   у нас — узкий блок превью. Сдвиг по горизонтали всё же считаем, иначе
+   правые карточки вылезают за край блока. */
+function closeWidgetPops(){
+  document.querySelectorAll('.sleza-widget .w-pop').forEach(function(el){ el.hidden = true; el.style.transform = ''; });
+  document.querySelectorAll('.sleza-widget .pill').forEach(function(el){ el.setAttribute('aria-expanded','false'); });
+}
+document.querySelectorAll('.sleza-widget .pill').forEach(function(pill){
+  pill.addEventListener('click', function(){
+    var wasOpen = pill.getAttribute('aria-expanded') === 'true';
+    var pop = pill.parentNode.querySelector('.w-pop');
+    closeWidgetPops();
+    if (wasOpen || !pop) return;
+    pill.setAttribute('aria-expanded','true');
+    pop.hidden = false;
+    var widget = pill.closest('.sleza-widget');
+    var wr = widget.getBoundingClientRect(), pr = pop.getBoundingClientRect();
+    var over = pr.right - (wr.right - 10);
+    if (over > 0) pop.style.transform = 'translateX(' + (-Math.round(over)) + 'px)';
+  });
+});
+document.addEventListener('click', function(e){
+  if (e.target.closest && e.target.closest('[data-w-close]')) { closeWidgetPops(); return; }
+  if (!e.target.closest || !e.target.closest('.sleza-widget')) closeWidgetPops();
+});
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeWidgetPops(); });
+
+/* Реклама зависит от согласия на ПДн: без обработки данных рассылать
+   нечего и некому (ч.1 ст.18 №38-ФЗ). Пока ПДн выключены, плашка
+   «Реклама» погашена, тумблер заблокирован, в карточке видна подсказка
+   почему — состояние считается по каждому виджету отдельно. */
+function syncWidgetConsent(widget){
+  var pd = widget.querySelector('[data-w-sw="pd"]');
+  var mk = widget.querySelector('[data-w-sw="marketing"]');
+  var mkWrap = widget.querySelector('.marketing-wrap');
+  var hint = widget.querySelector('[data-w-hint]');
+  if (!pd || !mk) return;
+  if (!pd.checked) { mk.checked = false; }
+  mk.disabled = !pd.checked;
+  if (mkWrap) mkWrap.classList.toggle('disabled', !pd.checked);
+  if (hint) hint.hidden = pd.checked;
+  widget.querySelectorAll('.pill').forEach(function(pill){
+    var key = pill.dataset.pill;
+    if (key === 'pd') pill.classList.toggle('on', pd.checked);
+    if (key === 'marketing') pill.classList.toggle('on', mk.checked);
+  });
+}
+document.querySelectorAll('.sleza-widget [data-w-sw]').forEach(function(box){
+  box.addEventListener('change', function(){ syncWidgetConsent(box.closest('.sleza-widget')); });
+});
+document.querySelectorAll('.sleza-widget').forEach(syncWidgetConsent);
+
 document.querySelectorAll('.copy-link-btn').forEach(function(btn){
   btn.addEventListener('click', function(){
     if (!navigator.clipboard) return;
