@@ -2398,28 +2398,32 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         </div>
 
         <div data-swapped="payinvoice">
-          <label class="f">Реквизиты плательщика</label>
-          <!-- Реквизиты компании уже собраны на шаге «Реквизиты» — незачем
-               просить их второй раз. Второй вариант нужен, когда платит не
-               та же компания, чьи реквизиты стоят в подвале сайта. -->
-          <div class="seg" style="margin:6px 0 12px">
-            <button type="button" class="on" data-reqmode="same">Как в анкете</button>
-            <button type="button" data-reqmode="other">Другие реквизиты</button>
+          <!-- Третья строка того же вида, что тариф и способ оплаты.
+               До этого здесь стоял сегмент, а обе его ветки выглядели
+               одинаково — выбор ничем себя не проявлял и читался как
+               декорация. Теперь видно, чьи реквизиты выбраны, прямо в
+               свёрнутом состоянии. -->
+          <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px" id="payreq-summary">
+            <div style="min-width:0">
+              <div style="font-weight:700;font-size:14.5px" id="payreq-name">ООО «Альфа Образование»</div>
+              <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere" id="payreq-details">ИНН 7701234567 · buh@alfa-school.ru · +7 (495) 123-45-67 · счёт …2345</div>
+              <div class="tiny" style="margin-top:2px" id="payreq-source">Реквизиты плательщика · из анкеты</div>
+            </div>
+            <button type="button" class="btn sm" style="flex:none" id="payreq-edit">Изменить</button>
           </div>
-          <!-- Сводка двумя строками, а не карточкой внутри карточки:
-               вложенные рамки давали лишний вес там, где содержимого на две
-               строки. Чип «из анкеты» убран — сегмент выше и так говорит,
-               откуда данные. -->
-          <div data-reqpanel="same">
-            <div style="font-weight:700;font-size:14.5px" id="invoice-req-name">ООО «Альфа Образование»</div>
-            <div class="tiny mono" style="margin-top:2px" id="invoice-req-summary">ИНН 7701234567 · buh@alfa-school.ru · +7 (495) 123-45-67 · счёт …2345</div>
-            <p class="tiny" style="margin-top:6px">Это реквизиты для счёта, в подвал сайта они не идут.</p>
+          <div id="payreq-pick" style="display:none">
+            <label class="f" style="margin-top:0">Чьи реквизиты ставить в счёт</label>
+            <div class="seg" style="margin:6px 0 10px">
+              <button type="button" class="on" data-reqmode="same">Как в анкете</button>
+              <button type="button" data-reqmode="other">Другие реквизиты</button>
+            </div>
+            <p class="tiny" data-reqpanel="same">Возьмём данные компании с шага «Реквизиты». В подвал сайта они и так идут — здесь они нужны только для счёта.</p>
+            <div data-reqpanel="other" style="display:none">
+              <p class="tiny">Нужно, когда счёт оплачивает другая компания — не та, чьи реквизиты стоят в подвале сайта.</p>
+              <button type="button" class="btn sm" style="margin-top:8px" data-go-modal="modal-req-invoice" id="payreq-fill">Заполнить</button>
+            </div>
           </div>
-          <div data-reqpanel="other" style="display:none">
-            <div style="font-weight:700;font-size:14.5px" id="invoice-other-name">Реквизиты не заполнены</div>
-            <div class="tiny mono" style="margin-top:2px" id="invoice-other-summary">Заполните, если счёт оплачивает другая компания</div>
-            <button type="button" class="btn sm" style="margin-top:10px" data-go-modal="modal-req-invoice">Заполнить</button>
-          </div>
+          <div class="hr"></div>
           <button id="request-invoice-btn" class="btn solid sm" style="margin-top:12px">Сформировать счёт</button>
           <!-- Сформированный счёт — результат, который можно открыть,
                скачать и переслать бухгалтеру, а не мигнувшее «✓». Ссылка
@@ -4003,15 +4007,53 @@ if (docsEmailEdit) docsEmailEdit.addEventListener('click', function(){ toggleDoc
    а не data-swap — общий обработчик ищет панели внутри ближайшей .card, а
    тут две сегмент-группы в одной карточке, и клик по второй прятал бы
    панель первой. */
+/* Реквизиты плательщика — третья строка того же вида, что тариф и способ
+   оплаты. Свой атрибут, а не data-swap: общий обработчик ищет панели
+   внутри ближайшей .card, а тут несколько групп в одной карточке. */
+var reqMode = 'same';
+var OTHER_REQ = null;     // заполненные «другие» реквизиты, пока их нет — null
+function syncPayReq(){
+  var name = document.getElementById('payreq-name');
+  var det = document.getElementById('payreq-details');
+  var src = document.getElementById('payreq-source');
+  var fill = document.getElementById('payreq-fill');
+  if (reqMode === 'same') {
+    name.textContent = 'ООО «Альфа Образование»';
+    det.textContent = 'ИНН 7701234567 · buh@alfa-school.ru · +7 (495) 123-45-67 · счёт …2345';
+    src.textContent = 'Реквизиты плательщика · из анкеты';
+  } else if (OTHER_REQ) {
+    name.textContent = OTHER_REQ.name;
+    det.textContent = OTHER_REQ.details;
+    src.textContent = 'Реквизиты плательщика · отдельные';
+  } else {
+    name.textContent = 'Реквизиты не заполнены';
+    det.textContent = 'Без них счёт не выставить';
+    src.textContent = 'Реквизиты плательщика · отдельные';
+  }
+  if (fill) fill.textContent = OTHER_REQ ? 'Изменить' : 'Заполнить';
+  document.querySelectorAll('[data-reqmode]').forEach(function(x){ x.classList.toggle('on', x.dataset.reqmode === reqMode); });
+  document.querySelectorAll('[data-reqpanel]').forEach(function(pnl){
+    pnl.style.display = pnl.dataset.reqpanel === reqMode ? '' : 'none';
+  });
+}
+function togglePayReqPick(open){
+  var sum = document.getElementById('payreq-summary');
+  var pick = document.getElementById('payreq-pick');
+  if (sum) sum.style.display = open ? 'none' : '';
+  if (pick) pick.style.display = open ? '' : 'none';
+}
+var payreqEdit = document.getElementById('payreq-edit');
+if (payreqEdit) payreqEdit.addEventListener('click', function(){ togglePayReqPick(true); });
 document.querySelectorAll('[data-reqmode]').forEach(function(b){
   b.addEventListener('click', function(){
-    var mode = b.dataset.reqmode;
-    document.querySelectorAll('[data-reqmode]').forEach(function(x){ x.classList.toggle('on', x.dataset.reqmode === mode); });
-    document.querySelectorAll('[data-reqpanel]').forEach(function(pnl){
-      pnl.style.display = pnl.dataset.reqpanel === mode ? '' : 'none';
-    });
+    reqMode = b.dataset.reqmode;
+    syncPayReq();
+    // «Как в анкете» — решение принято, сворачиваем. «Другие» без данных
+    // оставляем раскрытым: там ещё есть что сделать, кнопка «Заполнить».
+    if (reqMode === 'same' || OTHER_REQ) togglePayReqPick(false);
   });
 });
+syncPayReq();
 
 /* Сколько сайтов у аккаунта. При одном карта привязывается к нему и
    спрашивать нечего; выбор появляется со второго. Настоящего
@@ -4307,16 +4349,15 @@ if (saveInvoiceReqBtn) saveInvoiceReqBtn.addEventListener('click', function(){
   var email = document.getElementById('modal-invoice-email').value;
   var phone = document.getElementById('modal-invoice-phone').value;
   var account = document.getElementById('modal-invoice-account').value;
-  // пишем в карточку «Другие реквизиты»: карточка «Как в анкете»
-  // показывает данные с шага «Реквизиты» и правится там же
-  var nameEl = document.getElementById('invoice-other-name');
-  var summary = document.getElementById('invoice-other-summary');
-  if (nameEl) nameEl.textContent = name.trim() || 'Реквизиты не заполнены';
-  if (summary) summary.textContent = name.trim()
-    ? 'ИНН ' + inn + ' · ' + email + ' · ' + phone + ' · счёт …' + account.slice(-4)
-    : 'Заполните, если счёт оплачивает другая компания';
-  var btn = document.querySelector('[data-reqpanel="other"] .btn');
-  if (btn) btn.textContent = name.trim() ? 'Изменить' : 'Заполнить';
+  // данные из модалки становятся «другими» реквизитами; строка-сводка
+  // и её подпись пересобираются из них, «как в анкете» не трогаем
+  OTHER_REQ = name.trim() ? {
+    name: name.trim(),
+    details: 'ИНН ' + inn + ' · ' + email + ' · ' + phone + ' · счёт …' + account.slice(-4)
+  } : null;
+  if (OTHER_REQ) reqMode = 'other';
+  syncPayReq();
+  if (OTHER_REQ) togglePayReqPick(false);
 });
 
 // Реквизиты плательщика, введённые прямо на шаге оплаты (s-pay → По счёту)
