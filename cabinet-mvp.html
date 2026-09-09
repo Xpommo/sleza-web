@@ -2509,24 +2509,24 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-req-invoice-title">Реквизиты для счёта</h3><button class="btn text sm" data-modal-close="modal-req-invoice">✕</button></div>
     <label class="f" style="margin-top:14px">Наименование плательщика</label>
-    <input class="inp" id="modal-invoice-name" value="ООО «Альфа Образование»">
+    <input class="inp" id="modal-invoice-name" placeholder="ООО «Ромашка»">
     <div class="row field-row" style="margin-top:10px;gap:10px">
-      <div style="flex:1"><label class="f">ИНН</label><input class="inp mono" id="modal-invoice-inn" inputmode="numeric" value="7701234567"></div>
-      <div style="flex:1"><label class="f">ОГРН</label><input class="inp mono" id="modal-invoice-ogrn" inputmode="numeric" value="1157746112233"></div>
+      <div style="flex:1"><label class="f">ИНН</label><input class="inp mono" id="modal-invoice-inn" inputmode="numeric" maxlength="12" placeholder="10 или 12 цифр"></div>
+      <div style="flex:1"><label class="f">ОГРН</label><input class="inp mono" id="modal-invoice-ogrn" inputmode="numeric" maxlength="15" placeholder="13 или 15 цифр"></div>
     </div>
     <div class="hr" style="margin-top:14px"></div>
     <label class="f">Email для счёта</label>
-    <input class="inp" id="modal-invoice-email" value="buh@alfa-school.ru">
+    <input class="inp" id="modal-invoice-email" type="email" placeholder="buh@romashka.ru">
     <label class="f" style="margin-top:10px">Телефон</label>
-    <input class="inp mono" id="modal-invoice-phone" value="+7 (495) 123-45-67">
+    <input class="inp mono" id="modal-invoice-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
     <label class="f" style="margin-top:10px">Расчётный счёт</label>
-    <input class="inp mono" id="modal-invoice-account" value="40702810900000012345">
+    <input class="inp mono" id="modal-invoice-account" inputmode="numeric" maxlength="20" placeholder="40702810...">
     <div class="row" style="margin-top:10px;gap:10px">
-      <div style="flex:1"><label class="f">Банк</label><input class="inp" id="modal-invoice-bank" value="ПАО «Сбербанк»"></div>
-      <div style="flex:1"><label class="f">БИК</label><input class="inp mono" id="modal-invoice-bik" value="044525225"></div>
+      <div style="flex:1"><label class="f">Банк</label><input class="inp" id="modal-invoice-bank" placeholder="ПАО «Сбербанк»"></div>
+      <div style="flex:1"><label class="f">БИК</label><input class="inp mono" id="modal-invoice-bik" inputmode="numeric" maxlength="9" placeholder="9 цифр"></div>
     </div>
     <label class="f" style="margin-top:10px">Корр. счёт</label>
-    <input class="inp mono" id="modal-invoice-corr" value="30101810400000000225">
+    <input class="inp mono" id="modal-invoice-corr" inputmode="numeric" maxlength="20" placeholder="30101810...">
 
     <div class="row" style="margin-top:16px"><button class="btn solid" id="save-invoice-req-btn" data-modal-close="modal-req-invoice">Сохранить</button><button class="btn text" data-modal-close="modal-req-invoice">Отмена</button></div>
   </div>
@@ -4228,10 +4228,16 @@ if (saveInvoiceReqBtn) saveInvoiceReqBtn.addEventListener('click', function(){
   var email = document.getElementById('modal-invoice-email').value;
   var phone = document.getElementById('modal-invoice-phone').value;
   var account = document.getElementById('modal-invoice-account').value;
-  var nameEl = document.getElementById('invoice-req-name');
-  var summary = document.getElementById('invoice-req-summary');
-  if (nameEl) nameEl.textContent = name;
-  if (summary) summary.textContent = 'ИНН ' + inn + ' · ' + email + ' · ' + phone + ' · счёт …' + account.slice(-4);
+  // пишем в карточку «Другие реквизиты»: карточка «Как в анкете»
+  // показывает данные с шага «Реквизиты» и правится там же
+  var nameEl = document.getElementById('invoice-other-name');
+  var summary = document.getElementById('invoice-other-summary');
+  if (nameEl) nameEl.textContent = name.trim() || 'Реквизиты не заполнены';
+  if (summary) summary.textContent = name.trim()
+    ? 'ИНН ' + inn + ' · ' + email + ' · ' + phone + ' · счёт …' + account.slice(-4)
+    : 'Заполните, если счёт оплачивает другая компания';
+  var btn = document.querySelector('[data-reqpanel="other"] .btn');
+  if (btn) btn.textContent = name.trim() ? 'Изменить' : 'Заполнить';
 });
 
 // Реквизиты плательщика, введённые прямо на шаге оплаты (s-pay → По счёту)
