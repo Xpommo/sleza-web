@@ -1035,25 +1035,25 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <div class="state on" data-pay-state="unpaid">
               <div>
                 <div class="dom" data-site-domain>alfa-school.ru</div>
-                <div class="name">Альфа Образование</div>
+                <div class="name" data-company-short>Альфа Образование</div>
               </div>
-              <div class="meta">Документы не готовы<br>ООО «Альфа Образование» · ИНН 7701234567<br>подписка не подключена</div>
+              <div class="meta">Документы не готовы<br><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span><br>подписка не подключена</div>
               <div class="act"><button type="button" class="actbtn solid" data-go="s-anketa">Продолжить →</button></div>
             </div>
             <div class="state" data-pay-state="pending">
               <div>
                 <div class="dom" data-site-domain>alfa-school.ru</div>
-                <div class="name">Альфа Образование</div>
+                <div class="name" data-company-short>Альфа Образование</div>
               </div>
-              <div class="meta">⏳ Ожидает оплаты<br>ООО «Альфа Образование» · ИНН 7701234567<br>счёт выставлен · обычно 1–3 рабочих дня</div>
+              <div class="meta">⏳ Ожидает оплаты<br><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span><br>счёт выставлен · обычно 1–3 рабочих дня</div>
               <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
             </div>
             <div class="state" data-pay-state="paid">
               <div>
                 <div class="dom" data-site-domain>alfa-school.ru</div>
-                <div class="name">Альфа Образование</div>
+                <div class="name" data-company-short>Альфа Образование</div>
               </div>
-              <div class="meta">✓ Документы актуальны<br>ООО «Альфа Образование» · ИНН 7701234567<br>оплачено до 05.08.2027</div>
+              <div class="meta">✓ Документы актуальны<br><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span><br>оплачено до 05.08.2027</div>
               <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
             </div>
             <!-- независимый UX-аудит, критика A, P0: siteStatus по умолчанию
@@ -1064,17 +1064,17 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <div class="state" data-pay-state="trial">
               <div>
                 <div class="dom" data-site-domain>alfa-school.ru</div>
-                <div class="name">Альфа Образование</div>
+                <div class="name" data-company-short>Альфа Образование</div>
               </div>
-              <div class="meta">🕐 Пробный период<br>ООО «Альфа Образование» · ИНН 7701234567<br>осталось 21 ч 43 мин</div>
+              <div class="meta">🕐 Пробный период<br><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span><br>осталось 21 ч 43 мин</div>
               <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
             </div>
             <div class="state" data-pay-state="expired">
               <div>
                 <div class="dom" data-site-domain>alfa-school.ru</div>
-                <div class="name">Альфа Образование</div>
+                <div class="name" data-company-short>Альфа Образование</div>
               </div>
-              <div class="meta">⚠ Пробный период закончился<br>ООО «Альфа Образование» · ИНН 7701234567<br>виджет отключён</div>
+              <div class="meta">⚠ Пробный период закончился<br><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span><br>виджет отключён</div>
               <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
             </div>
           </div>
@@ -1087,31 +1087,31 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <thead><tr><th>Сайт</th><th>Статус</th><th>Оплата</th><th></th></tr></thead>
           <tbody>
             <tr class="state on" data-pay-state="unpaid">
-              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
               <td><span class="small muted">Документы не готовы</span></td>
               <td class="meta">подписка не подключена</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-anketa">Продолжить →</button></td>
             </tr>
             <tr class="state" data-pay-state="pending">
-              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
               <td><span class="b amber">⏳ Ожидает оплаты</span></td>
               <td class="meta">счёт выставлен</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
             <tr class="state" data-pay-state="paid">
-              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
               <td><span class="b green">✓ Документы актуальны</span></td>
               <td class="meta">оплачено до 05.08.2027</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
             <tr class="state" data-pay-state="trial">
-              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
               <td><span class="b amber">🕐 Пробный период</span></td>
               <td class="meta">осталось 21 ч 43 мин</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
             <tr class="state" data-pay-state="expired">
-              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
               <td><span class="b red">⚠ Пробный период закончился</span></td>
               <td class="meta">виджет отключён</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
@@ -1974,7 +1974,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="row" style="justify-content:space-between;align-items:flex-start">
         <div>
           <div class="mono" style="font-size:24px;font-weight:700" data-site-domain>alfa-school.ru</div>
-          <p class="tiny" style="margin-top:3px">ООО «Альфа Образование» · ИНН 7701234567</p>
+          <p class="tiny" style="margin-top:3px" data-company-line>ООО «Альфа Образование» · ИНН 7701234567</p>
           <div class="row" style="margin-top:6px">
             <span class="tiny mono">установка проверена сегодня</span>
           </div>
@@ -2992,6 +2992,14 @@ if (window.innerWidth <= 640) {
 // 'unpaid': реалистичный «только что установил» встречается на порядок
 // чаще «сайт добавлен, но установки не было».
 var siteStatus = 'trial';
+/* Реквизиты компании — сущность состояния, объявляется здесь, вместе с
+   остальным: goScreen('s-register') на старте выполняется раньше кода
+   ниже, и объявление по месту оставляло company undefined на первой
+   отрисовке. Те же грабли уже ловили с footerSkin. */
+var company = {
+  name:'ООО «Альфа Образование»', inn:'7701234567', mail:'buh@alfa-school.ru',
+  phone:'+7 (495) 123-45-67', account:'40702810900000012345'
+};
 var hasSite = true; // false только сразу после регистрации — реальный «пустой» первый заход
 var hasIdentity = false; // true после первого прохода Блока 1 анкеты — «Кто заполняет» на 2+ сайте больше не спрашиваем (HANDOFF 6.15)
 var sitePlatform = 'tilda'; // 'tilda'|'wp'|'bitrix'|'other' — из анкеты (s-anketa2), решает вкладку на s-install
@@ -3229,6 +3237,7 @@ function goScreen(id){
   syncPayState();
   syncAnketaSubstep();
   syncSiteNaming();
+  syncCompany();
   syncTariffName();
   syncFooterSkin();
   syncBannerSkin();
@@ -3426,7 +3435,7 @@ wireStepGate('anketa-req-next', [
   {id:'anketa-bank', errorId:'anketa-bank-error'},
   {id:'anketa-bik', errorId:'anketa-bik-error', test:function(v){ return v.replace(/\D/g,'').length === 9; }},
   {id:'anketa-corr', errorId:'anketa-corr-error', test:function(v){ return v.replace(/\D/g,'').length === 20; }}
-], function(){ goScreen('s-ready'); }, function(){
+], function(){ captureCompany(); syncCompany(); goScreen('s-ready'); }, function(){
   // форма собственности не поле ввода, поэтому проверяется отдельным
   // условием: без неё непонятно, какие из скрытых полей вообще нужны
   var picked = document.querySelector('[data-ownership-pick]:checked');
@@ -4026,6 +4035,38 @@ document.querySelectorAll('#paymode-pick [data-swap]').forEach(function(b){
    сводка подписки в «Обзоре». В «Обзоре» оно было зашито текстом — смена
    тарифа туда не доезжала. Теперь одна функция красит оба по currentTariff
    и вызывается из goScreen. */
+/* Реквизиты компании с шага «Реквизиты» — до 9 сентября они не доезжали
+   никуда: «Мои сайты», шапка «Обзора», Настройки и сводка плательщика в
+   «Подписке» показывали фикстуру, что бы человек ни ввёл. Тот же класс
+   ошибки, что уже чинили с доменом и почтой аккаунта — значение живёт в
+   переменной, а копии на соседних экранах остаются зашитыми. */
+function captureCompany(){
+  function val(id){ var el = document.getElementById(id); return el && el.offsetParent ? el.value.trim() : ''; }
+  var nm = val('req-name-ooo') || val('req-name-ip') || val('req-name-self');
+  if (nm) company.name = nm;
+  if (val('anketa-inn')) company.inn = val('anketa-inn');
+  if (val('anketa-company-mail')) company.mail = val('anketa-company-mail');
+  if (val('anketa-company-phone')) company.phone = val('anketa-company-phone');
+  if (val('anketa-account')) company.account = val('anketa-account');
+}
+function syncCompany(){
+  document.querySelectorAll('[data-company-line]').forEach(function(el){
+    el.textContent = company.name + ' · ИНН ' + company.inn;
+  });
+  // в заголовке карточки сайта — без организационной формы и кавычек:
+  // рядом уже стоит домен, «ООО «…»» там только шумит
+  var short = company.name.replace(/^(ООО|АО|ПАО|ЗАО|ИП)\s*/i, '').replace(/[«»"]/g, '').trim();
+  document.querySelectorAll('[data-company-short]').forEach(function(el){ el.textContent = short; });
+  var nameSet = document.getElementById('req-name-set');
+  var innSet = document.getElementById('req-inn-set');
+  if (nameSet) nameSet.textContent = company.name;
+  if (innSet) innSet.textContent = 'ИНН ' + company.inn;
+  var mName = document.getElementById('modal-req-name-set');
+  var mInn = document.getElementById('modal-req-inn-set');
+  if (mName && mName !== document.activeElement) mName.value = company.name;
+  if (mInn && mInn !== document.activeElement) mInn.value = company.inn;
+  if (typeof syncPayReq === 'function') syncPayReq();
+}
 function syncTariffName(){
   document.querySelectorAll('[data-tariff-name]').forEach(function(el){ el.textContent = currentTariff; });
 }
@@ -4067,8 +4108,9 @@ function syncPayReq(){
   var src = document.getElementById('payreq-source');
   var fill = document.getElementById('payreq-fill');
   if (reqMode === 'same') {
-    name.textContent = 'ООО «Альфа Образование»';
-    det.textContent = 'ИНН 7701234567 · buh@alfa-school.ru · +7 (495) 123-45-67 · счёт …2345';
+    name.textContent = company.name;
+    det.textContent = 'ИНН ' + company.inn + ' · ' + company.mail + ' · ' + company.phone +
+                      ' · счёт …' + company.account.slice(-4);
     src.textContent = 'Реквизиты плательщика · из анкеты';
   } else if (OTHER_REQ) {
     name.textContent = OTHER_REQ.name;
@@ -4384,6 +4426,7 @@ document.querySelectorAll('[data-save-req]').forEach(function(b){
     var innEl = document.getElementById('req-inn-' + suf);
     if (nameEl) nameEl.textContent = name;
     if (innEl) innEl.textContent = 'ИНН ' + inn;
+    if (suf === 'set') { company.name = name; company.inn = inn; syncCompany(); }
   });
 });
 
