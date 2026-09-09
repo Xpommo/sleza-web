@@ -806,6 +806,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      Только инструмент просмотра — не часть продукта. -->
 <div class="micro" style="position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:1px solid var(--line);padding:8px 16px">
   <span style="border:1px solid var(--line-2);border-radius:999px;padding:2px 8px">макет · MVP</span>
+  <!-- «подойдут любые данные» жило лидом на экране регистрации — путь
+       начинался служебной запиской вместо продуктового текста.
+       Перенесено сюда, к остальной служебке макета. -->
+  <span style="margin-left:10px;opacity:.7">данные в формах любые</span>
   <span style="margin-left:10px">экран:</span>
   <span id="scr-nav" style="display:inline-flex;gap:3px;flex-wrap:wrap"></span>
   <!-- разд.1.3 ТЗ 12.08 — на мобильном лента режимов схлопывается в select,
@@ -900,7 +904,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <span class="chip out">макет</span>
         </div>
         <h1 style="margin-bottom:6px">Регистрация</h1>
-        <p class="lead" style="margin-bottom:22px">Демо: подойдут любые данные — заполнять по-настоящему не нужно.</p>
+        <p class="lead" style="margin-bottom:22px">Заведём кабинет — дальше короткая анкета, и документы под ваш сайт будут готовы.</p>
 
         <!-- Ошибка стоит НАД кнопками, хотя сам чекбокс — под ними (правка
              пользователя 8 сентября): человек жмёт кнопку провайдера и
@@ -991,7 +995,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
       <div class="state on" data-has-site="true">
       <div class="row" style="justify-content:space-between;align-items:flex-start;margin-top:14px">
-        <p class="lead">1 сайт</p>
+        <p class="small muted" style="margin:0">1 сайт</p>
         <div class="row" style="gap:8px">
           <button class="btn sm" data-go="s-anketa" data-swapped="pvtable" style="display:none">+ Добавить сайт</button>
           <div class="viewbar" role="group" aria-label="Вид списка">
@@ -1277,7 +1281,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <p class="tiny anketa-field-error" id="anketa-platform-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите платформу — от неё зависит инструкция по установке на последнем шаге.</p>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h3 style="margin-bottom:8px">Какая аналитика стоит на сайте</h3>
+            <h3 style="margin-bottom:8px">Какая аналитика стоит на сайте?</h3>
             <div style="margin-top:4px">
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Яндекс.Метрика</span></label>
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Google Analytics</span></label>
@@ -1285,14 +1289,14 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h3 style="margin-bottom:8px">Есть ли на сайте</h3>
+            <h3 style="margin-bottom:8px">Что ещё есть на сайте?</h3>
             <div style="margin-top:4px">
               <label class="check"><input type="checkbox" data-excl="features"><span class="t">Корзина</span></label>
               <label class="check"><input type="checkbox" data-excl="features"><span class="t">Личный кабинет</span></label>
               <label class="check"><input type="checkbox" data-excl="features"><span class="t">Виджеты обратной связи</span></label>
               <label class="check"><input type="checkbox" data-excl="features" data-excl-none><span class="t">Нет ничего</span></label>
             </div>
-            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это спрашиваем ⌄</button>
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Куки-баннер и cookie-политика входят в пакет всегда — ответы не убирают и не добавляют документ, только делают его текст точным: что именно на сайте собирается, а не общая формулировка на все случаи.</p>
 
           </div>
@@ -1350,7 +1354,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check" data-purpose="payment"><input type="checkbox"><span class="t">Принять оплату онлайн</span></label>
             <label class="check" data-purpose="inquiry"><input type="checkbox"><span class="t">Ответить на обращение</span></label>
             <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях</span></label>
-            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем нужно отдельное согласие на рассылки ⌄</button>
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Ваши ответы попадут в документы. ФЗ «О рекламе» ст.18 требует отдельное согласие получателя на рекламные рассылки — email, смс, мессенджеры: без него рассылка технически возможна, но незаконна.</p>
           </div>
 
@@ -1368,7 +1372,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
         <div data-substep="3" style="display:none">
           <h1>Реквизиты</h1>
-          <p class="lead" style="margin-top:8px">Пойдут в документы и в реквизиты — их открывают из подвала сайта. По ним бухгалтер контрагента выставит счёт и составит договор, ничего не запрашивая дополнительно.</p>
+          <p class="lead" style="margin-top:8px">Данные компании — попадут в документы и в реквизиты, которые открывают из подвала сайта.</p>
 
           <!-- Реквизиты разложены по источнику данных, а не по алфавиту
                (8 сентября, разбор с пользователем по шаблону реквизитов):
@@ -1436,7 +1440,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
             <label class="f" style="margin-top:10px" for="anketa-company-phone">Телефон <span style="color:var(--danger)">*</span></label>
             <input class="inp mono" id="anketa-company-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
-            <p class="tiny anketa-field-error" id="anketa-company-phone-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите телефон — он пойдёт в реквизиты.</p>
+            <p class="tiny anketa-field-error" id="anketa-company-phone-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите телефон — он попадёт в реквизиты на сайте.</p>
 
             <div id="anketa-post-addr-row">
               <label class="f" style="margin-top:10px" for="anketa-post-addr">Адрес для переписки</label>
@@ -1464,7 +1468,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
             <label class="f" style="margin-top:10px" for="anketa-bank">Банк <span style="color:var(--danger)">*</span></label>
             <input class="inp" id="anketa-bank" placeholder="ПАО «Сбербанк»">
-            <p class="tiny anketa-field-error" id="anketa-bank-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите банк, в котором открыт счёт.</p>
+            <p class="tiny anketa-field-error" id="anketa-bank-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите банк — в нём открыт расчётный счёт из поля выше.</p>
 
             <label class="f" style="margin-top:10px" for="anketa-bik">БИК <span style="color:var(--danger)">*</span></label>
             <input class="inp mono" id="anketa-bik" inputmode="numeric" maxlength="9" placeholder="9 цифр">
@@ -1472,10 +1476,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
             <label class="f" style="margin-top:10px" for="anketa-corr">Корреспондентский счёт <span style="color:var(--danger)">*</span></label>
             <input class="inp mono" id="anketa-corr" inputmode="numeric" maxlength="20" placeholder="30101810...">
-            <p class="tiny anketa-field-error" id="anketa-corr-error" style="display:none;margin-top:5px;color:var(--danger)">Корреспондентский счёт — 20 цифр.</p>
+            <p class="tiny anketa-field-error" id="anketa-corr-error" style="display:none;margin-top:5px;color:var(--danger)">Корреспондентский счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
 
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Покажем их внизу страниц через виджет.</p>
+            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Виджет откроет их из подвала сайта. По этим же реквизитам бухгалтер контрагента выставит счёт и составит договор, ничего не запрашивая дополнительно.</p>
           </div>
 
           <div class="hr" style="margin-top:20px"></div>
