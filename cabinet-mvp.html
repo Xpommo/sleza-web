@@ -468,24 +468,32 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    с подвалом (--w-*), а не отдельная. Раскладка вертикальная, карточкой:
    у коллеги баннер стоит поверх страницы прямоугольником с крупной
    кнопкой на всю ширину, а не полосой во всю ширину экрана, как было. */
-.cookie-card{max-width:360px;background:var(--w-bg);color:var(--w-text);border:1px solid var(--w-line);
-  border-radius:14px;padding:20px 22px;font-family:var(--sans)}
+.cookie-card{display:flex;align-items:center;gap:20px;background:var(--w-bg);color:var(--w-text);
+  border:1px solid var(--w-line);border-radius:14px;padding:16px 20px;font-family:var(--sans)}
 .cc-icon{width:32px;height:32px;border-radius:9px;background:var(--w-accent-soft);color:var(--w-accent);
-  display:grid;place-items:center;margin-bottom:12px}
+  display:grid;place-items:center;flex:none;align-self:flex-start;margin-top:2px}
 .cc-icon svg{width:16px;height:16px}
-.cc-title{font-weight:700;font-size:15px;line-height:1.25;margin:0 0 8px}
-.cc-body{font-size:12.5px;line-height:1.55;color:var(--w-muted);margin:0 0 10px}
-.cc-link{display:inline-block;font-size:12px;font-weight:600;color:var(--w-accent);text-decoration:none;
-  margin-bottom:14px;cursor:pointer}
+.cc-text{flex:1;min-width:0}
+.cc-title{font-weight:700;font-size:15px;line-height:1.25;margin:0 0 5px}
+.cc-body{font-size:12.5px;line-height:1.55;color:var(--w-muted);margin:0 0 6px}
+.cc-link{display:inline-block;font-size:12px;font-weight:600;color:var(--w-accent);text-decoration:none;cursor:pointer}
 .cc-link:hover{text-decoration:underline}
-.cc-accept{display:block;width:100%;font:inherit;font-weight:700;font-size:13.5px;padding:11px;
+.cc-action{flex:none;display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:196px}
+.cc-accept{display:block;width:100%;font:inherit;font-weight:700;font-size:13.5px;padding:12px 22px;
   border-radius:9px;border:0;background:var(--w-accent);color:var(--w-on-accent);cursor:pointer}
 /* цвет текста кнопки зависит от скина: в тёмной теме акцент светлый
    (#6E9BFF) и текст должен быть тёмным, в светлой акцент насыщенный
    (#2E5FE0) и текст белый — фиксированный цвет тонул бы в одной из двух */
 .cc-accept:hover{filter:brightness(1.08)}
 .cc-note{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--w-muted);opacity:.75;margin:10px 0 0;text-align:center}
+  color:var(--w-muted);opacity:.75;margin:0;text-align:center}
+/* На узком экране полоса складывается обратно в карточку: иконка над
+   текстом, кнопка на всю ширину. Тот же брейкпоинт, что у подвала. */
+@media(max-width:640px){
+  .cookie-card{flex-direction:column;align-items:stretch;gap:12px;padding:18px 20px}
+  .cc-icon{align-self:flex-start;margin-top:0}
+  .cc-action{min-width:0}
+}
 /* «Авто» одним превью не показать — под ним подпись, какой из двух видов
    изображён. Прежде вместо превью стояла пунктирная заглушка с
    пояснением: текст без картинки объяснял меньше, чем картинка с
@@ -1574,7 +1582,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <h2 style="margin-top:18px">Вот что появится на сайте</h2>
       <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.45);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">куки-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
-        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div>
+        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
       </div>
       <div class="fpreview" style="margin-top:14px">
@@ -1587,7 +1595,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <summary>Вот что появится на сайте</summary>
       <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.45);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">куки-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
-        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div>
+        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
       </div>
       <div class="fpreview" style="margin-top:14px">
@@ -2541,7 +2549,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
              баннера нет и не было: «убрать текст "баннер с реальным
              отказом"... у нас нет реального отказа и он не нужен». Отказ —
              через настройки браузера, крестик просто закрывает баннер. -->
-        <div data-banner-host><div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div><p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p></div>
+        <div data-banner-host><div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div></div><p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p></div>
                 </div>
         <div id="banner-off-placeholder" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:20px 16px;text-align:center">
           <p class="tiny">Баннер выключен — посетители его не видят.</p>
