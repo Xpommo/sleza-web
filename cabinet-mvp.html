@@ -2061,11 +2061,11 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
                попадают trial/expired/pending/paid (HANDOFF 6.15 п.8). -->
           <div class="state" data-pay-state="unpaid">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">не оплачено</span></div>
-            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">Тариф Х</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700" data-tariff-name>Тариф Х</span></div>
           </div>
           <div class="state" data-pay-state="trial">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">пробный период</span></div>
-            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">Тариф Х</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700" data-tariff-name>Тариф Х</span></div>
           </div>
           <div class="state" data-pay-state="expired">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">пробный период закончился</span></div>
@@ -3229,6 +3229,7 @@ function goScreen(id){
   syncPayState();
   syncAnketaSubstep();
   syncSiteNaming();
+  syncTariffName();
   syncFooterSkin();
   syncBannerSkin();
   syncInstallMode();
@@ -3990,7 +3991,7 @@ document.querySelectorAll('[data-tariff]').forEach(function(b){
 var tariffApply = document.getElementById('tariff-apply');
 if (tariffApply) tariffApply.addEventListener('click', function(){
   currentTariff = previewTariff;
-  document.querySelectorAll('[data-tariff-name]').forEach(function(el){ el.textContent = currentTariff; });
+  syncTariffName();
   toggleTariffPick(false);
 });
 var tariffCancel = document.getElementById('tariff-cancel');
@@ -4021,6 +4022,13 @@ document.querySelectorAll('#paymode-pick [data-swap]').forEach(function(b){
   });
 });
 
+/* Название тарифа стоит в двух местах: строка-сводка в «Подписке» и
+   сводка подписки в «Обзоре». В «Обзоре» оно было зашито текстом — смена
+   тарифа туда не доезжала. Теперь одна функция красит оба по currentTariff
+   и вызывается из goScreen. */
+function syncTariffName(){
+  document.querySelectorAll('[data-tariff-name]').forEach(function(el){ el.textContent = currentTariff; });
+}
 function toggleTariffPick(open){
   var sum = document.getElementById('tariff-summary');
   var pick = document.getElementById('tariff-pick');
