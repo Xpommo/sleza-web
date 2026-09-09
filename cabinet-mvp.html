@@ -1013,7 +1013,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 1 из 6</div>
       <h1>Знакомство</h1>
-      <p class="lead" style="margin-top:8px">Пара минут на знакомство, дальше вопросы о сайте.</p>
+      <p class="lead" style="margin-top:8px">Сначала о вас — это контакты вашего кабинета. Дальше пойдут вопросы о сайте.</p>
 
       <div class="card pad state" data-has-identity="false" style="margin-top:16px">
         <h3>Кто заполняет анкету?</h3>
@@ -1031,7 +1031,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <input class="inp mono" id="anketa-person-backup" inputmode="tel" placeholder="+7 (___) ___-__-__">
 
         <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-person">Зачем это нужно ⌄</button>
-        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">На почту придут счёт, письма о продлении и сообщения об обновлении и изменениях в документах. Резервная связь необязательна — позвоним по ней, только если письма перестанут доходить.</p>
+        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">На почту придут счёт, письма о продлении и сообщения об обновлении и изменениях в документах. Резервная связь необязательна — позвоним по ней, только если письма перестанут доходить. Менять их можно в Настройках, в разделе «Контакты». В документы и в подвал сайта они не попадут — контакты для сайта спросим отдельно, на шаге «Реквизиты».</p>
       </div>
 
       <div class="card pad" style="margin-top:10px">
@@ -1266,14 +1266,17 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <div data-swapped="own-ooo" style="display:none;margin-top:10px">
               <label class="f" for="req-name-ooo">Наименование <span style="color:var(--danger)">*</span></label>
               <input class="inp" id="req-name-ooo" placeholder="ООО «Ромашка»">
+              <p class="tiny anketa-field-error" id="req-name-ooo-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите наименование — оно попадёт в документы и в подвал сайта.</p>
             </div>
             <div data-swapped="own-ip" style="display:none;margin-top:10px">
               <label class="f" for="req-name-ip">ФИО <span style="color:var(--danger)">*</span></label>
               <input class="inp" id="req-name-ip" placeholder="Иванова Мария Сергеевна">
+              <p class="tiny anketa-field-error" id="req-name-ip-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите ФИО — оно попадёт в документы и в подвал сайта.</p>
             </div>
             <div data-swapped="own-self" style="display:none;margin-top:10px">
               <label class="f" for="req-name-self">ФИО <span style="color:var(--danger)">*</span></label>
               <input class="inp" id="req-name-self" placeholder="Иванова Мария Сергеевна">
+              <p class="tiny anketa-field-error" id="req-name-self-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите ФИО — оно попадёт в документы и в подвал сайта.</p>
             </div>
 
             <div data-swapped="own-ooo" style="display:none">
@@ -1292,6 +1295,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
             <label class="f" style="margin-top:10px" for="anketa-addr" id="anketa-addr-label">Юридический адрес <span style="color:var(--danger)">*</span></label>
             <input class="inp" id="anketa-addr" placeholder="Индекс, город, улица, дом">
+              <p class="tiny anketa-field-error" id="anketa-addr-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите адрес — он попадёт в реквизиты в подвале сайта.</p>
           </div>
 
           <div class="card pad" style="margin-top:10px">
@@ -1313,6 +1317,13 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <input class="inp" id="anketa-pd-contact" placeholder="Почта или телефон, куда придёт обращение">
             <p class="tiny anketa-field-error" id="anketa-pd-contact-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта (вида name@site.ru) или телефон — по этому контакту к вам будут обращаться по вопросам персональных данных.</p>
             <p class="tiny" id="anketa-pd-hint" style="display:none;margin-top:6px;color:var(--warn)">На бухгалтерскую почту такие обращения обычно теряются — лучше указать контакт, который точно проверяют.</p>
+
+            <!-- Зеркало оговорки с шага 1: там сказано, что личные контакты
+                 на сайте не показываются, здесь — что эти показываются.
+                 Правило объясняется с обеих сторон, иначе третья подряд
+                 просьба указать почту читается как небрежность. -->
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-contacts">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-contacts" style="display:none;margin-top:8px">Это контакты компании — они попадут в подвал сайта и в документы, их увидят посетители.</p>
           </div>
 
           <div class="card pad" style="margin-top:10px">
@@ -2110,8 +2121,14 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <details class="acc" open style="margin-top:16px">
       <summary class="acc-title"><h3>Контакты</h3></summary>
       <div class="card pad">
-        <label class="f">Имя</label><input class="inp" value="Кирилл">
-        <label class="f" style="margin-top:10px">Почта</label><input class="inp mono" value="director@alfa-school.ru">
+        <label class="f" for="set-name">Имя</label><input class="inp" id="set-name" value="Кирилл">
+        <label class="f" style="margin-top:10px" for="set-mail">Почта</label><input class="inp mono" id="set-mail" value="director@alfa-school.ru">
+        <!-- Резервная связь спрашивается на шаге «Знакомство» и до 9 сентября
+             никуда не доходила: в «Контактах» для неё не было поля, и
+             введённый телефон пропадал. Формулировка та же, что на шаге 1 —
+             иначе название сущности разъезжается между двумя экранами. -->
+        <label class="f" style="margin-top:10px" for="set-phone">Резервная связь</label><input class="inp mono" id="set-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
+        <p class="tiny" style="margin-top:6px">Необязательно — позвоним, только если письма перестанут доходить.</p>
         <div class="hr"></div>
         <div class="row" style="justify-content:space-between"><span class="small">Пароль</span><button class="btn sm" data-go-modal="modal-pass">Изменить</button></div>
       </div>
@@ -2743,10 +2760,38 @@ var siteOwnership = 'ooo';
 // обращений субъектов ПДн) — независимый список правок, «Анкета», 25.08.
 var whoFills = 'owner';
 
+/* Данные шага «Знакомство» — это аккаунт, а не проект (правило
+   пользователя, 9 сентября): имя, почта и резервный телефон живут в
+   Настройках → «Контакты» и в чипе аккаунта в сайдборе, а не в реквизитах
+   сайта. Реквизиты проекта (наименование, юр. адрес, почта и телефон
+   компании, ПДн-контакт) спрашиваются отдельно на шаге «Реквизиты» и
+   уходят в документы и в подвал сайта. До 9 сентября введённое на шаге 1
+   не доходило никуда: и Настройки, и чип показывали зашитые
+   «Кирилл»/director@alfa-school.ru, а телефону места не было вовсе. */
+var account = {name:'Кирилл', mail:'director@alfa-school.ru', phone:''};
+function syncAccount(){
+  document.querySelectorAll('.acct-btn .name').forEach(function(el){ el.textContent = account.name; });
+  document.querySelectorAll('.acct-btn .mail').forEach(function(el){ el.textContent = account.mail; });
+  document.querySelectorAll('.acct-btn .avatar').forEach(function(el){
+    el.textContent = (account.name.trim()[0] || 'К').toUpperCase(); });
+  // поля Настроек — зеркало аккаунта; правится там же и сохраняется кнопкой,
+  // поэтому переписываем их только когда человек в них не печатает
+  [['set-name','name'],['set-mail','mail'],['set-phone','phone']].forEach(function(pair){
+    var el = document.getElementById(pair[0]);
+    if (el && el !== document.activeElement) el.value = account[pair[1]];
+  });
+  // «Отправить себе» на шаге 6 — это письмо себе, значит почта аккаунта
+  var selfMail = document.getElementById('install-self-email');
+  if (selfMail && selfMail !== document.activeElement) selfMail.value = account.mail;
+}
 function syncPdContact(){
   var input = document.getElementById('anketa-pd-contact');
   if (!input) return;
-  input.value = (whoFills === 'owner' || whoFills === 'staff') ? 'director@alfa-school.ru' : '';
+  // ПДн-контакт остаётся реквизитом проекта и отдельным полем (решение
+  // 25.08): для директора и сотрудника почта аккаунта — рабочее значение
+  // по умолчанию, которое можно поменять; для подрядчика поле пустое, он
+  // за приём обращений субъектов ПДн не отвечает.
+  input.value = (whoFills === 'owner' || whoFills === 'staff') ? account.mail : '';
 }
 // 'notfound' | 'found' — s-install, два исхода проверки скрипта (независимый
 // план исправлений, п.1.2). Дефолт 'found' — согласован с дефолтом
@@ -2949,6 +2994,7 @@ function goScreen(id){
   syncPayState();
   syncAnketaSubstep();
   syncSiteNaming();
+  syncAccount();
   syncWhoVisible();
   syncInstallAction();
   paintNav(id);
@@ -3011,7 +3057,10 @@ function wireLengthValidation(inputId, errorId, validLengths){
   if (!input || !error) return;
   input.addEventListener('blur', function(){
     var digits = input.value.replace(/\D/g, '');
-    var valid = digits.length === 0 || validLengths.indexOf(digits.length) !== -1;
+    // пустое поле молчит (о нём скажет гейт «Далее»), но непустое без нужного
+    // количества цифр — ошибка: «ИННИННИННА» даёт 0 цифр и раньше считалось
+    // пустым, то есть буквенный ИНН проходил blur без подсветки
+    var valid = input.value.trim() === '' || validLengths.indexOf(digits.length) !== -1;
     input.classList.toggle('error', !valid);
     error.style.display = valid ? 'none' : 'block';
   });
@@ -3074,6 +3123,7 @@ function wireStepGate(btnId, fields, onPass, extraCheck){
   if (!btn) return;
   btn.addEventListener('click', function(){
     var ok = extraCheck ? extraCheck() : true;
+    var firstBad = null;   // карточка реквизитов длинная — ошибка уезжает выше экрана
     fields.forEach(function(f){
       var input = document.getElementById(f.id);
       var error = document.getElementById(f.errorId);
@@ -3089,9 +3139,14 @@ function wireStepGate(btnId, fields, onPass, extraCheck){
       var bad = v === '' || !!(f.test && !f.test(v));
       input.classList.toggle('error', bad);
       if (error) error.style.display = bad ? 'block' : 'none';
-      if (bad) ok = false;
+      if (bad) { ok = false; if (!firstBad) firstBad = input; }
     });
-    if (ok) onPass();
+    if (ok) { onPass(); return; }
+    if (firstBad) firstBad.focus({preventScroll:true});
+    // прокрутка отдельно от focus: нужно видеть подпись под полем, а не
+    // прижать его к краю окна
+    var scrollTo = firstBad || document.querySelector('.screen.on .anketa-field-error[style*="block"]');
+    if (scrollTo) scrollTo.scrollIntoView({block:'center', behavior:'smooth'});
   });
 }
 /* Ошибку, поставленную гейтом, снимаем сразу при вводе, а не на следующем
@@ -3119,11 +3174,11 @@ if (readyBack) readyBack.addEventListener('click', function(){
 wireStepGate('anketa-req-next', [
   {id:'anketa-inn', errorId:'anketa-inn-error', test:function(v){
     var d = v.replace(/\D/g,''); return d.length === 10 || d.length === 12; }},
-  {id:'req-name-ooo'}, {id:'req-name-ip'}, {id:'req-name-self'},
+  {id:'req-name-ooo', errorId:'req-name-ooo-error'}, {id:'req-name-ip', errorId:'req-name-ip-error'}, {id:'req-name-self', errorId:'req-name-self-error'},
   {id:'anketa-ogrn', errorId:'anketa-ogrn-error', test:function(v){ return v.replace(/\D/g,'').length === 13; }},
   {id:'anketa-kpp', errorId:'anketa-kpp-error', test:function(v){ return v.replace(/\D/g,'').length === 9; }},
   {id:'anketa-ogrnip', errorId:'anketa-ogrnip-error', test:function(v){ return v.replace(/\D/g,'').length === 15; }},
-  {id:'anketa-addr'},
+  {id:'anketa-addr', errorId:'anketa-addr-error'},
   {id:'anketa-company-mail', errorId:'anketa-company-mail-error', test:function(v){
     return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v); }},
   {id:'anketa-company-phone', errorId:'anketa-company-phone-error'},
@@ -3153,6 +3208,13 @@ wireStepGate('anketa-start-next', [
   // канонический вид записываем обратно в поле: человек должен видеть ровно
   // то, что уйдёт в ссылки на документы и в код установки
   if (domInput) domInput.value = normalizeDomain(domInput.value);
+  var pn = document.getElementById('anketa-person-name');
+  var pm = document.getElementById('anketa-person-mail');
+  var pb = document.getElementById('anketa-person-backup');
+  if (pn && pn.value.trim()) account.name = pn.value.trim();
+  if (pm && pm.value.trim()) account.mail = pm.value.trim();
+  if (pb) account.phone = pb.value.trim();
+  syncPdContact();       // ПДн-контакт по умолчанию — уже новая почта, не зашитая
   hasSite = true;        // сайт появляется в «Моих сайтах» только после шага 1
   hasIdentity = true;    // «кто заполняет» спрашиваем один раз на аккаунт
   anketaSubstep = 1;
@@ -3224,9 +3286,16 @@ function wireEmailGate(btnId, inputId, errorId, label){
   var error = document.getElementById(errorId);
   if (!btn || !input) return;
   btn.addEventListener('click', function(){
-    if (!input.value.trim()) {
+    // формат, а не только непустота: «Иванов Иван» раньше давал уверенное
+    // «Отправлено ✓». Регулярка та же, что у почты на шаге «Знакомство»
+    var v = input.value.trim();
+    if (!v || !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v)) {
       input.classList.add('error');
-      if (error) error.style.display = 'block';
+      if (error) {
+        error.textContent = v ? 'Нужна почта вида name@site.ru — сейчас адрес не похож на почтовый.'
+                              : 'Укажите почту — иначе некуда отправлять.';
+        error.style.display = 'block';
+      }
       input.focus();
       return;
     }
@@ -3264,7 +3333,16 @@ if (consentBox) consentBox.addEventListener('change', function(){
 });
 ['save-contacts-btn', 'save-notify-btn'].forEach(function(id){
   var btn = document.getElementById(id);
-  if (btn) btn.addEventListener('click', function(){ flashDone(btn, 'Сохранено ✓'); });
+  if (btn) btn.addEventListener('click', function(){
+    if (id === 'save-contacts-btn') {
+      var n = document.getElementById('set-name'), m = document.getElementById('set-mail'), t = document.getElementById('set-phone');
+      if (n && n.value.trim()) account.name = n.value.trim();
+      if (m && m.value.trim()) account.mail = m.value.trim();
+      if (t) account.phone = t.value.trim();
+      syncAccount();
+    }
+    flashDone(btn, 'Сохранено ✓');
+  });
 });
 
 /* раскрывашки-находки */
