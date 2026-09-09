@@ -876,7 +876,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
 <!-- ══════════════════ 01б · ВОССТАНОВЛЕНИЕ ПАРОЛЯ ══════════════════════
      «Забыли пароль?» на s-login раньше никуда не вела — тупиковая кнопка
-     на первом экране флоу. Тот же паттерн, что s-verify (запрос →
+     на первом экране флоу. Тот же паттерн (запрос →
      демо-подтверждение), не отдельный сложный флоу с реальным письмом. -->
 <section class="screen" id="s-forgot">
   <div class="startwrap" style="max-width:400px;padding-top:56px">
@@ -964,20 +964,13 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      единственный способ проверить, что адрес настоящий и на него дойдёт
      переписка (документы, чек, уведомления). Кнопка ниже — демо-имитация
      перехода по ссылке из письма, не настоящая проверка. -->
-<section class="screen" id="s-verify">
-  <div class="startwrap" style="max-width:400px;padding-top:56px;text-align:center">
-    <div class="row" style="gap:9px;margin-bottom:28px;justify-content:center">
-      <svg width="26" height="17" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg>
-      <b class="mono" style="font-size:15px;font-weight:800">Слеза Белый Сайт</b>
-      <span class="chip out">макет</span>
-    </div>
-    <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:22px">✉️</div>
-    <h1>Подтвердите почту</h1>
-    <p class="lead" style="margin-top:10px">Отправили письмо со ссылкой на адрес, который вы указали. Перейдите по ней, чтобы продолжить — это займёт минуту.</p>
-    <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-status" data-set-hassite="false">Ссылка подтверждена (демо) →</button>
-    <p class="tiny" style="margin-top:16px">Не пришло письмо? <button type="button" class="btn text sm" style="padding:0">Отправить ещё раз</button></p>
-  </div>
-</section>
+<!-- Экран «Подтвердите почту» убран 9 сентября. Он обещал «отправили
+     письмо на адрес, который вы указали», но на регистрации почту больше
+     не спрашивают: вход через провайдера, а почта собирается на шаге
+     «Знакомство». Подтверждать было нечего — экран уже был недостижим из
+     флоу и жил только в тулбаре макета. Подтверждение почты как задача
+     не снято: оно относится к почте из «Знакомства» и должно случаться
+     там, см. раздел 7. -->
 
 <!-- ══════════════════ 04б · МОИ САЙТЫ — портировано из cabinet-b.html (s-list) ═
      Верхнеуровневый хаб сайдбара («Обзор» у конкретного проекта ведёт сюда
@@ -990,11 +983,11 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
      Новое здесь: настоящее пустое состояние (data-has-site="false"/"true",
      hasSite в script, тот же паттерн, что siteStatus/data-pay-state) —
-     сразу после s-verify свежий аккаунт правда пустой, «Мои сайты» больше
+     сразу после регистрации свежий аккаунт правда пустой, «Мои сайты» больше
      не показывает демо-сайт, которого ещё не было. Дефолт hasSite=true
      сохраняет остальной макет и dev-тулбар как есть (переход по нему
      сюда напрямую по-прежнему показывает сайт) — только явный переход
-     s-verify→s-status выставляет hasSite=false. -->
+     регистрация выставляет hasSite=false. -->
 <section class="screen" id="s-status">
   <div class="appwrap sidebar">
     <aside class="side">
@@ -2863,7 +2856,6 @@ var NAV_ITEMS = [
   {screen:'s-login',        label:'вход'},
   {screen:'s-forgot',       label:'забыли пароль'},
   {screen:'s-register',     label:'регистрация'},
-  {screen:'s-verify',       label:'подтвердите почту'},
   {screen:'s-status',       label:'мои сайты'},
   {screen:'s-anketa',       label:'шаг 1/6'},
   {screen:'s-anketa2', substep:1, label:'шаг 2/6'},
@@ -2950,7 +2942,7 @@ if (window.innerWidth <= 640) {
 // 'unpaid': реалистичный «только что установил» встречается на порядок
 // чаще «сайт добавлен, но установки не было».
 var siteStatus = 'trial';
-var hasSite = true; // false только сразу после s-verify — реальный «пустой» первый заход
+var hasSite = true; // false только сразу после регистрации — реальный «пустой» первый заход
 var hasIdentity = false; // true после первого прохода Блока 1 анкеты — «Кто заполняет» на 2+ сайте больше не спрашиваем (HANDOFF 6.15)
 var sitePlatform = 'tilda'; // 'tilda'|'wp'|'bitrix'|'other' — из анкеты (s-anketa2), решает вкладку на s-install
 // 'ooo'|'ip'|'self' — форма собственности из анкеты (s-anketa2, «О компании»).
@@ -3592,9 +3584,6 @@ function wireEmailGate(btnId, inputId, errorId, label){
 wireEmailGate('send-instructions-btn', 'install-dev-email', 'install-dev-email-error', 'Отправлено ✓');
 wireEmailGate('send-self-btn', 'install-self-email', 'install-self-email-error', 'Отправлено ✓');
 
-/* Регистрация — та же логика гейта, но на три поля сразу (email/пароль/
-   оферта) и переход на s-verify только при успехе, а не безусловный
-   data-go. См. комментарий у кнопки в разметке. */
 /* Гейт согласия на регистрации (8 сентября). Кнопки провайдеров не ведут в
    кабинет, пока согласие не принято. data-go на них нет намеренно: переход
    делает сам гейт — иначе общий обработчик увёл бы мимо проверки (та же
