@@ -1289,7 +1289,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <p class="tiny anketa-field-error" id="anketa-ogrnip-error" style="display:none;margin-top:5px;color:var(--danger)">ОГРНИП — 15 цифр. Проверьте, не пропущена ли часть номера.</p>
             </div>
 
-            <label class="f" style="margin-top:10px" for="anketa-addr">Юридический адрес <span style="color:var(--danger)">*</span></label>
+            <label class="f" style="margin-top:10px" for="anketa-addr" id="anketa-addr-label">Юридический адрес <span style="color:var(--danger)">*</span></label>
             <input class="inp" id="anketa-addr" placeholder="Индекс, город, улица, дом">
           </div>
 
@@ -1303,8 +1303,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <input class="inp mono" id="anketa-company-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
             <p class="tiny anketa-field-error" id="anketa-company-phone-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите телефон — он пойдёт в реквизиты.</p>
 
-            <label class="f" style="margin-top:10px" for="anketa-post-addr">Адрес для переписки</label>
-            <input class="inp" id="anketa-post-addr" placeholder="Если отличается от юридического">
+            <div id="anketa-post-addr-row">
+              <label class="f" style="margin-top:10px" for="anketa-post-addr">Адрес для переписки</label>
+              <input class="inp" id="anketa-post-addr" placeholder="Если отличается от юридического">
+            </div>
 
             <label class="f" style="margin-top:10px" for="anketa-pd-contact">Куда писать по вопросам персональных данных <span style="color:var(--danger)">*</span></label>
             <input class="inp" id="anketa-pd-contact" placeholder="Почта или телефон, куда придёт обращение">
@@ -1711,7 +1713,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <p class="tiny" style="margin-bottom:2px">Выбрали на шаге «О сайте». Если платформа другая — переключите.</p>
       <div class="tabs" id="install-cms-tabs" style="margin-top:8px"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
       <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
-data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
+data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;</div>
       <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
         <button class="btn sm copy-code-btn" data-copy-target="install-code">Скопировать код</button>
         <button type="button" class="btn sm solid" id="install-action-btn">↻ Проверить скрипт на сайте</button>
@@ -2504,7 +2506,7 @@ data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
         <button class="btn text sm" data-fold="widget-code" style="padding:0">Показать код установки ⌄</button>
         <div id="widget-code" style="display:none;margin-top:10px">
           <div class="code" id="widget-code-block">&lt;script src="https://cdn.belysite.ru/w.js"
-data-site="alfa-school-ru" async&gt;&lt;/script&gt;</div>
+data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;</div>
           <div class="row" style="margin-top:10px;gap:8px">
             <button class="btn sm copy-code-btn" data-copy-target="widget-code-block">Скопировать код</button>
             <button class="btn sm check-install-btn">↻ Проверить установку</button>
@@ -2860,6 +2862,27 @@ var FUNNEL_STEPS = [
    вернувшись со шага 4 на шаг 2, человек по-прежнему видит все четыре,
    иначе возврат читался бы как потеря прогресса. */
 var maxStepReached = 1;
+/* Ответ «Нет ничего» на шаге «О сайте» пропускает «Работу с клиентами» —
+   значит этого шага в пути просто нет: он не показывается в сайдборде, а
+   счётчик считает по оставшимся («Шаг 3 из 5»). Раньше список был
+   фиксированным, и счётчик прыгал с «2 из 6» на «4 из 6», а пропущенный
+   шаг получал галочку «пройден». visitedSteps помнит, где человек был на
+   самом деле: галочка ставится только за посещённый шаг, поэтому если
+   вернуться и снять «Нет ничего», вернувшийся шаг не окажется
+   «завершённым» задним числом. */
+var visitedSteps = {1:true};
+function clientsStepSkipped(){
+  var noneBox = document.querySelector('[data-excl="features"][data-excl-none]');
+  return !!(noneBox && noneBox.checked);
+}
+function activeStepNumbers(){
+  var out = [];
+  for (var i = 1; i <= FUNNEL_STEPS.length; i++) {
+    if (i === 3 && clientsStepSkipped()) continue;
+    out.push(i);
+  }
+  return out;
+}
 function currentFunnelStep(){
   var scr = document.querySelector('.screen.on');
   if (!scr) return 0;
@@ -2872,8 +2895,11 @@ function currentFunnelStep(){
 function syncFunnelSteps(){
   var cur = currentFunnelStep();
   if (cur > maxStepReached) maxStepReached = cur;
+  if (cur) visitedSteps[cur] = true;
+  var active = activeStepNumbers();
   document.querySelectorAll('[data-side-steps] .side-step').forEach(function(el){
     var n = parseInt(el.dataset.step, 10);
+    if (active.indexOf(n) === -1) { el.hidden = true; el.classList.remove('now','done','seen'); return; }
     el.hidden = n > maxStepReached;
     el.classList.toggle('now', n === cur);
     // Галочка = шаг ЗАВЕРШЁН, то есть с него ушли вперёд (n < максимума
@@ -2882,12 +2908,13 @@ function syncFunnelSteps(){
     // человек видел галочку на установке, которую не делал —
     // прямая правка пользователя. Самый дальний посещённый шаг остаётся
     // видимым и кликабельным (.seen), но без галочки: он открыт, не сделан.
-    el.classList.toggle('done', n < maxStepReached && n !== cur);
+    el.classList.toggle('done', !!visitedSteps[n] && n < maxStepReached && n !== cur);
     el.classList.toggle('seen', n === maxStepReached && n !== cur);
   });
   if (cur) {
+    var pos = active.indexOf(cur) + 1;
     document.querySelectorAll('.screen.on [data-step-counter]').forEach(function(el){
-      el.textContent = 'Шаг ' + cur + ' из ' + FUNNEL_STEPS.length;
+      el.textContent = 'Шаг ' + pos + ' из ' + active.length;
     });
   }
 }
@@ -2906,6 +2933,17 @@ document.addEventListener('click', function(e){
 /* Домен и слаг из шага «Знакомство» — подставляются везде, где помечены
    data-site-domain / data-site-slug (8 сентября). Раньше alfa-school.ru был
    зашит в текст, и введённый домен нигде дальше не появлялся. */
+/* Домен приводим к каноническому виду при переходе с шага 1. Раньше
+   протокол и путь срезались только внутри проверки регуляркой, а дальше в
+   дело шло сырое значение — на «Что подготовили» печаталось
+   docs.belysite.ru/https://alfa-school-ru/kurs/requisites. */
+function normalizeDomain(v){
+  return String(v).trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .replace(/\/.*$/, '')
+    .toLowerCase();
+}
 function syncSiteNaming(){
   var input = document.getElementById('add-domain');
   var dom = (input && input.value.trim()) || 'alfa-school.ru';
@@ -3053,7 +3091,10 @@ function wireStepGate(btnId, fields, onPass, extraCheck){
       // на втором её нет — иначе гейт требовал бы заполнить то, чего не видно
       if (!input.offsetParent) return;
       var v = input.value.trim();
-      var bad = v === '' || (f.test && !f.test(v));
+      // !! обязательно: у полей без f.test выражение давало undefined, а
+      // classList.toggle(cls, undefined) не выставляет класс, а ПЕРЕКЛЮЧАЕТ —
+      // валидное поле краснело через нажатие и без текста ошибки
+      var bad = v === '' || !!(f.test && !f.test(v));
       input.classList.toggle('error', bad);
       if (error) error.style.display = bad ? 'block' : 'none';
       if (bad) ok = false;
@@ -3061,6 +3102,19 @@ function wireStepGate(btnId, fields, onPass, extraCheck){
     if (ok) onPass();
   });
 }
+/* Ошибку, поставленную гейтом, снимаем сразу при вводе, а не на следующем
+   клике по «Далее»: у полей без собственной валидации (ФИО, адрес, банк,
+   телефон) своего input-обработчика нет, поэтому один делегированный на
+   документ. Ищем текст ошибки по соглашению id + '-error'. */
+document.addEventListener('input', function(e){
+  var el = e.target;
+  if (!el || !el.classList || !el.classList.contains('error')) return;
+  el.classList.remove('error');
+  el.removeAttribute('aria-invalid');
+  var err = el.id && document.getElementById(el.id + '-error');
+  if (err) err.style.display = 'none';
+});
+
 var readyBack = document.getElementById('ready-back');
 if (readyBack) readyBack.addEventListener('click', function(){
   anketaSubstep = 3;              // «Реквизиты» — последний подшаг анкеты
@@ -3098,11 +3152,15 @@ wireStepGate('anketa-req-next', [
 
 wireStepGate('anketa-start-next', [
   {id:'add-domain', errorId:'add-domain-error', test:function(v){
-    return DOMAIN_RE.test(v.replace(/^https?:\/\//i, '').replace(/\/.*$/, '')); }},
+    return DOMAIN_RE.test(normalizeDomain(v)); }},
   {id:'anketa-person-name', errorId:'anketa-person-name-error'},
   {id:'anketa-person-mail', errorId:'anketa-person-mail-error', test:function(v){
     return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v); }}
 ], function(){
+  var domInput = document.getElementById('add-domain');
+  // канонический вид записываем обратно в поле: человек должен видеть ровно
+  // то, что уйдёт в ссылки на документы и в код установки
+  if (domInput) domInput.value = normalizeDomain(domInput.value);
   hasSite = true;        // сайт появляется в «Моих сайтах» только после шага 1
   hasIdentity = true;    // «кто заполняет» спрашиваем один раз на аккаунт
   anketaSubstep = 1;
@@ -3316,6 +3374,24 @@ function syncWhoVisible(){
   });
 }
 
+/* Поля, которые не переключаются через [data-swapped], но зависят от формы
+   собственности (шаблон реквизитов, 9 сентября):
+   — у самозанятого нет юридического адреса, в шаблоне это «Адрес для
+     переписки»; отдельное необязательное поле «Адрес для переписки» в
+     «Контактах» у него становится дублем основного и прячется;
+   — счёт у самозанятого обычно личный (40817…), а не расчётный (40702…) —
+     меняется только подсказка в поле, подпись и проверка на 20 цифр те же. */
+function syncOwnershipFields(){
+  var self = siteOwnership === 'self';
+  var addrLabel = document.getElementById('anketa-addr-label');
+  if (addrLabel) addrLabel.innerHTML = (self ? 'Адрес для переписки' : 'Юридический адрес') +
+    ' <span style="color:var(--danger)">*</span>';
+  var postRow = document.getElementById('anketa-post-addr-row');
+  if (postRow) postRow.style.display = self ? 'none' : '';
+  var acct = document.getElementById('anketa-account');
+  if (acct) acct.placeholder = self ? '40817810...' : '40702810...';
+}
+
 document.querySelectorAll('[data-ownership-pick]').forEach(function(box){
   box.addEventListener('change', function(){
     if (!box.checked) { box.checked = true; return; }
@@ -3329,6 +3405,7 @@ document.querySelectorAll('[data-ownership-pick]').forEach(function(box){
     card.querySelectorAll('[data-swapped^="own-"]').forEach(function(panel){
       panel.style.display = (panel.dataset.swapped === 'own-' + siteOwnership) ? '' : 'none';
     });
+    syncOwnershipFields();
     syncPayState();
   });
 });
@@ -3336,25 +3413,33 @@ document.querySelectorAll('[data-ownership-pick]').forEach(function(box){
 /* Автоподстановка по ИНН (решение пользователя 8 сентября: без кнопки —
    довёл до нужной длины, поля заполнились). В макете данные демо-фикстура:
    какой бы ИНН ни ввели, подставляем один и тот же набор — источник
-   (ЕГРЮЛ/ЕГРИП) появится в реальном коде. Заполняем только пустые поля:
-   если человек уже поправил наименование руками, затирать его ответ нельзя. */
+   (ЕГРЮЛ/ЕГРИП) появится в реальном коде. Пустые поля заполняем, ответы,
+   поправленные руками, не трогаем — см. lastInnFill ниже. */
 var INN_LOOKUP = {
   ooo:  {'req-name-ooo':'ООО «Альфа Образование»', 'anketa-ogrn':'1157746112233', 'anketa-kpp':'770101001', 'anketa-addr':'119019, Москва, ул. Воздвиженка, д. 10'},
   ip:   {'req-name-ip':'Иванова Мария Сергеевна', 'anketa-ogrnip':'304770000000123', 'anketa-addr':'119019, Москва, ул. Воздвиженка, д. 10'},
   self: {'req-name-self':'Иванова Мария Сергеевна', 'anketa-addr':'119019, Москва, ул. Воздвиженка, д. 10'}
 };
 var innInput = document.getElementById('anketa-inn');
+/* Длина ИНН зависит от формы собственности: 10 у организации, 12 у ИП и
+   самозанятого. Раньше подстановка срабатывала на любой из двух длин — у
+   12-значного ИНН она отрабатывала уже на 10-й цифре, по обрезанному
+   номеру, и больше не повторялась. lastInnFill помнит, что подставили мы:
+   свои значения обновляем при исправлении ИНН, поправленное руками не
+   трогаем. */
+var lastInnFill = {};
 if (innInput) innInput.addEventListener('input', function(){
   var digits = innInput.value.replace(/\D/g, '');
   var found = document.getElementById('anketa-inn-found');
-  var fits = (digits.length === 10 || digits.length === 12);
-  if (!fits) { if (found) found.style.display = 'none'; return; }
   var picked = document.querySelector('[data-ownership-pick]:checked');
-  if (!picked) { if (found) found.style.display = 'none'; return; }
+  var need = picked && picked.dataset.ownershipPick === 'ooo' ? 10 : 12;
+  if (!picked || digits.length !== need) { if (found) found.style.display = 'none'; return; }
   var map = INN_LOOKUP[picked.dataset.ownershipPick] || {};
   Object.keys(map).forEach(function(id){
     var el = document.getElementById(id);
-    if (el && !el.value.trim()) el.value = map[id];
+    if (!el) return;
+    var cur = el.value.trim();
+    if (cur === '' || cur === lastInnFill[id]) { el.value = map[id]; lastInnFill[id] = map[id]; }
   });
   if (found) found.style.display = 'block';
 });
@@ -3374,13 +3459,17 @@ document.querySelectorAll('[data-platform-pick]').forEach(function(box){
 
 document.querySelectorAll('[data-excl]').forEach(function(box){
   box.addEventListener('change', function(){
-    if (!box.checked) return;
     var group = box.dataset.excl;
-    var isNone = box.hasAttribute('data-excl-none');
-    document.querySelectorAll('[data-excl="' + group + '"]').forEach(function(other){
-      if (other === box) return;
-      if (isNone || other.hasAttribute('data-excl-none')) other.checked = false;
-    });
+    if (box.checked) {
+      var isNone = box.hasAttribute('data-excl-none');
+      document.querySelectorAll('[data-excl="' + group + '"]').forEach(function(other){
+        if (other === box) return;
+        if (isNone || other.hasAttribute('data-excl-none')) other.checked = false;
+      });
+    }
+    // «Нет ничего» меняет длину пути — счётчик и сайдбар пересчитываются сразу,
+    // и при снятии галочки тоже, не дожидаясь перехода на следующий шаг
+    if (group === 'features') syncFunnelSteps();
   });
 });
 
