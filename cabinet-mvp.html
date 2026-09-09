@@ -488,7 +488,7 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
 .sleza-widget[data-skin="light"],.cookie-card[data-skin="light"]{--w-bg:#FBFBF9;--w-text:#14181C;--w-muted:#6B7280;--w-line:#E3E5DD;
   --w-accent:#2E5FE0;--w-accent-soft:#E4EAFC;--w-amber:#A15E1A;--w-amber-soft:#F3E6D2;--w-hover:#F1F1EC;--w-on-accent:#FFFFFF}
 .sleza-widget{background:var(--w-bg);color:var(--w-text)}
-/* Куки-баннер — вторая половина того же виджета, поэтому палитра общая
+/* Cookie-баннер — вторая половина того же виджета, поэтому палитра общая
    с подвалом (--w-*), а не отдельная. Раскладка вертикальная, карточкой:
    у коллеги баннер стоит поверх страницы прямоугольником с крупной
    кнопкой на всю ширину, а не полосой во всю ширину экрана, как было. */
@@ -1297,7 +1297,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <label class="check"><input type="checkbox" data-excl="features" data-excl-none><span class="t">Нет ничего</span></label>
             </div>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Куки-баннер и cookie-политика входят в пакет всегда — ответы не убирают и не добавляют документ, только делают его текст точным: что именно на сайте собирается, а не общая формулировка на все случаи.</p>
+            <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Из этих ответов соберётся текст cookie-политики: какие счётчики стоят на сайте и что на нём собирает данные. Проверяющий сверяет документ с самим сайтом — если Метрика работает, а в политике её нет, документ эту обработку не закрывает.</p>
 
           </div>
           <div class="hr" style="margin-top:20px"></div>
@@ -1581,7 +1581,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/03 — откроется после установки</p></div>
     </div>
     <div class="find">
-      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">Куки · Cookie-политика</span><span class="w" style="display:block">Подключим баннер-уведомление о cookie и текст политики.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">Политика обработки cookie</span><span class="w" style="display:block">Подключим баннер-уведомление о cookie и текст политики.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте <span data-site-domain>alfa-school.ru</span>, включая аналитику и работу виджета на платформе Тильда…</div>
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/02 — откроется после установки</p></div>
     </div>
@@ -1608,7 +1608,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          брейкпоинту дублируем разметку, тот же приём, что и .support-mobile -->
     <div class="preview-block">
       <h2 style="margin-top:18px">Вот что появится на сайте</h2>
-      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.45);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">куки-баннер при первом заходе</div>
+      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.45);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
         <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
@@ -1621,7 +1621,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </div>
     <details class="preview-accordion">
       <summary>Вот что появится на сайте</summary>
-      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.45);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">куки-баннер при первом заходе</div>
+      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.45);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
         <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
@@ -1678,7 +1678,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <h2 style="margin-top:20px">Что входит</h2>
     <div class="card pad" style="margin-top:12px">
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Уже работает — бесплатно, 24 часа</h3>
-      <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: куки-баннер и подвал, из которого открываются документы и реквизиты<br>· Документы по постоянным адресам — ссылки не ломаются</div>
+      <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты<br>· Документы по постоянным адресам — ссылки не ломаются</div>
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62);margin-top:14px">Оплата продлевает</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Доступ не прерывается после пробного периода<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
       <div class="hr"></div>
@@ -2176,7 +2176,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/13">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/13" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Cookie-политика</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
           <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/02">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/02" target="_blank" rel="noopener">Открыть</a></span>
         </div>
       </div>
@@ -3822,7 +3822,7 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
 
 /* 'platform'-группа чек-листа (Политика ПДн, Cookie-политика) — карточка
    «О сайте» (подшаг 2, возвращён 27 августа). Любой клик внутри — по
-   платформе, аналитике или куки — считается достаточным сигналом,
+   платформе, аналитике или cookie — считается достаточным сигналом,
    отдельно каждый сегмент не разбираем. */
 
 
