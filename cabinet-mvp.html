@@ -2556,6 +2556,18 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div class="hr" style="margin-top:12px"></div>
 
         <div id="footer-live-content">
+        <!-- Тема подвала — тем же сегмент-контролом, что «Тема баннера»
+             в карточке выше, чтобы два соседних выбора не выглядели
+             разными механизмами. Выбор один на все три превью подвала
+             (шаг 5 — десктоп и мобильный разворот, этот экран): подвал у
+             клиента один, и показывать его в двух видах на разных
+             страницах кабинета значило бы врать. «Авто» здесь пока нет —
+             у баннера она есть, вопрос открыт. -->
+        <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Тема подвала</h2>
+        <div class="seg" style="margin:8px 0 12px">
+          <button type="button" data-footer-skin="light">Светлая</button>
+          <button type="button" class="on" data-footer-skin="dark">Тёмная</button>
+        </div>
         <div class="fpreview">
           <div class="lbl">подвал сайта</div>
           <div class="sleza-widget" data-skin="dark"><a class="w-brand"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z"></path></svg><span class="w-brand-name">Слеза</span></a><span class="w-sep"></span><div class="w-pills"><div class="pill-wrap"><button type="button" class="pill locked" data-pill="cookie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg><span>Cookie</span><span class="dot"></span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Обработка cookie" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.3, 6, 9 №152-ФЗ · ч.1 ст.13.11 КоАП</p><h4 class="pop-title">Обработка cookie</h4><p class="pop-body">Сайт использует файлы cookie для аналитики и корректной работы сервисов. Согласие вы уже дали в баннере при заходе на сайт — отдельно отключить его здесь нельзя. Состав собираемых данных и цели — в политике ниже.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательное согласие — уже подтверждено</div><div class="pop-links"><a>Политика обработки cookie →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill" data-pill="pd" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.6 5.3 6v5.4c0 4.4 2.9 7.6 6.7 8.9 3.8-1.3 6.7-4.5 6.7-8.9V6L12 3.6Z"></path><path d="M9 12l2 2 4-4.3" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Персональные данные</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на обработку персональных данных" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">№152-ФЗ · ч.2 ст.13.11 КоАП</p><h4 class="pop-title">Согласие на обработку персональных данных</h4><p class="pop-body">Разрешает сайту обрабатывать данные, которые вы оставляете в формах — имя, телефон, email. Действует сразу на все формы сайта: включили здесь — включено везде, и наоборот.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="pd"><span class="track"></span></span></label><div class="pop-links"><a>Политика обработки персональных данных →</a><a>Текст согласия на обработку персональных данных →</a></div></div></div><div class="pill-wrap marketing-wrap disabled"><button type="button" class="pill" data-pill="marketing" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.2v3.6a1 1 0 0 0 1 1h2l1 4h2l-1-4h1l9 3.4V6.8L9 10.2H4a1 1 0 0 0-1 1Z" stroke-linejoin="round"></path><path d="M19 9.6a3 3 0 0 1 0 5" stroke-linecap="round"></path></svg><span>Реклама</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на рекламные рассылки" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ч.1 ст.18 №38-ФЗ «О рекламе» · ч.4.1 ст.14.3 КоАП</p><h4 class="pop-title">Согласие на рекламные рассылки</h4><p class="pop-body">Разрешает присылать вам рекламные материалы и рассылки.</p><p class="pop-hint" data-w-hint>Сначала включите согласие на персональные данные — без него рассылка недоступна.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="marketing" disabled><span class="track"></span></span></label><div class="pop-links"><a>Текст согласия на рассылку →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill locked" data-pill="marking" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c3.6 4.1 6 7.3 6 10.6A6 6 0 1 1 6 13.6C6 10.3 8.4 7.1 12 3Z"></path></svg><span>Маркировка</span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Маркировка" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.4 закона «О СМИ» · 114-ФЗ · ч.1 ст.13.15 КоАП · ч.1 ст.6.13 КоАП</p><h4 class="pop-title">Маркировка</h4><p class="pop-body">Скрипт Слезы автоматически помечает на сайте упоминания лиц и организаций из реестров: иностранные агенты, экстремистские и террористические организации, а также упоминания наркотических веществ.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательно по закону — отключить нельзя</div></div></div></div><div class="w-links"><a>Оферта</a><span class="dot-sep">·</span><a>Реквизиты</a></div></div>
@@ -3025,6 +3037,7 @@ function goScreen(id){
   syncPayState();
   syncAnketaSubstep();
   syncSiteNaming();
+  syncFooterSkin();
   syncAccount();
   syncWhoVisible();
   syncInstallAction();
@@ -3273,6 +3286,26 @@ function flashCopied(btn){
    исходнике коллеги: там подвал стоял в рамке «браузера» во всю ширину,
    у нас — узкий блок превью. Сдвиг по горизонтали всё же считаем, иначе
    правые карточки вылезают за край блока. */
+/* Тема подвала. Виджет умеет два скина через один data-skin, поэтому
+   отдельных панелей-двойников, как у баннера, не нужно — меняется
+   атрибут сразу на всех трёх превью. Карточки категорий лежат внутри
+   виджета и наследуют его --w-*, отдельно их красить не надо. */
+var footerSkin = 'dark';
+function syncFooterSkin(){
+  // goScreen('s-register') на старте выполняется раньше объявления
+  // footerSkin ниже — без запасного значения виджеты успевали получить
+  // data-skin="undefined" и остаться без палитры до первой перерисовки
+  var skin = footerSkin || 'dark';
+  document.querySelectorAll('.sleza-widget').forEach(function(el){ el.dataset.skin = skin; });
+  document.querySelectorAll('[data-footer-skin]').forEach(function(b){
+    b.classList.toggle('on', b.dataset.footerSkin === skin);
+  });
+}
+document.querySelectorAll('[data-footer-skin]').forEach(function(b){
+  b.addEventListener('click', function(){ footerSkin = b.dataset.footerSkin; syncFooterSkin(); });
+});
+syncFooterSkin();
+
 function closeWidgetPops(){
   document.querySelectorAll('.sleza-widget .w-pop').forEach(function(el){ el.hidden = true; el.style.transform = ''; });
   document.querySelectorAll('.sleza-widget .pill').forEach(function(el){ el.setAttribute('aria-expanded','false'); });
