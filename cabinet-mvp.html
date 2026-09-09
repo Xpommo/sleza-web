@@ -2053,17 +2053,21 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
              отсюда убран целиком — тоже перенесён в Настройки. -->
         <div>
         <h2>Подписка</h2>
+        <!-- В строке «Тариф» — название тарифа, не цена (правка 9 сентября):
+             линейка тарифов ещё не названа, «Тариф Х» стоит заглушкой.
+             Цена видна на экране оплаты и в строке «Продление» у
+             оплаченного. -->
         <div class="card pad" style="margin-top:12px">
           <!-- unpaid-вариант — на случай прямого перехода сюда через
                dev-навигацию макета, минуя воронку; в реальном флоу сюда
                попадают trial/expired/pending/paid (HANDOFF 6.15 п.8). -->
           <div class="state" data-pay-state="unpaid">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">не оплачено</span></div>
-            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">29 900 ₽/год</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">Тариф Х</span></div>
           </div>
           <div class="state" data-pay-state="trial">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip amber">пробный период</span></div>
-            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">29 900 ₽/год</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Тариф</span><span class="small" style="font-weight:700">Тариф Х</span></div>
           </div>
           <div class="state" data-pay-state="expired">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip red">пробный период закончился</span></div>
