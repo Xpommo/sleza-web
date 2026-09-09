@@ -837,6 +837,14 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
        viewer-only тулбар, что и переключатель экранов выше — не часть
        продукта, реальный пользователь такого переключателя не увидит:
        отказ оплаты — это событие от шлюза, не то, что кликают сами. -->
+  <!-- Мультисайтовый режим в MVP вырезан (HANDOFF раздел 7), но выбор
+       сайта при привязке карты без него не показать — тот же viewer-only
+       переключатель, что и демо сбоя оплаты. -->
+  <span style="margin-left:10px">сайтов:</span>
+  <select id="dbg-sites" style="font:inherit;border:1px solid var(--line-2);border-radius:6px;padding:1px 4px;background:var(--paper);color:inherit">
+    <option value="1">1</option>
+    <option value="2">2</option>
+  </select>
   <span style="margin-left:10px">демо сбоя оплаты:</span>
   <select id="dbg-payment-issue" style="font:inherit;border:1px solid var(--line-2);border-radius:6px;padding:1px 4px;background:var(--paper);color:inherit">
     <option value="none">без сбоя</option>
@@ -2264,19 +2272,9 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <p class="tiny" style="margin-top:7px">Заполним сами по ИНН — вам нужно только проверить. Используются в документах и в реквизитах на сайте.</p>
       </details>
 
-      <!-- независимый обзор кабинета: единственный контакт в аккаунте —
-           если Кирилл недоступен, о сбое оплаты или отказе виджета узнать
-           некому. Необязательное поле, не полноценная многопользовательская
-           модель — просто второй адрес для дублирования важных писем. -->
-      <details class="acc" open style="margin-top:24px">
-      <summary class="acc-title"><h3>Уведомления</h3></summary>
-      <div class="card pad">
-        <label class="f">Дублировать на почту</label>
-        <input class="inp mono" id="notify-email" placeholder="buh@alfa-school.ru">
-        <p class="tiny" style="margin-top:6px">Например, бухгалтеру или веб-мастеру — продублируем сюда письма о продлении, сбоях оплаты и статусе виджета, на случай если основной адрес недоступен. Необязательно.</p>
-      </div>
-      <button id="save-notify-btn" class="btn solid" style="margin-top:12px">Сохранить</button>
-      </details>
+      <!-- Раздел «Уведомления» с полем «Дублировать на почту» убран
+           9 сентября: единственное, что там было, — бухгалтерский адрес, а
+           он переехал в «Подписку», к актам и чекам. -->
     </main>
   </div>
 </section>
@@ -2305,42 +2303,101 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <main class="main narrow">
       <h1>Подписка</h1>
 
-      <!-- «Карта» была дефолтной вкладкой с показанным «···· 4417» — выглядело
-           как уже сохранённая карта, хотя карточного эквайера нет вообще
-           (см. «Партнёр» на s-pay, та же незакрытая интеграция). Дефолт
-           переключён на «По счёту» — единственный реально рабочий способ
-           продления кроме СБП, тот же приём, что уже обосновывает дефолт
-           СБП (не «Партнёр») на s-pay: не показывать недоступное первым
-           впечатлением (независимый список правок, «Деньги», 25.08). -->
-      <div class="card pad" style="margin-top:16px">
-        <label class="f">Способ продления</label>
-        <div class="seg" style="margin:6px 0 12px">
-          <button type="button" data-swap="renewcard">Карта</button>
-          <button type="button" class="on" data-swap="renewinvoice">По счёту</button>
+      <!-- Тариф — первым блоком (правка 9 сентября): выбор того, за что
+           платим, логично стоит раньше выбора, чем платим. Линейка ещё не
+           названа, «Тариф Х/У/Z» — заглушки. Цена пока одна на все три:
+           реальные цены появятся вместе с составом тарифов. -->
+      <h2 style="margin-top:22px">Тариф</h2>
+      <div class="card pad" style="margin-top:12px">
+        <div class="seg">
+          <button type="button" class="on" data-tariff="Тариф Х">Тариф Х</button>
+          <button type="button" data-tariff="Тариф У">Тариф У</button>
+          <button type="button" data-tariff="Тариф Z">Тариф Z</button>
         </div>
-        <div data-swapped="renewcard" style="display:none">
-          <p class="tiny">Автосписание картой — интеграция с эквайером ещё не выбрана. Продлевайте через СБП или по счёту.</p>
+        <div class="row" style="justify-content:space-between;margin-top:12px">
+          <span class="small muted">Стоимость</span>
+          <span class="small" style="font-weight:700">29 900 ₽/год</span>
         </div>
-        <!-- независимый обзор кабинета: форма из 6 полей была
-             всегда-редактируемой на каждый визит — лишний риск случайно
-             поправить цифру в счёте, когда менять ничего не собирался.
-             Тот же паттерн, что «Реквизиты владельца» в Настройках:
-             сводка + «Изменить» → модалка, не инлайн-форма. -->
-        <div data-swapped="renewinvoice">
-          <div class="row" style="justify-content:space-between;align-items:baseline">
-            <label class="f" style="margin:0">Реквизиты плательщика — для счёта, не для подвала сайта</label>
+      </div>
+
+      <!-- «Способ продления» → «Способ оплаты» (правка 9 сентября): тем же
+           способом оплачивают и первый год, и продление, «продление» сужало
+           смысл. «Карта» перестала быть заглушкой «эквайер не выбран» —
+           теперь настоящая форма привязки. Дефолт по-прежнему «По счёту»:
+           это способ, который работает без интеграции. -->
+      <h2 style="margin-top:22px">Способ оплаты</h2>
+      <div class="card pad" style="margin-top:12px">
+        <div class="seg" style="margin-bottom:12px">
+          <button type="button" data-swap="paycard">Картой</button>
+          <button type="button" class="on" data-swap="payinvoice">По счёту</button>
+        </div>
+
+        <div data-swapped="paycard" style="display:none">
+          <!-- Выбор сайта показывается только когда сайтов больше одного:
+               при одном привязка идёт к нему, спрашивать нечего. Число
+               сайтов в макете переключается в тулбаре. -->
+          <div data-multisite style="display:none">
+            <label class="f" for="card-site">Для какого сайта</label>
+            <select class="inp" id="card-site" style="margin-bottom:12px">
+              <option>alfa-school.ru</option>
+              <option>shop-romashka.ru</option>
+            </select>
           </div>
-          <div class="card pad row" style="margin-top:6px;border-color:var(--line);justify-content:space-between;align-items:center">
+          <p class="tiny" data-singlesite style="margin-bottom:12px">Карта привяжется к сайту <b data-site-domain>alfa-school.ru</b> — он у вас один.</p>
+
+          <label class="f" for="card-number">Номер карты <span style="color:var(--danger)">*</span></label>
+          <input class="inp mono" id="card-number" inputmode="numeric" maxlength="19" placeholder="0000 0000 0000 0000">
+          <p class="tiny anketa-field-error" id="card-number-error" style="display:none;margin-top:5px;color:var(--danger)">Номер карты — 16 цифр.</p>
+          <div class="row" style="gap:10px;margin-top:10px">
+            <div style="flex:1">
+              <label class="f" for="card-exp">Срок действия <span style="color:var(--danger)">*</span></label>
+              <input class="inp mono" id="card-exp" maxlength="5" placeholder="ММ/ГГ">
+              <p class="tiny anketa-field-error" id="card-exp-error" style="display:none;margin-top:5px;color:var(--danger)">Срок в виде ММ/ГГ.</p>
+            </div>
+            <div style="flex:1">
+              <label class="f" for="card-cvc">CVC <span style="color:var(--danger)">*</span></label>
+              <input class="inp mono" id="card-cvc" inputmode="numeric" maxlength="3" placeholder="000">
+              <p class="tiny anketa-field-error" id="card-cvc-error" style="display:none;margin-top:5px;color:var(--danger)">CVC — 3 цифры на обороте карты.</p>
+            </div>
+          </div>
+          <button type="button" id="bind-card-btn" class="btn solid sm" style="margin-top:12px">Привязать карту</button>
+          <p class="tiny" style="margin-top:8px">Спишем годовую стоимость в день продления. Отвязать карту можно здесь же в любой момент.</p>
+        </div>
+
+        <div data-swapped="payinvoice">
+          <label class="f">Реквизиты плательщика — для счёта, не для подвала сайта</label>
+          <!-- Реквизиты компании уже собраны на шаге «Реквизиты» — незачем
+               просить их второй раз. Второй вариант нужен, когда платит не
+               та же компания, чьи реквизиты стоят в подвале сайта. -->
+          <div class="seg" style="margin:6px 0 12px">
+            <button type="button" class="on" data-reqmode="same">Как в анкете</button>
+            <button type="button" data-reqmode="other">Другие реквизиты</button>
+          </div>
+          <div class="card pad row" data-reqpanel="same" style="border-color:var(--line);justify-content:space-between;align-items:center">
             <div>
               <div style="font-weight:700;font-size:14.5px" id="invoice-req-name">ООО «Альфа Образование»</div>
               <div class="tiny mono" style="margin-top:2px" id="invoice-req-summary">ИНН 7701234567 · buh@alfa-school.ru · +7 (495) 123-45-67 · счёт …2345</div>
             </div>
-            <button type="button" class="btn sm" data-go-modal="modal-req-invoice">Изменить</button>
+            <span class="chip green">из анкеты</span>
+          </div>
+          <div class="card pad row" data-reqpanel="other" style="display:none;border-color:var(--line);justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:700;font-size:14.5px" id="invoice-other-name">Реквизиты не заполнены</div>
+              <div class="tiny mono" style="margin-top:2px" id="invoice-other-summary">Заполните, если счёт оплачивает другая компания</div>
+            </div>
+            <button type="button" class="btn sm" data-go-modal="modal-req-invoice">Заполнить</button>
           </div>
           <p class="tiny" style="margin-top:10px">Следующий счёт придёт на почту за две недели до окончания оплаченного периода — или сформируйте сейчас, если нужно раньше.</p>
           <button id="request-invoice-btn" class="btn solid sm" style="margin-top:12px">Сформировать счёт</button>
         </div>
-        <div class="hr"></div>
+      </div>
+
+      <!-- Состояние подписки и её отмена вынесены из карточки «Способ
+           оплаты» (9 сентября): к способу оплаты они не относятся, а
+           заголовок карточки это обнажил — раньше карточка была без
+           заголовка и читалась как «Подписка вообще». -->
+      <h2 style="margin-top:22px">Состояние</h2>
+      <div class="card pad" style="margin-top:12px">
         <!-- HANDOFF 6.15 п.8 — статус подписки теперь тоже читает
              siteStatus (trial/expired добавлены), тот же чип, что и на
              s-project-paid, чтобы не разъезжались между экранами. -->
@@ -2364,8 +2421,18 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <button class="btn text sm" style="color:var(--danger);padding:0" data-go-modal="modal-cancel">Отменить подписку</button>
       </div>
 
-      <h2 style="margin-top:24px">Акты</h2>
+      <h2 style="margin-top:22px">Чеки и акты</h2>
       <p class="tiny" style="margin-top:4px">Закрывающие документы для бухгалтерии — один акт за оплаченный год.</p>
+      <!-- Почта для чеков и актов перенесена из Настроек → «Уведомления»
+           (правка 9 сентября): бухгалтерский адрес относится к оплате, а не
+           к настройкам аккаунта, и искать его логично там же, где акты. -->
+      <div class="card pad" style="margin-top:12px">
+        <label class="f" style="margin-top:0" for="billing-docs-email">Куда присылать чеки и акты</label>
+        <input class="inp mono" id="billing-docs-email" placeholder="buh@alfa-school.ru">
+        <p class="tiny anketa-field-error" id="billing-docs-email-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придут чеки и акты.</p>
+        <p class="tiny" style="margin-top:6px">Обычно это бухгалтерия. Если оставить пустым, будем присылать на почту аккаунта. Необязательно.</p>
+        <button id="save-billing-docs-btn" class="btn solid sm" style="margin-top:12px">Сохранить</button>
+      </div>
       <div class="card" style="margin-top:12px;overflow:hidden">
         <div class="row" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Акт за 2026–2027</div><div class="tiny mono">05.08.2026 – 04.08.2027 · 29 900 ₽</div></div>
@@ -3822,6 +3889,83 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
     if (b.dataset.setOwnership) { siteOwnership = b.dataset.setOwnership; syncPayState(); }
     if (b.dataset.setWho) { whoFills = b.dataset.setWho; syncWhoVisible(); }
   });
+});
+
+/* ── Подписка: тариф, реквизиты плательщика, привязка карты ──────────── */
+
+/* Тариф. Названия — заглушки «Тариф Х/У/Z», линейка ещё не утверждена;
+   цена пока одна на все три и появится по-настоящему вместе с составом
+   тарифов. Свой обработчик, а не общий [data-swap]: панелей под кнопками
+   нет, переключается только подсветка и выбранное имя. */
+var currentTariff = 'Тариф Х';
+document.querySelectorAll('[data-tariff]').forEach(function(b){
+  b.addEventListener('click', function(){
+    currentTariff = b.dataset.tariff;
+    document.querySelectorAll('[data-tariff]').forEach(function(x){ x.classList.toggle('on', x === b); });
+    document.querySelectorAll('[data-tariff-name]').forEach(function(el){ el.textContent = currentTariff; });
+  });
+});
+
+/* Реквизиты плательщика: те же, что в анкете, или отдельные. Свой атрибут,
+   а не data-swap — общий обработчик ищет панели внутри ближайшей .card, а
+   тут две сегмент-группы в одной карточке, и клик по второй прятал бы
+   панель первой. */
+document.querySelectorAll('[data-reqmode]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var mode = b.dataset.reqmode;
+    document.querySelectorAll('[data-reqmode]').forEach(function(x){ x.classList.toggle('on', x.dataset.reqmode === mode); });
+    document.querySelectorAll('[data-reqpanel]').forEach(function(pnl){
+      pnl.style.display = pnl.dataset.reqpanel === mode ? '' : 'none';
+    });
+  });
+});
+
+/* Сколько сайтов у аккаунта. При одном карта привязывается к нему и
+   спрашивать нечего; выбор появляется со второго. Настоящего
+   мультисайтового режима в MVP нет (HANDOFF раздел 7), поэтому число
+   переключается в тулбаре макета — тем же способом, что демо сбоя оплаты. */
+var siteCount = 1;
+function syncSiteCount(){
+  document.querySelectorAll('[data-multisite]').forEach(function(el){ el.style.display = siteCount > 1 ? '' : 'none'; });
+  document.querySelectorAll('[data-singlesite]').forEach(function(el){ el.style.display = siteCount > 1 ? 'none' : ''; });
+}
+var sitesSel = document.getElementById('dbg-sites');
+if (sitesSel) sitesSel.addEventListener('change', function(){ siteCount = parseInt(sitesSel.value, 10); syncSiteCount(); });
+syncSiteCount();
+
+/* Привязка карты. Проверяются длина номера, формат срока и CVC — тот же
+   приём, что у остальных полей: .inp.error плюс подпись под полем.
+   Настоящего эквайера нет, поэтому успех — flashDone, как у «Отправить
+   инструкцию»: честное подтверждение действия, а не выдуманный ответ
+   банка. */
+var bindCardBtn = document.getElementById('bind-card-btn');
+if (bindCardBtn) bindCardBtn.addEventListener('click', function(){
+  var ok = true;
+  [{id:'card-number', test:function(v){ return v.replace(/\D/g,'').length === 16; }},
+   {id:'card-exp',    test:function(v){ return /^\d{2}\/\d{2}$/.test(v.trim()); }},
+   {id:'card-cvc',    test:function(v){ return /^\d{3}$/.test(v.trim()); }}].forEach(function(f){
+    var input = document.getElementById(f.id);
+    var err = document.getElementById(f.id + '-error');
+    var bad = !f.test(input.value);
+    input.classList.toggle('error', bad);
+    if (err) err.style.display = bad ? 'block' : 'none';
+    if (bad && ok) { ok = false; input.focus(); }
+  });
+  if (ok) flashDone(bindCardBtn, 'Карта привязана ✓');
+});
+/* Почта для чеков и актов необязательна, поэтому не wireEmailGate (тот
+   требует непустое поле): пустое сохраняется молча — письма пойдут на
+   почту аккаунта, — а непустое проверяется по формату. */
+var saveDocsBtn = document.getElementById('save-billing-docs-btn');
+if (saveDocsBtn) saveDocsBtn.addEventListener('click', function(){
+  var input = document.getElementById('billing-docs-email');
+  var err = document.getElementById('billing-docs-email-error');
+  var v = input.value.trim();
+  var bad = v !== '' && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v);
+  input.classList.toggle('error', bad);
+  if (err) err.style.display = bad ? 'block' : 'none';
+  if (bad) { input.focus(); return; }
+  flashDone(saveDocsBtn, 'Сохранено ✓');
 });
 
 /* чек-лист документов на анкете, Блок 2 (HANDOFF 6.15, анимация по
