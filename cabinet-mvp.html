@@ -2753,11 +2753,9 @@ var sitePlatform = 'tilda'; // 'tilda'|'wp'|'bitrix'|'other' — из анкет
 // 25.08) — см. syncPayState.
 var siteOwnership = 'ooo';
 // 'owner'|'staff'|'webmaster'|'agency' — «Кто заполняет анкету» (s-anketa,
-// Блок 1). Единственный эффект сейчас: предзаполнение поля «куда писать
-// по вопросам ПДн» на s-anketa2 — почтой аккаунта для директора/сотрудника
-// (они внутри компании, эта почта дойдёт), пусто с явной подписью для
-// вебмастера/агентства (они отвечают за техническую сторону, не за приём
-// обращений субъектов ПДн) — независимый список правок, «Анкета», 25.08.
+// Блок 1). Эффект сейчас один: блок «поручить установку» не показывается
+// подрядчикам (syncWhoVisible) — веб-мастер и есть тот, кому поручают.
+// Предзаполнение ПДн-контакта по этой роли отменено 9 сентября, см. ниже.
 var whoFills = 'owner';
 
 /* Данные шага «Знакомство» — это аккаунт, а не проект (правило
@@ -2784,15 +2782,12 @@ function syncAccount(){
   var selfMail = document.getElementById('install-self-email');
   if (selfMail && selfMail !== document.activeElement) selfMail.value = account.mail;
 }
-function syncPdContact(){
-  var input = document.getElementById('anketa-pd-contact');
-  if (!input) return;
-  // ПДн-контакт остаётся реквизитом проекта и отдельным полем (решение
-  // 25.08): для директора и сотрудника почта аккаунта — рабочее значение
-  // по умолчанию, которое можно поменять; для подрядчика поле пустое, он
-  // за приём обращений субъектов ПДн не отвечает.
-  input.value = (whoFills === 'owner' || whoFills === 'staff') ? account.mail : '';
-}
+/* Предзаполнение поля «куда писать по вопросам ПДн» отменено 9 сентября.
+   Оно появилось 25.08 (директору и сотруднику подставлялась почта
+   аккаунта) и до сих пор ставило туда зашитый director@alfa-school.ru.
+   Прямая правка пользователя: контакт для обращений субъектов ПДн —
+   реквизит проекта, он публикуется на сайте, и почта из «Знакомства»
+   туда автоматически попадать не должна. Поле заполняется руками. */
 // 'notfound' | 'found' — s-install, два исхода проверки скрипта (независимый
 // план исправлений, п.1.2). Дефолт 'found' — согласован с дефолтом
 // siteStatus='trial' выше: при прямом переходе (dev-навигация, минуя
@@ -2859,19 +2854,11 @@ function syncPayState(){
       if (panel) panel.style.display = match ? '' : 'none';
     });
   }
-  // «По счёту» на s-pay скрыта для самозанятого — нет расчётного счёта.
-  // Если счёт был активной вкладкой на момент, когда ownership сменили на
-  // self (можно вернуться на s-anketa2 со шага оплаты и переключить форму),
-  // переключаем на СБП кликом — тот же путь, что обычный выбор вкладки,
-  // не отдельная ветка синхронизации.
-  var pminvoiceTab = document.querySelector('#pm-tabs [data-swap="pminvoice"]');
-  if (pminvoiceTab) {
-    var hideInvoice = (siteOwnership === 'self');
-    pminvoiceTab.style.display = hideInvoice ? 'none' : '';
-    if (hideInvoice && pminvoiceTab.classList.contains('on')) {
-      document.querySelector('#pm-tabs [data-swap="pmsbp"]').click();
-    }
-  }
+  // Вкладка «По счёту» на s-pay пряталась у самозанятого — считалось, что
+  // расчётного счёта у него нет. Присланный 9 сентября шаблон реквизитов
+  // говорит обратное: у самозанятого спрашиваются и счёт, и банк, и БИК, и
+  // корсчёт, наравне с ООО и ИП. Скрытие снято — иначе анкета требует
+  // счёт, а оплата делает вид, что его не существует.
 }
 
 // Подшаги s-anketa2 (1=О компании, 2=Платформа, 3=Работа с клиентами) —
@@ -3020,7 +3007,6 @@ document.querySelectorAll('[data-set-substep]:not([data-go])').forEach(function(
   });
 });
 goScreen('s-register');
-syncPdContact();
 
 // Мягкая подсказка на buh@/accounting@ и похожих — не блокирует ввод,
 // просто предупреждает, что обращения субъектов ПДн туда обычно не
@@ -3214,7 +3200,6 @@ wireStepGate('anketa-start-next', [
   if (pn && pn.value.trim()) account.name = pn.value.trim();
   if (pm && pm.value.trim()) account.mail = pm.value.trim();
   if (pb) account.phone = pb.value.trim();
-  syncPdContact();       // ПДн-контакт по умолчанию — уже новая почта, не зашитая
   hasSite = true;        // сайт появляется в «Моих сайтах» только после шага 1
   hasIdentity = true;    // «кто заполняет» спрашиваем один раз на аккаунт
   anketaSubstep = 1;
@@ -3613,7 +3598,7 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
     });
     if (b.dataset.setPlatform) sitePlatform = b.dataset.setPlatform;
     if (b.dataset.setOwnership) { siteOwnership = b.dataset.setOwnership; syncPayState(); }
-    if (b.dataset.setWho) { whoFills = b.dataset.setWho; syncPdContact(); syncWhoVisible(); }
+    if (b.dataset.setWho) { whoFills = b.dataset.setWho; syncWhoVisible(); }
   });
 });
 
