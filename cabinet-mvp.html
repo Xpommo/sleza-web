@@ -2325,11 +2325,26 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           </div>
         </div>
         <div class="hr"></div>
-        <label class="f" style="margin-top:0">Способ оплаты</label>
-        <div class="seg" style="margin:6px 0 12px">
-          <button type="button" data-swap="paycard">Картой</button>
-          <button type="button" class="on" data-swap="payinvoice">По счёту</button>
+        <!-- Способ оплаты приведён к тому же виду, что тариф: строка-сводка
+             с «Изменить». До этого два сегмента стояли подряд — «Способ
+             оплаты» и сразу «Реквизиты плательщика», — одинаковые на вид и
+             оба узкими островками слева, при том что строка тарифа над ними
+             шла во всю ширину. Три разные ширины в одной карточке. -->
+        <div class="row" style="justify-content:space-between;align-items:center" id="paymode-summary">
+          <div>
+            <div style="font-weight:700;font-size:14.5px" id="paymode-name">По счёту</div>
+            <div class="tiny" style="margin-top:2px" id="paymode-note">Счёт на почту, оплата переводом</div>
+          </div>
+          <button type="button" class="btn sm" id="paymode-edit">Изменить</button>
         </div>
+        <div id="paymode-pick" style="display:none;margin-bottom:12px">
+          <label class="f" style="margin-top:0">Способ оплаты</label>
+          <div class="seg" style="margin-top:6px">
+            <button type="button" data-swap="paycard">Картой</button>
+            <button type="button" class="on" data-swap="payinvoice">По счёту</button>
+          </div>
+        </div>
+        <div class="hr"></div>
 
         <div data-swapped="paycard" style="display:none">
           <!-- Выбор сайта показывается только когда сайтов больше одного:
@@ -3944,6 +3959,28 @@ document.querySelectorAll('[data-tariff]').forEach(function(b){
     toggleTariffPick(false);
   });
 });
+/* Способ оплаты — та же механика, что у тарифа. Подписка кнопок ловится
+   на общем [data-swap]-обработчике: он уже переключает панели, здесь
+   остаётся обновить сводку и свернуть выбор. */
+var PAYMODE_NOTE = {paycard:'Автосписание в день продления', payinvoice:'Счёт на почту, оплата переводом'};
+var PAYMODE_NAME = {paycard:'Картой', payinvoice:'По счёту'};
+function togglePaymodePick(open){
+  var sum = document.getElementById('paymode-summary');
+  var pick = document.getElementById('paymode-pick');
+  if (sum) sum.style.display = open ? 'none' : '';
+  if (pick) pick.style.display = open ? '' : 'none';
+}
+var paymodeEdit = document.getElementById('paymode-edit');
+if (paymodeEdit) paymodeEdit.addEventListener('click', function(){ togglePaymodePick(true); });
+document.querySelectorAll('#paymode-pick [data-swap]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var k = b.dataset.swap;
+    document.getElementById('paymode-name').textContent = PAYMODE_NAME[k];
+    document.getElementById('paymode-note').textContent = PAYMODE_NOTE[k];
+    togglePaymodePick(false);
+  });
+});
+
 function toggleTariffPick(open){
   var sum = document.getElementById('tariff-summary');
   var pick = document.getElementById('tariff-pick');
