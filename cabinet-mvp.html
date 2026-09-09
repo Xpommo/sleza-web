@@ -2316,12 +2316,26 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           </div>
           <button type="button" class="btn sm" id="tariff-edit">Изменить</button>
         </div>
+        <!-- Переключение тарифа не применяется сразу: сначала описание,
+             потом подтверждение. С описанием мгновенное применение опасно —
+             случайный клик по соседней кнопке менял бы оплачиваемый тариф.
+             Состав тарифов — заглушка, линейка не утверждена; цена пока
+             одна на все три и живёт в строке-сводке, отдельных цен здесь
+             нет намеренно, чтобы не выдумывать суммы. -->
         <div id="tariff-pick" style="display:none">
           <label class="f" style="margin-top:0">Тариф</label>
           <div class="seg" style="margin-top:6px">
             <button type="button" class="on" data-tariff="Тариф Х">Тариф Х</button>
             <button type="button" data-tariff="Тариф У">Тариф У</button>
             <button type="button" data-tariff="Тариф Z">Тариф Z</button>
+          </div>
+          <div style="margin-top:10px;padding:12px 14px;border:1px solid var(--line-2);border-radius:10px;background:var(--paper)">
+            <div style="font-weight:700;font-size:14px" id="tariff-preview-name">Тариф Х</div>
+            <ul class="small" id="tariff-preview-items" style="margin:8px 0 0;padding-left:18px;line-height:1.7"></ul>
+          </div>
+          <div class="row" style="margin-top:12px;gap:10px">
+            <button type="button" class="btn solid sm" id="tariff-apply">Выбрать этот тариф</button>
+            <button type="button" class="btn text sm" id="tariff-cancel">Отмена</button>
           </div>
         </div>
         <div class="hr"></div>
@@ -3952,15 +3966,38 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
    тарифов. Свой обработчик, а не общий [data-swap]: панелей под кнопками
    нет, переключается только подсветка и выбранное имя. */
 var currentTariff = 'Тариф Х';
+/* Состав тарифов — фикстура: линейка не названа и не наполнена. Ось
+   различий (число сайтов) взята из того, что в продукте уже есть, чтобы
+   механика «переключил → прочитал → подтвердил» была видна на живых
+   данных. Заменится настоящим составом. */
+var TARIFFS = {
+  'Тариф Х': ['Один сайт', 'Пакет из 5 документов', 'Виджет: cookie-баннер и подвал', 'Обновления документов при изменении закона'],
+  'Тариф У': ['До 3 сайтов', 'Всё из тарифа Х для каждого сайта', 'Общий счёт и акты на все сайты'],
+  'Тариф Z': ['До 10 сайтов', 'Всё из тарифа У', 'Приоритетная поддержка']
+};
+var previewTariff = currentTariff;
+function renderTariffPreview(){
+  document.querySelectorAll('[data-tariff]').forEach(function(x){ x.classList.toggle('on', x.dataset.tariff === previewTariff); });
+  var nameEl = document.getElementById('tariff-preview-name');
+  var list = document.getElementById('tariff-preview-items');
+  if (nameEl) nameEl.textContent = previewTariff;
+  if (list) list.innerHTML = (TARIFFS[previewTariff] || []).map(function(t){ return '<li>' + t + '</li>'; }).join('');
+}
 document.querySelectorAll('[data-tariff]').forEach(function(b){
-  b.addEventListener('click', function(){
-    currentTariff = b.dataset.tariff;
-    document.querySelectorAll('[data-tariff]').forEach(function(x){ x.classList.toggle('on', x === b); });
-    document.querySelectorAll('[data-tariff-name]').forEach(function(el){ el.textContent = currentTariff; });
-    // выбрал — свернулось обратно: отдельная кнопка «Готово» была бы лишним
-    // кликом там, где выбор из трёх и подтверждать нечего
-    toggleTariffPick(false);
-  });
+  // клик только листает описание, выбор применяется кнопкой ниже
+  b.addEventListener('click', function(){ previewTariff = b.dataset.tariff; renderTariffPreview(); });
+});
+var tariffApply = document.getElementById('tariff-apply');
+if (tariffApply) tariffApply.addEventListener('click', function(){
+  currentTariff = previewTariff;
+  document.querySelectorAll('[data-tariff-name]').forEach(function(el){ el.textContent = currentTariff; });
+  toggleTariffPick(false);
+});
+var tariffCancel = document.getElementById('tariff-cancel');
+if (tariffCancel) tariffCancel.addEventListener('click', function(){
+  previewTariff = currentTariff;   // отмена возвращает описание к оплаченному
+  renderTariffPreview();
+  toggleTariffPick(false);
 });
 /* Способ оплаты — та же механика, что у тарифа. Подписка кнопок ловится
    на общем [data-swap]-обработчике: он уже переключает панели, здесь
@@ -3991,7 +4028,12 @@ function toggleTariffPick(open){
   if (pick) pick.style.display = open ? '' : 'none';
 }
 var tariffEditBtn = document.getElementById('tariff-edit');
-if (tariffEditBtn) tariffEditBtn.addEventListener('click', function(){ toggleTariffPick(true); });
+if (tariffEditBtn) tariffEditBtn.addEventListener('click', function(){
+  previewTariff = currentTariff;   // открываем всегда на текущем, не на прошлом просмотре
+  renderTariffPreview();
+  toggleTariffPick(true);
+});
+renderTariffPreview();
 
 function toggleDocsEmail(filled){
   var set = document.getElementById('docs-email-set');
