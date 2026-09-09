@@ -2336,6 +2336,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <!-- Выбор сайта показывается только когда сайтов больше одного:
                при одном привязка идёт к нему, спрашивать нечего. Число
                сайтов в макете переключается в тулбаре. -->
+          <div id="card-site-row">
           <div data-multisite style="display:none">
             <label class="f" for="card-site">Для какого сайта</label>
             <select class="inp" id="card-site" style="margin-bottom:12px">
@@ -2344,7 +2345,9 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             </select>
           </div>
           <p class="tiny" data-singlesite style="margin-bottom:12px">Карта привяжется к сайту <b data-site-domain>alfa-school.ru</b> — он у вас один.</p>
+          </div>
 
+          <div id="card-form">
           <label class="f" for="card-number">Номер карты <span style="color:var(--danger)">*</span></label>
           <input class="inp mono" id="card-number" inputmode="numeric" maxlength="19" placeholder="0000 0000 0000 0000">
           <p class="tiny anketa-field-error" id="card-number-error" style="display:none;margin-top:5px;color:var(--danger)">Номер карты — 16 цифр.</p>
@@ -2362,6 +2365,22 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           </div>
           <button type="button" id="bind-card-btn" class="btn solid sm" style="margin-top:12px">Привязать карту</button>
           <p class="tiny" style="margin-top:8px">Спишем годовую стоимость в день продления. Отвязать карту можно здесь же в любой момент.</p>
+          </div>
+          <!-- Привязанная карта — состояние, а не мгновенное подтверждение:
+               flashDone на этой кнопке мигал на полторы секунды и исчезал,
+               человек справедливо читал это как «ничего не происходит».
+               Тот же паттерн сводки, что у реквизитов плательщика. -->
+          <div id="card-bound" style="display:none">
+            <div class="card pad row" style="border-color:var(--line);justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-weight:700;font-size:14.5px">Карта <span class="mono" id="card-bound-mask">···· 2323</span></div>
+                <div class="tiny mono" style="margin-top:2px">до <span id="card-bound-exp">11/12</span> · <span data-card-site>alfa-school.ru</span></div>
+              </div>
+              <span class="chip green">привязана</span>
+            </div>
+            <p class="tiny" style="margin-top:10px">Спишем годовую стоимость в день продления.</p>
+            <button type="button" id="unbind-card-btn" class="btn text sm" style="color:var(--danger);padding:0;margin-top:8px">Отвязать карту</button>
+          </div>
         </div>
 
         <div data-swapped="payinvoice">
@@ -3938,6 +3957,41 @@ syncSiteCount();
    Настоящего эквайера нет, поэтому успех — flashDone, как у «Отправить
    инструкцию»: честное подтверждение действия, а не выдуманный ответ
    банка. */
+/* Разделители в номере карты и «/» в сроке ставит поле, а не человек —
+   как в банковских приложениях. Курсор всегда в конец: маска короткая,
+   правка середины номера сводится к «стереть и добрать», сложная логика
+   восстановления позиции тут не окупается. */
+function maskCardNumber(input){
+  input.addEventListener('input', function(){
+    var d = input.value.replace(/\D/g,'').slice(0,16);
+    input.value = (d.match(/.{1,4}/g) || []).join(' ');
+  });
+}
+function maskCardExp(input){
+  input.addEventListener('input', function(e){
+    var d = input.value.replace(/\D/g,'').slice(0,4);
+    // при удалении не дописываем «/» обратно, иначе стереть его невозможно
+    var back = e.inputType === 'deleteContentBackward';
+    input.value = d.length > 2 || (d.length === 2 && !back) ? d.slice(0,2) + '/' + d.slice(2) : d;
+  });
+}
+var cardNumInput = document.getElementById('card-number');
+var cardExpInput = document.getElementById('card-exp');
+if (cardNumInput) maskCardNumber(cardNumInput);
+if (cardExpInput) maskCardExp(cardExpInput);
+
+function syncCardBound(bound){
+  var form = document.getElementById('card-form');
+  var box = document.getElementById('card-bound');
+  var siteRow = document.getElementById('card-site-row');
+  if (form) form.style.display = bound ? 'none' : '';
+  if (siteRow) siteRow.style.display = bound ? 'none' : '';
+  if (box) box.style.display = bound ? '' : 'none';
+  var siteSel = document.getElementById('card-site');
+  document.querySelectorAll('[data-card-site]').forEach(function(el){
+    el.textContent = (siteCount > 1 && siteSel) ? siteSel.value : (document.getElementById('add-domain') ? normalizeDomain(document.getElementById('add-domain').value) || 'alfa-school.ru' : 'alfa-school.ru');
+  });
+}
 var bindCardBtn = document.getElementById('bind-card-btn');
 if (bindCardBtn) bindCardBtn.addEventListener('click', function(){
   var ok = true;
@@ -3951,7 +4005,20 @@ if (bindCardBtn) bindCardBtn.addEventListener('click', function(){
     if (err) err.style.display = bad ? 'block' : 'none';
     if (bad && ok) { ok = false; input.focus(); }
   });
-  if (ok) flashDone(bindCardBtn, 'Карта привязана ✓');
+  if (!ok) return;
+  var digits = cardNumInput.value.replace(/\D/g,'');
+  document.getElementById('card-bound-mask').textContent = '···· ' + digits.slice(-4);
+  document.getElementById('card-bound-exp').textContent = cardExpInput.value.trim();
+  syncCardBound(true);
+});
+var unbindCardBtn = document.getElementById('unbind-card-btn');
+if (unbindCardBtn) unbindCardBtn.addEventListener('click', function(){
+  ['card-number','card-exp','card-cvc'].forEach(function(id){
+    var el = document.getElementById(id);
+    el.value = ''; el.classList.remove('error');
+    var err = document.getElementById(id + '-error'); if (err) err.style.display = 'none';
+  });
+  syncCardBound(false);
 });
 /* Почта для чеков и актов необязательна, поэтому не wireEmailGate (тот
    требует непустое поле): пустое сохраняется молча — письма пойдут на
