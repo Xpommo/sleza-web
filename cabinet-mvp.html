@@ -663,6 +663,7 @@ details.acc:first-child{margin-top:0}
    скачиваются. Класс на body (не на каждую из 5 строк отдельно, см.
    syncPayState в script) — переключается вместе с остальными
    data-pay-state состояниями. */
+.doc-actions{display:inline-flex;gap:6px;flex:none}
 body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 </style>
 <link rel="stylesheet" href="mobile-shared.css">
@@ -885,7 +886,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <div class="projcard">
             <div class="state on" data-pay-state="unpaid">
               <div>
-                <div class="dom">alfa-school.ru</div>
+                <div class="dom" data-site-domain>alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
               </div>
               <div class="meta">Документы не готовы<br>ООО «Альфа Образование» · ИНН 7701234567<br>подписка не подключена</div>
@@ -893,7 +894,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
             <div class="state" data-pay-state="pending">
               <div>
-                <div class="dom">alfa-school.ru</div>
+                <div class="dom" data-site-domain>alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
               </div>
               <div class="meta">⏳ Ожидает оплаты<br>ООО «Альфа Образование» · ИНН 7701234567<br>счёт выставлен · обычно 1–3 рабочих дня</div>
@@ -901,7 +902,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
             <div class="state" data-pay-state="paid">
               <div>
-                <div class="dom">alfa-school.ru</div>
+                <div class="dom" data-site-domain>alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
               </div>
               <div class="meta">✓ Документы актуальны<br>ООО «Альфа Образование» · ИНН 7701234567<br>оплачено до 05.08.2027</div>
@@ -914,7 +915,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  находил, что тоглить, карточка рендерилась пустой. -->
             <div class="state" data-pay-state="trial">
               <div>
-                <div class="dom">alfa-school.ru</div>
+                <div class="dom" data-site-domain>alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
               </div>
               <div class="meta">🕐 Пробный период<br>ООО «Альфа Образование» · ИНН 7701234567<br>осталось 21 ч 43 мин</div>
@@ -922,7 +923,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
             <div class="state" data-pay-state="expired">
               <div>
-                <div class="dom">alfa-school.ru</div>
+                <div class="dom" data-site-domain>alfa-school.ru</div>
                 <div class="name">Альфа Образование</div>
               </div>
               <div class="meta">⚠ Пробный период закончился<br>ООО «Альфа Образование» · ИНН 7701234567<br>виджет отключён</div>
@@ -938,31 +939,31 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <thead><tr><th>Сайт</th><th>Статус</th><th>Оплата</th><th></th></tr></thead>
           <tbody>
             <tr class="state on" data-pay-state="unpaid">
-              <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="small muted">Документы не готовы</span></td>
               <td class="meta">подписка не подключена</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-anketa">Продолжить →</button></td>
             </tr>
             <tr class="state" data-pay-state="pending">
-              <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="b amber">⏳ Ожидает оплаты</span></td>
               <td class="meta">счёт выставлен</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
             <tr class="state" data-pay-state="paid">
-              <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="b green">✓ Документы актуальны</span></td>
               <td class="meta">оплачено до 05.08.2027</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
             <tr class="state" data-pay-state="trial">
-              <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="b amber">🕐 Пробный период</span></td>
               <td class="meta">осталось 21 ч 43 мин</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
             <tr class="state" data-pay-state="expired">
-              <td><div class="dom">alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta">ООО «Альфа Образование» · ИНН 7701234567</div></td>
               <td><span class="b red">⚠ Пробный период закончился</span></td>
               <td class="meta">виджет отключён</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
@@ -1413,7 +1414,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <div class="find">
       <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">149-ФЗ · реквизиты владельца</span><span class="w" style="display:block">Покажем внизу страниц сайта через виджет — по данным из анкеты.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233 · 119019, Москва, ул. Воздвиженка, д. 10…</div>
-      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-slug>alfa-school-ru</span>/requisites — откроется после установки</p></div>
+      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/01 — откроется после установки</p></div>
     </div>
     <!-- «Политика конфиденциальности» и «Политика обработки персональных
          данных» были двумя отдельными пунктами без реального текста под
@@ -1432,17 +1433,17 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <div class="find">
       <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки ПДн</span><span class="w" style="display:block">Соберём под вашу сферу и способ сбора контактов.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящая Политика в отношении обработки персональных данных определяет порядок и условия обработки персональных данных Оператором: ООО «Альфа Образование». Цели обработки: запись на занятия, ответы на обращения, информирование о наборах и акциях — по сфере деятельности «Онлайн-школа, курсы, репетиторство»…</div>
-      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-slug>alfa-school-ru</span>/pd-policy — откроется после установки</p></div>
+      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/03 — откроется после установки</p></div>
     </div>
     <div class="find">
       <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">Куки · Cookie-политика</span><span class="w" style="display:block">Подключим баннер-уведомление о cookie и текст политики.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
-      <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте alfa-school.ru, включая аналитику и работу виджета на платформе Тильда…</div>
-      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-slug>alfa-school-ru</span>/cookies — откроется после установки</p></div>
+      <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте <span data-site-domain>alfa-school.ru</span>, включая аналитику и работу виджета на платформе Тильда…</div>
+      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/02 — откроется после установки</p></div>
     </div>
     <div class="find">
       <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · согласие на обработку ПДн</span><span class="w" style="display:block">Текст согласия для форм на сайте.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящим я свободно, своей волей и в своём интересе даю согласие на обработку моих персональных данных Оператору — ООО «Альфа Образование» — в целях записи на занятия, обработки обращений и информирования о наборах и акциях…</div>
-      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-slug>alfa-school-ru</span>/consent — откроется после установки</p></div>
+      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/12 — откроется после установки</p></div>
     </div>
     <!-- Появляется, потому что на анкете (s-anketa2) ответили «да» —
          звоните/пишете по базе клиентов. Без этого документа ответ
@@ -1453,7 +1454,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <div class="find">
       <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">Согласие на рассылки</span><span class="w" style="display:block">По ответу «звоните/пишете по базе» в анкете.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящим я даю согласие на получение рекламных и информационных сообщений от ООО «Альфа Образование» по телефону, в мессенджерах и на почту — по каналам, которые компания использует для связи с клиентами…</div>
-      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-slug>alfa-school-ru</span>/marketing-consent — откроется после установки</p></div>
+      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/13 — откроется после установки</p></div>
     </div>
 
     <!-- десктоп — всегда развёрнуто, как раньше; на мобильном тот же блок
@@ -1549,7 +1550,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </aside>
     <main class="main narrow">
     <h1>Оплата</h1>
-    <p class="lead" style="margin-top:8px">Виджет и документы уже работают на alfa-school.ru — оплата продлевает доступ после бесплатных 24 часов.</p>
+    <p class="lead" style="margin-top:8px">Виджет и документы уже работают на <span data-site-domain>alfa-school.ru</span> — оплата продлевает доступ после бесплатных 24 часов.</p>
 
     <h2 style="margin-top:20px">Что входит</h2>
     <div class="card pad" style="margin-top:12px">
@@ -1713,7 +1714,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <p class="tiny" style="margin-bottom:2px">Выбрали на шаге «О сайте». Если платформа другая — переключите.</p>
       <div class="tabs" id="install-cms-tabs" style="margin-top:8px"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
       <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
-data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;</div>
+data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
         <button class="btn sm copy-code-btn" data-copy-target="install-code">Скопировать код</button>
         <button type="button" class="btn sm solid" id="install-action-btn">↻ Проверить скрипт на сайте</button>
@@ -1845,7 +1846,7 @@ data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;<
     <main class="main narrow">
       <div class="row" style="justify-content:space-between;align-items:flex-start">
         <div>
-          <div class="mono" style="font-size:24px;font-weight:700">alfa-school.ru</div>
+          <div class="mono" style="font-size:24px;font-weight:700" data-site-domain>alfa-school.ru</div>
           <p class="tiny" style="margin-top:3px">ООО «Альфа Образование» · ИНН 7701234567</p>
           <div class="row" style="margin-top:6px">
             <span class="tiny mono">установка проверена сегодня</span>
@@ -1863,7 +1864,7 @@ data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;<
       <div class="state" data-pay-state="trial" style="margin-top:16px">
         <div class="card pad" style="border-color:rgba(184,121,0,.35)">
           <span class="b amber" style="font-size:16px">🕐 Пробный период — осталось 21 ч 43 мин</span>
-          <p class="lead" style="margin-top:8px">Документы и виджет уже работают на alfa-school.ru. Оплатите в любой момент — доступ не прервётся.</p>
+          <p class="lead" style="margin-top:8px">Документы и виджет уже работают на <span data-site-domain>alfa-school.ru</span>. Оплатите в любой момент — доступ не прервётся.</p>
           <p class="tiny" style="margin-top:8px;color:rgba(17,17,16,.55)">Не успеете — напишем на почту заранее, до того как виджет отключится.</p>
           <div class="hr"></div>
           <button type="button" class="btn solid sm" data-go="s-pay">Оплатить сейчас →</button>
@@ -1880,7 +1881,7 @@ data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;<
       <div class="state" data-pay-state="pending" style="margin-top:16px">
         <div class="card pad" style="border-color:rgba(184,121,0,.35)">
           <span class="b amber" style="font-size:16px">⏳ Счёт выставлен</span>
-          <p class="lead" style="margin-top:8px">Документы и виджет уже работают на alfa-school.ru. Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня.</p>
+          <p class="lead" style="margin-top:8px">Документы и виджет уже работают на <span data-site-domain>alfa-school.ru</span>. Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня.</p>
           <div data-payment-issue="invoice-stalled" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(184,121,0,.25)">
             <p class="small" style="color:var(--warn);font-weight:700">Счёт выставлен больше 3 дней назад и всё ещё не оплачен.</p>
             <p class="tiny" style="margin-top:4px">Если перевод завис в банке — напишите в поддержку, поможем разобраться. Можно и оплатить другим способом.</p>
@@ -1980,7 +1981,7 @@ data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;<
       <div class="card" style="margin-top:12px;overflow:hidden">
         <div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start">
           <span class="tiny mono" style="flex:none;width:88px">Сегодня</span>
-          <span class="small">Установка подтверждена — виджет и документы работают на alfa-school.ru</span>
+          <span class="small">Установка подтверждена — виджет и документы работают на <span data-site-domain>alfa-school.ru</span></span>
         </div>
         <div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start">
           <span class="tiny mono" style="flex:none;width:88px">15.08.2026</span>
@@ -2014,7 +2015,7 @@ data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;<
     </aside>
     <main class="main narrow">
       <h1>Документы</h1>
-      <p class="lead" style="margin-top:6px">alfa-school.ru · версии и причина изменений</p>
+      <p class="lead" style="margin-top:6px"><span data-site-domain>alfa-school.ru</span> · версии и причина изменений</p>
 
       <!-- HANDOFF 6.15 п.8 — после истечения пробного периода документы
            остаются видимыми (просмотр честный, не шантаж), но
@@ -2029,29 +2030,40 @@ data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;<
         </div>
       </div>
 
+      <!-- Прямой запрос 9 сентября: копировать можно и весь раздел, и
+           каждый документ отдельно. Адрес раздела — номер сайта, адрес
+           документа — номер сайта плюс номер документа в каталоге. -->
+      <div class="card pad row" style="margin-top:16px;justify-content:space-between;align-items:center;gap:12px">
+        <div style="min-width:0">
+          <div style="font-weight:700;font-size:14.5px">Все документы сайта</div>
+          <div class="tiny mono" style="margin-top:3px;overflow-wrap:anywhere">docs.belysite.ru/<span data-site-id>486312</span></div>
+        </div>
+        <span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312">Скопировать ссылку</button></span>
+      </div>
+
       <!-- «Открыть» раньше была неживой кнопкой без действия — теперь
            настоящая ссылка на реальный адрес документа (тот же URL, что
            уже показан в превью на s-ready), открывается в новой вкладке. -->
-      <div class="card" style="margin-top:16px;overflow:hidden">
+      <div class="card" style="margin-top:10px;overflow:hidden">
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/requisites" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/01">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/01" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки персональных данных</div><div class="tiny mono">v2 · 15.08.2026 · обновили формулировки под изменения 152-ФЗ</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/pd-policy" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/03">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/03" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на обработку ПДн</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/consent" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/12">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/12" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/marketing-consent" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/13">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/13" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Cookie-политика</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/cookies" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/02">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/02" target="_blank" rel="noopener">Открыть</a></span>
         </div>
       </div>
 
@@ -2195,7 +2207,7 @@ data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;<
         <!-- HANDOFF 6.15 п.8 — статус подписки теперь тоже читает
              siteStatus (trial/expired добавлены), тот же чип, что и на
              s-project-paid, чтобы не разъезжались между экранами. -->
-        <div class="row" style="justify-content:space-between"><span class="small muted">alfa-school.ru</span>
+        <div class="row" style="justify-content:space-between"><span class="small muted" data-site-domain>alfa-school.ru</span>
           <span class="state" data-pay-state="trial"><span class="chip amber">пробный период · 21 ч 43 мин</span></span>
           <span class="state" data-pay-state="expired"><span class="chip red">пробный период закончился</span></span>
           <span class="state" data-pay-state="pending"><span class="chip amber">ожидает оплаты</span></span>
@@ -2220,7 +2232,7 @@ data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;<
       <div class="card" style="margin-top:12px;overflow:hidden">
         <div class="row" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Акт за 2026–2027</div><div class="tiny mono">05.08.2026 – 04.08.2027 · 29 900 ₽</div></div>
-          <span class="chip green">готов</span><a class="btn sm" href="https://docs.belysite.ru/alfa-school-ru/act-2026-2027.pdf" target="_blank" rel="noopener">Скачать PDF</a>
+          <span class="chip green">готов</span><a class="btn sm" href="https://docs.belysite.ru/486312/act-2026-2027.pdf" target="_blank" rel="noopener">Скачать PDF</a>
         </div>
       </div>
     </main>
@@ -2396,7 +2408,7 @@ data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;<
            одного вида превью (зависит от темы браузера посетителя),
            поэтому вместо картинки — поясняющий текст, а не додуманная
            третья картинка. -->
-      <p class="lead" style="margin-top:6px">Проверили сегодня — вот что видят посетители alfa-school.ru.</p>
+      <p class="lead" style="margin-top:6px">Проверили сегодня — вот что видят посетители <span data-site-domain>alfa-school.ru</span>.</p>
 
       <!-- независимый обзор кабинета: сначала общий тумблер, потом два
            переключателя в одной карточке (баннер и подвал — разные по
@@ -2506,7 +2518,7 @@ data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;<
         <button class="btn text sm" data-fold="widget-code" style="padding:0">Показать код установки ⌄</button>
         <div id="widget-code" style="display:none;margin-top:10px">
           <div class="code" id="widget-code-block">&lt;script src="https://cdn.belysite.ru/w.js"
-data-site="<span data-site-slug>alfa-school-ru</span>" async&gt;&lt;/script&gt;</div>
+data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <div class="row" style="margin-top:10px;gap:8px">
             <button class="btn sm copy-code-btn" data-copy-target="widget-code-block">Скопировать код</button>
             <button class="btn sm check-install-btn">↻ Проверить установку</button>
@@ -2862,27 +2874,6 @@ var FUNNEL_STEPS = [
    вернувшись со шага 4 на шаг 2, человек по-прежнему видит все четыре,
    иначе возврат читался бы как потеря прогресса. */
 var maxStepReached = 1;
-/* Ответ «Нет ничего» на шаге «О сайте» пропускает «Работу с клиентами» —
-   значит этого шага в пути просто нет: он не показывается в сайдборде, а
-   счётчик считает по оставшимся («Шаг 3 из 5»). Раньше список был
-   фиксированным, и счётчик прыгал с «2 из 6» на «4 из 6», а пропущенный
-   шаг получал галочку «пройден». visitedSteps помнит, где человек был на
-   самом деле: галочка ставится только за посещённый шаг, поэтому если
-   вернуться и снять «Нет ничего», вернувшийся шаг не окажется
-   «завершённым» задним числом. */
-var visitedSteps = {1:true};
-function clientsStepSkipped(){
-  var noneBox = document.querySelector('[data-excl="features"][data-excl-none]');
-  return !!(noneBox && noneBox.checked);
-}
-function activeStepNumbers(){
-  var out = [];
-  for (var i = 1; i <= FUNNEL_STEPS.length; i++) {
-    if (i === 3 && clientsStepSkipped()) continue;
-    out.push(i);
-  }
-  return out;
-}
 function currentFunnelStep(){
   var scr = document.querySelector('.screen.on');
   if (!scr) return 0;
@@ -2895,11 +2886,8 @@ function currentFunnelStep(){
 function syncFunnelSteps(){
   var cur = currentFunnelStep();
   if (cur > maxStepReached) maxStepReached = cur;
-  if (cur) visitedSteps[cur] = true;
-  var active = activeStepNumbers();
   document.querySelectorAll('[data-side-steps] .side-step').forEach(function(el){
     var n = parseInt(el.dataset.step, 10);
-    if (active.indexOf(n) === -1) { el.hidden = true; el.classList.remove('now','done','seen'); return; }
     el.hidden = n > maxStepReached;
     el.classList.toggle('now', n === cur);
     // Галочка = шаг ЗАВЕРШЁН, то есть с него ушли вперёд (n < максимума
@@ -2908,13 +2896,12 @@ function syncFunnelSteps(){
     // человек видел галочку на установке, которую не делал —
     // прямая правка пользователя. Самый дальний посещённый шаг остаётся
     // видимым и кликабельным (.seen), но без галочки: он открыт, не сделан.
-    el.classList.toggle('done', !!visitedSteps[n] && n < maxStepReached && n !== cur);
+    el.classList.toggle('done', n < maxStepReached && n !== cur);
     el.classList.toggle('seen', n === maxStepReached && n !== cur);
   });
   if (cur) {
-    var pos = active.indexOf(cur) + 1;
     document.querySelectorAll('.screen.on [data-step-counter]').forEach(function(el){
-      el.textContent = 'Шаг ' + pos + ' из ' + active.length;
+      el.textContent = 'Шаг ' + cur + ' из ' + FUNNEL_STEPS.length;
     });
   }
 }
@@ -2930,9 +2917,15 @@ document.addEventListener('click', function(e){
   goScreen(st.screen);
 });
 
-/* Домен и слаг из шага «Знакомство» — подставляются везде, где помечены
-   data-site-domain / data-site-slug (8 сентября). Раньше alfa-school.ru был
-   зашит в текст, и введённый домен нигде дальше не появлялся. */
+/* Домен из шага «Знакомство» подставляется везде, где помечено
+   data-site-domain (8 сентября) — раньше alfa-school.ru был зашит в текст.
+   Номер сайта (data-site-id) домену не соответствует и из него не выводится:
+   его выдаёт сервис при добавлении сайта, случайным, не по порядку. В
+   макете это константа-фикстура. Документы адресуются номером сайта и
+   номером документа в каталоге: 01 реквизиты, 02 cookie-политика,
+   03 политика ПДн, 12 согласие на обработку ПДн, 13 согласие на рассылки
+   (04 оферта и 05 правила доставки в пакет пока не входят). */
+var SITE_ID = '486312';
 /* Домен приводим к каноническому виду при переходе с шага 1. Раньше
    протокол и путь срезались только внутри проверки регуляркой, а дальше в
    дело шло сырое значение — на «Что подготовили» печаталось
@@ -2947,9 +2940,8 @@ function normalizeDomain(v){
 function syncSiteNaming(){
   var input = document.getElementById('add-domain');
   var dom = (input && input.value.trim()) || 'alfa-school.ru';
-  var slug = dom.replace(/[.]/g, '-');
   document.querySelectorAll('[data-site-domain]').forEach(function(el){ el.textContent = dom; });
-  document.querySelectorAll('[data-site-slug]').forEach(function(el){ el.textContent = slug; });
+  document.querySelectorAll('[data-site-id]').forEach(function(el){ el.textContent = SITE_ID; });
 }
 
 function goScreen(id){
@@ -3179,6 +3171,15 @@ function flashCopied(btn){
   btn.disabled = true;
   setTimeout(function(){ btn.textContent = original; btn.disabled = false; }, 1500);
 }
+// Копирование ссылки на документ или на весь раздел — тот же flashCopied,
+// что и у кода установки; текст берётся из data-copy-text, а не из DOM,
+// потому что в разметке адрес разбит на текст и <span data-site-id>.
+document.querySelectorAll('.copy-link-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(btn.dataset.copyText).then(function(){ flashCopied(btn); });
+  });
+});
 document.querySelectorAll('.copy-code-btn').forEach(function(btn){
   btn.addEventListener('click', function(){
     var codeEl = document.getElementById(btn.dataset.copyTarget);
@@ -3459,17 +3460,13 @@ document.querySelectorAll('[data-platform-pick]').forEach(function(box){
 
 document.querySelectorAll('[data-excl]').forEach(function(box){
   box.addEventListener('change', function(){
+    if (!box.checked) return;
     var group = box.dataset.excl;
-    if (box.checked) {
-      var isNone = box.hasAttribute('data-excl-none');
-      document.querySelectorAll('[data-excl="' + group + '"]').forEach(function(other){
-        if (other === box) return;
-        if (isNone || other.hasAttribute('data-excl-none')) other.checked = false;
-      });
-    }
-    // «Нет ничего» меняет длину пути — счётчик и сайдбар пересчитываются сразу,
-    // и при снятии галочки тоже, не дожидаясь перехода на следующий шаг
-    if (group === 'features') syncFunnelSteps();
+    var isNone = box.hasAttribute('data-excl-none');
+    document.querySelectorAll('[data-excl="' + group + '"]').forEach(function(other){
+      if (other === box) return;
+      if (isNone || other.hasAttribute('data-excl-none')) other.checked = false;
+    });
   });
 });
 
@@ -3559,21 +3556,19 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
 
 
 
-/* «Далее» на подшаге «О сайте» ветвится по блоку «Есть ли на сайте» —
-   при «Нет ничего» сайт не собирает контакты от посетителей, спрашивать
-   дальше «звоните/пишете ли этим контактам» было бы про базу клиентов
-   вообще, не про сайт (сама анкета — про сайт). «Нет» пропускает
-   подшаг «Работа с клиентами» и ведёт сразу на «Реквизиты». */
+/* Раньше ответ «Нет ничего» на «Есть ли на сайте» пропускал подшаг
+   «Работа с клиентами»: считалось, что без форм вопрос «звоните/пишете ли
+   клиентам» уже не про сайт. Пропуск отменён 9 сентября — исчезающий шаг
+   и меняющийся счётчик читаются как сбой интерфейса, а сами ответы не
+   пропадают впустую: «Согласие на рассылки» выдаётся в любом случае, в
+   том числе навырост. Путь всегда из шести шагов подряд. */
 var siteNextBtn = document.getElementById('anketa-site-next');
 if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
   var platformPicked = document.querySelector('[data-platform-pick]:checked');
   var platformErr = document.getElementById('anketa-platform-error');
   if (platformErr) platformErr.style.display = platformPicked ? 'none' : 'block';
   if (!platformPicked) return;
-  var noneBox = document.querySelector('[data-excl="features"][data-excl-none]');
-  var formsYes = !(noneBox && noneBox.checked);
-  // без форм на сайте вопрос «звоните/пишете клиентам» не про сайт — подшаг пропускается
-  anketaSubstep = formsYes ? 2 : 3;
+  anketaSubstep = 2;
   syncAnketaSubstep();
 });
 
