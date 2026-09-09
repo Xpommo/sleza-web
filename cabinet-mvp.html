@@ -459,11 +459,38 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
   border-radius:9px 9px 0 0}
 .sleza-widget{position:relative;display:flex;flex-wrap:wrap;align-items:center;row-gap:10px;column-gap:16px;
   padding:13px 16px;min-height:60px;border-radius:0 0 9px 9px;font-family:var(--sans)}
-.sleza-widget[data-skin="dark"]{--w-bg:#0A0C10;--w-text:#ECEEF1;--w-muted:#9AA1AB;--w-line:#23272D;
-  --w-accent:#6E9BFF;--w-accent-soft:#182238;--w-amber:#E7A855;--w-amber-soft:#2E2415;--w-hover:#15181D}
-.sleza-widget[data-skin="light"]{--w-bg:#FBFBF9;--w-text:#14181C;--w-muted:#6B7280;--w-line:#E3E5DD;
-  --w-accent:#2E5FE0;--w-accent-soft:#E4EAFC;--w-amber:#A15E1A;--w-amber-soft:#F3E6D2;--w-hover:#F1F1EC}
+.sleza-widget[data-skin="dark"],.cookie-card[data-skin="dark"]{--w-bg:#0A0C10;--w-text:#ECEEF1;--w-muted:#9AA1AB;--w-line:#23272D;
+  --w-accent:#6E9BFF;--w-accent-soft:#182238;--w-amber:#E7A855;--w-amber-soft:#2E2415;--w-hover:#15181D;--w-on-accent:#0A0C10}
+.sleza-widget[data-skin="light"],.cookie-card[data-skin="light"]{--w-bg:#FBFBF9;--w-text:#14181C;--w-muted:#6B7280;--w-line:#E3E5DD;
+  --w-accent:#2E5FE0;--w-accent-soft:#E4EAFC;--w-amber:#A15E1A;--w-amber-soft:#F3E6D2;--w-hover:#F1F1EC;--w-on-accent:#FFFFFF}
 .sleza-widget{background:var(--w-bg);color:var(--w-text)}
+/* Куки-баннер — вторая половина того же виджета, поэтому палитра общая
+   с подвалом (--w-*), а не отдельная. Раскладка вертикальная, карточкой:
+   у коллеги баннер стоит поверх страницы прямоугольником с крупной
+   кнопкой на всю ширину, а не полосой во всю ширину экрана, как было. */
+.cookie-card{max-width:360px;background:var(--w-bg);color:var(--w-text);border:1px solid var(--w-line);
+  border-radius:14px;padding:20px 22px;font-family:var(--sans)}
+.cc-icon{width:32px;height:32px;border-radius:9px;background:var(--w-accent-soft);color:var(--w-accent);
+  display:grid;place-items:center;margin-bottom:12px}
+.cc-icon svg{width:16px;height:16px}
+.cc-title{font-weight:700;font-size:15px;line-height:1.25;margin:0 0 8px}
+.cc-body{font-size:12.5px;line-height:1.55;color:var(--w-muted);margin:0 0 10px}
+.cc-link{display:inline-block;font-size:12px;font-weight:600;color:var(--w-accent);text-decoration:none;
+  margin-bottom:14px;cursor:pointer}
+.cc-link:hover{text-decoration:underline}
+.cc-accept{display:block;width:100%;font:inherit;font-weight:700;font-size:13.5px;padding:11px;
+  border-radius:9px;border:0;background:var(--w-accent);color:var(--w-on-accent);cursor:pointer}
+/* цвет текста кнопки зависит от скина: в тёмной теме акцент светлый
+   (#6E9BFF) и текст должен быть тёмным, в светлой акцент насыщенный
+   (#2E5FE0) и текст белый — фиксированный цвет тонул бы в одной из двух */
+.cc-accept:hover{filter:brightness(1.08)}
+.cc-note{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--w-muted);opacity:.75;margin:10px 0 0;text-align:center}
+/* «Авто» одним превью не показать — под ним подпись, какой из двух видов
+   изображён. Прежде вместо превью стояла пунктирная заглушка с
+   пояснением: текст без картинки объяснял меньше, чем картинка с
+   подписью. Подпись общая для баннера и подвала. */
+.skin-auto-note{font-size:11.5px;color:rgba(17,17,16,.55);margin:8px 2px 0;display:none}
 .w-brand{display:flex;align-items:center;gap:8px;flex:none;text-decoration:none;color:var(--w-text)}
 .w-brand svg{width:18px;height:18px;color:var(--w-accent);flex:none}
 .w-brand-name{font-weight:700;font-size:14px;letter-spacing:-.01em}
@@ -1546,32 +1573,28 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <div class="preview-block">
       <h2 style="margin-top:18px">Вот что появится на сайте</h2>
       <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.45);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">куки-баннер при первом заходе</div>
-      <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-        <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">условиями обработки cookie</span>. Запретить обработку можно в настройках браузера.</div>
-        <div class="row" style="flex:none;gap:8px">
-          <button type="button" aria-label="Закрыть" style="flex:none;width:32px;height:32px;border:0;background:none;color:rgba(17,17,16,.62);font-size:16px;cursor:pointer">✕</button>
-          <button class="btn sm solid" style="flex:none">Принять</button>
-        </div>
+      <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
+        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div>
+        <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
       </div>
       <div class="fpreview" style="margin-top:14px">
         <div class="lbl">подвал сайта после установки</div>
         <div class="sleza-widget" data-skin="dark"><a class="w-brand"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z"></path></svg><span class="w-brand-name">Слеза</span></a><span class="w-sep"></span><div class="w-pills"><div class="pill-wrap"><button type="button" class="pill locked" data-pill="cookie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg><span>Cookie</span><span class="dot"></span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Обработка cookie" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.3, 6, 9 №152-ФЗ · ч.1 ст.13.11 КоАП</p><h4 class="pop-title">Обработка cookie</h4><p class="pop-body">Сайт использует файлы cookie для аналитики и корректной работы сервисов. Согласие вы уже дали в баннере при заходе на сайт — отдельно отключить его здесь нельзя. Состав собираемых данных и цели — в политике ниже.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательное согласие — уже подтверждено</div><div class="pop-links"><a>Политика обработки cookie →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill" data-pill="pd" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.6 5.3 6v5.4c0 4.4 2.9 7.6 6.7 8.9 3.8-1.3 6.7-4.5 6.7-8.9V6L12 3.6Z"></path><path d="M9 12l2 2 4-4.3" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Персональные данные</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на обработку персональных данных" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">№152-ФЗ · ч.2 ст.13.11 КоАП</p><h4 class="pop-title">Согласие на обработку персональных данных</h4><p class="pop-body">Разрешает сайту обрабатывать данные, которые вы оставляете в формах — имя, телефон, email. Действует сразу на все формы сайта: включили здесь — включено везде, и наоборот.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="pd"><span class="track"></span></span></label><div class="pop-links"><a>Политика обработки персональных данных →</a><a>Текст согласия на обработку персональных данных →</a></div></div></div><div class="pill-wrap marketing-wrap disabled"><button type="button" class="pill" data-pill="marketing" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.2v3.6a1 1 0 0 0 1 1h2l1 4h2l-1-4h1l9 3.4V6.8L9 10.2H4a1 1 0 0 0-1 1Z" stroke-linejoin="round"></path><path d="M19 9.6a3 3 0 0 1 0 5" stroke-linecap="round"></path></svg><span>Реклама</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на рекламные рассылки" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ч.1 ст.18 №38-ФЗ «О рекламе» · ч.4.1 ст.14.3 КоАП</p><h4 class="pop-title">Согласие на рекламные рассылки</h4><p class="pop-body">Разрешает присылать вам рекламные материалы и рассылки.</p><p class="pop-hint" data-w-hint>Сначала включите согласие на персональные данные — без него рассылка недоступна.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="marketing" disabled><span class="track"></span></span></label><div class="pop-links"><a>Текст согласия на рассылку →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill locked" data-pill="marking" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c3.6 4.1 6 7.3 6 10.6A6 6 0 1 1 6 13.6C6 10.3 8.4 7.1 12 3Z"></path></svg><span>Маркировка</span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Маркировка" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.4 закона «О СМИ» · 114-ФЗ · ч.1 ст.13.15 КоАП · ч.1 ст.6.13 КоАП</p><h4 class="pop-title">Маркировка</h4><p class="pop-body">Скрипт Слезы автоматически помечает на сайте упоминания лиц и организаций из реестров: иностранные агенты, экстремистские и террористические организации, а также упоминания наркотических веществ.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательно по закону — отключить нельзя</div></div></div></div><div class="w-links"><a>Оферта</a><span class="dot-sep">·</span><a>Реквизиты</a></div></div>
       </div>
+      <p class="skin-auto-note" data-note="footer">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
     </div>
     <details class="preview-accordion">
       <summary>Вот что появится на сайте</summary>
       <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.45);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">куки-баннер при первом заходе</div>
-      <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-        <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">условиями обработки cookie</span>. Запретить обработку можно в настройках браузера.</div>
-        <div class="row" style="flex:none;gap:8px">
-          <button type="button" aria-label="Закрыть" style="flex:none;width:32px;height:32px;border:0;background:none;color:rgba(17,17,16,.62);font-size:16px;cursor:pointer">✕</button>
-          <button class="btn sm solid" style="flex:none">Принять</button>
-        </div>
+      <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
+        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div>
+        <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
       </div>
       <div class="fpreview" style="margin-top:14px">
         <div class="lbl">подвал сайта после установки</div>
         <div class="sleza-widget" data-skin="dark"><a class="w-brand"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z"></path></svg><span class="w-brand-name">Слеза</span></a><span class="w-sep"></span><div class="w-pills"><div class="pill-wrap"><button type="button" class="pill locked" data-pill="cookie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg><span>Cookie</span><span class="dot"></span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Обработка cookie" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.3, 6, 9 №152-ФЗ · ч.1 ст.13.11 КоАП</p><h4 class="pop-title">Обработка cookie</h4><p class="pop-body">Сайт использует файлы cookie для аналитики и корректной работы сервисов. Согласие вы уже дали в баннере при заходе на сайт — отдельно отключить его здесь нельзя. Состав собираемых данных и цели — в политике ниже.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательное согласие — уже подтверждено</div><div class="pop-links"><a>Политика обработки cookie →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill" data-pill="pd" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.6 5.3 6v5.4c0 4.4 2.9 7.6 6.7 8.9 3.8-1.3 6.7-4.5 6.7-8.9V6L12 3.6Z"></path><path d="M9 12l2 2 4-4.3" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Персональные данные</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на обработку персональных данных" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">№152-ФЗ · ч.2 ст.13.11 КоАП</p><h4 class="pop-title">Согласие на обработку персональных данных</h4><p class="pop-body">Разрешает сайту обрабатывать данные, которые вы оставляете в формах — имя, телефон, email. Действует сразу на все формы сайта: включили здесь — включено везде, и наоборот.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="pd"><span class="track"></span></span></label><div class="pop-links"><a>Политика обработки персональных данных →</a><a>Текст согласия на обработку персональных данных →</a></div></div></div><div class="pill-wrap marketing-wrap disabled"><button type="button" class="pill" data-pill="marketing" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.2v3.6a1 1 0 0 0 1 1h2l1 4h2l-1-4h1l9 3.4V6.8L9 10.2H4a1 1 0 0 0-1 1Z" stroke-linejoin="round"></path><path d="M19 9.6a3 3 0 0 1 0 5" stroke-linecap="round"></path></svg><span>Реклама</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на рекламные рассылки" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ч.1 ст.18 №38-ФЗ «О рекламе» · ч.4.1 ст.14.3 КоАП</p><h4 class="pop-title">Согласие на рекламные рассылки</h4><p class="pop-body">Разрешает присылать вам рекламные материалы и рассылки.</p><p class="pop-hint" data-w-hint>Сначала включите согласие на персональные данные — без него рассылка недоступна.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="marketing" disabled><span class="track"></span></span></label><div class="pop-links"><a>Текст согласия на рассылку →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill locked" data-pill="marking" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c3.6 4.1 6 7.3 6 10.6A6 6 0 1 1 6 13.6C6 10.3 8.4 7.1 12 3Z"></path></svg><span>Маркировка</span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Маркировка" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.4 закона «О СМИ» · 114-ФЗ · ч.1 ст.13.15 КоАП · ч.1 ст.6.13 КоАП</p><h4 class="pop-title">Маркировка</h4><p class="pop-body">Скрипт Слезы автоматически помечает на сайте упоминания лиц и организаций из реестров: иностранные агенты, экстремистские и террористические организации, а также упоминания наркотических веществ.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательно по закону — отключить нельзя</div></div></div></div><div class="w-links"><a>Оферта</a><span class="dot-sep">·</span><a>Реквизиты</a></div></div>
       </div>
+      <p class="skin-auto-note" data-note="footer">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
     </details>
 
     <!-- HANDOFF 6.15 п.8 — установка идёт до оплаты, не после: кнопка
@@ -2508,9 +2531,9 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div id="banner-live-content">
         <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Тема баннера</h2>
         <div class="seg" style="margin:8px 0 12px">
-          <button type="button" class="on" data-swap="bthemelight">Светлая</button>
-          <button type="button" data-swap="bthemedark">Тёмная</button>
-          <button type="button" data-swap="bthemeauto">Авто</button>
+          <button type="button" data-banner-skin="light">Светлая</button>
+          <button type="button" class="on" data-banner-skin="dark">Тёмная</button>
+          <button type="button" data-banner-skin="auto">Авто</button>
         </div>
 
         <!-- Дословный текст реального виджета (по скриншоту пользователя,
@@ -2518,24 +2541,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
              баннера нет и не было: «убрать текст "баннер с реальным
              отказом"... у нас нет реального отказа и он не нужен». Отказ —
              через настройки браузера, крестик просто закрывает баннер. -->
-        <div data-swapped="bthemelight" style="border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;background:var(--paper);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <div class="small" style="flex:1;min-width:220px">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(17,17,16,.3)">условиями обработки cookie</span>. Запретить обработку можно в настройках браузера.</div>
-          <div class="row" style="flex:none;gap:8px">
-            <button type="button" aria-label="Закрыть" style="flex:none;width:32px;height:32px;border:0;background:none;color:rgba(17,17,16,.62);font-size:16px;cursor:pointer">✕</button>
-            <button class="btn sm solid" style="flex:none">Принять</button>
-          </div>
-        </div>
-        <div data-swapped="bthemedark" style="display:none;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:14px 16px;background:var(--ink);align-items:center;gap:16px;flex-wrap:wrap">
-          <div class="small" style="flex:1;min-width:220px;color:rgba(255,255,255,.82)">Нажимая «Принять», вы соглашаетесь с <span style="font-weight:700;text-decoration:underline;text-decoration-color:rgba(255,255,255,.4);color:#fff">условиями обработки cookie</span>. Запретить обработку можно в настройках браузера.</div>
-          <div class="row" style="flex:none;gap:8px">
-            <button type="button" aria-label="Закрыть" style="flex:none;width:32px;height:32px;border:0;background:none;color:rgba(255,255,255,.4);font-size:16px;cursor:pointer">✕</button>
-            <button class="btn sm solid" style="flex:none;background:#fff;border-color:#fff;color:var(--ink)">Принять</button>
-          </div>
-        </div>
-        <div data-swapped="bthemeauto" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:16px;text-align:center">
-          <p class="tiny">Подстроится под системную тему браузера посетителя — светлая или тёмная. Один статичный превью здесь не покажет оба варианта.</p>
-        </div>
-        </div>
+        <div data-banner-host><div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div><p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p></div>
+                </div>
         <div id="banner-off-placeholder" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:20px 16px;text-align:center">
           <p class="tiny">Баннер выключен — посетители его не видят.</p>
         </div>
@@ -2567,10 +2574,14 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div class="seg" style="margin:8px 0 12px">
           <button type="button" data-footer-skin="light">Светлая</button>
           <button type="button" class="on" data-footer-skin="dark">Тёмная</button>
+          <button type="button" data-footer-skin="auto">Авто</button>
         </div>
+        <div data-footer-host>
         <div class="fpreview">
           <div class="lbl">подвал сайта</div>
           <div class="sleza-widget" data-skin="dark"><a class="w-brand"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z"></path></svg><span class="w-brand-name">Слеза</span></a><span class="w-sep"></span><div class="w-pills"><div class="pill-wrap"><button type="button" class="pill locked" data-pill="cookie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg><span>Cookie</span><span class="dot"></span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Обработка cookie" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.3, 6, 9 №152-ФЗ · ч.1 ст.13.11 КоАП</p><h4 class="pop-title">Обработка cookie</h4><p class="pop-body">Сайт использует файлы cookie для аналитики и корректной работы сервисов. Согласие вы уже дали в баннере при заходе на сайт — отдельно отключить его здесь нельзя. Состав собираемых данных и цели — в политике ниже.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательное согласие — уже подтверждено</div><div class="pop-links"><a>Политика обработки cookie →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill" data-pill="pd" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.6 5.3 6v5.4c0 4.4 2.9 7.6 6.7 8.9 3.8-1.3 6.7-4.5 6.7-8.9V6L12 3.6Z"></path><path d="M9 12l2 2 4-4.3" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Персональные данные</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на обработку персональных данных" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">№152-ФЗ · ч.2 ст.13.11 КоАП</p><h4 class="pop-title">Согласие на обработку персональных данных</h4><p class="pop-body">Разрешает сайту обрабатывать данные, которые вы оставляете в формах — имя, телефон, email. Действует сразу на все формы сайта: включили здесь — включено везде, и наоборот.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="pd"><span class="track"></span></span></label><div class="pop-links"><a>Политика обработки персональных данных →</a><a>Текст согласия на обработку персональных данных →</a></div></div></div><div class="pill-wrap marketing-wrap disabled"><button type="button" class="pill" data-pill="marketing" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.2v3.6a1 1 0 0 0 1 1h2l1 4h2l-1-4h1l9 3.4V6.8L9 10.2H4a1 1 0 0 0-1 1Z" stroke-linejoin="round"></path><path d="M19 9.6a3 3 0 0 1 0 5" stroke-linecap="round"></path></svg><span>Реклама</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на рекламные рассылки" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ч.1 ст.18 №38-ФЗ «О рекламе» · ч.4.1 ст.14.3 КоАП</p><h4 class="pop-title">Согласие на рекламные рассылки</h4><p class="pop-body">Разрешает присылать вам рекламные материалы и рассылки.</p><p class="pop-hint" data-w-hint>Сначала включите согласие на персональные данные — без него рассылка недоступна.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="marketing" disabled><span class="track"></span></span></label><div class="pop-links"><a>Текст согласия на рассылку →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill locked" data-pill="marking" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c3.6 4.1 6 7.3 6 10.6A6 6 0 1 1 6 13.6C6 10.3 8.4 7.1 12 3Z"></path></svg><span>Маркировка</span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Маркировка" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.4 закона «О СМИ» · 114-ФЗ · ч.1 ст.13.15 КоАП · ч.1 ст.6.13 КоАП</p><h4 class="pop-title">Маркировка</h4><p class="pop-body">Скрипт Слезы автоматически помечает на сайте упоминания лиц и организаций из реестров: иностранные агенты, экстремистские и террористические организации, а также упоминания наркотических веществ.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательно по закону — отключить нельзя</div></div></div></div><div class="w-links"><a>Оферта</a><span class="dot-sep">·</span><a>Реквизиты</a></div></div>
+        </div>
+        <p class="skin-auto-note" data-note="footer">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
         </div>
         </div>
         <div id="footer-off-placeholder" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:20px 16px;text-align:center">
@@ -3038,6 +3049,7 @@ function goScreen(id){
   syncAnketaSubstep();
   syncSiteNaming();
   syncFooterSkin();
+  syncBannerSkin();
   syncAccount();
   syncWhoVisible();
   syncInstallAction();
@@ -3291,20 +3303,33 @@ function flashCopied(btn){
    атрибут сразу на всех трёх превью. Карточки категорий лежат внутри
    виджета и наследуют его --w-*, отдельно их красить не надо. */
 var footerSkin = 'dark';
-function syncFooterSkin(){
-  // goScreen('s-register') на старте выполняется раньше объявления
-  // footerSkin ниже — без запасного значения виджеты успевали получить
-  // data-skin="undefined" и остаться без палитры до первой перерисовки
-  var skin = footerSkin || 'dark';
-  document.querySelectorAll('.sleza-widget').forEach(function(el){ el.dataset.skin = skin; });
-  document.querySelectorAll('[data-footer-skin]').forEach(function(b){
-    b.classList.toggle('on', b.dataset.footerSkin === skin);
+var bannerSkin = 'dark';
+/* Три варианта у обоих — светлая, тёмная, авто. «Авто» одним превью не
+   показать, поэтому рисуем тёмный и подписываем, какой из двух видов
+   изображён: раньше вместо превью баннера стояла пунктирная заглушка с
+   пояснением, но текст без картинки объяснял меньше, чем картинка с
+   подписью. goScreen('s-register') на старте выполняется раньше
+   объявлений выше — отсюда запасное значение, иначе элементы успевали
+   получить data-skin="undefined" и остаться без палитры. */
+function applySkin(sel, note, value, btnAttr){
+  var choice = value || 'dark';
+  document.querySelectorAll(sel).forEach(function(el){ el.dataset.skin = choice === 'auto' ? 'dark' : choice; });
+  document.querySelectorAll('[data-note="' + note + '"]').forEach(function(el){
+    el.style.display = choice === 'auto' ? 'block' : 'none';
+  });
+  document.querySelectorAll('[' + btnAttr + ']').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute(btnAttr) === choice);
   });
 }
+function syncFooterSkin(){ applySkin('.sleza-widget', 'footer', footerSkin, 'data-footer-skin'); }
+function syncBannerSkin(){ applySkin('.cookie-card', 'banner', bannerSkin, 'data-banner-skin'); }
 document.querySelectorAll('[data-footer-skin]').forEach(function(b){
   b.addEventListener('click', function(){ footerSkin = b.dataset.footerSkin; syncFooterSkin(); });
 });
-syncFooterSkin();
+document.querySelectorAll('[data-banner-skin]').forEach(function(b){
+  b.addEventListener('click', function(){ bannerSkin = b.dataset.bannerSkin; syncBannerSkin(); });
+});
+syncFooterSkin(); syncBannerSkin();
 
 function closeWidgetPops(){
   document.querySelectorAll('.sleza-widget .w-pop').forEach(function(el){ el.hidden = true; el.style.transform = ''; });
