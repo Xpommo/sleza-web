@@ -443,6 +443,30 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    с нашим --brand без правок (#0000E6 у них, #1f1fe6 у нас), атрибуция как
    скруглённая пилюля-бейдж в духе их круглой кнопки «подключить», но в наших
    токенах и меньшего размера — не копия, отдельный стиль на тех же мотивах. */
+/* ── шаг 6: установка тремя пронумерованными шагами ──────────────────────
+   Было два развёрнутых раздела подряд — «Поставить самому» и «Поручить
+   установке ответственному» — одинаковых по весу, без момента выбора:
+   человек не понимал, надо сделать оба или один. Плюс порядок на экране
+   не совпадал с порядком действий: «Как вставить код» лежал НИЖЕ кнопок
+   «Скопировать» и «Проверить» и был свёрнут, то есть второй шаг прятался
+   под третьим. Теперь путь выбирается сегментом, как на всех прошлых
+   шагах, и внутри идёт нумерованная последовательность.
+   Номера — CSS-счётчиком: скрытые display:none пункты его не двигают,
+   поэтому у ветки «поручу» шаги нумеруются 1–2, а у «сам» 1–3 без
+   отдельной логики. */
+.inst-steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:inst}
+.inst-step{display:flex;gap:14px;align-items:flex-start}
+.inst-step::before{counter-increment:inst;content:counter(inst);flex:none;width:26px;height:26px;
+  border-radius:50%;background:var(--ink);color:#fff;font-size:12.5px;font-weight:800;
+  display:grid;place-items:center;margin-top:1px}
+.inst-body{flex:1;min-width:0}
+.inst-body h3{margin:0 0 6px;font-size:15px}
+.inst-body .install-steps{margin:0}
+.inst-plat{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+@media(max-width:640px){
+  .inst-step{gap:10px}
+  .inst-step::before{width:23px;height:23px;font-size:11.5px}
+}
 /* ── превью подвала сайта: виджет «Слеза» ────────────────────────────────
    Портирован из макета коллеги (9 сентября) взамен прежнего .dark-footer —
    тот был статичной строкой реквизитов с тремя словами-ссылками. Новый
@@ -1795,124 +1819,115 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <h1>Установка скрипта</h1>
     <p class="lead" style="margin-top:8px">Одна строчка кода в шаблон сайта — и всё, что собрали, начинает работать: куки-баннер, подвал со ссылками на документы и реквизиты, и сами ссылки — рабочие.</p>
 
-    <!-- Платформа и код — первым блоком (правка пользователя 8 сентября:
-         «перенести сюда на самый верх, после выбора показывать скрипт с
-         кнопкой скопировать и инструкцией»). Этим отменяется решение от
-         2 сентября, по которому код прятался в закрытый аккордеон ниже
-         блока «Поручить»: там исходили из того, что чёрный код-блок
-         пугает нетехническую персону, поэтому сначала показывали
-         делегирование. Теперь наоборот — установка на первом плане,
-         делегирование следом. -->
-    <h2 style="margin-top:20px">Поставить самому</h2>
-    <div class="card pad">
-      <h3 style="margin-bottom:4px">Инструкция для вашей платформы</h3>
-      <p class="tiny" style="margin-bottom:2px">Выбрали на шаге «О сайте». Если платформа другая — переключите.</p>
-      <div class="tabs" id="install-cms-tabs" style="margin-top:8px"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
-      <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
-data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
-      <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
-        <button class="btn sm copy-code-btn" data-copy-target="install-code">Скопировать код</button>
-        <button type="button" class="btn sm solid" id="install-action-btn">↻ Проверить скрипт на сайте</button>
+    <!-- Выбор пути — сегментом, как на всех прошлых шагах (форма
+         собственности, платформа, тема). До 9 сентября здесь стояли два
+         развёрнутых раздела подряд, и момента выбора не было вовсе.
+         Подрядчику сегмент не показываем: он сам и есть тот, кому
+         поручают, — ветка у него всегда «сам» (см. syncInstallMode). -->
+    <div class="card pad" style="margin-top:18px" data-who-visible="owner staff">
+      <h3 style="margin-bottom:8px">Кто поставит код?</h3>
+      <div class="seg">
+        <button type="button" class="on" data-install-mode="self">Поставлю сам</button>
+        <button type="button" data-install-mode="delegate">Поручу другому</button>
       </div>
-      <div class="hr"></div>
-      <div class="small" data-swapped="t1">
-      <details class="acc install-howto">
-      <summary class="acc-title">Как вставить код <span class="howto-chev">⌄</span></summary>
-      <ol class="install-steps">
+    </div>
+
+    <ol class="inst-steps">
+      <li class="inst-step card pad" data-install-branch="self">
+        <div class="inst-body">
+          <h3>Скопируйте код</h3>
+          <div class="inst-plat">
+            <span class="tiny">Платформа с шага «О сайте». Другая — переключите:</span>
+          </div>
+          <div class="tabs" id="install-cms-tabs"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
+          <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
+data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
+          <button class="btn sm solid copy-code-btn" style="margin-top:10px" data-copy-target="install-code">Скопировать код</button>
+        </div>
+      </li>
+
+      <li class="inst-step card pad" data-install-branch="self">
+        <div class="inst-body">
+          <h3>Вставьте на сайт</h3>
+          <div class="small"><div data-swapped="t1"><ol class="install-steps">
         <li>Откройте <b>Настройки сайта</b> в панели Тильды</li>
         <li>Перейдите в раздел <b>Ещё</b></li>
         <li>Найдите поле <b>HTML-код для вставки внутрь HEAD</b></li>
         <li>Вставьте туда скопированную строку</li>
         <li>Нажмите <b>Опубликовать все страницы</b> — без этого код не появится на сайте</li>
-      </ol>
-      </details>
-      </div>
-      <div class="small" data-swapped="t2" style="display:none">
-      <details class="acc install-howto">
-      <summary class="acc-title">Как вставить код <span class="howto-chev">⌄</span></summary>
-      <ol class="install-steps">
+      </ol></div><div data-swapped="t2" style="display:none"><ol class="install-steps">
         <li>В админке WordPress откройте <b>Внешний вид → Редактор тем</b></li>
         <li>Выберите файл <b>header.php</b></li>
         <li>Найдите строку <b>&lt;/head&gt;</b></li>
         <li>Вставьте скопированный код перед ней</li>
         <li>Нажмите <b>Обновить файл</b></li>
-      </ol>
-      </details>
-      </div>
-      <div class="small" data-swapped="t3" style="display:none">
-      <details class="acc install-howto">
-      <summary class="acc-title">Как вставить код <span class="howto-chev">⌄</span></summary>
-      <ol class="install-steps">
+      </ol></div><div data-swapped="t3" style="display:none"><ol class="install-steps">
         <li>В админке Битрикса откройте <b>Настройки → Настройки продукта → Сайты</b></li>
         <li>Выберите ваш сайт и откройте его <b>шаблон</b></li>
         <li>Найдите секцию <b>HEAD</b></li>
         <li>Вставьте туда скопированный код</li>
         <li>Сохраните шаблон</li>
-      </ol>
-      </details>
-      </div>
-      <div class="small" data-swapped="t4" style="display:none">
-      <details class="acc install-howto">
-      <summary class="acc-title">Как вставить код <span class="howto-chev">⌄</span></summary>
-      <ol class="install-steps">
+      </ol></div><div data-swapped="t4" style="display:none"><ol class="install-steps">
         <li>Откройте HTML-шаблон сайта — тот файл, что подключается на всех страницах</li>
         <li>Найдите закрывающий тег <b>&lt;/head&gt;</b></li>
         <li>Вставьте скопированный код прямо перед ним</li>
         <li>Сохраните и опубликуйте изменения</li>
         <li>Если не знаете, где шаблон — отправьте инструкцию тому, кто ведёт сайт (ниже)</li>
-      </ol>
-      </details>
-      </div>
-      <div data-install="found" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--ok-tint);border:1px solid rgba(26,122,82,.25)">
-        <div class="b green" style="font-size:14px">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
-        <p class="tiny" style="margin-top:5px">Всё на месте. Осталось активировать пробный период — 24 часа документы и виджет работают бесплатно.</p>
-      </div>
-    </div>
+      </ol></div></div>
+        </div>
+      </li>
 
-    <!-- «Поручить» — вторым блоком, после установки самому: для
-         персоны, которая сайт не трогает, это выход — переслать тому,
-         кто ведёт сайт. -->
-    <h2 style="margin-top:20px" data-who-visible="owner staff">Поручить установку ответственному</h2>
-    <div class="card pad" data-who-visible="owner staff">
-      <label class="f" style="margin-top:0">Почта ответственного</label><input class="inp mono" id="install-dev-email" placeholder="dev@studio.ru"><p class="tiny anketa-field-error" id="install-dev-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту — иначе некуда отправлять.</p><button id="send-instructions-btn" class="btn solid sm" style="margin-top:10px">Отправить инструкцию</button>
-      <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-delegate">Зачем это нужно ⌄</button>
-      <p class="tiny" id="fold-delegate" style="display:none;margin-top:8px">Разбираться самим не обязательно — перешлите тому, кто ведёт сайт: разработчику, агентству или веб-мастеру. Ему не нужны регистрация и вход в кабинет, только вставить одну строку кода.</p>
-    </div>
+      <li class="inst-step card pad" data-install-branch="delegate" style="display:none">
+        <div class="inst-body">
+          <h3>Отправьте инструкцию ответственному</h3>
+          <label class="f" style="margin-top:6px" for="install-dev-email">Почта ответственного</label>
+          <input class="inp mono" id="install-dev-email" placeholder="dev@studio.ru">
+          <p class="tiny anketa-field-error" id="install-dev-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту — иначе некуда отправлять.</p>
+          <div class="row" style="margin-top:10px;gap:10px;flex-wrap:wrap">
+            <button id="send-instructions-btn" class="btn solid sm">Отправить инструкцию</button>
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-delegate">Зачем это нужно ⌄</button>
+          </div>
+          <p class="tiny" id="fold-delegate" style="display:none;margin-top:8px">Разбираться самим не обязательно — перешлите тому, кто ведёт сайт: разработчику, агентству или веб-мастеру. Ему уйдёт код и пошаговая инструкция под вашу платформу.</p>
+        </div>
+      </li>
+
+      <!-- Шаг проверки один на обе ветки: и после своей установки, и
+           после чужой проверять надо одно и то же. Номер ставит CSS-
+           счётчик, поэтому у «сам» он третий, у «поручу» — второй. -->
+      <li class="inst-step card pad">
+        <div class="inst-body">
+          <h3>Проверьте, что он заработал</h3>
+          <p class="tiny" style="margin-bottom:10px">Откроем ваш сайт и поищем строку кода на странице.</p>
+          <button type="button" class="btn sm solid" id="install-action-btn">↻ Проверить скрипт на сайте</button>
+          <div data-install="found" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--ok-tint);border:1px solid rgba(26,122,82,.25)">
+            <div class="b green" style="font-size:14px">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
+            <p class="tiny" style="margin-top:5px">Всё на месте. Осталось активировать пробный период — 24 часа документы и виджет работают бесплатно.</p>
+          </div>
+        </div>
+      </li>
+    </ol>
 
     <!-- только мобильный (разд.3.6 ТЗ 12.08) — на телефоне лезть в
          админку чужого сайта нереалистично, честный сценарий это переслать
          себе и доделать с компьютера; на десктопе это и так тот компьютер -->
-    <h2 class="mail-self-h2" style="margin-top:18px">Отправить себе на почту</h2>
-    <div class="card pad mail-self">
-      <p class="tiny" style="margin-bottom:10px">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
-      <label class="f">Почта</label><input class="inp mono" id="install-self-email" value="director@alfa-school.ru"><p class="tiny anketa-field-error" id="install-self-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту — иначе некуда отправлять.</p><button id="send-self-btn" class="btn solid sm" style="margin-top:10px">Отправить себе</button>
+    <div class="mail-self" data-install-branch="self">
+      <h2 class="mail-self-h2" style="margin-top:18px">Отправить себе на почту</h2>
+      <div class="card pad">
+        <p class="tiny" style="margin-bottom:10px">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
+        <label class="f" for="install-self-email">Почта</label><input class="inp mono" id="install-self-email" value="director@alfa-school.ru"><p class="tiny anketa-field-error" id="install-self-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту — иначе некуда отправлять.</p><button id="send-self-btn" class="btn solid sm" style="margin-top:10px">Отправить себе</button>
+      </div>
     </div>
 
-
-    <!-- Два исхода проверки, не один статичный «не найдено» (независимый
-         план исправлений, п.1.2, 25.08). Третий исход из плана («нашли,
-         но не там — body вместо head») сознательно не добавлен: он был
-         обязателен только при будущей prior-блокировке трекеров, а
-         баннер решили делать информационным (см. комментарий у ссылки на
-         виджет выше и HANDOFF 6.20) — блокировки не будет, позиция тега
-         больше не критична, двух исходов достаточно. `installCheck` —
-         новая переменная ('found' по умолчанию, см. объявление в script —
-         согласована с дефолтом siteStatus='trial'), реального бэкенда
-         нет — «✕ не найдено» недостижимо кликом, как и `expired` у
-         siteStatus: демонстрируется через dev-console
-         `installCheck='notfound'; syncPayState();`. Кнопка «Проверить
-         установку» намеренно ничего не делает — честная имитация: без
-         бэкенда мы не можем правда проверить, а бутафорский «нашли!» по
-         клику соврал бы. Инлайновый `display:none` в разметке ниже не
-         проставлен ни на одной из карточек — обе видны в no-JS фолбэке
-         (тот же принцип, что `.state` без класса `.js` на body), выбор
-         между ними целиком на `syncPayState()`. -->
     <div class="hr" style="margin-top:20px"></div>
+    <!-- Пояснение перенесено НАД кнопки: заблокированная кнопка без
+         видимой причины читается как сломанная, а причину под ней
+         замечают вторым движением, если замечают. Тот же приём, что
+         на регистрации («надпись показывать над кнопками»). -->
+    <p class="tiny" id="install-action-note" style="text-align:center;margin-bottom:10px">Сначала проверьте скрипт — это шаг «Проверьте, что он заработал» выше. Отсчёт 24 бесплатных часов пойдёт с момента активации.</p>
     <div class="step-nav">
       <button type="button" class="btn" data-go="s-ready">← Назад</button>
       <button type="button" class="btn solid" id="install-activate-btn" disabled>Активировать пробный период →</button>
     </div>
-    <p class="tiny" id="install-action-note" style="text-align:center;margin-top:10px">Сначала проверьте скрипт — кнопка выше в блоке с кодом. Пробный период начнётся с момента активации, 24 часа с этой минуты</p>
     <p class="tiny" style="text-align:center;margin-top:12px"><button type="button" class="btn text sm" style="padding:0" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button></p>
     </main>
   </div>
@@ -3058,6 +3073,7 @@ function goScreen(id){
   syncSiteNaming();
   syncFooterSkin();
   syncBannerSkin();
+  syncInstallMode();
   syncAccount();
   syncWhoVisible();
   syncInstallAction();
@@ -3553,6 +3569,27 @@ if (noCallsContinue) noCallsContinue.addEventListener('click', goToRequisites);
    неуспешна, вторая находит: так без dev-переключателя видно оба исхода —
    и алерт, и запуск. */
 var installProbes = 0;
+/* Ветка установки: «сам» или «поручу». Подрядчику выбор не показываем —
+   он сам и есть тот, кому поручают (та же логика, что у data-who-visible
+   на карточке выбора), поэтому у него ветка принудительно «сам», иначе
+   можно было бы залипнуть в скрытой ветке «поручу» и не увидеть кода. */
+var installMode = 'self';
+function syncInstallMode(){
+  if (whoFills !== 'owner' && whoFills !== 'staff') installMode = 'self';
+  document.querySelectorAll('[data-install-branch]').forEach(function(el){
+    // '' возвращает элемент под управление CSS: .mail-self показывается
+    // только на мобильном медиазапросом, жёсткий 'block' его бы раскрыл
+    // и на десктопе
+    el.style.display = el.dataset.installBranch === installMode ? '' : 'none';
+  });
+  document.querySelectorAll('[data-install-mode]').forEach(function(b){
+    b.classList.toggle('on', b.dataset.installMode === installMode);
+  });
+}
+document.querySelectorAll('[data-install-mode]').forEach(function(b){
+  b.addEventListener('click', function(){ installMode = b.dataset.installMode; syncInstallMode(); });
+});
+
 function syncInstallAction(){
   var check = document.getElementById('install-action-btn');
   var activate = document.getElementById('install-activate-btn');
@@ -3562,7 +3599,7 @@ function syncInstallAction(){
   if (activate) activate.disabled = !found;
   if (note) note.textContent = found
     ? 'Отсчёт 24 бесплатных часов начнётся с этого нажатия'
-    : 'Сначала проверьте скрипт — кнопка выше в блоке с кодом. Пробный период начнётся с момента активации, 24 часа с этой минуты';
+    : 'Сначала проверьте скрипт — это шаг «Проверьте, что он заработал» выше. Отсчёт 24 бесплатных часов пойдёт с момента активации';
 }
 var installActivateBtn = document.getElementById('install-activate-btn');
 if (installActivateBtn) installActivateBtn.addEventListener('click', function(){
