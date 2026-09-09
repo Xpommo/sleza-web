@@ -2297,27 +2297,36 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            платим, логично стоит раньше выбора, чем платим. Линейка ещё не
            названа, «Тариф Х/У/Z» — заглушки. Цена пока одна на все три:
            реальные цены появятся вместе с составом тарифов. -->
-      <h2 style="margin-top:22px">Тариф</h2>
+      <!-- Тариф и способ оплаты были двумя отдельными карточками и читались
+           как несвязанные — а это одно решение: за что плачу и чем. Сведены
+           в одну карточку «Оплата». Тариф свёрнут в строку-сводку с
+           «Изменить»: меняют его редко, а места занимал столько же, сколько
+           рабочая часть. Тот же приём, что у реквизитов владельца в
+           Настройках.
+           «Способ продления» → «Способ оплаты»: тем же способом оплачивают
+           и первый год, и продление. «Карта» перестала быть заглушкой
+           «эквайер не выбран» — теперь настоящая форма привязки. Дефолт
+           «По счёту»: способ, который работает без интеграции. -->
+      <h2 style="margin-top:22px">Оплата</h2>
       <div class="card pad" style="margin-top:12px">
-        <div class="seg">
-          <button type="button" class="on" data-tariff="Тариф Х">Тариф Х</button>
-          <button type="button" data-tariff="Тариф У">Тариф У</button>
-          <button type="button" data-tariff="Тариф Z">Тариф Z</button>
+        <div class="row" style="justify-content:space-between;align-items:center" id="tariff-summary">
+          <div>
+            <div style="font-weight:700;font-size:14.5px" data-tariff-name>Тариф Х</div>
+            <div class="tiny mono" style="margin-top:2px">29 900 ₽/год</div>
+          </div>
+          <button type="button" class="btn sm" id="tariff-edit">Изменить</button>
         </div>
-        <div class="row" style="justify-content:space-between;margin-top:12px">
-          <span class="small muted">Стоимость</span>
-          <span class="small" style="font-weight:700">29 900 ₽/год</span>
+        <div id="tariff-pick" style="display:none">
+          <label class="f" style="margin-top:0">Тариф</label>
+          <div class="seg" style="margin-top:6px">
+            <button type="button" class="on" data-tariff="Тариф Х">Тариф Х</button>
+            <button type="button" data-tariff="Тариф У">Тариф У</button>
+            <button type="button" data-tariff="Тариф Z">Тариф Z</button>
+          </div>
         </div>
-      </div>
-
-      <!-- «Способ продления» → «Способ оплаты» (правка 9 сентября): тем же
-           способом оплачивают и первый год, и продление, «продление» сужало
-           смысл. «Карта» перестала быть заглушкой «эквайер не выбран» —
-           теперь настоящая форма привязки. Дефолт по-прежнему «По счёту»:
-           это способ, который работает без интеграции. -->
-      <h2 style="margin-top:22px">Способ оплаты</h2>
-      <div class="card pad" style="margin-top:12px">
-        <div class="seg" style="margin-bottom:12px">
+        <div class="hr"></div>
+        <label class="f" style="margin-top:0">Способ оплаты</label>
+        <div class="seg" style="margin:6px 0 12px">
           <button type="button" data-swap="paycard">Картой</button>
           <button type="button" class="on" data-swap="payinvoice">По счёту</button>
         </div>
@@ -2437,11 +2446,23 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            оплате, а не к настройкам аккаунта. -->
       <h2 style="margin-top:22px">Куда присылать чеки и акты</h2>
       <div class="card pad" style="margin-top:12px">
-        <label class="f" style="margin-top:0" for="billing-docs-email">Почта</label>
-        <input class="inp mono" id="billing-docs-email" placeholder="buh@alfa-school.ru">
-        <p class="tiny anketa-field-error" id="billing-docs-email-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придут чеки и акты.</p>
-        <p class="tiny" style="margin-top:6px">Обычно это бухгалтерия. Если оставить пустым, будем присылать на почту аккаунта. Необязательно.</p>
-        <button id="save-billing-docs-btn" class="btn solid sm" style="margin-top:12px">Сохранить</button>
+        <!-- Заполненная почта сворачивается в строку с «Изменить»: поле
+             ввода, которое уже нечего вводить, занимает место и добавляет
+             шума. Пустая остаётся полем — сворачивать нечего. -->
+        <div class="row" id="docs-email-set" style="display:none;justify-content:space-between;align-items:center">
+          <div>
+            <div class="mono" style="font-weight:700;font-size:14px" id="docs-email-value">buh@alfa-school.ru</div>
+            <div class="tiny" style="margin-top:2px">Сюда придут чеки и акты</div>
+          </div>
+          <button type="button" class="btn sm" id="docs-email-edit">Изменить</button>
+        </div>
+        <div id="docs-email-form">
+          <label class="f" style="margin-top:0" for="billing-docs-email">Почта</label>
+          <input class="inp mono" id="billing-docs-email" placeholder="buh@alfa-school.ru">
+          <p class="tiny anketa-field-error" id="billing-docs-email-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придут чеки и акты.</p>
+          <p class="tiny" style="margin-top:6px">Обычно это бухгалтерия. Если оставить пустым, будем присылать на почту аккаунта. Необязательно.</p>
+          <button id="save-billing-docs-btn" class="btn solid sm" style="margin-top:12px">Сохранить</button>
+        </div>
       </div>
 
       <h2 style="margin-top:22px">Акты</h2>
@@ -3918,8 +3939,28 @@ document.querySelectorAll('[data-tariff]').forEach(function(b){
     currentTariff = b.dataset.tariff;
     document.querySelectorAll('[data-tariff]').forEach(function(x){ x.classList.toggle('on', x === b); });
     document.querySelectorAll('[data-tariff-name]').forEach(function(el){ el.textContent = currentTariff; });
+    // выбрал — свернулось обратно: отдельная кнопка «Готово» была бы лишним
+    // кликом там, где выбор из трёх и подтверждать нечего
+    toggleTariffPick(false);
   });
 });
+function toggleTariffPick(open){
+  var sum = document.getElementById('tariff-summary');
+  var pick = document.getElementById('tariff-pick');
+  if (sum) sum.style.display = open ? 'none' : '';
+  if (pick) pick.style.display = open ? '' : 'none';
+}
+var tariffEditBtn = document.getElementById('tariff-edit');
+if (tariffEditBtn) tariffEditBtn.addEventListener('click', function(){ toggleTariffPick(true); });
+
+function toggleDocsEmail(filled){
+  var set = document.getElementById('docs-email-set');
+  var form = document.getElementById('docs-email-form');
+  if (set) set.style.display = filled ? '' : 'none';
+  if (form) form.style.display = filled ? 'none' : '';
+}
+var docsEmailEdit = document.getElementById('docs-email-edit');
+if (docsEmailEdit) docsEmailEdit.addEventListener('click', function(){ toggleDocsEmail(false); });
 
 /* Реквизиты плательщика: те же, что в анкете, или отдельные. Свой атрибут,
    а не data-swap — общий обработчик ищет панели внутри ближайшей .card, а
@@ -4028,7 +4069,12 @@ if (saveDocsBtn) saveDocsBtn.addEventListener('click', function(){
   input.classList.toggle('error', bad);
   if (err) err.style.display = bad ? 'block' : 'none';
   if (bad) { input.focus(); return; }
-  flashDone(saveDocsBtn, 'Сохранено ✓');
+  if (v) {
+    document.getElementById('docs-email-value').textContent = v;
+    toggleDocsEmail(true);
+  } else {
+    flashDone(saveDocsBtn, 'Сохранено ✓');   // пустое поле сворачивать не во что
+  }
 });
 
 /* чек-лист документов на анкете, Блок 2 (HANDOFF 6.15, анимация по
