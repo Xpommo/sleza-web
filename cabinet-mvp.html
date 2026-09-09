@@ -2408,6 +2408,24 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           </div>
           <p class="tiny" style="margin-top:10px">Следующий счёт придёт на почту за две недели до окончания оплаченного периода — или сформируйте сейчас, если нужно раньше.</p>
           <button id="request-invoice-btn" class="btn solid sm" style="margin-top:12px">Сформировать счёт</button>
+          <!-- Сформированный счёт — результат, который можно открыть,
+               скачать и переслать бухгалтеру, а не мигнувшее «✓». Ссылка
+               живёт 24 часа: счёт содержит реквизиты плательщика, вечная
+               публичная ссылка на него — лишний риск. Кнопка копирования
+               та же, что у документов. -->
+          <div id="invoice-ready" style="display:none;margin-top:12px">
+            <div class="card pad row" style="border-color:var(--line);justify-content:space-between;align-items:center;gap:12px">
+              <div style="min-width:0">
+                <div style="font-weight:700;font-size:14.5px">Счёт <span id="invoice-no">№ 2026-0142</span> · 29 900 ₽</div>
+                <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere">docs.belysite.ru/<span data-site-id>486312</span>/invoice-2026-0142.pdf</div>
+              </div>
+              <span class="doc-actions">
+                <button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/invoice-2026-0142.pdf">Ссылка</button>
+                <a class="btn sm solid" href="https://docs.belysite.ru/486312/invoice-2026-0142.pdf" target="_blank" rel="noopener">Открыть</a>
+              </span>
+            </div>
+            <p class="tiny" style="margin-top:8px">Ссылка работает 24 часа — по ней счёт можно открыть, скачать и переслать бухгалтеру. Копия ушла на почту для чеков и актов.</p>
+          </div>
         </div>
       </div>
 
@@ -4272,7 +4290,13 @@ function savePayInvoiceReq(){
   }
 }
 var requestInvoiceBtn = document.getElementById('request-invoice-btn');
-if (requestInvoiceBtn) requestInvoiceBtn.addEventListener('click', function(){ flashDone(requestInvoiceBtn, 'Счёт сформирован ✓'); });
+if (requestInvoiceBtn) requestInvoiceBtn.addEventListener('click', function(){
+  // счёт — результат, который забирают и пересылают, поэтому он остаётся
+  // на экране, а не подтверждается мигающей надписью, как отправка письма
+  var box = document.getElementById('invoice-ready');
+  if (box) box.style.display = '';
+  requestInvoiceBtn.textContent = 'Сформировать заново';
+});
 
 /* подтверждение отмены подписки — статус на карточке меняется сразу,
    без перезагрузки экрана, чтобы решение в модалке было видно на месте */
