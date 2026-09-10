@@ -255,9 +255,11 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    а не карточкой. */
 .markdemo{border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:14px 16px;background:var(--paper)}
 .markdemo .sent{font-size:13.5px;line-height:1.7}
-.markdemo .mk{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
-  margin-left:2px;border-radius:4px;background:var(--warn-tint);color:var(--warn);
-  font-size:10px;font-weight:800;vertical-align:1px}
+/* Пометка — капля, знак самой Слезы: на странице клиента должно читаться,
+   кто её поставил. Не звёздочка: звёздочка в тексте значит сноску. */
+.markdemo .mk{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;
+  margin-left:3px;color:var(--brand);vertical-align:-1px}
+.markdemo .mk svg{width:11px;height:11px}
 .cnl-stats{display:flex;gap:10px;margin-top:14px}
 .cnl-stat{flex:1;min-width:0;text-align:center;background:var(--paper);border:1px solid var(--line-2);
   border-radius:10px;padding:10px 6px}
@@ -1796,8 +1798,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            узнавал о ней уже после установки. -->
       <div class="lbl" style="margin-top:14px;background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">пометки в тексте страниц</div>
       <div class="markdemo">
-        <p class="sent">…в интервью для издания «Пример»<span class="mk">✱</span> сказал, что…</p>
-        <p class="tiny" style="margin-top:8px">Скрипт сверяется с реестрами иностранных агентов, экстремистских и террористических организаций и сам ставит пометку рядом с упоминанием. Реестры меняются — следим за ними мы.</p>
+        <p class="sent">…в интервью для издания «Пример»<span class="mk" title="Помечено Слезой"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z"></path></svg></span> сказал, что…</p>
+        <p class="tiny" style="margin-top:8px">Сами сверим страницы с реестрами регулятора — иностранные агенты, экстремистские и террористические организации — и поставим пометку рядом с каждым упоминанием. Реестры меняются, следить за ними не придётся.</p>
       </div>
     </div>
     <details class="preview-accordion">
@@ -2211,7 +2213,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <span class="b green" style="font-size:16px">✓ Документы актуальны</span>
           <p class="lead" style="margin-top:8px">Документы подготовлены и подключены через виджет. Следим за законом и обновим сами, если что-то изменится.</p>
           <div class="hr"></div>
-          <p class="tiny">Сегодня, 09:14 — сверили с действующей редакцией 152-ФЗ. Изменений не было.</p>
+          <p class="tiny">Сегодня, 09:14 — сверили с действующей редакцией 152-ФЗ и с реестрами регулятора. Изменений не было, промаркировано 3 упоминания.</p>
         </div>
       </div>
       <div class="state" data-pay-state="unpaid" style="margin-top:16px">
