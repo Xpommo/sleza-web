@@ -191,10 +191,16 @@ p{margin:0}
    быстрый путь, и он же снимает пароль как сущность: после такого входа
    восстанавливать нечего. Почту у таких аккаунтов всё равно спросим —
    на первом шаге анкеты, без неё некуда слать счёт и письмо о продлении. */
-.btn-social{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
-  padding:11px 20px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--white);
+/* Grid с фиксированной колонкой под иконку, а не центрированный flex.
+   При центрировании группы «иконка + подпись» ось у каждой строки своя:
+   «Через Telegram» длиннее «Через MAX», и колонка иконок гуляла на
+   десяток пикселей — четыре кнопки подряд читались как криво собранные.
+   Теперь иконки стоят в одной вертикали и подписи начинаются с одного x
+   при любой длине текста. */
+.btn-social{display:grid;grid-template-columns:18px 1fr;align-items:center;gap:12px;width:100%;
+  padding:11px 18px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--white);
   font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;
-  transition:border-color .15s ease-out,transform 160ms ease-out}
+  text-align:left;transition:border-color .15s ease-out,transform 160ms ease-out}
 .btn-social + .btn-social{margin-top:8px}
 .btn-social:hover{border-color:var(--ink)}
 .btn-social:active{transform:scale(.99)}
@@ -1006,7 +1012,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
         <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
         <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
-        <button type="button" class="btn-social" data-go="s-maillogin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5.5" width="18" height="13" rx="2"></rect><path d="M3.5 7l8.5 6 8.5-6" stroke-linecap="round"></path></svg> Через почту</button>
+        <button type="button" class="btn-social" data-go="s-maillogin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2b2b2b"/><rect x="6" y="8.4" width="12" height="8.4" rx="1.6" stroke="#fff" stroke-width="1.5"/><path d="M6.4 9.4l5.6 4 5.6-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg> Через почту</button>
     </div>
 
     <p class="tiny" style="text-align:center;margin-top:28px">Нет аккаунта? <button type="button" class="btn text sm" style="padding:0" data-go="s-register">Создать</button></p>
@@ -1098,7 +1104,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <!-- Четвёртый способ — почта: не у всех есть Telegram, Яндекс или MAX,
              а покупает нас часто бухгалтер или директор. Вход по ссылке из
              письма, без пароля (решение 10 сентября). -->
-        <button type="button" class="btn-social" data-social-signup data-signup-go="s-maillogin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5.5" width="18" height="13" rx="2"></rect><path d="M3.5 7l8.5 6 8.5-6" stroke-linecap="round"></path></svg> Через почту</button>
+        <button type="button" class="btn-social" data-social-signup data-signup-go="s-maillogin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2b2b2b"/><rect x="6" y="8.4" width="12" height="8.4" rx="1.6" stroke="#fff" stroke-width="1.5"/><path d="M6.4 9.4l5.6 4 5.6-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg> Через почту</button>
         <!-- ВОПРОС ОТКРЫТ (8 сентября): точную формулировку и связку
              «политика ПДн + оферта» уточняет юрист. Пока одним чекбоксом до
              входа — по его разъяснению согласие на обработку ПДн принимается
@@ -2106,7 +2112,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
                  функции: человек прямо сейчас собирается ЖДАТЬ события, и
                  мессенджер делает это событие мгновенным. -->
             <div id="notify-offer" style="display:none;margin-bottom:10px">
-              <button type="button" class="btn-social" data-connect-messenger="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#29a9eb"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Подключить Telegram</button>
+              <button type="button" class="btn-social" data-connect-messenger="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Подключить Telegram</button>
             </div>
             <button type="button" class="btn text sm install-check-btn" style="padding:0">↻ Проверить сейчас</button>
           </div>
@@ -2318,7 +2324,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         </div>
         <div class="row" style="padding:12px 16px;align-items:flex-start">
           <span class="tiny mono" style="flex:none;width:88px">05.08.2026</span>
-          <span class="small">Подключили виджет и оплатили годовой доступ</span>
+          <span class="small">Пакет документов сформирован — 5 документов, первая версия</span>
         </div>
       </div>
     </main>
@@ -2376,7 +2382,15 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="card" style="margin-top:10px;overflow:hidden">
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/01">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/01" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/01">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/01" target="_blank" rel="noopener">Открыть</a></span><!-- «Изменить» есть только у реквизитов: остальные четыре документа мы
+     собираем сами из ответов анкеты, а реквизиты — единственное, что
+     клиент правит напрямую (сменился адрес, банк, телефон). Раньше вход
+     был один: крошечная ссылка в шапке «Обзора» рядом с ИНН — искать
+     его человек шёл сюда, на строку с этим самым названием. Снаружи
+     .doc-actions намеренно: после истечения пробного периода копирование
+     и скачивание гасятся, а править свои же реквизиты это не должно
+     запрещать. -->
+          <button type="button" class="btn sm" style="flex:none" data-go-modal="modal-req-set">Изменить</button>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки персональных данных</div><div class="tiny mono">v2 · 15.08.2026 · обновили формулировки под изменения 152-ФЗ</div></div>
@@ -2499,21 +2513,21 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
              состояние — подключено или нет. -->
         <div class="msgr-list">
           <div class="msgr" data-messenger="Telegram">
-            <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#29a9eb"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg></span>
             <span class="msgr-name">Telegram</span>
             <span class="chip green msgr-on" style="display:none">подключён</span>
             <button type="button" class="btn sm msgr-link">Подключить</button>
             <button type="button" class="msgr-unlink" title="Отвязать аккаунт" aria-label="Отвязать аккаунт" style="display:none">✕</button>
           </div>
           <div class="msgr" data-messenger="Яндекс">
-            <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#f33"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg></span>
             <span class="msgr-name">Яндекс</span>
             <span class="chip green msgr-on" style="display:none">подключён</span>
             <button type="button" class="btn sm msgr-link">Подключить</button>
             <button type="button" class="msgr-unlink" title="Отвязать аккаунт" aria-label="Отвязать аккаунт" style="display:none">✕</button>
           </div>
           <div class="msgr" data-messenger="MAX">
-            <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#7d59d6"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg></span>
             <span class="msgr-name">MAX</span>
             <span class="chip green msgr-on" style="display:none">подключён</span>
             <button type="button" class="btn sm msgr-link">Подключить</button>
@@ -2769,7 +2783,16 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
 
       <h2 style="margin-top:22px">Акты</h2>
       <p class="tiny" style="margin-top:4px">Закрывающие документы для бухгалтерии — один акт за оплаченный год.</p>
-      <div class="card" style="margin-top:12px;overflow:hidden">
+      <!-- Акт появляется только после оплаты: в пробном периоде готовый
+           «Акт за 2026–2027 · 12 000 ₽» лежал на экране рядом со статусом
+           «пробный период» на «Обзоре» — экран утверждал оплату, которой
+           не было. Состояние pending («счёт выставлен») акта тоже ещё не
+           даёт: акт закрывает оплаченный период, а не выставленный счёт. -->
+      <div class="card pad state" data-pay-state="trial" style="margin-top:12px"><p class="tiny" style="margin:0">Появится после первой оплаты.</p></div>
+      <div class="card pad state" data-pay-state="pending" style="margin-top:12px"><p class="tiny" style="margin:0">Появится после первой оплаты.</p></div>
+      <div class="card pad state" data-pay-state="unpaid" style="margin-top:12px"><p class="tiny" style="margin:0">Появится после первой оплаты.</p></div>
+      <div class="card pad state" data-pay-state="expired" style="margin-top:12px"><p class="tiny" style="margin:0">Появится после первой оплаты.</p></div>
+      <div class="card state" data-pay-state="paid" style="margin-top:12px;overflow:hidden">
         <div class="row" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Акт за 2026–2027</div><div class="tiny mono">05.08.2026 – 04.08.2027 · 12 000 ₽</div></div>
           <span class="chip green">готов</span><a class="btn sm" href="https://docs.belysite.ru/486312/act-2026-2027.pdf" target="_blank" rel="noopener">Скачать PDF</a>
@@ -2793,6 +2816,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
 <div class="modal-overlay" data-state="closed" id="modal-req-set" role="dialog" aria-modal="true" aria-labelledby="modal-req-set-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-req-set-title">Реквизиты владельца</h3><button class="btn text sm" data-modal-close="modal-req-set">✕</button></div>
+    <p class="tiny" style="margin-top:2px">Попадают в документ «Реквизиты владельца» и в подвал сайта. Реквизиты для счёта — отдельные, они в «Подписке».</p>
 
     <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ok);margin-top:14px">✓ заполним сами — вам нужно только проверить</div>
     <label class="f" style="margin-top:8px">Наименование</label>
@@ -2807,7 +2831,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--danger)">заполнено вами — можно поправить</div>
     <label class="f" style="margin-top:8px">Адрес для переписки <span style="color:var(--danger)">*</span></label>
     <input class="inp" placeholder="Индекс, город, улица, дом" value="119019, Москва, ул. Воздвиженка, д. 10">
-    <label class="f" style="margin-top:10px">Email для счёта <span style="color:var(--danger)">*</span></label>
+    <label class="f" style="margin-top:10px">Почта <span style="color:var(--danger)">*</span></label>
     <input class="inp" value="buh@alfa-school.ru">
     <label class="f" style="margin-top:10px">Телефон <span style="color:var(--danger)">*</span></label>
     <input class="inp mono" value="+7 (495) 123-45-67">
@@ -3146,7 +3170,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Как обновить реквизиты компании?</span><span class="chev">›</span></button>
-        <div class="bd"><div class="txt">На карточке документа или на шаге подготовки нажмите «Проверить и изменить» — поправите поля сами.</div></div>
+        <div class="bd"><div class="txt">В «Документах» у строки «Реквизиты владельца» нажмите «Изменить» — поправите поля сами. Документ и подвал сайта обновятся вместе с ними. Реквизиты для счёта — отдельные, они в «Подписке».</div></div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Могу я добавить второй сайт?</span><span class="chev">›</span></button>
@@ -3158,7 +3182,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Виджет не появился на сайте — что делать?</span><span class="chev">›</span></button>
-        <div class="bd"><div class="txt">Нажмите «Проверить установку» на «Обзоре» — если код вставлен верно, статус обновится в течение минуты. Если нет, проверьте, не мешает ли кеш сайта: иногда изменения показываются с задержкой.</div></div>
+        <div class="bd"><div class="txt">Откройте раздел «Виджет» — там видно, что сейчас показывается посетителям. Если баннера и подвала нет, разверните «Показать код установки» и проверьте, что строка стоит внутри &lt;head&gt; и страницы опубликованы заново. Иногда мешает кеш сайта: изменения появляются с задержкой.</div></div>
       </div>
 
       <!-- Ответ поддержки виден прямо здесь, не только по почте — email
@@ -3177,7 +3201,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             <span class="chip green">отвечено</span>
           </div>
           <div class="hr" style="margin-top:10px"></div>
-          <div class="small" style="color:var(--ink-2)"><b style="color:var(--ink)">Поддержка:</b> Проверили — скрипт стоял внутри &lt;body&gt;, а не &lt;head&gt;. В инструкции на «Обзоре» уточнили место вставки, переустановите по ней ещё раз — обычно помогает.</div>
+          <div class="small" style="color:var(--ink-2)"><b style="color:var(--ink)">Поддержка:</b> Проверили — скрипт стоял внутри &lt;body&gt;, а не &lt;head&gt;. Код есть в разделе «Виджет» → «Показать код установки»: вставьте его внутрь &lt;head&gt; и опубликуйте страницы заново.</div>
         </div>
       </div>
 
