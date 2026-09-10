@@ -3665,7 +3665,10 @@ function wireStepGate(btnId, fields, onPass, extraCheck){
   if (!btn) return;
   btn.addEventListener('click', function(){
     var ok = extraCheck ? extraCheck() : true;
-    var firstBad = null;   // карточка реквизитов длинная — ошибка уезжает выше экрана
+    // порядок полей в конфиге не совпадает с порядком на экране: на шаге 1
+    // домен объявлен первым, а стоит последним — поэтому первое ошибочное
+    // поле ищем по DOM, а не по конфигу, иначе фокус улетал вниз мимо
+    // пустых полей выше
     fields.forEach(function(f){
       var input = document.getElementById(f.id);
       var error = document.getElementById(f.errorId);
@@ -3681,9 +3684,11 @@ function wireStepGate(btnId, fields, onPass, extraCheck){
       var bad = v === '' || !!(f.test && !f.test(v));
       input.classList.toggle('error', bad);
       if (error) error.style.display = bad ? 'block' : 'none';
-      if (bad) { ok = false; if (!firstBad) firstBad = input; }
+      if (bad) ok = false;
     });
     if (ok) { onPass(); return; }
+    var firstBad = Array.prototype.slice.call(document.querySelectorAll('.screen.on .inp.error'))
+      .filter(function(el){ return el.offsetParent; })[0];
     if (firstBad) firstBad.focus({preventScroll:true});
     // прокрутка отдельно от focus: нужно видеть подпись под полем, а не
     // прижать его к краю окна
