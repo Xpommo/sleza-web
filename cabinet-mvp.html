@@ -948,6 +948,16 @@ details.acc:first-child{margin-top:0}
    syncPayState в script) — переключается вместе с остальными
    data-pay-state состояниями. */
 .doc-actions{display:inline-flex;gap:6px;flex:none}
+/* «Изменить» стоит в мета-строке под названием, а не четвёртой кнопкой
+   справа: справа он ломал колонки — либо сдвигал у своей строки и чип, и
+   обе кнопки (пять строк переставали читаться как таблица), либо, если
+   зарезервировать под него колонку во всех строках, отнимал ширину у
+   названий, и «Политика обработки персональных данных» уезжала в две
+   строки. Под названием он и ближе к тому, что правит. */
+/* .btn.sm/.btn.text задают свой padding с большей специфичностью —
+   поэтому селектор из двух классов, иначе кнопка съезжает от меты. */
+.tiny .doc-edit{margin-left:8px;padding:0;font-size:12px;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:640px){.tiny .doc-edit{display:block;margin-left:0;margin-top:5px}}
 body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 </style>
 <link rel="stylesheet" href="mobile-shared.css">
@@ -963,7 +973,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      Это то, куда идут осознанно, поэтому край и один лишний тап здесь
      уместны, в отличие от разделов, между которыми ходят постоянно. -->
 <div class="more-sheet" id="more-sheet" hidden>
-  <button type="button" data-tab-go="s-status">▤ Мои сайты</button>
+  <button type="button" data-tab-go="s-status">📁 Мои сайты</button>
   <button type="button" data-tab-go="s-support">💬 Поддержка</button>
   <button type="button" data-tab-go="s-settings">⚙ Настройки</button>
   <div class="div"></div>
@@ -1741,6 +1751,11 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="bd"><div class="txt">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233 · 119019, Москва, ул. Воздвиженка, д. 10…</div>
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/01 — откроется после установки</p></div>
     </div>
+    <div class="find">
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки cookie</span><span class="w" style="display:block">Подключим баннер-уведомление о cookie и текст политики.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте <span data-site-domain>alfa-school.ru</span>, включая аналитику и работу виджета на платформе Тильда…</div>
+      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/02 — откроется после установки</p></div>
+    </div>
     <!-- «Политика конфиденциальности» и «Политика обработки персональных
          данных» были двумя отдельными пунктами без реального текста под
          вторым названием — по присланным шаблонам это один документ,
@@ -1759,11 +1774,6 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки персональных данных</span><span class="w" style="display:block">Соберём под вашу сферу и способ сбора контактов.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящая Политика в отношении обработки персональных данных определяет порядок и условия обработки персональных данных Оператором: ООО «Альфа Образование». Цели обработки: запись на занятия, ответы на обращения, информирование о наборах и акциях — по сфере деятельности «Онлайн-школа, курсы, репетиторство»…</div>
       <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/03 — откроется после установки</p></div>
-    </div>
-    <div class="find">
-      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки cookie</span><span class="w" style="display:block">Подключим баннер-уведомление о cookie и текст политики.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
-      <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте <span data-site-domain>alfa-school.ru</span>, включая аналитику и работу виджета на платформе Тильда…</div>
-      <p class="tiny" style="margin-top:8px">docs.belysite.ru/<span data-site-id>486312</span>/02 — откроется после установки</p></div>
     </div>
     <div class="find">
       <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · согласие на обработку персональных данных</span><span class="w" style="display:block">Текст согласия для форм на сайте.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
@@ -1790,7 +1800,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <h2 style="margin-top:18px">Вот что появится на сайте</h2>
       <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
-        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div></div>
+        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
       </div>
       <div class="fpreview" style="margin-top:14px">
@@ -1814,7 +1824,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <summary>Вот что появится на сайте</summary>
       <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
-        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div></div>
+        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
       </div>
       <div class="fpreview" style="margin-top:14px">
@@ -1864,11 +1874,11 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </aside>
     <main class="main narrow">
     <h1>Оплата</h1>
-    <p class="lead" style="margin-top:8px">Виджет и документы уже работают на <span data-site-domain>alfa-school.ru</span> — оплата продлевает доступ после бесплатных 24 часов.</p>
+    <p class="lead" style="margin-top:8px">Виджет и документы уже работают на <span data-site-domain>alfa-school.ru</span> — оплата продлевает доступ после пробного периода.</p>
 
     <h2 style="margin-top:20px">Что входит</h2>
     <div class="card pad" style="margin-top:12px">
-      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Уже работает — бесплатно, 24 часа</h3>
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Уже работает — пробный период, 24 часа</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты<br>· Документы по постоянным адресам — ссылки не ломаются</div>
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62);margin-top:14px">Оплата продлевает</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Доступ не прерывается после пробного периода<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
@@ -2140,7 +2150,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
          видимой причины читается как сломанная, а причину под ней
          замечают вторым движением, если замечают. Тот же приём, что
          на регистрации («надпись показывать над кнопками»). -->
-    <p class="tiny" id="install-action-note" style="text-align:center;margin-bottom:10px">Сначала проверьте скрипт — это шаг «Проверьте, что он заработал» выше. Отсчёт 24 бесплатных часов пойдёт с момента активации.</p>
+    <p class="tiny" id="install-action-note" style="text-align:center;margin-bottom:10px">Сначала проверьте скрипт — это шаг «Проверьте, что он заработал» выше. Пробный период пойдёт с момента активации.</p>
     <div class="step-nav">
       <button type="button" class="btn" data-go="s-ready">← Назад</button>
       <button type="button" class="btn solid" id="install-activate-btn" disabled>Активировать пробный период →</button>
@@ -2194,7 +2204,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <span class="b amber" style="font-size:16px">🕐 Пробный период — осталось 21 ч 43 мин</span>
           <p class="lead" style="margin-top:8px">Документы и виджет уже работают на <span data-site-domain>alfa-school.ru</span>. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва, и мы напомним письмом заранее.</p>
           <div class="hr"></div>
-          <button type="button" class="btn solid sm" data-go="s-pay">Оплатить сейчас →</button>
+          <button type="button" class="btn solid sm" data-go="s-pay">Оплатить →</button>
         </div>
       </div>
       <div class="state" data-pay-state="expired" style="margin-top:16px">
@@ -2381,8 +2391,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            уже показан в превью на s-ready), открывается в новой вкладке. -->
       <div class="card" style="margin-top:10px;overflow:hidden">
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/01">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/01" target="_blank" rel="noopener">Открыть</a></span><!-- «Изменить» есть только у реквизитов: остальные четыре документа мы
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия<button type="button" class="btn text sm doc-edit" data-go-modal="modal-req-set">Изменить</button></div></div>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/01">Скопировать ссылку</button><a class="btn sm" href="https://docs.belysite.ru/486312/01" target="_blank" rel="noopener">Открыть</a></span><!-- «Изменить» есть только у реквизитов: остальные четыре документа мы
      собираем сами из ответов анкеты, а реквизиты — единственное, что
      клиент правит напрямую (сменился адрес, банк, телефон). Раньше вход
      был один: крошечная ссылка в шапке «Обзора» рядом с ИНН — искать
@@ -2390,23 +2400,22 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
      .doc-actions намеренно: после истечения пробного периода копирование
      и скачивание гасятся, а править свои же реквизиты это не должно
      запрещать. -->
-          <button type="button" class="btn sm" style="flex:none" data-go-modal="modal-req-set">Изменить</button>
+        </div>
+        <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/02">Скопировать ссылку</button><a class="btn sm" href="https://docs.belysite.ru/486312/02" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки персональных данных</div><div class="tiny mono">v2 · 15.08.2026 · обновили формулировки под изменения 152-ФЗ</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/03">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/03" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/03">Скопировать ссылку</button><a class="btn sm" href="https://docs.belysite.ru/486312/03" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на обработку персональных данных</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/12">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/12" target="_blank" rel="noopener">Открыть</a></span>
-        </div>
-        <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/13">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/13" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/12">Скопировать ссылку</button><a class="btn sm" href="https://docs.belysite.ru/486312/12" target="_blank" rel="noopener">Открыть</a></span>
         </div>
         <div class="row" style="padding:13px 16px">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/02">Ссылка</button><a class="btn sm" href="https://docs.belysite.ru/486312/02" target="_blank" rel="noopener">Открыть</a></span>
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/13">Скопировать ссылку</button><a class="btn sm" href="https://docs.belysite.ru/486312/13" target="_blank" rel="noopener">Открыть</a></span>
         </div>
       </div>
 
@@ -2734,7 +2743,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
                 <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere">docs.belysite.ru/<span data-site-id>486312</span>/invoice-2026-0142.pdf</div>
               </div>
               <span class="doc-actions">
-                <button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/invoice-2026-0142.pdf">Ссылка</button>
+                <button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/invoice-2026-0142.pdf">Скопировать ссылку</button>
                 <a class="btn sm solid" href="https://docs.belysite.ru/486312/invoice-2026-0142.pdf" target="_blank" rel="noopener">Открыть</a>
               </span>
             </div>
@@ -2760,7 +2769,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            и списком и читалось как часть списка. Почта перенесена сюда из
            Настроек → «Уведомления» — бухгалтерский адрес относится к
            оплате, а не к настройкам аккаунта. -->
-      <h2 style="margin-top:22px">Куда присылать чеки и акты</h2>
+      <h2 style="margin-top:22px">Куда присылать акты</h2>
       <div class="card pad" style="margin-top:12px">
         <!-- Заполненная почта сворачивается в строку с «Изменить»: поле
              ввода, которое уже нечего вводить, занимает место и добавляет
@@ -2775,7 +2784,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div id="docs-email-form">
           <label class="f" style="margin-top:0" for="billing-docs-email">Почта</label>
           <input class="inp mono" id="billing-docs-email" placeholder="buh@alfa-school.ru">
-          <p class="tiny anketa-field-error" id="billing-docs-email-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придут чеки и акты.</p>
+          <p class="tiny anketa-field-error" id="billing-docs-email-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придут акты.</p>
           <p class="tiny" style="margin-top:6px">Обычно это бухгалтерия. Если оставить пустым, будем присылать на почту аккаунта. Необязательно.</p>
           <button id="save-billing-docs-btn" class="btn solid sm" style="margin-top:12px">Сохранить</button>
         </div>
@@ -3058,7 +3067,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
              баннера нет и не было: «убрать текст "баннер с реальным
              отказом"... у нас нет реального отказа и он не нужен». Отказ —
              через настройки браузера, крестик просто закрывает баннер. -->
-        <div data-banner-host><div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · sleza.media</p></div></div><p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p></div>
+        <div data-banner-host><div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div><p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p></div>
                 </div>
         <div id="banner-off-placeholder" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:20px 16px;text-align:center">
           <p class="tiny">Баннер выключен — посетители его не видят.</p>
@@ -4234,8 +4243,8 @@ function syncInstallAction(){
   });
   if (activate) activate.disabled = !found;
   if (note) note.textContent = found
-    ? 'Отсчёт 24 бесплатных часов начнётся с этого нажатия'
-    : 'Сначала проверьте скрипт — это шаг «Проверьте, что он заработал» выше. Отсчёт 24 бесплатных часов пойдёт с момента активации';
+    ? 'Пробный период — 24 часа — начнётся с этого нажатия'
+    : 'Сначала проверьте скрипт — это шаг «Проверьте, что он заработал» выше. Пробный период пойдёт с момента активации';
 }
 var installActivateBtn = document.getElementById('install-activate-btn');
 if (installActivateBtn) installActivateBtn.addEventListener('click', function(){
