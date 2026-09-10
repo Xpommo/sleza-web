@@ -869,6 +869,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
         <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
         <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
+        <button type="button" class="btn-social" data-go="s-maillogin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5.5" width="18" height="13" rx="2"></rect><path d="M3.5 7l8.5 6 8.5-6" stroke-linecap="round"></path></svg> Через почту</button>
     </div>
 
     <p class="tiny" style="text-align:center;margin-top:28px">Нет аккаунта? <button type="button" class="btn text sm" style="padding:0" data-go="s-register">Создать</button></p>
@@ -880,7 +881,16 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      «Забыли пароль?» на s-login раньше никуда не вела — тупиковая кнопка
      на первом экране флоу. Тот же паттерн (запрос →
      демо-подтверждение), не отдельный сложный флоу с реальным письмом. -->
-<section class="screen" id="s-forgot">
+<!-- ══════════════════ 02б · ВХОД ПО ПОЧТЕ ═══════════════════════════════
+     Раньше это было «Восстановление пароля» — обломок модели с почтой и
+     паролем, убранной 8 сентября. Пароля в продукте нет, восстанавливать
+     нечего. Форма и два её состояния (запрос → «проверьте почту») ровно
+     те, что нужны входу по ссылке, поэтому экран переосмыслен, а не
+     удалён. Решение 10 сентября: вход по почте — ссылкой из письма, без
+     пароля. Годовая подписка, заходят раз в несколько месяцев — пароль к
+     такому сервису забудут гарантированно, а письмо всё равно придёт.
+     Заодно уходит целый класс: требования к паролю, смена, восстановление. -->
+<section class="screen" id="s-maillogin">
   <div class="startwrap" style="max-width:400px;padding-top:56px">
     <div class="row" style="gap:9px;margin-bottom:28px">
       <svg width="26" height="17" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg>
@@ -889,24 +899,23 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </div>
 
     <div class="state on" data-state="request">
-      <h1>Восстановление пароля</h1>
-      <p class="lead" style="margin-top:8px">Укажите почту, на которую регистрировались — пришлём ссылку для смены пароля.</p>
-      <div class="card pad" style="margin-top:16px">
-        <p class="tiny" style="margin-bottom:10px"><b style="color:var(--ink)">Входили через Telegram или Яндекс?</b> Тогда пароля у аккаунта нет — восстанавливать нечего, войдите тем же способом.</p>
-        <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
-        <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
-        <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
+      <h1>Вход по почте</h1>
+      <p class="lead" style="margin-top:8px">Пришлём ссылку для входа — пароль не нужен.</p>
+      <div style="margin-top:20px">
+        <label class="f" for="f-mail">Почта</label>
+        <input class="inp" id="f-mail" type="email" autocomplete="email" placeholder="you@company.ru">
+        <p class="tiny anketa-field-error" id="f-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придёт ссылка для входа.</p>
       </div>
-      <div style="margin-top:20px"><label class="f" for="f-mail">Email</label><input class="inp" id="f-mail" type="email" autocomplete="email" placeholder="you@company.ru"></div>
-      <button type="button" class="btn solid wide" style="margin-top:20px" data-state-to="sent">Отправить ссылку</button>
-      <p class="tiny" style="text-align:center;margin-top:24px">Вспомнили пароль? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
+      <button type="button" class="btn solid wide" style="margin-top:20px" id="maillogin-send">Прислать ссылку</button>
+      <p class="tiny" style="text-align:center;margin-top:24px">Есть Telegram, Яндекс или MAX? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти через них</button></p>
     </div>
 
     <div class="state" data-state="sent" style="text-align:center">
       <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:22px">✉️</div>
       <h1>Проверьте почту</h1>
-      <p class="lead" style="margin-top:10px">Если аккаунт с этой почтой есть — прислали ссылку для смены пароля. Ссылка действует 30 минут.</p>
-      <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-login">Вернуться ко входу</button>
+      <p class="lead" style="margin-top:10px">Прислали ссылку для входа на <b id="maillogin-addr">you@company.ru</b>. Ссылка действует 30 минут.</p>
+      <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-status" data-set-hassite="false">Перешёл по ссылке (демо) →</button>
+      <p class="tiny" style="margin-top:16px">Не пришло письмо? <button type="button" class="btn text sm" style="padding:0" data-state-to="request">Ввести почту заново</button></p>
     </div>
   </div>
 </section>
@@ -940,6 +949,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
         <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
         <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
+        <!-- Четвёртый способ — почта: не у всех есть Telegram, Яндекс или MAX,
+             а покупает нас часто бухгалтер или директор. Вход по ссылке из
+             письма, без пароля (решение 10 сентября). -->
+        <button type="button" class="btn-social" data-social-signup data-signup-go="s-maillogin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5.5" width="18" height="13" rx="2"></rect><path d="M3.5 7l8.5 6 8.5-6" stroke-linecap="round"></path></svg> Через почту</button>
         <!-- ВОПРОС ОТКРЫТ (8 сентября): точную формулировку и связку
              «политика ПДн + оферта» уточняет юрист. Пока одним чекбоксом до
              входа — по его разъяснению согласие на обработку ПДн принимается
@@ -1179,7 +1192,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <input class="inp mono" id="anketa-person-backup" inputmode="tel" placeholder="+7 (___) ___-__-__">
 
         <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-person">Зачем это нужно ⌄</button>
-        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">На почту придут счёт, письма о продлении и сообщения об обновлении и изменениях в документах. Резервная связь необязательна — позвоним по ней, только если письма перестанут доходить. Менять их можно в Настройках, в разделе «Контакты». В документы и в реквизиты на сайте они не попадут — контакты для сайта спросим отдельно, на шаге «Реквизиты».</p>
+        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">На почту придут счёт, письма о продлении и сообщения об обновлении и изменениях в документах. Резервная связь необязательна — позвоним по ней, только если письма перестанут доходить. Менять их можно в Настройках, в разделе «Контакты». Почта здесь может отличаться от той, через которую вы входите: вход — это доступ в кабинет, а сюда придут письма по проекту. В документы и в реквизиты на сайте они не попадут — контакты для сайта спросим отдельно, на шаге «Реквизиты».</p>
       </div>
 
       <div class="card pad" style="margin-top:10px">
@@ -2277,6 +2290,39 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         </div>
       </div>
 
+      <!-- Способы входа. Пароля в продукте нет: вход по ссылке из письма
+           либо через провайдера (решение 10 сентября). Мессенджер здесь
+           подсвечен намеренно — это не «ещё одна настройка», а заметная
+           выгода: вход в один тап и уведомления туда же, куда человек и
+           так смотрит. Поэтому блок, а не строчка в списке. -->
+      <h2 style="margin-top:22px">Вход</h2>
+      <div class="card pad" style="margin-top:12px">
+        <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px">
+          <div style="min-width:0">
+            <div style="font-weight:700;font-size:14.5px">По ссылке из письма</div>
+            <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere" data-acct-mail-plain>director@alfa-school.ru</div>
+            <div class="tiny" style="margin-top:2px">Пароль не нужен — присылаем ссылку на эту почту</div>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div id="messenger-offer">
+          <div style="font-weight:700;font-size:14.5px">Подключите мессенджер</div>
+          <p class="tiny" style="margin-top:4px;margin-bottom:10px">Вход в один тап, без письма и ожидания. Туда же будем присылать уведомления — о продлении, оплате и статусе виджета.</p>
+          <button type="button" class="btn-social" data-connect-messenger="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#29a9eb"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Подключить Telegram</button>
+          <button type="button" class="btn-social" data-connect-messenger="Яндекс"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#f33"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Подключить Яндекс</button>
+          <button type="button" class="btn-social" data-connect-messenger="MAX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#7d59d6"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Подключить MAX</button>
+        </div>
+        <div id="messenger-linked" style="display:none">
+          <div class="row" style="justify-content:space-between;align-items:center;gap:12px">
+            <div>
+              <div style="font-weight:700;font-size:14.5px"><span id="messenger-name">Telegram</span> подключён</div>
+              <div class="tiny" style="margin-top:2px">Вход в один тап, уведомления приходят туда</div>
+            </div>
+            <button type="button" class="btn text sm" style="color:var(--danger);padding:0;flex:none" id="messenger-unlink">Отключить</button>
+          </div>
+        </div>
+      </div>
+
       <!-- «Реквизиты владельца» убраны отсюда 9 сентября: Настройки — уровень
            аккаунта, а реквизиты принадлежат проекту. Они идут в документы и
            в подвал конкретного сайта, и у второго сайта могут быть другими.
@@ -2915,7 +2961,7 @@ document.documentElement.className += ' js';
    в реальном пути идёт уже после установки, а не между шагами 5 и 6. */
 var NAV_ITEMS = [
   {screen:'s-login',        label:'вход'},
-  {screen:'s-forgot',       label:'забыли пароль'},
+  {screen:'s-maillogin',    label:'вход по почте'},
   {screen:'s-register',     label:'регистрация'},
   {screen:'s-status',       label:'мои сайты'},
   {screen:'s-anketa',       label:'шаг 1/6'},
@@ -3048,6 +3094,7 @@ function syncAccount(){
   // «Отправить себе» на шаге 6 — это письмо себе, значит почта аккаунта
   var selfMail = document.getElementById('install-self-email');
   if (selfMail && selfMail !== document.activeElement) selfMail.value = account.mail;
+  document.querySelectorAll('[data-acct-mail-plain]').forEach(function(el){ el.textContent = account.mail; });
   syncSetView();
 }
 /* Предзаполнение поля «куда писать по вопросам ПДн» отменено 9 сентября.
@@ -3666,10 +3713,35 @@ document.querySelectorAll('[data-social-signup]').forEach(function(b){
     var err = document.getElementById('r-consent-error');
     if (!cb.checked) { err.style.display = 'block'; return; }
     err.style.display = 'none';
+    // почта уводит на ввод адреса, провайдер — сразу в кабинет; согласие
+    // требуется одинаково, поэтому обе кнопки под одним гейтом
+    if (b.dataset.signupGo) { goScreen(b.dataset.signupGo); return; }
     hasSite = false;
     goScreen('s-status');
   });
 });
+/* Вход по почте: проверяем формат и переходим в состояние «проверьте
+   почту», подставляя введённый адрес — иначе экран обещал бы письмо
+   неизвестно куда. */
+var mailLoginBtn = document.getElementById('maillogin-send');
+if (mailLoginBtn) mailLoginBtn.addEventListener('click', function(){
+  var input = document.getElementById('f-mail');
+  var err = document.getElementById('f-mail-error');
+  var v = input.value.trim();
+  var bad = !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v);
+  input.classList.toggle('error', bad);
+  if (err) err.style.display = bad ? 'block' : 'none';
+  if (bad) { input.focus(); return; }
+  var addr = document.getElementById('maillogin-addr');
+  if (addr) addr.textContent = v;
+  account.mail = v;               // почта входа — она же почта аккаунта по умолчанию
+  syncAccount();
+  var scr = document.getElementById('s-maillogin');
+  scr.querySelectorAll('[data-state]').forEach(function(el){
+    el.classList.toggle('on', el.dataset.state === 'sent');
+  });
+});
+
 var consentBox = document.getElementById('r-consent');
 if (consentBox) consentBox.addEventListener('change', function(){
   if (consentBox.checked) document.getElementById('r-consent-error').style.display = 'none';
@@ -3692,6 +3764,22 @@ function syncSetView(){
   if (m) m.textContent = account.mail;
   if (t) t.textContent = account.phone ? 'Резервная связь: ' + account.phone : 'Резервная связь не указана';
 }
+/* Подключение мессенджера — состояние, а не мигающее подтверждение: тот
+   же вывод, что уже трижды делали (проверка скрипта, привязка карты,
+   счёт). Настоящей интеграции нет, поэтому клик просто фиксирует выбор. */
+document.querySelectorAll('[data-connect-messenger]').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.getElementById('messenger-name').textContent = b.dataset.connectMessenger;
+    document.getElementById('messenger-offer').style.display = 'none';
+    document.getElementById('messenger-linked').style.display = '';
+  });
+});
+var messengerUnlink = document.getElementById('messenger-unlink');
+if (messengerUnlink) messengerUnlink.addEventListener('click', function(){
+  document.getElementById('messenger-offer').style.display = '';
+  document.getElementById('messenger-linked').style.display = 'none';
+});
+
 var setEditBtn = document.getElementById('set-edit');
 if (setEditBtn) setEditBtn.addEventListener('click', function(){ syncAccount(); toggleSetForm(true); });
 var setCancelBtn = document.getElementById('set-cancel');
