@@ -2239,22 +2239,43 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            переехали на свои экраны верхнего уровня в сайдбаре (HANDOFF
            6.16/6.17). Один столбец, без settings-grid — грид имел смысл
            только пока рядом стояла карточка Подписки. -->
-      <details class="acc" open style="margin-top:16px">
-      <summary class="acc-title"><h3>Контакты</h3></summary>
-      <div class="card pad">
-        <label class="f" for="set-name">Имя</label><input class="inp" id="set-name" value="Кирилл">
-        <label class="f" style="margin-top:10px" for="set-mail">Почта</label><input class="inp mono" id="set-mail" value="director@alfa-school.ru">
-        <!-- Резервная связь спрашивается на шаге «Знакомство» и до 9 сентября
-             никуда не доходила: в «Контактах» для неё не было поля, и
-             введённый телефон пропадал. Формулировка та же, что на шаге 1 —
-             иначе название сущности разъезжается между двумя экранами. -->
-        <label class="f" style="margin-top:10px" for="set-phone">Резервная связь</label><input class="inp mono" id="set-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
-        <p class="tiny" style="margin-top:6px">Необязательно — позвоним, только если письма перестанут доходить.</p>
-        <div class="hr"></div>
-        <div class="row" style="justify-content:space-between"><span class="small">Пароль</span><button class="btn sm" data-go-modal="modal-pass">Изменить</button></div>
+      <!-- Раздел приведён к тому же виду, что «Подписка» и «Обзор»:
+           h2 над карточкой вместо аккордеона (аккордеон вокруг единственной
+           секции ничего не сворачивал), «Сохранить» внутри карточки,
+           заполненное — сводкой с «Изменить». Строка «Пароль» убрана: в
+           продукте пароля нет, вход только через провайдера — тот же
+           обломок прежней модели, что и удалённый экран «Подтвердите
+           почту». -->
+      <h2 style="margin-top:22px">Контакты</h2>
+      <div class="card pad" style="margin-top:12px">
+        <div id="set-view">
+          <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px">
+            <div style="min-width:0">
+              <div style="font-weight:700;font-size:14.5px" id="set-view-name">Кирилл</div>
+              <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere" id="set-view-mail">director@alfa-school.ru</div>
+              <div class="tiny" style="margin-top:2px" id="set-view-phone">Резервная связь не указана</div>
+            </div>
+            <button type="button" class="btn sm" style="flex:none" id="set-edit">Изменить</button>
+          </div>
+        </div>
+        <div id="set-form" style="display:none">
+          <label class="f" style="margin-top:0" for="set-name">Имя <span style="color:var(--danger)">*</span></label>
+          <input class="inp" id="set-name" value="Кирилл">
+          <p class="tiny anketa-field-error" id="set-name-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите имя — так будем обращаться в письмах.</p>
+          <label class="f" style="margin-top:10px" for="set-mail">Почта <span style="color:var(--danger)">*</span></label>
+          <input class="inp mono" id="set-mail" type="email" value="director@alfa-school.ru">
+          <p class="tiny anketa-field-error" id="set-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придут счёт и письма о продлении.</p>
+          <!-- Резервная связь спрашивается на шаге «Знакомство»; формулировка
+               та же, иначе название сущности разъезжается между экранами. -->
+          <label class="f" style="margin-top:10px" for="set-phone">Резервная связь</label>
+          <input class="inp mono" id="set-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
+          <p class="tiny" style="margin-top:6px">Необязательно — позвоним, только если письма перестанут доходить.</p>
+          <div class="row" style="margin-top:12px;gap:10px">
+            <button id="save-contacts-btn" class="btn solid sm">Сохранить</button>
+            <button type="button" class="btn text sm" id="set-cancel">Отмена</button>
+          </div>
+        </div>
       </div>
-      <button id="save-contacts-btn" class="btn solid" style="margin-top:12px">Сохранить</button>
-      </details>
 
       <!-- «Реквизиты владельца» убраны отсюда 9 сентября: Настройки — уровень
            аккаунта, а реквизиты принадлежат проекту. Они идут в документы и
@@ -2584,17 +2605,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
   </div>
 </div>
 
-<!-- модалка смены пароля — «Изменить» в Настройках раньше никуда не вела -->
-<div class="modal-overlay" data-state="closed" id="modal-pass" role="dialog" aria-modal="true" aria-labelledby="modal-pass-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
-  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
-    <div class="row" style="justify-content:space-between"><h3 id="modal-pass-title">Смена пароля</h3><button class="btn text sm" data-modal-close="modal-pass">✕</button></div>
-    <label class="f" style="margin-top:14px">Текущий пароль</label>
-    <input class="inp" type="password" placeholder="••••••••">
-    <label class="f" style="margin-top:10px">Новый пароль</label>
-    <input class="inp" type="password" placeholder="Минимум 8 символов">
-    <div class="row" style="margin-top:16px"><button class="btn solid" data-modal-close="modal-pass">Сохранить</button><button class="btn text" data-modal-close="modal-pass">Отмена</button></div>
-  </div>
-</div>
+<!-- Модалка смены пароля убрана 9 сентября вместе со строкой «Пароль»:
+     пароля в продукте нет, вход только через провайдера. -->
 
 <!-- Предупреждение при ответе «Нет» на вопрос о работе по базе клиентов
      (8 сентября). Документ «Согласие на рассылки» выдаётся в пакете в любом
@@ -3036,6 +3048,7 @@ function syncAccount(){
   // «Отправить себе» на шаге 6 — это письмо себе, значит почта аккаунта
   var selfMail = document.getElementById('install-self-email');
   if (selfMail && selfMail !== document.activeElement) selfMail.value = account.mail;
+  syncSetView();
 }
 /* Предзаполнение поля «куда писать по вопросам ПДн» отменено 9 сентября.
    Оно появилось 25.08 (директору и сотруднику подставлялась почта
@@ -3661,18 +3674,46 @@ var consentBox = document.getElementById('r-consent');
 if (consentBox) consentBox.addEventListener('change', function(){
   if (consentBox.checked) document.getElementById('r-consent-error').style.display = 'none';
 });
-['save-contacts-btn', 'save-notify-btn'].forEach(function(id){
-  var btn = document.getElementById(id);
-  if (btn) btn.addEventListener('click', function(){
-    if (id === 'save-contacts-btn') {
-      var n = document.getElementById('set-name'), m = document.getElementById('set-mail'), t = document.getElementById('set-phone');
-      if (n && n.value.trim()) account.name = n.value.trim();
-      if (m && m.value.trim()) account.mail = m.value.trim();
-      if (t) account.phone = t.value.trim();
-      syncAccount();
-    }
-    flashDone(btn, 'Сохранено ✓');
+/* Контакты аккаунта: свёрнутая сводка и форма правки — тот же приём, что
+   в «Подписке». Сохранение фиксирует данные в account, откуда их берут
+   чип в сайдборе и поле «Отправить себе» на шаге 6. Отмена возвращает
+   поля к сохранённым: без неё выйти из правки, не сохранив, было нельзя. */
+function toggleSetForm(open){
+  var view = document.getElementById('set-view');
+  var form = document.getElementById('set-form');
+  if (view) view.style.display = open ? 'none' : '';
+  if (form) form.style.display = open ? '' : 'none';
+}
+function syncSetView(){
+  var n = document.getElementById('set-view-name');
+  var m = document.getElementById('set-view-mail');
+  var t = document.getElementById('set-view-phone');
+  if (n) n.textContent = account.name;
+  if (m) m.textContent = account.mail;
+  if (t) t.textContent = account.phone ? 'Резервная связь: ' + account.phone : 'Резервная связь не указана';
+}
+var setEditBtn = document.getElementById('set-edit');
+if (setEditBtn) setEditBtn.addEventListener('click', function(){ syncAccount(); toggleSetForm(true); });
+var setCancelBtn = document.getElementById('set-cancel');
+if (setCancelBtn) setCancelBtn.addEventListener('click', function(){ syncAccount(); toggleSetForm(false); });
+var saveContactsBtn = document.getElementById('save-contacts-btn');
+if (saveContactsBtn) saveContactsBtn.addEventListener('click', function(){
+  var ok = true;
+  [{id:'set-name', test:function(v){ return v !== ''; }},
+   {id:'set-mail', test:function(v){ return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v); }}].forEach(function(f){
+    var input = document.getElementById(f.id);
+    var err = document.getElementById(f.id + '-error');
+    var bad = !f.test(input.value.trim());
+    input.classList.toggle('error', bad);
+    if (err) err.style.display = bad ? 'block' : 'none';
+    if (bad && ok) { ok = false; input.focus(); }
   });
+  if (!ok) return;
+  account.name = document.getElementById('set-name').value.trim();
+  account.mail = document.getElementById('set-mail').value.trim();
+  account.phone = document.getElementById('set-phone').value.trim();
+  syncAccount();
+  toggleSetForm(false);
 });
 
 /* раскрывашки-находки */
