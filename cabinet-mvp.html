@@ -250,6 +250,14 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    Маркеры цветом, а не иконками — модалка узкая, иконки съели бы строку. */
 /* Полоса накопленного: крупные числа первым, что видит глаз. Числа
    нейтральным цветом — сдержанность читается убедительнее подкраски. */
+/* Пример пометки в тексте: маркировка — не отдельный блок на странице, а
+   значок рядом с упоминанием, поэтому и в превью показываем предложением,
+   а не карточкой. */
+.markdemo{border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:14px 16px;background:var(--paper)}
+.markdemo .sent{font-size:13.5px;line-height:1.7}
+.markdemo .mk{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+  margin-left:2px;border-radius:4px;background:var(--warn-tint);color:var(--warn);
+  font-size:10px;font-weight:800;vertical-align:1px}
 .cnl-stats{display:flex;gap:10px;margin-top:14px}
 .cnl-stat{flex:1;min-width:0;text-align:center;background:var(--paper);border:1px solid var(--line-2);
   border-radius:10px;padding:10px 6px}
@@ -1050,7 +1058,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <p class="split-tagline">Документы для сайта — готовим и держим в порядке</p>
       <div class="why"><div><b>Соберём под вашу компанию</b><span>Заполните анкету о сайте и компании — документы соберём под ваши данные и вашу сферу деятельности.</span></div></div>
       <div class="why"><div><b>Виджет на сайт</b><span>Один скрипт: показывает cookie-уведомление, ставит внизу страниц подвал со ссылками на документы и реквизиты и держит эти ссылки рабочими.</span></div></div>
-      <div class="why"><div><b>Следим, что всё работает</b><span>Проверяем, что виджет и документы на сайте работают исправно — не нужно проверять это самим.</span></div></div>
+      <div class="why"><div><b>Помечаем, что требует пометки</b><span>Скрипт сверяется с реестрами иностранных агентов и экстремистских организаций и сам ставит пометку рядом с упоминанием на ваших страницах.</span></div></div>
+        <div class="why"><div><b>Следим, что всё работает</b><span>Проверяем, что виджет и документы на сайте работают исправно — не нужно проверять это самим.</span></div></div>
       <div class="why"><div><b>Когда поменяется закон, перепишем сами</b><span>Вам придёт письмо, что документы уже обновлены.</span></div></div>
     </div>
     <div class="split-form">
@@ -1768,6 +1777,17 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <div class="sleza-widget" data-skin="dark"><a class="w-brand"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z"></path></svg><span class="w-brand-name">Слеза</span></a><span class="w-sep"></span><div class="w-pills"><div class="pill-wrap"><button type="button" class="pill locked" data-pill="cookie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg><span>Cookie</span><span class="dot"></span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Обработка cookie" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.3, 6, 9 №152-ФЗ · ч.1 ст.13.11 КоАП</p><h4 class="pop-title">Обработка cookie</h4><p class="pop-body">Сайт использует файлы cookie для аналитики и корректной работы сервисов. Согласие вы уже дали в баннере при заходе на сайт — отдельно отключить его здесь нельзя. Состав собираемых данных и цели — в политике ниже.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательное согласие — уже подтверждено</div><div class="pop-links"><a>Политика обработки cookie →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill" data-pill="pd" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.6 5.3 6v5.4c0 4.4 2.9 7.6 6.7 8.9 3.8-1.3 6.7-4.5 6.7-8.9V6L12 3.6Z"></path><path d="M9 12l2 2 4-4.3" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Персональные данные</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на обработку персональных данных" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">№152-ФЗ · ч.2 ст.13.11 КоАП</p><h4 class="pop-title">Согласие на обработку персональных данных</h4><p class="pop-body">Разрешает сайту обрабатывать данные, которые вы оставляете в формах — имя, телефон, email. Действует сразу на все формы сайта: включили здесь — включено везде, и наоборот.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="pd"><span class="track"></span></span></label><div class="pop-links"><a>Политика обработки персональных данных →</a><a>Согласие на обработку персональных данных →</a></div></div></div><div class="pill-wrap marketing-wrap disabled"><button type="button" class="pill" data-pill="marketing" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.2v3.6a1 1 0 0 0 1 1h2l1 4h2l-1-4h1l9 3.4V6.8L9 10.2H4a1 1 0 0 0-1 1Z" stroke-linejoin="round"></path><path d="M19 9.6a3 3 0 0 1 0 5" stroke-linecap="round"></path></svg><span>Реклама</span><span class="dot"></span></button><div class="w-pop" role="dialog" aria-label="Согласие на рекламные рассылки" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ч.1 ст.18 №38-ФЗ «О рекламе» · ч.4.1 ст.14.3 КоАП</p><h4 class="pop-title">Согласие на рекламные рассылки</h4><p class="pop-body">Разрешает присылать вам рекламные материалы и рассылки.</p><p class="pop-hint" data-w-hint>Сначала включите согласие на персональные данные — без него рассылка недоступна.</p><label class="w-switch-row"><span>Моё согласие</span><span class="w-sw"><input type="checkbox" data-w-sw="marketing" disabled><span class="track"></span></span></label><div class="pop-links"><a>Согласие на получение рекламных сообщений →</a></div></div></div><div class="pill-wrap"><button type="button" class="pill locked" data-pill="marking" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c3.6 4.1 6 7.3 6 10.6A6 6 0 1 1 6 13.6C6 10.3 8.4 7.1 12 3Z"></path></svg><span>Маркировка</span><svg class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg></button><div class="w-pop" role="dialog" aria-label="Маркировка" hidden><button type="button" class="pop-close" data-w-close aria-label="Закрыть">✕</button><p class="pop-meta">ст.4 закона «О СМИ» · 114-ФЗ · ч.1 ст.13.15 КоАП · ч.1 ст.6.13 КоАП</p><h4 class="pop-title">Маркировка</h4><p class="pop-body">Скрипт Слезы автоматически помечает на сайте упоминания лиц и организаций из реестров: иностранные агенты, экстремистские и террористические организации, а также упоминания наркотических веществ.</p><div class="pop-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5.5" y="10.5" width="13" height="9" rx="2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" stroke-linecap="round"></path></svg>Обязательно по закону — отключить нельзя</div></div></div></div><div class="w-links"><a>Оферта</a><span class="dot-sep">·</span><a>Реквизиты</a></div></div>
       </div>
       <p class="skin-auto-note" data-note="footer">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
+
+      <!-- Маркировка добавлена в превью 10 сентября: по позиционирующему
+           тезису это ядро технической части (сверка с реестрами в реальном
+           времени, автоматическая пометка запрещённых слов, имён и
+           компаний), а в макете она жила только плашкой в подвале — человек
+           узнавал о ней уже после установки. -->
+      <div class="lbl" style="margin-top:14px;background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">пометки в тексте страниц</div>
+      <div class="markdemo">
+        <p class="sent">…в интервью для издания «Пример»<span class="mk">✱</span> сказал, что…</p>
+        <p class="tiny" style="margin-top:8px">Скрипт сверяется с реестрами иностранных агентов, экстремистских и террористических организаций и сам ставит пометку рядом с упоминанием. Реестры меняются — следим за ними мы.</p>
+      </div>
     </div>
     <details class="preview-accordion">
       <summary>Вот что появится на сайте</summary>
@@ -1784,7 +1804,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </details>
 
     <!-- HANDOFF 6.15 п.8 — установка идёт до оплаты, не после: кнопка
-         теперь ведёт на s-install, не s-pay. «Оплатить 29 900 ₽» как текст
+         теперь ведёт на s-install, не s-pay. «Оплатить 12 000 ₽» как текст
          кнопки была бы обманом ещё раньше — здесь оплаты вообще нет,
          только запуск бесплатного 24-часового периода. -->
     <div class="hr" style="margin-top:20px"></div>
@@ -1833,7 +1853,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="small" style="line-height:1.9;margin-top:6px">· Доступ не прерывается после пробного периода<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
       <div class="hr"></div>
       <p class="tiny" style="margin-bottom:10px"><b style="color:var(--ink)">Оплата раз в год — но это подписка, не разовая покупка</b>: меняется закон, вместе с ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.</p>
-      <div class="row" style="justify-content:space-between"><span class="small muted">Итого</span><b style="font-size:19px">29 900 ₽/год</b></div>
+      <div class="row" style="justify-content:space-between"><span class="small muted">Итого</span><b style="font-size:19px">12 000 ₽/год</b></div>
     </div>
 
     <!-- Платёжный партнёр + СБП + По счёту. Раньше здесь рисовали свою
@@ -1875,7 +1895,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <p class="tiny">Отсканируйте в приложении банка или введите номер телефона</p>
         <input class="inp mono" placeholder="+7 (___) ___-__-__" style="margin-top:8px;max-width:260px">
         <div class="hr" style="margin-top:16px"></div>
-        <button type="button" class="btn solid wide" data-set-status="paid" data-go="s-project-paid">Оплатить 29 900 ₽ → в кабинет</button>
+        <button type="button" class="btn solid wide" data-set-status="paid" data-go="s-project-paid">Оплатить 12 000 ₽ → в кабинет</button>
         <p class="tiny" style="text-align:center;margin-top:10px">Спишется один раз в год — о продлении напомним письмом заранее</p>
       </div>
       <div data-swapped="pmsbp" data-payment-issue="sbp-declined" style="display:none;text-align:center">
@@ -1923,7 +1943,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         </div>
         <label class="f" style="margin-top:10px">Корр. счёт</label>
         <input class="inp mono" id="pay-invoice-corr" inputmode="numeric" placeholder="30101810...">
-        <p class="tiny" style="margin-top:10px">Счёт на 29 900 ₽ придёт на почту в PDF, оплатить можно переводом с расчётного счёта.</p>
+        <p class="tiny" style="margin-top:10px">Счёт на 12 000 ₽ придёт на почту в PDF, оплатить можно переводом с расчётного счёта.</p>
         <div class="hr" style="margin-top:16px"></div>
         <button type="button" class="btn solid wide" data-set-status="pending" data-go="s-project-paid">Выставить счёт → в кабинет</button>
         <p class="tiny" style="text-align:center;margin-top:10px">Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня. Виджет и документы уже работают, ждать не нужно</p>
@@ -1935,7 +1955,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   </div>
   <!-- следует за активной вкладкой способа оплаты — партнёр ещё пустая
        заглушка без формы, там плашке нечего запускать, поэтому скрыта -->
-  <div class="sticky-cta" id="pay-sticky"><span class="ctx">29 900 ₽/год</span><button type="button" class="btn solid" id="pay-sticky-btn" data-go="s-project-paid" data-set-status="paid">Оплатить →</button></div>
+  <div class="sticky-cta" id="pay-sticky"><span class="ctx">12 000 ₽/год</span><button type="button" class="btn solid" id="pay-sticky-btn" data-go="s-project-paid" data-set-status="paid">Оплатить →</button></div>
 </section>
 
 <!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 4/4 · УСТАНОВКА (запуск триала) ═
@@ -2234,7 +2254,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           </div>
           <div class="state on" data-pay-state="paid">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">оплачено</span></div>
-            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted" id="renew-label">Продление</span><span class="small" style="font-weight:700" id="renew-value">05.08.2027 · 29 900 ₽</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted" id="renew-label">Продление</span><span class="small" style="font-weight:700" id="renew-value">05.08.2027 · 12 000 ₽</span></div>
             <!-- Абзац «если не продлить — всё отключится» убран из сводки подписки
      10 сентября: он показывался ПЛАТЯЩЕМУ клиенту в спокойном экране и
      занимал четыре строки мелким текстом на телефоне. Последствия
@@ -2527,7 +2547,12 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            платим, логично стоит раньше выбора, чем платим. Линейка ещё не
            названа, «Тариф Х/У/Z» — заглушки. Цена пока одна на все три:
            реальные цены появятся вместе с составом тарифов. -->
-      <!-- Тариф и способ оплаты были двумя отдельными карточками и читались
+      <!-- Цена 12 000 ₽/год (1000 ₽/мес × 12) — сверка с позиционирующим
+           тезисом 10 сентября: в макете стояло 29 900 ₽/год (решение
+           2 сентября), в тезисе 1000 ₽/мес. Пользователь подтвердил цену из
+           тезиса, годовая оплата сохранена. Заменено в девяти местах:
+           экран оплаты, сводка подписки, тариф, акт, счёт, липкая кнопка.
+<!-- Тариф и способ оплаты были двумя отдельными карточками и читались
            как несвязанные — а это одно решение: за что плачу и чем. Сведены
            в одну карточку «Оплата». Тариф свёрнут в строку-сводку с
            «Изменить»: меняют его редко, а места занимал столько же, сколько
@@ -2542,7 +2567,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div class="row" style="justify-content:space-between;align-items:center" id="tariff-summary">
           <div>
             <div style="font-weight:700;font-size:14.5px" data-tariff-name>Тариф Х</div>
-            <div class="tiny mono" style="margin-top:2px">29 900 ₽/год</div>
+            <div class="tiny mono" style="margin-top:2px">12 000 ₽/год</div>
           </div>
           <button type="button" class="btn sm" id="tariff-edit">Изменить</button>
         </div>
@@ -2676,7 +2701,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <div id="invoice-ready" style="display:none;margin-top:12px">
             <div class="card pad row" style="border-color:var(--line);justify-content:space-between;align-items:center;gap:12px">
               <div style="min-width:0">
-                <div style="font-weight:700;font-size:14.5px">Счёт <span id="invoice-no">№ 2026-0142</span> · 29 900 ₽</div>
+                <div style="font-weight:700;font-size:14.5px">Счёт <span id="invoice-no">№ 2026-0142</span> · 12 000 ₽</div>
                 <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere">docs.belysite.ru/<span data-site-id>486312</span>/invoice-2026-0142.pdf</div>
               </div>
               <span class="doc-actions">
@@ -2731,7 +2756,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <p class="tiny" style="margin-top:4px">Закрывающие документы для бухгалтерии — один акт за оплаченный год.</p>
       <div class="card" style="margin-top:12px;overflow:hidden">
         <div class="row" style="padding:13px 16px">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Акт за 2026–2027</div><div class="tiny mono">05.08.2026 – 04.08.2027 · 29 900 ₽</div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Акт за 2026–2027</div><div class="tiny mono">05.08.2026 – 04.08.2027 · 12 000 ₽</div></div>
           <span class="chip green">готов</span><a class="btn sm" href="https://docs.belysite.ru/486312/act-2026-2027.pdf" target="_blank" rel="noopener">Скачать PDF</a>
         </div>
       </div>
@@ -4953,7 +4978,7 @@ function syncCancelled(){
   }
   var rl = document.getElementById('renew-label'), rv = document.getElementById('renew-value');
   if (rl) rl.textContent = subCancelled ? 'Отменена' : 'Продление';
-  if (rv) rv.textContent = subCancelled ? 'доступ до 05.08.2027' : '05.08.2027 · 29 900 ₽';
+  if (rv) rv.textContent = subCancelled ? 'доступ до 05.08.2027' : '05.08.2027 · 12 000 ₽';
 }
 var cancelFinal = document.getElementById('cancel-final');
 if (cancelFinal) cancelFinal.addEventListener('click', function(){ subCancelled = true; syncCancelled(); });
