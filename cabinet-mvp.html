@@ -967,6 +967,33 @@ details.acc:first-child{margin-top:0}
    строки. Под названием он и ближе к тому, что правит. */
 /* .btn.sm/.btn.text задают свой padding с большей специфичностью —
    поэтому селектор из двух классов, иначе кнопка съезжает от меты. */
+/* На узком экране строка документа ломалась вразнобой: название жалось
+   в две-три строки, потому что чип и кнопки отъедали правую половину.
+   Название получает всю ширину, чип и действия уходят на вторую линию:
+   слева статус, справа кнопки — по одной лишней строке на документ
+   вместо трёх сжатых. */
+@media(max-width:640px){
+  .docrow > div:first-child{flex:1 1 100% !important}   /* перебивает инлайновый flex:1 в разметке */
+  .docrow > .doc-actions{margin-left:auto}
+}
+.icobtn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex:none;
+  border:1.5px solid var(--line-2);border-radius:9px;background:var(--white);color:var(--ink-2);cursor:pointer;
+  transition:border-color .15s ease-out,color .15s ease-out}
+.icobtn svg{width:17px;height:17px}
+.icobtn:hover{border-color:var(--ink);color:var(--ink)}
+.icobtn.copied{border-color:var(--ok);color:var(--ok)}
+@media(hover:hover){
+  .icobtn{position:relative}
+  /* подсказка уходит ВЛЕВО, а не вверх: карточка списка обрезает всё, что
+     выходит за её границы (overflow:hidden ради скруглённых углов), и
+     подсказка над первой строкой была бы срезана. Слева от кнопок пустое
+     место есть всегда. */
+  .icobtn::after{content:attr(data-tip);position:absolute;right:calc(100% + 8px);top:50%;
+    transform:translateY(-50%);background:var(--ink);color:#fff;font-size:11px;line-height:1;
+    white-space:nowrap;padding:6px 8px;border-radius:6px;opacity:0;pointer-events:none;
+    transition:opacity .12s ease-out}
+  .icobtn:hover::after,.icobtn:focus-visible::after{opacity:1}
+}
 .tiny .doc-edit{margin-left:8px;padding:0;font-size:12px;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
 @media(max-width:640px){.tiny .doc-edit{display:block;margin-left:0;margin-top:5px}}
 body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
@@ -2406,9 +2433,9 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            настоящая ссылка на реальный адрес документа (тот же URL, что
            уже показан в превью на s-ready), открывается в новой вкладке. -->
       <div class="card" style="margin-top:10px;overflow:hidden">
-        <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
+        <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия<button type="button" class="btn text sm doc-edit" data-go-modal="modal-req-set">Изменить</button></div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/01">Скопировать ссылку</button><a class="btn sm" href="https://docs.belysite.ru/486312/01" target="_blank" rel="noopener">Открыть</a></span><!-- «Изменить» есть только у реквизитов: остальные четыре документа мы
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/01" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://docs.belysite.ru/486312/01" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span><!-- «Изменить» есть только у реквизитов: остальные четыре документа мы
      собираем сами из ответов анкеты, а реквизиты — единственное, что
      клиент правит напрямую (сменился адрес, банк, телефон). Раньше вход
      был один: крошечная ссылка в шапке «Обзора» рядом с ИНН — искать
@@ -2417,21 +2444,21 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
      и скачивание гасятся, а править свои же реквизиты это не должно
      запрещать. -->
         </div>
-        <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
+        <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/02">Скопировать ссылку</button><a class="btn sm" href="https://docs.belysite.ru/486312/02" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/02" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://docs.belysite.ru/486312/02" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
-        <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
+        <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки персональных данных</div><div class="tiny mono">v2 · 15.08.2026 · обновили формулировки под изменения 152-ФЗ</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/03">Скопировать ссылку</button><a class="btn sm" href="https://docs.belysite.ru/486312/03" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/03" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://docs.belysite.ru/486312/03" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
-        <div class="row" style="padding:13px 16px;border-bottom:1px solid var(--line)">
+        <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на обработку персональных данных</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/12">Скопировать ссылку</button><a class="btn sm" href="https://docs.belysite.ru/486312/12" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/12" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://docs.belysite.ru/486312/12" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
-        <div class="row" style="padding:13px 16px">
+        <div class="row docrow" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/13">Скопировать ссылку</button><a class="btn sm" href="https://docs.belysite.ru/486312/13" target="_blank" rel="noopener">Открыть</a></span>
+          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://docs.belysite.ru/486312/13" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://docs.belysite.ru/486312/13" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
       </div>
 
@@ -3856,10 +3883,13 @@ wireStepGate('anketa-start-next', [
 // (у нас localhost при тесте, cdn.belysite.ru — https в проде) — на unsupported
 // окружениях textContent просто не всплывёт подтверждением, кнопка не сломается.
 function flashCopied(btn){
-  var original = btn.textContent;
-  btn.textContent = 'Скопировано ✓';
+  var original = btn.innerHTML;          // innerHTML, не textContent: у кнопки-иконки
+  btn.innerHTML = btn.classList.contains('icobtn')   // текста нет, и textContent стирал SVG
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+    : 'Скопировано ✓';
+  btn.classList.add('copied');
   btn.disabled = true;
-  setTimeout(function(){ btn.textContent = original; btn.disabled = false; }, 1500);
+  setTimeout(function(){ btn.innerHTML = original; btn.classList.remove('copied'); btn.disabled = false; }, 1500);
 }
 // Копирование ссылки на документ или на весь раздел — тот же flashCopied,
 // что и у кода установки; текст берётся из data-copy-text, а не из DOM,
