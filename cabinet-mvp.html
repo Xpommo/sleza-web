@@ -227,6 +227,11 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
 .check input:checked::after{content:"";position:absolute;left:6px;top:2px;width:4px;height:9px;
   border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
 .check .t{font-size:14px}
+/* Пример под названием цели: абстрактную формулировку человек не мог
+   сопоставить с тем, что стоит у него на сайте («Ответить на обращение»
+   — это форма? чат? кнопка звонка?). Пример переводит цель в то, что
+   он видит у себя. */
+.check .ex{display:block;font-size:12px;line-height:1.45;color:rgba(17,17,16,.62);margin-top:3px}
 .seg{display:inline-flex;gap:3px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
 .seg button{background:none;border:0;padding:8px 15px;border-radius:8px;font-size:13.5px;font-weight:700;
   color:rgba(17,17,16,.6);cursor:pointer;transition:transform 160ms ease-out,background-color .15s ease-out,color .15s ease-out}
@@ -1362,7 +1367,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check"><input type="checkbox" data-calls="yes" checked><span class="t">Да</span></label>
             <label class="check"><input type="checkbox" data-calls="no"><span class="t">Нет</span></label>
             <div class="hr" style="margin:14px 0"></div>
-            <h3 style="margin-bottom:8px">Для чего вы собираете контакты — отметьте своё</h3>
+            <h3 style="margin-bottom:4px">Зачем вы просите контакты у посетителей?</h3>
+            <p class="tiny" style="margin-bottom:8px">Отметьте всё, что подходит — эти цели попадут в политику. Позже можно поправить.</p>
             <!-- Раньше — 3 галочки под одну сферу (онлайн-школа), все
                  предзаполнены checked без участия человека: для остальных
                  12 сфер список не подходил и выглядел решённым за
@@ -1373,16 +1379,16 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  тот же приём, что у data-regulated/data-cl-industry, тот
                  же PURPOSE_MAP в script. Ни одна не отмечена по
                  умолчанию — реальный чекбокс, не декорация. -->
-            <label class="check" data-purpose="booking"><input type="checkbox"><span class="t">Записать на приём/занятие</span></label>
-            <label class="check" data-purpose="order"><input type="checkbox"><span class="t">Оформить и передать заказ</span></label>
-            <label class="check" data-purpose="property"><input type="checkbox"><span class="t">Показать объект, записать на просмотр</span></label>
-            <label class="check" data-purpose="consult"><input type="checkbox"><span class="t">Проконсультировать по услуге</span></label>
-            <label class="check" data-purpose="contract"><input type="checkbox"><span class="t">Заключить и исполнить договор</span></label>
-            <label class="check" data-purpose="payment"><input type="checkbox"><span class="t">Принять оплату онлайн</span></label>
-            <label class="check" data-purpose="inquiry"><input type="checkbox"><span class="t">Ответить на обращение</span></label>
-            <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях</span></label>
+            <label class="check" data-purpose="booking"><input type="checkbox"><span class="t">Записать на приём/занятие<span class="ex">форма записи, кнопка «Записаться», онлайн-календарь</span></span></label>
+            <label class="check" data-purpose="order"><input type="checkbox"><span class="t">Оформить и передать заказ<span class="ex">корзина, кнопка «Купить», оформление доставки</span></span></label>
+            <label class="check" data-purpose="property"><input type="checkbox"><span class="t">Показать объект, записать на просмотр<span class="ex">заявка на просмотр, подбор объекта</span></span></label>
+            <label class="check" data-purpose="consult"><input type="checkbox"><span class="t">Проконсультировать по услуге<span class="ex">форма «Задать вопрос», расчёт стоимости, бриф</span></span></label>
+            <label class="check" data-purpose="contract"><input type="checkbox"><span class="t">Заключить и исполнить договор<span class="ex">подписание договора, счета, закрывающие документы</span></span></label>
+            <label class="check" data-purpose="payment"><input type="checkbox"><span class="t">Принять оплату онлайн<span class="ex">оплата картой на сайте, ссылка на оплату</span></span></label>
+            <label class="check" data-purpose="inquiry"><input type="checkbox"><span class="t">Ответить на обращение<span class="ex">форма обратной связи, «Заказать звонок», чат на сайте</span></span></label>
+            <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях<span class="ex">рассылка, подписка на новости, письма об акциях</span></span></label>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Ваши ответы попадут в документы. ФЗ «О рекламе» ст.18 требует отдельное согласие получателя на рекламные рассылки — email, смс, мессенджеры: без него рассылка технически возможна, но незаконна.</p>
+            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Отмеченное станет списком целей обработки в политике — это её обязательная часть: использовать данные для цели, которой в политике нет, нельзя. Поэтому отмечайте всё, что реально делаете, даже если пока редко. Отдельно про последний пункт: ФЗ «О рекламе» ст.18 требует на рассылки отдельное согласие получателя — без него рассылка технически возможна, но незаконна.</p>
           </div>
 
           <!-- мобильный интерстишл — см. комментарий у секции выше.
