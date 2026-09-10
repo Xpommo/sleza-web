@@ -2050,9 +2050,31 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            счётчик, поэтому у «сам» он третий, у «поручу» — второй. -->
       <li class="inst-step card pad">
         <div class="inst-body">
-          <h3>Проверьте, что он заработал</h3>
-          <p class="tiny" style="margin-bottom:10px">Откроем ваш сайт и поищем строку кода на странице.</p>
-          <button type="button" class="btn sm solid" id="install-action-btn">↻ Проверить скрипт на сайте</button>
+          <!-- Ветка «поручу» обрывалась в никуда: человек отправлял инструкцию
+               подрядчику и уходил, подрядчик ставил код через день, а нажать
+               «Проверить» было некому — пробный период не запускался, и мы об
+               этом даже не узнавали. Проверять должен не человек опросом, а
+               виджет сам: встав на сайт, он к нам обращается. Но ЗАПУСКАТЬ
+               24 часа автоматически нельзя — отсчёт, начавшийся ночью, к утру
+               наполовину сгорит. Поэтому: увидели сами → написали → человек
+               вернулся и запустил часы. -->
+          <div data-install-branch="self">
+            <h3>Проверьте, что он заработал</h3>
+            <p class="tiny" style="margin-bottom:10px">Откроем ваш сайт и поищем строку кода на странице.</p>
+            <button type="button" class="btn sm solid install-check-btn">↻ Проверить скрипт на сайте</button>
+          </div>
+          <div data-install-branch="delegate" style="display:none">
+            <h3>Ждём установки</h3>
+            <p class="tiny" style="margin-bottom:10px">Как только код появится на сайте, мы увидим это сами и напишем вам. Вернётесь по ссылке из письма и запустите 24 бесплатных часа — отсчёт начнётся с вашего нажатия, а не с момента установки.</p>
+            <div id="notify-where" style="margin-bottom:10px"></div>
+            <!-- Предложение подключить мессенджер стоит здесь не как реклама
+                 функции: человек прямо сейчас собирается ЖДАТЬ события, и
+                 мессенджер делает это событие мгновенным. -->
+            <div id="notify-offer" style="display:none;margin-bottom:10px">
+              <button type="button" class="btn-social" data-connect-messenger="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#29a9eb"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Подключить Telegram</button>
+            </div>
+            <button type="button" class="btn text sm install-check-btn" style="padding:0">↻ Проверить сейчас</button>
+          </div>
           <div data-install="found" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--ok-tint);border:1px solid rgba(26,122,82,.25)">
             <div class="b green" style="font-size:14px">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
             <p class="tiny" style="margin-top:5px">Всё на месте. Осталось активировать пробный период — 24 часа документы и виджет работают бесплатно.</p>
@@ -3238,6 +3260,12 @@ var siteStatus = 'trial';
    остальным: goScreen('s-register') на старте выполняется раньше кода
    ниже, и объявление по месту оставляло company undefined на первой
    отрисовке. Те же грабли уже ловили с footerSkin. */
+/* Подключённые мессенджеры — одно состояние на Настройки и шаг 6.
+   Объявляется здесь, вместе с остальным: goScreen('s-register') на старте
+   выполняется раньше кода ниже. Те же грабли ловим третий раз — сначала
+   footerSkin, потом company, теперь messengers. Правило: всё, что читает
+   sync-функция из goScreen, объявляется в этом блоке. */
+var messengers = {};
 var company = {
   name:'ООО «Альфа Образование»', inn:'7701234567', mail:'buh@alfa-school.ru',
   phone:'+7 (495) 123-45-67', account:'40702810900000012345'
@@ -3280,6 +3308,7 @@ function syncAccount(){
   var selfMail = document.getElementById('install-self-email');
   if (selfMail && selfMail !== document.activeElement) selfMail.value = account.mail;
   document.querySelectorAll('[data-acct-mail-plain]').forEach(function(el){ el.textContent = account.mail; });
+  if (typeof syncMessengers === 'function') syncMessengers();
   syncSetView();
 }
 /* Предзаполнение поля «куда писать по вопросам ПДн» отменено 9 сентября.
@@ -3977,15 +4006,28 @@ function syncSetView(){
 /* Каждый мессенджер подключается и отключается сам по себе: человек может
    держать Telegram для себя и MAX для рабочих уведомлений. Раньше блок
    позволял только один — подключение второго молча заменяло первый. */
-function syncMessenger(row, on){
-  row.querySelector('.msgr-on').style.display = on ? '' : 'none';
-  row.querySelector('.msgr-link').style.display = on ? 'none' : '';
-  row.querySelector('.msgr-unlink').style.display = on ? '' : 'none';
+function syncMessengers(){
+  document.querySelectorAll('.msgr').forEach(function(row){
+    var on = !!messengers[row.dataset.messenger];
+    row.querySelector('.msgr-on').style.display = on ? '' : 'none';
+    row.querySelector('.msgr-link').style.display = on ? 'none' : '';
+    row.querySelector('.msgr-unlink').style.display = on ? '' : 'none';
+  });
+  var linked = Object.keys(messengers).filter(function(k){ return messengers[k]; });
+  var where = document.getElementById('notify-where');
+  var offer = document.getElementById('notify-offer');
+  if (where) where.innerHTML = '<p class="tiny">Напишем на <b>' + account.mail + '</b>' +
+    (linked.length ? ' и в ' + linked.join(', ') + '.' : '.') + '</p>';
+  if (offer) offer.style.display = linked.length ? 'none' : '';
 }
 document.querySelectorAll('.msgr').forEach(function(row){
-  row.querySelector('.msgr-link').addEventListener('click', function(){ syncMessenger(row, true); });
-  row.querySelector('.msgr-unlink').addEventListener('click', function(){ syncMessenger(row, false); });
+  row.querySelector('.msgr-link').addEventListener('click', function(){ messengers[row.dataset.messenger] = true; syncMessengers(); });
+  row.querySelector('.msgr-unlink').addEventListener('click', function(){ messengers[row.dataset.messenger] = false; syncMessengers(); });
 });
+document.querySelectorAll('#notify-offer [data-connect-messenger]').forEach(function(b){
+  b.addEventListener('click', function(){ messengers[b.dataset.connectMessenger] = true; syncMessengers(); });
+});
+syncMessengers();
 
 document.querySelectorAll('#tabbar .tab').forEach(function(t){
   t.addEventListener('click', function(){
@@ -4122,11 +4164,14 @@ document.querySelectorAll('[data-install-mode]').forEach(function(b){
 });
 
 function syncInstallAction(){
-  var check = document.getElementById('install-action-btn');
+  var checks = document.querySelectorAll('.install-check-btn');
   var activate = document.getElementById('install-activate-btn');
   var note = document.getElementById('install-action-note');
   var found = installCheck === 'found';
-  if (check) check.textContent = found ? '↻ Проверить ещё раз' : '↻ Проверить скрипт на сайте';
+  checks.forEach(function(c){
+    var secondary = c.classList.contains('text');   // «Проверить сейчас» в ветке «поручу»
+    c.textContent = found ? '↻ Проверить ещё раз' : (secondary ? '↻ Проверить сейчас' : '↻ Проверить скрипт на сайте');
+  });
   if (activate) activate.disabled = !found;
   if (note) note.textContent = found
     ? 'Отсчёт 24 бесплатных часов начнётся с этого нажатия'
@@ -4145,13 +4190,13 @@ if (installActivateBtn) installActivateBtn.addEventListener('click', function(){
 var noScriptRetry = document.getElementById('no-script-retry');
 if (noScriptRetry) noScriptRetry.addEventListener('click', function(){
   setTimeout(function(){
-    var b = document.getElementById('install-action-btn');
-    if (b && !b.disabled) b.click();
+    var b = [...document.querySelectorAll('.install-check-btn')].find(function(x){ return x.offsetParent && !x.disabled; });
+    if (b) b.click();
   }, 0);
 });
 
-var installActionBtn = document.getElementById('install-action-btn');
-if (installActionBtn) installActionBtn.addEventListener('click', function(){
+document.querySelectorAll('.install-check-btn').forEach(function(installActionBtn){
+installActionBtn.addEventListener('click', function(){
   flashChecking(installActionBtn);
   setTimeout(function(){
     installProbes++;
@@ -4163,6 +4208,7 @@ if (installActionBtn) installActionBtn.addEventListener('click', function(){
       if (m) openModal(m, installActionBtn);
     }
   }, 1500);
+});
 });
 
 /* Блок «поручить установку» не показываем подрядчикам: веб-мастер или
