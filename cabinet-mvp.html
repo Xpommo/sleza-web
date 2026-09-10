@@ -246,6 +246,23 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
 .msgr-unlink{flex:none;width:32px;height:32px;display:grid;place-items:center;border:0;background:none;
   color:var(--danger);font-size:15px;line-height:1;border-radius:8px;cursor:pointer;font-family:inherit}
 .msgr-unlink:hover{background:var(--danger-tint)}
+/* Списки в модалке отмены: что перестанет работать и что уже сделано.
+   Маркеры цветом, а не иконками — модалка узкая, иконки съели бы строку. */
+/* Полоса накопленного: крупные числа первым, что видит глаз. Числа
+   нейтральным цветом — сдержанность читается убедительнее подкраски. */
+.cnl-stats{display:flex;gap:10px;margin-top:14px}
+.cnl-stat{flex:1;min-width:0;text-align:center;background:var(--paper);border:1px solid var(--line-2);
+  border-radius:10px;padding:10px 6px}
+.cnl-stat b{display:block;font-size:22px;font-weight:800;line-height:1.1;letter-spacing:-.02em}
+.cnl-stat span{display:block;font-size:10.5px;line-height:1.35;color:rgba(17,17,16,.62);margin-top:4px}
+/* Последствия — единственный цветной блок в модалке: это и есть то, что
+   человек должен взвесить, остальное не должно с ним спорить за внимание. */
+.cnl-loss{margin-top:8px;background:var(--danger-tint);border-radius:10px;padding:12px 14px}
+.loss-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.loss-list li{position:relative;padding-left:20px;font-size:12.5px;line-height:1.5;color:rgba(17,17,16,.75)}
+.loss-list li::before{position:absolute;left:0;top:0;font-weight:800}
+.loss-list li.loss::before{content:"✕";color:var(--danger)}
+.loss-list li.kept::before{content:"✓";color:var(--ok)}
 @media(max-width:640px){ .msgr-unlink{width:44px;height:44px} }
 .seg{display:inline-flex;gap:3px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
 .seg button{background:none;border:0;padding:8px 15px;border-radius:8px;font-size:13.5px;font-weight:700;
@@ -2747,10 +2764,38 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
 <div class="modal-overlay" data-state="closed" id="modal-cancel" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-cancel-title">Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
-    <p class="tiny" style="margin-top:10px">Доступ к документам и виджету сохранится до конца оплаченного периода — 05.08.2027. После этого виджет на сайте отключится, обновление по закону остановится — как при истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
+    <!-- Наполнено 10 сентября, переработано в тот же день: первая версия
+         читалась «как обычное окно отмены во всех селф-сервисах» — два
+         одинаковых серых списка, акценты не попадали в глаз. Теперь
+         накопленное вынесено в полосу с крупными числами (её видно первой,
+         и она растёт сама от месяца к месяцу), а последствия собраны в один
+         красный блок. Сознательно НЕ показываем «сколько штрафов вы не
+         получили»: проверял бы вас РКН и нашёл бы что-то — нам неизвестно,
+         а вендор комплаенса, посчитавший клиенту несуществующие спасённые
+         штрафы, теряет ровно то, что продаёт. -->
+    <div class="cnl-stats">
+      <div class="cnl-stat"><b>417</b><span>переходов по документам</span></div>
+      <div class="cnl-stat"><b>1</b><span>обновление под закон</span></div>
+      <div class="cnl-stat"><b>5</b><span>документов работают</span></div>
+    </div>
+    <p class="tiny" style="margin-top:14px">Всё продолжит работать до <b>05.08.2027</b> — до конца оплаченного периода. После этой даты:</p>
+    <div class="cnl-loss">
+      <ul class="loss-list">
+        <li class="loss">Виджет исчезнет с <b data-site-domain>alfa-school.ru</b> — cookie-баннер и подвал со ссылками</li>
+        <li class="loss">Пять ссылок на документы перестанут открываться — те, что стоят в подвале и в формах</li>
+        <li class="loss">Документы останутся в текущей версии: следить за изменениями закона и переписывать их мы перестанем</li>
+      </ul>
+    </div>
+    <p class="tiny" style="margin-top:14px">Что-то не работает или не устраивает? Часто это решается быстрее отмены — <button type="button" class="btn text sm" style="padding:0" data-go="s-support" data-modal-close="modal-cancel">напишите в поддержку</button>.</p>
     <div class="row" style="margin-top:16px">
-      <button class="btn solid" id="cancel-confirm" style="background:var(--danger);border-color:var(--danger)" data-modal-close="modal-cancel">Да, отменить</button>
-      <button class="btn text" data-modal-close="modal-cancel">Оставить подписку</button>
+      <!-- Вес кнопок перевёрнут: безопасный вариант основной, разрушительный
+           обведённый. Стандарт для необратимых действий (системные диалоги
+           macOS/iOS), а не приём удержания: «Да, отменить» осталась на том же
+           месте, первой, настоящей кнопкой того же размера, с красной
+           обводкой и красным текстом. Тёмный паттерн начинался бы там, где
+           она стала бы бледной ссылкой внизу. -->
+      <button class="btn" id="cancel-confirm" style="border-color:var(--danger);color:var(--danger)" data-modal-close="modal-cancel">Да, отменить</button>
+      <button class="btn solid" data-modal-close="modal-cancel">Оставить подписку</button>
     </div>
   </div>
 </div>
