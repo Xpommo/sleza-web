@@ -1379,7 +1379,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  тот же приём, что у data-regulated/data-cl-industry, тот
                  же PURPOSE_MAP в script. Ни одна не отмечена по
                  умолчанию — реальный чекбокс, не декорация. -->
-            <label class="check" data-purpose="booking"><input type="checkbox"><span class="t">Записать на приём/занятие<span class="ex">форма записи, кнопка «Записаться», онлайн-календарь</span></span></label>
+            <label class="check" data-purpose="booking"><input type="checkbox"><span class="t">Записать на приём/занятие<span class="ex">форма записи, кнопка «Записаться», запись на приём, занятие или демо</span></span></label>
             <label class="check" data-purpose="order"><input type="checkbox"><span class="t">Оформить и передать заказ<span class="ex">корзина, кнопка «Купить», оформление доставки</span></span></label>
             <label class="check" data-purpose="property"><input type="checkbox"><span class="t">Показать объект, записать на просмотр<span class="ex">заявка на просмотр, подбор объекта</span></span></label>
             <label class="check" data-purpose="consult"><input type="checkbox"><span class="t">Проконсультировать по услуге<span class="ex">форма «Задать вопрос», расчёт стоимости, бриф</span></span></label>
@@ -4443,20 +4443,25 @@ if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
    сферы, где типична формальная сделка (услуги для бизнеса, бытовые
    услуги, недвижимость, финансы, IT, производство); payment — сферы
    с частой оплатой прямо на сайте (запись/заказ + сразу оплата). */
+/* Матрица «сфера → цели» пересобрана 10 сентября вместе с пользователем
+   по строкам таблицы: до этого её собрал я в одиночку 28 августа, и
+   она была заметно уже нужного. «Другое» теперь показывает все восемь
+   целей — человек, не нашедший свою сферу, должен видеть самый широкий
+   список, а не самый узкий. */
 var PURPOSE_MAP = {
-  school: ['booking', 'inquiry', 'promo', 'payment'],
-  kids: ['booking', 'inquiry', 'promo', 'payment'],
-  bizserv: ['consult', 'contract', 'inquiry', 'promo'],
+  school: ['booking', 'consult', 'payment', 'inquiry', 'promo'],
+  kids: ['booking', 'consult', 'payment', 'inquiry', 'promo'],
+  bizserv: ['consult', 'contract', 'payment', 'inquiry', 'promo'],
   homeserv: ['consult', 'contract', 'inquiry', 'promo'],
-  beauty: ['booking', 'inquiry', 'promo', 'payment'],
-  medicine: ['booking', 'inquiry'],
+  beauty: ['booking', 'inquiry', 'promo'],
+  medicine: ['booking', 'consult', 'inquiry', 'promo'],
   shop: ['order', 'payment', 'inquiry', 'promo'],
   food: ['order', 'payment', 'inquiry', 'promo'],
-  realty: ['property', 'contract', 'inquiry', 'promo'],
-  finance: ['consult', 'contract', 'inquiry'],
-  it: ['consult', 'contract', 'inquiry'],
-  manuf: ['consult', 'contract', 'inquiry'],
-  other: ['inquiry', 'consult', 'promo']
+  realty: ['property', 'consult', 'contract', 'inquiry', 'promo'],
+  finance: ['consult', 'contract', 'inquiry', 'promo'],
+  it: ['booking', 'consult', 'contract', 'payment', 'inquiry', 'promo'],
+  manuf: ['booking', 'consult', 'contract', 'inquiry', 'promo'],
+  other: ['booking', 'order', 'property', 'consult', 'contract', 'payment', 'inquiry', 'promo']
 };
 function syncPurposes(){
   var sphere = sphereSelect.selectedOptions[0].dataset.sphere || 'other';
