@@ -238,6 +238,17 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    — это форма? чат? кнопка звонка?). Пример переводит цель в то, что
    он видит у себя. */
 .check .ex{display:block;font-size:12px;line-height:1.45;color:rgba(17,17,16,.62);margin-top:3px}
+/* Списки из коротких названий (платформа, аналитика) на широком экране
+   идут в две колонки: одинарной колонкой шаг «О сайте» вытягивался на
+   745px при том, что справа оставалась пустая половина карточки. Списки
+   с примерами под строкой сюда не попадают — там длина строки нужна. */
+@media(min-width:761px){
+  .check-2col{display:grid;grid-template-columns:1fr 1fr;column-gap:26px}
+  /* без линеек: в две колонки они обрываются на середине последнего ряда,
+     когда пунктов нечётное число. Строки здесь однострочные, разделять их
+     нечем — секции и так отбиты горизонтальной чертой. */
+  .check-2col .check{border-bottom:none;padding:7px 0}
+}
 /* Список мессенджеров: строка на каждый, состояние у каждой своё —
    подключить можно несколько сразу. */
 .msgr-list{display:flex;flex-direction:column}
@@ -1379,7 +1390,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <p class="lead" style="margin-top:8px">Сначала о вас — это контакты вашего кабинета. Дальше пойдут вопросы о сайте.</p>
 
       <div class="card pad state" data-has-identity="false" style="margin-top:16px">
-        <h2 style="margin-bottom:0">Кто заполняет анкету?</h2>
+        <h2 style="margin-bottom:0">Ваша роль в компании</h2>
         <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник</button><button type="button" data-swap="who-contractor" data-set-who="contractor">Подрядчик</button></div>
 
         <label class="f" style="margin-top:14px" for="anketa-person-name">Как к вам обращаться <span style="color:var(--danger)">*</span></label>
@@ -1405,8 +1416,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
 
       <div class="card pad" style="margin-top:10px">
-        <h2 style="margin-bottom:10px">Какая у вас сфера?</h2>
+        <h2 style="margin-bottom:10px">Сфера деятельности компании</h2>
         <select class="inp" id="anketa-sphere-select">
+          <option value="" selected disabled>Выберите сферу деятельности</option>
           <option data-sphere="school">Онлайн-школа, курсы, репетиторство</option>
           <option data-regulated="1" data-sphere="kids">Детский центр, кружки, секции</option>
           <option data-sphere="bizserv">Услуги для бизнеса (консалтинг, бухгалтерия, юр. услуги)</option>
@@ -1422,6 +1434,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <option data-sphere="other">Другое</option>
         </select>
       
+        <p class="tiny anketa-field-error" id="anketa-sphere-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите сферу деятельности — от неё зависят формулировки в документах.</p>
         <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-sphere">Зачем это нужно ⌄</button>
         <p class="tiny" id="fold-sphere" style="display:none;margin-top:8px">От сферы зависят формулировки в документах: цели сбора контактов, состав данных, оговорки.</p>
       </div>
@@ -1495,13 +1508,13 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <h1>О сайте</h1>
           <p class="lead" style="margin-top:8px">Технические детали сайта — попадут в формулировки политики и cookie-документа.</p>
           <div class="card pad" id="anketa-site-card" style="margin-top:16px">
-            <h2 style="margin-bottom:8px">На какой платформе сайт?</h2>
+            <h2 style="margin-bottom:8px">Платформа сайта</h2>
             <!-- Платформа одна, поэтому чекбоксы ведут себя как радио: выбор
                  переключается, снять последний нельзя. Вид общий с остальными
                  вопросами шага (правка пользователя 8 сентября), но множественный
                  выбор здесь был бы враньём — от платформы зависит, какую одну
                  инструкцию открыть на шаге установки (sitePlatform). -->
-            <div style="margin-top:4px">
+            <div class="check-2col" style="margin-top:4px">
               <label class="check"><input type="checkbox" data-platform-pick="tilda"><span class="t">Тильда</span></label>
               <label class="check"><input type="checkbox" data-platform-pick="wp"><span class="t">WordPress</span></label>
               <label class="check"><input type="checkbox" data-platform-pick="bitrix"><span class="t">Битрикс</span></label>
@@ -1510,20 +1523,27 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <p class="tiny anketa-field-error" id="anketa-platform-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите платформу — от неё зависит инструкция по установке на последнем шаге.</p>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:8px">Какая аналитика стоит на сайте?</h2>
-            <div style="margin-top:4px">
+            <h2 style="margin-bottom:8px">Аналитика на сайте</h2>
+            <div class="check-2col" style="margin-top:4px">
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Яндекс.Метрика</span></label>
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Google Analytics</span></label>
               <label class="check"><input type="checkbox" data-excl="analytics" data-excl-none><span class="t">Нет аналитики</span></label>
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:8px">Что ещё есть на сайте?</h2>
+            <h2 style="margin-bottom:8px">Формы и сервисы на сайте</h2>
             <div style="margin-top:4px">
-              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Корзина</span></label>
-              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Личный кабинет</span></label>
-              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Виджеты обратной связи</span></label>
-              <label class="check"><input type="checkbox" data-excl="features" data-excl-none><span class="t">Нет ничего</span></label>
+              <!-- Пунктов намеренно мало, а примеры — под каждым, тем же приёмом,
+                   что в «Целях сбора контактов» ниже. Расширять список нельзя:
+                   сегодня поп-ап записи, завтра квиз, послезавтра калькулятор —
+                   человек не найдёт свой случай и отметит «ничего нет», что хуже
+                   грубого «да, что-то такое есть». Для документов важна не марка
+                   виджета, а три факта: собирает ли контакты сторонний скрипт,
+                   есть ли авторизация, есть ли заказ и оплата. -->
+              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Корзина и оформление заказа<span class="ex">корзина, оформление доставки, оплата на сайте</span></span></label>
+              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Личный кабинет<span class="ex">регистрация, вход, история заказов</span></span></label>
+              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Чаты, всплывающие формы, обратный звонок<span class="ex">чат на сайте, поп-ап записи на консультацию, квиз, форма подписки</span></span></label>
+              <label class="check"><input type="checkbox" data-excl="features" data-excl-none><span class="t">Ничего из этого нет</span></label>
             </div>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Политика про cookie должна описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей, какие формы и чаты собирают контакты. Соберём её текст из этих ответов.</p>
@@ -1560,11 +1580,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <h1>Работа с клиентами</h1>
           <p class="lead" style="margin-top:8px">Как вы собираете и используете контакты — попадёт в политику и согласия.</p>
           <div class="card pad" id="anketa-clients-card" style="margin-top:16px">
-            <h3 style="margin-bottom:8px">Звоните, пишете в мессенджеры или на почту по базе клиентов?</h3>
+            <h2 style="margin-bottom:4px">Звонки и письма по базе клиентов</h2>
+            <p class="tiny" style="margin-bottom:8px">Отметьте, обращаетесь ли вы к клиентам из своей базы — звонком, в мессенджер или на почту.</p>
             <label class="check"><input type="checkbox" data-calls="yes" checked><span class="t">Да</span></label>
             <label class="check"><input type="checkbox" data-calls="no"><span class="t">Нет</span></label>
             <div class="hr" style="margin:14px 0"></div>
-            <h3 style="margin-bottom:4px">Зачем вы просите контакты у посетителей?</h3>
+            <h2 style="margin-bottom:4px">Цели сбора контактов</h2>
             <p class="tiny" style="margin-bottom:8px">Отметьте всё, что подходит — эти цели попадут в политику. Позже можно поправить.</p>
             <!-- Раньше — 3 галочки под одну сферу (онлайн-школа), все
                  предзаполнены checked без участия человека: для остальных
@@ -1572,7 +1593,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  пользователя, не реальным выбором (правка пользователя,
                  28 августа). Теперь — общий пул из 8 целей, у каждой
                  data-purpose="слаг"; видны только те, что относятся к
-                 сфере, выбранной в «Какая у вас сфера?» (s-anketa) —
+                 сфере, выбранной в «Сфера деятельности компании» (s-anketa) —
                  тот же приём, что у data-regulated/data-cl-industry, тот
                  же PURPOSE_MAP в script. Ни одна не отмечена по
                  умолчанию — реальный чекбокс, не декорация. -->
@@ -1584,8 +1605,16 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check" data-purpose="payment"><input type="checkbox"><span class="t">Принять оплату онлайн<span class="ex">оплата картой на сайте, ссылка на оплату</span></span></label>
             <label class="check" data-purpose="inquiry"><input type="checkbox"><span class="t">Ответить на обращение<span class="ex">форма обратной связи, «Заказать звонок», чат на сайте</span></span></label>
             <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях<span class="ex">рассылка, подписка на новости, письма об акциях</span></span></label>
+            <!-- ТОЛЬКО ДЛЯ МАКЕТА, в продукт не переносить. В реальном
+                 продукте сюда без выбранной сферы не попасть: «Далее» на
+                 шаге «Знакомство» без неё не пускает, а заглушку списка
+                 нельзя выбрать обратно (disabled). Пустой список целей
+                 возникает исключительно от прыжка по ленте МАКЕТА, и без
+                 этой строки карточка на ревью выглядит сломанной. -->
+            <p class="tiny" id="anketa-purpose-empty" style="display:none">Сначала выберите сферу деятельности на шаге «Знакомство» — под неё и покажем подходящие цели.</p>
+            <p class="tiny anketa-field-error" id="anketa-purpose-error" style="display:none;margin-top:8px;color:var(--danger)">Отметьте хотя бы одну цель — без них в политике нечего описывать.</p>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Отмеченное станет списком целей обработки в политике — это её обязательная часть: использовать данные для цели, которой в политике нет, нельзя. Поэтому отмечайте всё, что реально делаете, даже если пока редко. Отдельно про последний пункт: ФЗ «О рекламе» ст.18 требует на рассылки отдельное согласие получателя — без него рассылка технически возможна, но незаконна.</p>
+            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Отмеченное станет списком целей обработки в политике — это её обязательная часть: использовать данные для цели, которой в политике нет, нельзя.</p>
           </div>
 
           <!-- мобильный интерстишл — см. комментарий у секции выше.
@@ -1613,7 +1642,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                что и раньше: у ИП вместо ОГРН — ОГРНИП (другой реестр),
                у самозанятого нет ни ОГРН, ни КПП. -->
           <div class="card pad" id="anketa-req-card" style="margin-top:16px">
-            <h3 style="margin-bottom:8px">Форма собственности</h3>
+            <h2 style="margin-bottom:8px">Форма собственности</h2>
             <label class="check"><input type="checkbox" data-ownership-pick="ooo"><span class="t">ООО</span></label>
             <label class="check"><input type="checkbox" data-ownership-pick="ip"><span class="t">ИП</span></label>
             <label class="check"><input type="checkbox" data-ownership-pick="self"><span class="t">Самозанятый</span></label>
@@ -1621,7 +1650,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           </div>
 
           <div class="card pad" style="margin-top:10px">
-            <h3 style="margin-bottom:8px">Заполним по ИНН</h3>
+            <h2 style="margin-bottom:8px">Заполним по ИНН</h2>
             <label class="f" for="anketa-inn">ИНН <span style="color:var(--danger)">*</span></label>
             <input class="inp mono" id="anketa-inn" placeholder="10 цифр для организации, 12 для ИП и самозанятого" maxlength="12" inputmode="numeric">
             <p class="tiny anketa-field-error" id="anketa-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
@@ -1663,7 +1692,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           </div>
 
           <div class="card pad" style="margin-top:10px">
-            <h3 style="margin-bottom:8px">Контакты</h3>
+            <h2 style="margin-bottom:8px">Контакты</h2>
             <label class="f" for="anketa-company-mail">Email компании <span style="color:var(--danger)">*</span></label>
             <input class="inp" id="anketa-company-mail" type="email" placeholder="info@alfa-school.ru">
             <p class="tiny anketa-field-error" id="anketa-company-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — её увидят в реквизитах на сайте.</p>
@@ -1691,7 +1720,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           </div>
 
           <div class="card pad" style="margin-top:10px">
-            <h3 style="margin-bottom:8px">Банковские реквизиты</h3>
+            <h2 style="margin-bottom:8px">Банковские реквизиты</h2>
             <label class="f" for="anketa-account">Расчётный счёт <span style="color:var(--danger)">*</span></label>
             <input class="inp mono" id="anketa-account" inputmode="numeric" maxlength="20" placeholder="40702810...">
             <p class="tiny anketa-field-error" id="anketa-account-error" style="display:none;margin-top:5px;color:var(--danger)">Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
@@ -3874,6 +3903,15 @@ wireStepGate('anketa-start-next', [
   hasIdentity = true;    // «кто заполняет» спрашиваем один раз на аккаунт
   anketaSubstep = 1;
   goScreen('s-anketa2');
+}, function(){
+  // сфера — не поле ввода, поэтому отдельным условием: без неё на подшаге
+  // «Работа с клиентами» не покажется ни одной цели, и человек упрётся в
+  // пустой список без объяснения
+  var sel = document.getElementById('anketa-sphere-select');
+  var err = document.getElementById('anketa-sphere-error');
+  var ok = !!(sel && sel.selectedOptions[0] && sel.selectedOptions[0].dataset.sphere);
+  if (err) err.style.display = ok ? 'none' : 'block';
+  return ok;
 });
 
 // Копирование в буфер — независимый UX-аудит, критика A, P3: были молча
@@ -4243,6 +4281,15 @@ function goToRequisites(){
   window.scrollTo(0,0);
 }
 if (clientsNextBtn) clientsNextBtn.addEventListener('click', function(){
+  // Список целей — обязательная часть политики, так и написано в развороте
+  // над кнопкой; при этом «Далее» пропускал без единой отметки, и политика
+  // собралась бы без целей вовсе. Проверяются только видимые чекбоксы:
+  // набор зависит от сферы (PURPOSE_MAP).
+  var purposeErr = document.getElementById('anketa-purpose-error');
+  var anyPurpose = Array.prototype.slice.call(document.querySelectorAll('[data-purpose] input'))
+    .some(function(i){ return i.checked && i.closest('[data-purpose]').offsetParent; });
+  if (purposeErr) purposeErr.style.display = anyPurpose ? 'none' : 'block';
+  if (!anyPurpose) return;
   if (callsAnswerIsNo()) {
     var m = document.getElementById('modal-no-calls');
     if (m) { openModal(m, clientsNextBtn); return; }
@@ -4892,7 +4939,13 @@ var PURPOSE_MAP = {
   other: ['booking', 'order', 'property', 'consult', 'contract', 'payment', 'inquiry', 'promo']
 };
 function syncPurposes(){
-  var sphere = sphereSelect.selectedOptions[0].dataset.sphere || 'other';
+  var picked = sphereSelect.selectedOptions[0];
+  // заглушка «Выберите сферу» не несёт data-sphere: пока её не сменили,
+  // ни одна цель не показывается — список целей зависит от сферы
+  var sphere = picked && picked.dataset.sphere;
+  var empty = document.getElementById('anketa-purpose-empty');
+  if (empty) empty.style.display = sphere ? 'none' : 'block';
+  if (!sphere) { document.querySelectorAll('[data-purpose]').forEach(function(el){ el.hidden = true; }); return; }
   var allowed = PURPOSE_MAP[sphere] || PURPOSE_MAP.other;
   document.querySelectorAll('[data-purpose]').forEach(function(el){
     el.hidden = allowed.indexOf(el.dataset.purpose) === -1;
@@ -4902,6 +4955,8 @@ var sphereSelect = document.getElementById('anketa-sphere-select');
 if (sphereSelect) {
   syncPurposes();
   sphereSelect.addEventListener('change', function(){
+    var err = document.getElementById('anketa-sphere-error');
+    if (err) err.style.display = 'none';
     syncPurposes();
   });
 }
