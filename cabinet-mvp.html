@@ -2130,7 +2130,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           </div>
           <div class="state on" data-pay-state="paid">
             <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">оплачено</span></div>
-            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted">Продление</span><span class="small" style="font-weight:700">05.08.2027 · 29 900 ₽</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small muted" id="renew-label">Продление</span><span class="small" style="font-weight:700" id="renew-value">05.08.2027 · 29 900 ₽</span></div>
             <p class="tiny" style="margin-top:8px">Если не продлить — виджет на сайте отключится, обновление по закону остановится, как и по истечении пробного периода без оплаты. Страница политики останется доступной по ссылке.</p>
           </div>
           <div class="state" data-pay-state="pending">
@@ -2632,7 +2632,11 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            необратимое действие не должно соседствовать со способом
            оплаты, где на него легко попасть мимоходом. -->
       <div class="hr" style="margin-top:22px"></div>
-      <button class="btn text sm" style="color:var(--danger);padding:0;margin-top:4px" data-go-modal="modal-cancel">Отменить подписку</button>
+      <!-- После отмены строка меняется на возобновление: отмена — состояние,
+           а не разовое действие, и вернуться должно быть так же просто. -->
+      <p class="tiny" id="cancelled-note" style="display:none;margin-top:6px;color:var(--warn)">Подписка отменена. Всё работает до 05.08.2027, продление не спишется.</p>
+      <button class="btn text sm" id="cancel-open" style="color:var(--danger);padding:0;margin-top:4px" data-go-modal="modal-cancel">Отменить подписку</button>
+      <button class="btn sm" id="resume-sub" style="display:none;margin-top:4px">Возобновить подписку</button>
     </main>
   </div>
 </section>
@@ -2761,6 +2765,23 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
      виджет и обновление документов при смене закона — платная часть. -->
 <!-- то же самое разграничение — s-project-paid (data-pay-state=expired
      card) и FAQ на s-support. -->
+<!-- Второй шаг отмены: предложить помощь до того, как отменим (прямой
+     запрос пользователя 10 сентября). Сознательное ограничение — шаг РОВНО
+     один, кнопка отмены на нём равного веса и честно названа «Всё равно
+     отменить», причину ухода не спрашиваем, третьего шага нет. Подключение
+     у нас в один клик, и делать отмену заметно тяжелее подключения нельзя:
+     затруднённый отказ — то самое, на что мы указываем клиентам сами. -->
+<div class="modal-overlay" data-state="closed" id="modal-cancel-help" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-help-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
+    <div class="row" style="justify-content:space-between"><h3 id="modal-cancel-help-title">Может, получится помочь?</h3><button class="btn text sm" data-modal-close="modal-cancel-help">✕</button></div>
+    <p class="tiny" style="margin-top:10px">Если виджет мешает вёрстке, документы не подходят под ваш случай или счёт пришёл не тот — это чинится за день. Отменить успеете всегда: подписка активна до <b>05.08.2027</b>.</p>
+    <div class="row" style="margin-top:16px">
+      <button class="btn solid" data-go="s-support" data-modal-close="modal-cancel-help">Написать в поддержку</button>
+      <button class="btn" id="cancel-final" style="border-color:var(--danger);color:var(--danger)" data-modal-close="modal-cancel-help">Всё равно отменить</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" data-state="closed" id="modal-cancel" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-cancel-title">Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
@@ -2794,7 +2815,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            месте, первой, настоящей кнопкой того же размера, с красной
            обводкой и красным текстом. Тёмный паттерн начинался бы там, где
            она стала бы бледной ссылкой внизу. -->
-      <button class="btn" id="cancel-confirm" style="border-color:var(--danger);color:var(--danger)" data-modal-close="modal-cancel">Да, отменить</button>
+      <button class="btn" id="cancel-confirm" style="border-color:var(--danger);color:var(--danger)" data-modal-close="modal-cancel" data-go-modal="modal-cancel-help">Да, отменить</button>
       <button class="btn solid" data-modal-close="modal-cancel">Оставить подписку</button>
     </div>
   </div>
@@ -3383,6 +3404,7 @@ function goScreen(id){
   syncPayState();
   syncAnketaSubstep();
   syncSiteNaming();
+  syncCancelled();
   syncCompany();
   syncTariffName();
   syncFooterSkin();
@@ -4730,13 +4752,31 @@ if (requestInvoiceBtn) requestInvoiceBtn.addEventListener('click', function(){
 
 /* подтверждение отмены подписки — статус на карточке меняется сразу,
    без перезагрузки экрана, чтобы решение в модалке было видно на месте */
-var cancelConfirm = document.getElementById('cancel-confirm');
-if (cancelConfirm) {
-  cancelConfirm.addEventListener('click', function(){
-    var chip = document.getElementById('sub-chip');
-    if (chip) { chip.textContent = 'отменена · доступ до 05.08.2027'; chip.className = 'chip amber'; }
-  });
+/* Отмена — состояние, а не разовое действие: до 10 сентября кнопка «Да,
+   отменить» только меняла чип и закрывала модалку, а в «Подписке» и
+   «Обзоре» всё оставалось как было. Теперь отражается в трёх местах и
+   отменяется обратно одной кнопкой. */
+var subCancelled = false;
+function syncCancelled(){
+  var note = document.getElementById('cancelled-note');
+  var openBtn = document.getElementById('cancel-open');
+  var resume = document.getElementById('resume-sub');
+  if (note) note.style.display = subCancelled ? '' : 'none';
+  if (openBtn) openBtn.style.display = subCancelled ? 'none' : '';
+  if (resume) resume.style.display = subCancelled ? '' : 'none';
+  var chip = document.getElementById('sub-chip');
+  if (chip) {
+    chip.textContent = subCancelled ? 'отменена · доступ до 05.08.2027' : 'оплачено до 05.08.2027';
+    chip.className = subCancelled ? 'chip amber' : 'chip green';
+  }
+  var rl = document.getElementById('renew-label'), rv = document.getElementById('renew-value');
+  if (rl) rl.textContent = subCancelled ? 'Отменена' : 'Продление';
+  if (rv) rv.textContent = subCancelled ? 'доступ до 05.08.2027' : '05.08.2027 · 29 900 ₽';
 }
+var cancelFinal = document.getElementById('cancel-final');
+if (cancelFinal) cancelFinal.addEventListener('click', function(){ subCancelled = true; syncCancelled(); });
+var resumeSub = document.getElementById('resume-sub');
+if (resumeSub) resumeSub.addEventListener('click', function(){ subCancelled = false; syncCancelled(); });
 
 /* новый тикет — добавляется в «Мои обращения» со статусом «открыто»,
    ответ появляется там же, когда поддержка ответит (не только на почту) */
