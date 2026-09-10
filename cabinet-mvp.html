@@ -2028,7 +2028,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <div class="inst-plat">
             <span class="tiny">Платформа с шага «О сайте». Другая — переключите:</span>
           </div>
-          <div class="tabs" id="install-cms-tabs"><button class="on" data-swap="t1" data-platform="tilda">Тильда</button><button data-swap="t2" data-platform="wp">WordPress</button><button data-swap="t3" data-platform="bitrix">Битрикс</button><button data-swap="t4" data-platform="other">Другой сайт</button></div>
+          <div class="tabs" id="install-cms-tabs"><button type="button" class="on" data-platform="tilda">Тильда</button><button type="button" data-platform="wp">WordPress</button><button type="button" data-platform="bitrix">Битрикс</button><button type="button" data-platform="other">Другой сайт</button></div>
           <div class="code" id="install-code">&lt;script src="https://cdn.belysite.ru/w.js"
 data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <button class="btn sm solid copy-code-btn" style="margin-top:10px" data-copy-target="install-code">Скопировать код</button>
@@ -2038,30 +2038,30 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <li class="inst-step card pad" data-install-branch="self">
         <div class="inst-body">
           <h3>Вставьте на сайт</h3>
-          <div class="small"><div data-swapped="t1"><ol class="install-steps">
+          <div class="small"><div data-cms-panel="tilda"><ol class="install-steps">
         <li>Откройте <b>Настройки сайта</b> в панели Тильды</li>
         <li>Перейдите в раздел <b>Ещё</b></li>
         <li>Найдите поле <b>HTML-код для вставки внутрь HEAD</b></li>
         <li>Вставьте туда скопированную строку</li>
         <li>Нажмите <b>Опубликовать все страницы</b> — без этого код не появится на сайте</li>
-      </ol></div><div data-swapped="t2" style="display:none"><ol class="install-steps">
+      </ol></div><div data-cms-panel="wp" style="display:none"><ol class="install-steps">
         <li>В админке WordPress откройте <b>Внешний вид → Редактор тем</b></li>
         <li>Выберите файл <b>header.php</b></li>
         <li>Найдите строку <b>&lt;/head&gt;</b></li>
         <li>Вставьте скопированный код перед ней</li>
         <li>Нажмите <b>Обновить файл</b></li>
-      </ol></div><div data-swapped="t3" style="display:none"><ol class="install-steps">
+      </ol></div><div data-cms-panel="bitrix" style="display:none"><ol class="install-steps">
         <li>В админке Битрикса откройте <b>Настройки → Настройки продукта → Сайты</b></li>
         <li>Выберите ваш сайт и откройте его <b>шаблон</b></li>
         <li>Найдите секцию <b>HEAD</b></li>
         <li>Вставьте туда скопированный код</li>
         <li>Сохраните шаблон</li>
-      </ol></div><div data-swapped="t4" style="display:none"><ol class="install-steps">
+      </ol></div><div data-cms-panel="other" style="display:none"><ol class="install-steps">
         <li>Откройте HTML-шаблон сайта — тот файл, что подключается на всех страницах</li>
         <li>Найдите закрывающий тег <b>&lt;/head&gt;</b></li>
         <li>Вставьте скопированный код прямо перед ним</li>
         <li>Сохраните и опубликуйте изменения</li>
-        <li>Если не знаете, где шаблон — отправьте инструкцию тому, кто ведёт сайт (ниже)</li>
+        <li>Если не знаете, где шаблон — вверху выберите «Поручу другому», и мы отправим инструкцию тому, кто ведёт сайт</li>
       </ol></div></div>
         </div>
       </li>
@@ -3413,16 +3413,7 @@ function syncPayState(){
   document.querySelectorAll('[data-has-identity]').forEach(function(s){
     s.classList.toggle('on', (s.dataset.hasIdentity === 'true') === hasIdentity);
   });
-  var installTabs = document.getElementById('install-cms-tabs');
-  if (installTabs) {
-    installTabs.querySelectorAll('[data-platform]').forEach(function(b){
-      var match = b.dataset.platform === sitePlatform;
-      b.classList.toggle('on', match);
-      b.setAttribute('aria-pressed', match ? 'true' : 'false');
-      var panel = document.querySelector('[data-swapped="' + b.dataset.swap + '"]');
-      if (panel) panel.style.display = match ? '' : 'none';
-    });
-  }
+  showInstallCms(sitePlatform);
   // Вкладка «По счёту» на s-pay пряталась у самозанятого — считалось, что
   // расчётного счёта у него нет. Присланный 9 сентября шаблон реквизитов
   // говорит обратное: у самозанятого спрашиваются и счёт, и банк, и БИК, и
@@ -4345,6 +4336,32 @@ if (innInput) innInput.addEventListener('input', function(){
     if (cur === '' || cur === lastInnFill[id]) { el.value = map[id]; lastInnFill[id] = map[id]; }
   });
   if (found) found.style.display = 'block';
+});
+
+/* Вкладки платформы на шаге установки. Свой атрибут, а не общий data-swap:
+   кнопки стоят в карточке шага ①, а инструкции — в карточке шага ②, тогда
+   как общий [data-swap]-обработчик ищет панели внутри ближайшей .card.
+   Панелей он там не находил ни одной, класс `on` переезжал на нажатую
+   вкладку, а инструкция под ней оставалась тильдовской — что вкладку ни
+   нажми. Тот же класс коллизии, что уже разведён у data-reqmode и
+   data-install-mode. Клик по вкладке двигает и сам sitePlatform: человек
+   говорит «сайт не на Тильде», и возврат на этот экран не должен отматывать
+   его выбор обратно к ответу из анкеты. */
+function showInstallCms(p){
+  document.querySelectorAll('#install-cms-tabs [data-platform]').forEach(function(b){
+    var on = b.dataset.platform === p;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  document.querySelectorAll('[data-cms-panel]').forEach(function(x){
+    x.style.display = (x.dataset.cmsPanel === p) ? '' : 'none';
+  });
+}
+document.querySelectorAll('#install-cms-tabs [data-platform]').forEach(function(b){
+  b.addEventListener('click', function(){
+    sitePlatform = b.dataset.platform;
+    showInstallCms(sitePlatform);
+  });
 });
 
 document.querySelectorAll('[data-platform-pick]').forEach(function(box){
