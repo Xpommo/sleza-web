@@ -947,6 +947,17 @@ details.acc:first-child{margin-top:0}
    скачиваются. Класс на body (не на каждую из 5 строк отдельно, см.
    syncPayState в script) — переключается вместе с остальными
    data-pay-state состояниями. */
+/* Один набор иконок на весь кабинет — те же контурные SVG, что уже стоят
+   в мобильной панели. До этого в сайдбаре жили две системы сразу: три
+   раздела из пяти носили одинаковую ▤ (Обзор, Документы и Виджет было
+   не различить), а Подписка с Поддержкой — цветные эмодзи, которые ещё
+   и рисуются по-разному в разных ОС. */
+.nav-ico{width:17px;height:17px;flex:none}
+/* Подзаголовок внутри карточки. Раньше этот же вид повторялся пятью
+   инлайн-наборами и размечался то h3, то h2 — в «Виджете» доходило до
+   того, что мелкий уппер-кейс был h2, а крупное название блока над ним
+   вообще не заголовком. */
+.sub-h{margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)}
 .doc-actions{display:inline-flex;gap:6px;flex:none}
 /* «Изменить» стоит в мета-строке под названием, а не четвёртой кнопкой
    справа: справа он ломал колонки — либо сдвигал у своей строки и чип, и
@@ -973,11 +984,11 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      Это то, куда идут осознанно, поэтому край и один лишний тап здесь
      уместны, в отличие от разделов, между которыми ходят постоянно. -->
 <div class="more-sheet" id="more-sheet" hidden>
-  <button type="button" data-tab-go="s-status">📁 Мои сайты</button>
-  <button type="button" data-tab-go="s-support">💬 Поддержка</button>
-  <button type="button" data-tab-go="s-settings">⚙ Настройки</button>
+  <button type="button" data-tab-go="s-status"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a2 2 0 0 0-2-2h-6.6l-1.7-2.3a2 2 0 0 0-1.6-.8H5.5a2 2 0 0 0-2 2Z"/></svg><span>Мои сайты</span></button>
+  <button type="button" data-tab-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button>
+  <button type="button" data-tab-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button>
   <div class="div"></div>
-  <button type="button">↪ Выйти</button>
+  <button type="button"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button>
 </div>
 <nav class="tabbar" id="tabbar" hidden aria-label="Разделы кабинета">
   <button type="button" class="tab" data-tab="s-widget"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button>
@@ -1017,6 +1028,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <span class="chip out">макет</span>
     </div>
     <h1>Вход в кабинет</h1>
+      <p class="lead" style="margin-top:8px">Выберите, чем удобнее войти — пароль не нужен.</p>
 
 <div style="margin-top:20px">
         <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
@@ -1164,15 +1176,16 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <div class="appwrap sidebar">
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
-      <div class="navlist"><a class="on">📁 Мои сайты</a></div>
-      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist"><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a2 2 0 0 0-2-2h-6.6l-1.7-2.3a2 2 0 0 0-1.6-.8H5.5a2 2 0 0 0-2 2Z"/></svg><span>Мои сайты</span></a></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
       <h1>Мои сайты</h1>
+      <p class="lead" style="margin-top:8px">У каждого сайта свои документы, свой виджет и своя подписка.</p>
 
       <div class="state" data-has-site="false" style="margin-top:18px">
         <div class="card pad" style="max-width:440px;text-align:center;padding:36px 28px">
@@ -1330,7 +1343,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -1339,7 +1352,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <p class="lead" style="margin-top:8px">Сначала о вас — это контакты вашего кабинета. Дальше пойдут вопросы о сайте.</p>
 
       <div class="card pad state" data-has-identity="false" style="margin-top:16px">
-        <h3>Кто заполняет анкету?</h3>
+        <h2 style="margin-bottom:0">Кто заполняет анкету?</h2>
         <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник</button><button type="button" data-swap="who-contractor" data-set-who="contractor">Подрядчик</button></div>
 
         <label class="f" style="margin-top:14px" for="anketa-person-name">Как к вам обращаться <span style="color:var(--danger)">*</span></label>
@@ -1358,14 +1371,14 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
 
       <div class="card pad" style="margin-top:10px">
-        <h3>Домен и название сайта</h3>
+        <h2 style="margin-bottom:0">Домен и название сайта</h2>
         <input class="inp mono" id="add-domain" aria-label="Домен сайта" placeholder="alfa-school.ru" style="margin-top:10px">
         <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
         <input class="inp" id="add-name" aria-label="Название компании" placeholder="Название компании" style="margin-top:10px">
       </div>
 
       <div class="card pad" style="margin-top:10px">
-        <h3 style="margin-bottom:10px">Какая у вас сфера?</h3>
+        <h2 style="margin-bottom:10px">Какая у вас сфера?</h2>
         <select class="inp" id="anketa-sphere-select">
           <option data-sphere="school">Онлайн-школа, курсы, репетиторство</option>
           <option data-regulated="1" data-sphere="kids">Детский центр, кружки, секции</option>
@@ -1436,7 +1449,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -1455,7 +1468,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <h1>О сайте</h1>
           <p class="lead" style="margin-top:8px">Технические детали сайта — попадут в формулировки политики и cookie-документа.</p>
           <div class="card pad" id="anketa-site-card" style="margin-top:16px">
-            <h3 style="margin-bottom:8px">На какой платформе сайт?</h3>
+            <h2 style="margin-bottom:8px">На какой платформе сайт?</h2>
             <!-- Платформа одна, поэтому чекбоксы ведут себя как радио: выбор
                  переключается, снять последний нельзя. Вид общий с остальными
                  вопросами шага (правка пользователя 8 сентября), но множественный
@@ -1470,7 +1483,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <p class="tiny anketa-field-error" id="anketa-platform-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите платформу — от неё зависит инструкция по установке на последнем шаге.</p>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h3 style="margin-bottom:8px">Какая аналитика стоит на сайте?</h3>
+            <h2 style="margin-bottom:8px">Какая аналитика стоит на сайте?</h2>
             <div style="margin-top:4px">
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Яндекс.Метрика</span></label>
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Google Analytics</span></label>
@@ -1478,7 +1491,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h3 style="margin-bottom:8px">Что ещё есть на сайте?</h3>
+            <h2 style="margin-bottom:8px">Что ещё есть на сайте?</h2>
             <div style="margin-top:4px">
               <label class="check"><input type="checkbox" data-excl="features"><span class="t">Корзина</span></label>
               <label class="check"><input type="checkbox" data-excl="features"><span class="t">Личный кабинет</span></label>
@@ -1725,7 +1738,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -1865,22 +1878,22 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><button type="button" data-go="s-project-paid">▤ Обзор</button><button type="button" data-go="s-docs">▤ Документы</button><a class="on">💳 Подписка</a><button type="button" data-go="s-widget">▤ Виджет</button></div>
-      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></a><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
-    <h1>Оплата</h1>
+    <h1>Оплата подписки</h1>
     <p class="lead" style="margin-top:8px">Виджет и документы уже работают на <span data-site-domain>alfa-school.ru</span> — оплата продлевает доступ после пробного периода.</p>
 
     <h2 style="margin-top:20px">Что входит</h2>
     <div class="card pad" style="margin-top:12px">
-      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Уже работает — пробный период, 24 часа</h3>
+      <h3 class="sub-h">Уже работает — пробный период, 24 часа</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты<br>· Документы по постоянным адресам — ссылки не ломаются</div>
-      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62);margin-top:14px">Оплата продлевает</h3>
+      <h3 class="sub-h" style="margin-top:14px">Оплата продлевает</h3>
       <div class="small" style="line-height:1.9;margin-top:6px">· Доступ не прерывается после пробного периода<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
       <div class="hr"></div>
       <p class="tiny" style="margin-bottom:10px"><b style="color:var(--ink)">Оплата раз в год — но это подписка, не разовая покупка</b>: меняется закон, вместе с ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.</p>
@@ -2016,7 +2029,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -2030,7 +2043,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          Подрядчику сегмент не показываем: он сам и есть тот, кому
          поручают, — ветка у него всегда «сам» (см. syncInstallMode). -->
     <div class="card pad" style="margin-top:18px" data-who-visible="owner staff">
-      <h3 style="margin-bottom:8px">Кто поставит код?</h3>
+      <h2 style="margin-bottom:8px">Кто поставит код?</h2>
       <div class="seg">
         <button type="button" class="on" data-install-mode="self">Поставлю сам</button>
         <button type="button" data-install-mode="delegate">Поручу другому</button>
@@ -2040,7 +2053,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <ol class="inst-steps">
       <li class="inst-step card pad" data-install-branch="self">
         <div class="inst-body">
-          <h3>Скопируйте код</h3>
+          <h2 style="margin-bottom:0">Скопируйте код</h2>
           <div class="inst-plat">
             <span class="tiny">Платформа с шага «О сайте». Другая — переключите:</span>
           </div>
@@ -2053,7 +2066,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
 
       <li class="inst-step card pad" data-install-branch="self">
         <div class="inst-body">
-          <h3>Вставьте на сайт</h3>
+          <h2 style="margin-bottom:0">Вставьте на сайт</h2>
           <div class="small"><div data-cms-panel="tilda"><ol class="install-steps">
         <li>Откройте <b>Настройки сайта</b> в панели Тильды</li>
         <li>Перейдите в раздел <b>Ещё</b></li>
@@ -2110,7 +2123,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
                наполовину сгорит. Поэтому: увидели сами → написали → человек
                вернулся и запустил часы. -->
           <div data-install-branch="self">
-            <h3>Проверьте, что он заработал</h3>
+            <h2 style="margin-bottom:0">Проверьте, что он заработал</h2>
             <p class="tiny" style="margin-bottom:10px">Откроем ваш сайт и поищем строку кода на странице.</p>
             <button type="button" class="btn sm solid install-check-btn">↻ Проверить скрипт на сайте</button>
           </div>
@@ -2172,23 +2185,26 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><a class="on">▤ Обзор</a><button type="button" data-go="s-docs">▤ Документы</button><button type="button" data-go="s-billing">💳 Подписка</button><button type="button" data-go="s-widget">▤ Виджет</button></div>
-      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist"><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></a><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><button type="button" data-go="s-billing"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
       <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <!-- Единственный экран кабинета, у которого не было h1: заголовком
+             служил домен, набранный инлайн-стилями. В меню пункт назывался
+             «Обзор», а на странице этого слова не было нигде — и структура
+             заголовков обрывалась на h2 внутри. Теперь как у всех разделов:
+             h1 с именем раздела, под ним строка контекста с доменом. -->
         <div>
-          <div class="mono" style="font-size:24px;font-weight:700" data-site-domain>alfa-school.ru</div>
-          <div class="row" style="gap:8px;align-items:baseline;margin-top:3px">
+          <h1>Обзор</h1>
+          <p class="lead" style="margin-top:6px"><span class="mono" style="font-weight:700;color:var(--ink)" data-site-domain>alfa-school.ru</span> · что сейчас с сайтом и что делать дальше</p>
+          <div class="row" style="gap:8px;align-items:baseline;margin-top:8px">
             <span class="tiny" data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span>
             <button type="button" class="btn text sm" style="padding:0;font-size:12px" data-go-modal="modal-req-set">Изменить</button>
-          </div>
-          <div class="row" style="margin-top:6px">
-            <span class="tiny mono">установка проверена сегодня</span>
           </div>
         </div>
       </div>
@@ -2351,11 +2367,11 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><button type="button" data-go="s-project-paid">▤ Обзор</button><a class="on">▤ Документы</a><button type="button" data-go="s-billing">💳 Подписка</button><button type="button" data-go="s-widget">▤ Виджет</button></div>
-      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></a><button type="button" data-go="s-billing"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -2448,15 +2464,16 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            Настройки заходят из любого раздела через меню аккаунта, и
            жёсткий «← Обзор» уводил не туда. -->
       <button type="button" class="backlink" id="settings-back">← Назад</button>
-      <div class="navlist"><a class="on">⚙ Настройки</a></div>
-      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist"><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></a></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
       <h1>Настройки</h1>
+      <p class="lead" style="margin-top:8px">Ваши контакты и вход в кабинет — общие для всех сайтов. Данные компании для документов живут в самом сайте.</p>
 
       <!-- Настройки сжаты до Контактов и Реквизитов — Подписка и Виджет
            переехали на свои экраны верхнего уровня в сайдбаре (HANDOFF
@@ -2515,7 +2532,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           </div>
         </div>
         <div class="hr"></div>
-        <div style="font-weight:700;font-size:14.5px">Мессенджеры</div>
+        <h3 class="sub-h">Мессенджеры</h3>
         <p class="tiny" style="margin-top:4px;margin-bottom:10px">Вход в один тап и уведомления туда же — о продлении, оплате и статусе виджета. Можно подключить несколько.</p>
         <!-- Список, а не «подключить один»: человек может держать Telegram
              для себя и MAX для рабочих уведомлений. Каждая строка сама себе
@@ -2571,15 +2588,16 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><button type="button" data-go="s-project-paid">▤ Обзор</button><button type="button" data-go="s-docs">▤ Документы</button><a class="on">💳 Подписка</a><button type="button" data-go="s-widget">▤ Виджет</button></div>
-      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></a><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
       <h1>Подписка</h1>
+      <p class="lead" style="margin-top:8px">Тариф, способ оплаты и закрывающие документы по <span data-site-domain>alfa-school.ru</span>.</p>
 
       <!-- Тариф — первым блоком (правка 9 сентября): выбор того, за что
            платим, логично стоит раньше выбора, чем платим. Линейка ещё не
@@ -2676,7 +2694,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             <div style="flex:1">
               <label class="f" for="card-exp">Срок действия <span style="color:var(--danger)">*</span></label>
               <input class="inp mono" id="card-exp" maxlength="5" placeholder="ММ/ГГ">
-              <p class="tiny anketa-field-error" id="card-exp-error" style="display:none;margin-top:5px;color:var(--danger)">Срок в виде ММ/ГГ.</p>
+              <p class="tiny anketa-field-error" id="card-exp-error" style="display:none;margin-top:5px;color:var(--danger)">Срок действия — в формате ММ/ГГ.</p>
             </div>
             <div style="flex:1">
               <label class="f" for="card-cvc">CVC <span style="color:var(--danger)">*</span></label>
@@ -3011,11 +3029,11 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><button type="button" data-go="s-project-paid">▤ Обзор</button><button type="button" data-go="s-docs">▤ Документы</button><button type="button" data-go="s-billing">💳 Подписка</button><a class="on">▤ Виджет</a></div>
-      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
+      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><button type="button" data-go="s-billing"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></a></div>
+      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -3043,7 +3061,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="card pad" style="margin-top:16px">
         <div class="row" style="justify-content:space-between;align-items:center">
           <div>
-            <div style="font-weight:700;font-size:15px">Баннер cookie</div>
+            <h2 style="font-size:15px;margin:0">Баннер cookie</h2>
             <p class="tiny" id="banner-status-p" style="margin-top:3px;color:var(--ok)">✓ Показывается посетителям</p>
           </div>
           <label class="switch" title="Включить/выключить баннер">
@@ -3055,7 +3073,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div class="hr" style="margin-top:12px"></div>
 
         <div id="banner-live-content">
-        <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Тема баннера</h2>
+        <h3 class="sub-h">Тема баннера</h3>
         <div class="seg" style="margin:8px 0 12px">
           <button type="button" data-banner-skin="light">Светлая</button>
           <button type="button" class="on" data-banner-skin="dark">Тёмная</button>
@@ -3077,7 +3095,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="card pad" style="margin-top:16px">
         <div class="row" style="justify-content:space-between;align-items:center">
           <div>
-            <div style="font-weight:700;font-size:15px">Подвал сайта</div>
+            <h2 style="font-size:15px;margin:0">Подвал сайта</h2>
             <p class="tiny" id="footer-status-p" style="margin-top:3px;color:var(--ok)">✓ Показывается посетителям</p>
           </div>
           <label class="switch" title="Включить/выключить подвал сайта">
@@ -3096,7 +3114,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
              клиента один, и показывать его в двух видах на разных
              страницах кабинета значило бы врать. «Авто» здесь пока нет —
              у баннера она есть, вопрос открыт. -->
-        <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)">Тема подвала</h2>
+        <h3 class="sub-h">Тема подвала</h3>
         <div class="seg" style="margin:8px 0 12px">
           <button type="button" data-footer-skin="light">Светлая</button>
           <button type="button" class="on" data-footer-skin="dark">Тёмная</button>
@@ -3150,18 +3168,18 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
   <div class="appwrap sidebar">
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
-      <button type="button" class="backlink" data-go="s-project-paid">← Обзор</button>
+      <button type="button" class="backlink" id="support-back">← Назад</button>
       <!-- независимый обзор кабинета: у Поддержки, в отличие от Обзора/
            Документов/Подписки/Виджета, не было общего navlist — попав
            сюда, нельзя было напрямую перейти в другой раздел сайта, только
            назад в Обзор. Настройки НЕ трогаем тем же приёмом — они
            намеренно живут только в acct-menu (уровень аккаунта, не сайта),
            это уже так и задумано. -->
-      <div class="navlist"><button type="button" data-go="s-project-paid">▤ Обзор</button><button type="button" data-go="s-docs">▤ Документы</button><button type="button" data-go="s-billing">💳 Подписка</button><button type="button" data-go="s-widget">▤ Виджет</button></div>
-      <div class="navlist support" style="margin-top:auto"><a class="on">💬 Поддержка</a></div>
+      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><button type="button" data-go="s-billing"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
+      <div class="navlist support" style="margin-top:auto"><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></a></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings">⚙ Настройки</button><button type="button" class="support-mobile" data-go="s-support">💬 Поддержка</button><div class="div"></div><button>↪ Выйти</button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -3586,10 +3604,10 @@ function syncTabbar(id){
     t.classList.toggle('on', key === id || (key === '__more' && TAB_MORE.indexOf(id) !== -1));
   });
 }
-var prevScreen = 's-project-paid';   // куда вернуться из Настроек
+var prevScreen = 's-project-paid';   // куда вернуться из Настроек и Поддержки
 function goScreen(id){
   var cur = document.querySelector('.screen.on');
-  if (cur && cur.id !== id && cur.id !== 's-settings') prevScreen = cur.id;
+  if (cur && cur.id !== id && cur.id !== 's-settings' && cur.id !== 's-support') prevScreen = cur.id;
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('on', s.id === id); });
   syncPayState();
   syncAnketaSubstep();
@@ -4130,6 +4148,8 @@ document.addEventListener('focusout', function(){
 
 var settingsBack = document.getElementById('settings-back');
 if (settingsBack) settingsBack.addEventListener('click', function(){ goScreen(prevScreen); });
+var supportBack = document.getElementById('support-back');
+if (supportBack) supportBack.addEventListener('click', function(){ goScreen(prevScreen); });
 
 var setEditBtn = document.getElementById('set-edit');
 if (setEditBtn) setEditBtn.addEventListener('click', function(){ syncAccount(); toggleSetForm(true); });
