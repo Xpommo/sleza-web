@@ -232,6 +232,14 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    — это форма? чат? кнопка звонка?). Пример переводит цель в то, что
    он видит у себя. */
 .check .ex{display:block;font-size:12px;line-height:1.45;color:rgba(17,17,16,.62);margin-top:3px}
+/* Список мессенджеров: строка на каждый, состояние у каждой своё —
+   подключить можно несколько сразу. */
+.msgr-list{display:flex;flex-direction:column}
+.msgr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.msgr:last-child{border-bottom:0}
+.msgr-ico{display:flex;flex:none}
+.msgr-name{font-size:14px;font-weight:700;flex:1;min-width:0}
+.msgr .btn{flex:none}
 .seg{display:inline-flex;gap:3px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
 .seg button{background:none;border:0;padding:8px 15px;border-radius:8px;font-size:13.5px;font-weight:700;
   color:rgba(17,17,16,.6);cursor:pointer;transition:transform 160ms ease-out,background-color .15s ease-out,color .15s ease-out}
@@ -349,7 +357,10 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
 .acct-menu .div{height:1px;background:var(--line);margin:5px 2px}
 /* «Поддержка» дублируется сюда только на мобильном — см. @media 820px ниже,
    раздел про сайдбар. На десктопе у неё свой пункт в сайдбаре, здесь она лишняя. */
-.support-mobile{display:none}
+/* Специфичность: .support-mobile — (0,1,0), а .acct-menu button ниже —
+   (0,1,1), поэтому одиночного класса не хватало и пункт оставался виден
+   на десктопе рядом с «Поддержкой» в сайдбаре. */
+.acct-menu .support-mobile{display:none}
 
 /* ── «Мои сайты» — карточки/таблица, портировано из cabinet-b.html (s-list) ── */
 .strip{display:flex;gap:4px}
@@ -429,7 +440,7 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
   .navlist:not(.support){display:inline-flex;gap:2px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
   .navlist:not(.support) a,.navlist:not(.support) button{padding:7px 11px;border-radius:7px;font-size:13px}
   .navlist.support{display:none}
-  .support-mobile{display:flex}
+  .acct-menu .support-mobile{display:flex}
   /* Степпер на мобильном скрыт по той же логике, что и «Поддержка» выше:
      шесть строк списка в горизонтальной шапке съедали пол-экрана до
      первого вопроса. Ориентацию здесь держит счётчик «шаг X из 6» над
@@ -2243,7 +2254,10 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
   <div class="appwrap sidebar">
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
-      <button type="button" class="backlink" data-go="s-project-paid">← Обзор</button>
+      <!-- Возврат на экран, откуда пришли, а не всегда на «Обзор»: в
+           Настройки заходят из любого раздела через меню аккаунта, и
+           жёсткий «← Обзор» уводил не туда. -->
+      <button type="button" class="backlink" id="settings-back">← Назад</button>
       <div class="navlist"><a class="on">⚙ Настройки</a></div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support">💬 Поддержка</button></div>
       <div class="acct" style="margin-top:0">
@@ -2311,20 +2325,32 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           </div>
         </div>
         <div class="hr"></div>
-        <div id="messenger-offer">
-          <div style="font-weight:700;font-size:14.5px">Подключите мессенджер</div>
-          <p class="tiny" style="margin-top:4px;margin-bottom:10px">Вход в один тап, без письма и ожидания. Туда же будем присылать уведомления — о продлении, оплате и статусе виджета.</p>
-          <button type="button" class="btn-social" data-connect-messenger="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#29a9eb"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Подключить Telegram</button>
-          <button type="button" class="btn-social" data-connect-messenger="Яндекс"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#f33"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Подключить Яндекс</button>
-          <button type="button" class="btn-social" data-connect-messenger="MAX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#7d59d6"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Подключить MAX</button>
-        </div>
-        <div id="messenger-linked" style="display:none">
-          <div class="row" style="justify-content:space-between;align-items:center;gap:12px">
-            <div>
-              <div style="font-weight:700;font-size:14.5px"><span id="messenger-name">Telegram</span> подключён</div>
-              <div class="tiny" style="margin-top:2px">Вход в один тап, уведомления приходят туда</div>
-            </div>
-            <button type="button" class="btn text sm" style="color:var(--danger);padding:0;flex:none" id="messenger-unlink">Отключить</button>
+        <div style="font-weight:700;font-size:14.5px">Мессенджеры</div>
+        <p class="tiny" style="margin-top:4px;margin-bottom:10px">Вход в один тап, без письма и ожидания. Туда же будем присылать уведомления — о продлении, оплате и статусе виджета. Можно подключить несколько: войдёте любым, уведомления придут во все.</p>
+        <!-- Список, а не «подключить один»: человек может держать Telegram
+             для себя и MAX для рабочих уведомлений. Каждая строка сама себе
+             состояние — подключено или нет. -->
+        <div class="msgr-list">
+          <div class="msgr" data-messenger="Telegram">
+            <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#29a9eb"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="msgr-name">Telegram</span>
+            <span class="chip green msgr-on" style="display:none">подключён</span>
+            <button type="button" class="btn sm msgr-link">Подключить</button>
+            <button type="button" class="btn text sm msgr-unlink" style="color:var(--danger);padding:0;display:none">Отключить</button>
+          </div>
+          <div class="msgr" data-messenger="Яндекс">
+            <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#f33"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="msgr-name">Яндекс</span>
+            <span class="chip green msgr-on" style="display:none">подключён</span>
+            <button type="button" class="btn sm msgr-link">Подключить</button>
+            <button type="button" class="btn text sm msgr-unlink" style="color:var(--danger);padding:0;display:none">Отключить</button>
+          </div>
+          <div class="msgr" data-messenger="MAX">
+            <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#7d59d6"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="msgr-name">MAX</span>
+            <span class="chip green msgr-on" style="display:none">подключён</span>
+            <button type="button" class="btn sm msgr-link">Подключить</button>
+            <button type="button" class="btn text sm msgr-unlink" style="color:var(--danger);padding:0;display:none">Отключить</button>
           </div>
         </div>
       </div>
@@ -3297,7 +3323,10 @@ function syncSiteNaming(){
   document.querySelectorAll('[data-site-id]').forEach(function(el){ el.textContent = SITE_ID; });
 }
 
+var prevScreen = 's-project-paid';   // куда вернуться из Настроек
 function goScreen(id){
+  var cur = document.querySelector('.screen.on');
+  if (cur && cur.id !== id && cur.id !== 's-settings') prevScreen = cur.id;
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('on', s.id === id); });
   syncPayState();
   syncAnketaSubstep();
@@ -3773,18 +3802,21 @@ function syncSetView(){
 /* Подключение мессенджера — состояние, а не мигающее подтверждение: тот
    же вывод, что уже трижды делали (проверка скрипта, привязка карты,
    счёт). Настоящей интеграции нет, поэтому клик просто фиксирует выбор. */
-document.querySelectorAll('[data-connect-messenger]').forEach(function(b){
-  b.addEventListener('click', function(){
-    document.getElementById('messenger-name').textContent = b.dataset.connectMessenger;
-    document.getElementById('messenger-offer').style.display = 'none';
-    document.getElementById('messenger-linked').style.display = '';
-  });
+/* Каждый мессенджер подключается и отключается сам по себе: человек может
+   держать Telegram для себя и MAX для рабочих уведомлений. Раньше блок
+   позволял только один — подключение второго молча заменяло первый. */
+function syncMessenger(row, on){
+  row.querySelector('.msgr-on').style.display = on ? '' : 'none';
+  row.querySelector('.msgr-link').style.display = on ? 'none' : '';
+  row.querySelector('.msgr-unlink').style.display = on ? '' : 'none';
+}
+document.querySelectorAll('.msgr').forEach(function(row){
+  row.querySelector('.msgr-link').addEventListener('click', function(){ syncMessenger(row, true); });
+  row.querySelector('.msgr-unlink').addEventListener('click', function(){ syncMessenger(row, false); });
 });
-var messengerUnlink = document.getElementById('messenger-unlink');
-if (messengerUnlink) messengerUnlink.addEventListener('click', function(){
-  document.getElementById('messenger-offer').style.display = '';
-  document.getElementById('messenger-linked').style.display = 'none';
-});
+
+var settingsBack = document.getElementById('settings-back');
+if (settingsBack) settingsBack.addEventListener('click', function(){ goScreen(prevScreen); });
 
 var setEditBtn = document.getElementById('set-edit');
 if (setEditBtn) setEditBtn.addEventListener('click', function(){ syncAccount(); toggleSetForm(true); });
