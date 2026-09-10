@@ -240,6 +240,13 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
 .msgr-ico{display:flex;flex:none}
 .msgr-name{font-size:14px;font-weight:700;flex:1;min-width:0}
 .msgr .btn{flex:none}
+/* «Отключить» словом весило больше самой строки — заменено крестиком с
+   подсказкой при наведении (title, как у тумблеров виджета). Размер держим
+   не меньше 32px, на телефоне 44px: иначе крестик не попасть пальцем. */
+.msgr-unlink{flex:none;width:32px;height:32px;display:grid;place-items:center;border:0;background:none;
+  color:var(--danger);font-size:15px;line-height:1;border-radius:8px;cursor:pointer;font-family:inherit}
+.msgr-unlink:hover{background:var(--danger-tint)}
+@media(max-width:640px){ .msgr-unlink{width:44px;height:44px} }
 .seg{display:inline-flex;gap:3px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
 .seg button{background:none;border:0;padding:8px 15px;border-radius:8px;font-size:13.5px;font-weight:700;
   color:rgba(17,17,16,.6);cursor:pointer;transition:transform 160ms ease-out,background-color .15s ease-out,color .15s ease-out}
@@ -2336,21 +2343,21 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             <span class="msgr-name">Telegram</span>
             <span class="chip green msgr-on" style="display:none">подключён</span>
             <button type="button" class="btn sm msgr-link">Подключить</button>
-            <button type="button" class="btn text sm msgr-unlink" style="color:var(--danger);padding:0;display:none">Отключить</button>
+            <button type="button" class="msgr-unlink" title="Отвязать аккаунт" aria-label="Отвязать аккаунт" style="display:none">✕</button>
           </div>
           <div class="msgr" data-messenger="Яндекс">
             <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#f33"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="msgr-name">Яндекс</span>
             <span class="chip green msgr-on" style="display:none">подключён</span>
             <button type="button" class="btn sm msgr-link">Подключить</button>
-            <button type="button" class="btn text sm msgr-unlink" style="color:var(--danger);padding:0;display:none">Отключить</button>
+            <button type="button" class="msgr-unlink" title="Отвязать аккаунт" aria-label="Отвязать аккаунт" style="display:none">✕</button>
           </div>
           <div class="msgr" data-messenger="MAX">
             <span class="msgr-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#7d59d6"/><path d="M6.2 12.6l3.4 2.7 8-8.1" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="msgr-name">MAX</span>
             <span class="chip green msgr-on" style="display:none">подключён</span>
             <button type="button" class="btn sm msgr-link">Подключить</button>
-            <button type="button" class="btn text sm msgr-unlink" style="color:var(--danger);padding:0;display:none">Отключить</button>
+            <button type="button" class="msgr-unlink" title="Отвязать аккаунт" aria-label="Отвязать аккаунт" style="display:none">✕</button>
           </div>
         </div>
       </div>
