@@ -493,6 +493,21 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
   .navlist:not(.support){display:inline-flex;gap:2px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
   .navlist:not(.support) a,.navlist:not(.support) button{padding:7px 11px;border-radius:7px;font-size:13px}
   .navlist.support{display:none}
+  /* В воронке навигация состоит из одного неактивного пункта
+     «Подключение сайта» — это подпись, а не переход. На мобильном она
+     занимала вторую строку шапки и читалась как большая чёрная кнопка;
+     то же самое говорят счётчик шага и заголовок сразу под ней. */
+  .navlist.funnel-nav{display:none}   /* два класса: .navlist:not(.support) выше задаёт свой display */
+  /* Имя и почта рядом с аватаром переносили шапку на второй ряд. Аватар
+     сам по себе — достаточная точка входа в меню аккаунта, а кто вошёл,
+     видно в самом меню. */
+  .side .acct-btn .who{display:none}
+  .side .acct-btn{padding:4px}
+  /* Меню раскрывалось вниз-вправо от аватара и уезжало за край экрана:
+     в сайдбаре аккаунт стоит внизу слева, в мобильной шапке — вверху
+     справа, поэтому и якорь другой. */
+  .side .acct{position:relative}
+  .side .acct-menu{left:auto;right:0;bottom:auto;top:calc(100% + 6px);width:210px;transform-origin:top right}
   .acct-menu .support-mobile{display:flex}
   /* Степпер на мобильном скрыт по той же логике, что и «Поддержка» выше:
      шесть строк списка в горизонтальной шапке съедали пол-экрана до
@@ -791,6 +806,86 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    кнопка в конце потока остаётся как есть — раздел 2 требует именно
    дублирование, не перенос, чтобы у дошедшего до низа тоже была кнопка
    под рукой, без поиска глазами вверх. */
+.funnelbar{display:none}
+.fb-sheet{display:none}
+@media(max-width:820px){
+  /* Панель воронки повторяет форму панели кабинета — плавающая пилюля с
+     приподнятым центром: это одно и то же место экрана и должно ощущаться
+     одним и тем же механизмом. Отличается содержимым: в кабинете разделы,
+     в анкете — шаг назад, шаг вперёд и список шагов под центральной
+     кнопкой. Счётчика в панели нет: он стоит над заголовком экрана, а
+     здесь его заменяет полоса прогресса — дублировать цифру незачем
+     (правка пользователя). */
+  .funnelbar:not([hidden]){display:block;position:fixed;left:12px;right:12px;
+    bottom:calc(10px + env(safe-area-inset-bottom));z-index:20;
+    background:var(--white);border:1px solid var(--line-2);border-radius:26px;
+    box-shadow:0 10px 30px -10px rgba(17,17,16,.28)}
+  /* Полоса живёт ВНУТРИ пилюли, по её верхней кромке. Снаружи, над панелью,
+     она читалась как случайная черта поперёк карточки под ней. */
+  .fb-bar{position:absolute;left:26px;right:26px;top:6px;height:3px;border-radius:999px;
+    background:var(--line);overflow:hidden}
+  .fb-bar span{display:block;height:100%;border-radius:999px;background:var(--ink);
+    transition:width 320ms cubic-bezier(.4,0,.2,1)}
+  .fb-row{display:flex;align-items:flex-end;justify-content:space-between;gap:2px;
+    height:60px;padding:0 6px;position:relative}
+  .fb-side{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;height:60px;border:0;background:none;padding:0;cursor:pointer;
+    font-family:inherit;font-size:13px;font-weight:700;color:rgba(17,17,16,.55);
+    transition:color .18s ease,transform .18s ease}
+  .fb-side:active{transform:scale(.93)}
+  .fb-side.fb-go{color:var(--ink)}
+  .fb-side[disabled]{opacity:.35;cursor:default}
+  .fb-side[disabled]:active{transform:none}
+  .fb-center{flex:1;min-width:0;position:relative;display:flex;flex-direction:column;
+    align-items:center;justify-content:flex-end;height:60px;padding-bottom:7px;border:0;
+    background:none;cursor:pointer;font-family:inherit;color:rgba(17,17,16,.55)}
+  .fb-center .fb-c{font-size:10px;line-height:1;white-space:nowrap}
+  .fb-center .fb-n{position:absolute;top:-20px;width:54px;height:54px;border-radius:999px;
+    background:var(--paper);border:1px solid var(--line-2);display:grid;place-items:center;
+    font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ink);
+    box-shadow:0 8px 20px -8px rgba(17,17,16,.3);
+    transition:top .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease}
+  .fb-center[aria-expanded="true"]{color:var(--ink)}
+  .fb-center[aria-expanded="true"] .fb-n{top:-24px;background:var(--ink);color:#fff;
+    border-color:var(--ink);box-shadow:0 12px 26px -8px rgba(17,17,16,.45)}
+
+  .fb-sheet:not([hidden]){display:block;position:fixed;left:12px;right:12px;
+    bottom:calc(78px + env(safe-area-inset-bottom));z-index:21;
+    background:var(--white);border:1px solid var(--line-2);border-radius:16px;
+    padding:12px;box-shadow:0 16px 36px -12px rgba(17,17,16,.35)}
+  .fb-sheet button{display:flex;width:100%;align-items:center;gap:9px;padding:10px;
+    border-radius:9px;border:0;background:none;font:inherit;font-size:13.5px;
+    color:rgba(17,17,16,.72);cursor:pointer;text-align:left}
+  .fb-sheet button:not([disabled]):hover{background:var(--paper);color:var(--ink)}
+  .fb-sheet button[disabled]{opacity:.4;cursor:default}
+  /* UA-правило [hidden]{display:none} слабее авторского display:flex выше —
+     третий случай этой же ловушки в файле (см. комментарий у [data-install]
+     и .btn). Без этой строки скрытый «Кабинет сайта» продолжал рисоваться. */
+  .fb-sheet button[hidden]{display:none}
+  .fb-sheet .fb-s-n{flex:none;width:22px;height:22px;border-radius:999px;display:grid;
+    place-items:center;font-family:var(--mono);font-size:11px;
+    background:var(--paper);border:1px solid var(--line-2)}
+  .fb-sheet .fb-s.now{color:var(--ink);font-weight:700}
+  .fb-sheet .fb-s.now .fb-s-n{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .fb-exit{color:var(--ink)}
+
+  body.has-funnelbar .main{padding-bottom:104px}
+  body.has-funnelbar .side .backlink{display:none}
+  body.has-funnelbar .side{padding-bottom:10px}
+  /* на шагах 5–6 своя липкая плашка появилась раньше панели; две сразу —
+     две кнопки одного действия друг над другом */
+  body.has-funnelbar .sticky-cta{display:none}
+  /* и по той же причине — пара «Назад / Далее» в конце формы: докрутив до
+     низа, человек видел одни и те же кнопки дважды подряд (правка
+     пользователя). Прячем ровно эти две, а не весь ряд: на шаге установки
+     рядом с ними живёт «Поставлю позже →», и он единственный в своём роде —
+     панель его не повторяет. */
+  body.has-funnelbar .step-nav [data-funnel-next],
+  body.has-funnelbar .step-nav [data-funnel-back]{display:none}
+  body.has-funnelbar .step-nav:empty{display:none}
+}
+.sticky-cta{display:none}
+}
 .sticky-cta{display:none}
 @media(max-width:640px){
   .sticky-cta{
@@ -1028,6 +1123,40 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <div class="div"></div>
   <button type="button"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button>
 </div>
+<!-- Нижняя панель воронки. Таббара в анкете нет и быть не должно: он ведёт
+     в «Обзор», «Документы», «Подписку» и «Виджет», а для заполняемого сайта
+     ничего этого ещё не существует. Но низ экрана на телефоне — самое
+     доступное место, и держать там пусто, пока человек ищет «Далее» в конце
+     длинной формы, неправильно. Панель повторяет кнопки шага и показывает,
+     сколько пройдено. Кнопки не дублируют логику, а нажимают настоящие
+     (data-funnel-next / data-funnel-back) — все проверки шага остаются
+     единственными, в своих гейтах. -->
+<!-- Лист шагов: открывается с центральной кнопки панели. Заменяет степпер,
+     который на мобильном скрыт (шесть строк в горизонтальной шапке съедали
+     пол-экрана). Пройденные шаги кликабельны, будущие — нет: перепрыгнуть
+     вперёд через незаполненную анкету нельзя, то же правило, что у степпера
+     на десктопе. Внизу листа — два выхода из воронки: в список сайтов и в
+     кабинет. В самой панели их нет намеренно: там три цели по 100+ пикселей
+     («назад», «шаги», «дальше»), а пять на 390px ужали бы главное действие
+     шага до иконки. -->
+<div class="fb-sheet" id="fb-sheet" hidden>
+  <div class="fb-sheet-in">
+    <p class="sub-h" style="margin-bottom:8px">Шаги анкеты</p>
+    <div id="fb-sheet-steps"></div>
+    <div class="div" style="height:1px;background:var(--line);margin:10px 0"></div>
+    <button type="button" class="fb-exit" data-go="s-status">Мои сайты</button>
+  </div>
+</div>
+
+<div class="funnelbar" id="funnelbar" hidden>
+  <div class="fb-bar"><span id="fb-fill"></span></div>
+  <div class="fb-row">
+    <button type="button" class="fb-side" id="fb-back"><span>Назад</span></button>
+    <button type="button" class="fb-center" id="fb-steps" aria-expanded="false"><span class="fb-n" id="fb-n">1</span><span class="fb-c">Анкета</span></button>
+    <button type="button" class="fb-side fb-go" id="fb-next"><span>Далее</span></button>
+  </div>
+</div>
+
 <nav class="tabbar" id="tabbar" hidden aria-label="Разделы кабинета">
   <button type="button" class="tab" data-tab="s-widget"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button>
   <button type="button" class="tab" data-tab="s-billing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button>
@@ -1046,9 +1175,19 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <span style="margin-left:10px;opacity:.7">данные в формах любые</span>
   <span style="margin-left:10px">экран:</span>
   <span id="scr-nav" style="display:inline-flex;gap:3px;flex-wrap:wrap"></span>
+  <!-- Состояние подписки — вторая ось макета. Экран и состояние независимы:
+       «Мои сайты» и «Подписка» выглядят по-разному в зависимости от того,
+       платил человек или нет, и увидеть это, прыгая только по экранам,
+       нельзя. Раньше единственным способом было пройти анкету целиком.
+       Это не возврат убранных 10 сентября переключателей: там были сбой
+       оплаты и число сайтов — редкие ветки. Здесь основной жизненный цикл,
+       через который проходит каждый клиент. -->
   <!-- разд.1.3 ТЗ 12.08 — на мобильном лента режимов схлопывается в select,
        тестировать проще, чем ловить крошечные кнопки; десктоп не трогаем -->
   <select id="scr-nav-mobile" class="scr-nav-mobile"></select>
+  <span style="margin-left:14px">состояние:</span>
+  <span id="st-nav" style="display:inline-flex;gap:3px;flex-wrap:wrap"></span>
+  <select id="st-nav-mobile" class="scr-nav-mobile"></select>
   <!-- Переключатели «демо сбоя оплаты» и «сайтов» убраны 10 сентября по
        просьбе пользователя. Сами состояния в коде остались: paymentIssue
        ('sbp-declined' | 'invoice-stalled') и siteCount — задаются из
@@ -1255,10 +1394,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <div class="state on" data-pay-state="unpaid">
               <div>
                 <div class="dom" data-site-domain>alfa-school.ru</div>
-                <div class="name" data-company-short>Альфа Образование</div>
+                <div class="name" data-company-short data-after-req>Альфа Образование</div>
               </div>
-              <div class="meta">Документы не готовы<br><span data-company-inn>ИНН 7701234567</span><br>подписка не подключена</div>
-              <div class="act"><button type="button" class="actbtn solid" data-go="s-anketa">Продолжить →</button></div>
+              <div class="meta">Документы не готовы<span data-after-req><br><span data-company-inn>ИНН 7701234567</span></span><br><span data-resume-note>анкета не заполнена</span></div>
+              <div class="act"><button type="button" class="actbtn solid" data-resume-anketa>Продолжить →</button></div>
             </div>
             <div class="state" data-pay-state="pending">
               <div>
@@ -1313,10 +1452,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <thead><tr><th>Сайт</th><th>Статус</th><th>Оплата</th><th></th></tr></thead>
           <tbody>
             <tr class="state on" data-pay-state="unpaid">
-              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
+              <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line data-after-req>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
               <td><span class="small muted">Документы не готовы</span></td>
-              <td class="meta">подписка не подключена</td>
-              <td class="act"><button type="button" class="actbtn outline" data-go="s-anketa">Продолжить →</button></td>
+              <td class="meta"><span data-resume-note>анкета не заполнена</span></td>
+              <td class="act"><button type="button" class="actbtn outline" data-resume-anketa>Продолжить →</button></td>
             </tr>
             <tr class="state" data-pay-state="pending">
               <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
@@ -1370,7 +1509,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><a class="on">Подключение сайта</a></div>
+      <div class="navlist funnel-nav"><a class="on">Подключение сайта</a></div>
       <div class="side-steps" data-side-steps>
         <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
         <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
@@ -1444,8 +1583,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            домена и названия, иначе общий [data-go]-обработчик увёл бы вперёд
            независимо от гейта (та же грабля, что уже ловили на регистрации). -->
       <div class="step-nav">
-        <button type="button" class="btn" data-go="s-status">← Назад</button>
-        <button type="button" class="btn solid" id="anketa-start-next">Далее →</button>
+        <button type="button" class="btn" data-funnel-back data-go="s-status">← Назад</button>
+        <button type="button" class="btn solid" data-funnel-next id="anketa-start-next">Далее →</button>
       </div>
     </main>
   </div>
@@ -1478,7 +1617,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><a class="on">Подключение сайта</a></div>
+      <div class="navlist funnel-nav"><a class="on">Подключение сайта</a></div>
       <div class="side-steps" data-side-steps>
         <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
         <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
@@ -1551,8 +1690,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           </div>
           <div class="hr" style="margin-top:20px"></div>
           <div class="step-nav">
-            <button type="button" class="btn" data-go="s-anketa">← Назад</button>
-            <button type="button" class="btn solid" id="anketa-site-next">Далее →</button>
+            <button type="button" class="btn" data-funnel-back data-go="s-anketa">← Назад</button>
+            <button type="button" class="btn solid" data-funnel-next id="anketa-site-next">Далее →</button>
           </div>
         </div>
 
@@ -1624,8 +1763,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
           <div class="hr" style="margin-top:20px"></div>
           <div class="step-nav">
-            <button type="button" class="btn" data-set-substep="1">← Назад</button>
-            <button type="button" class="btn solid" id="anketa-clients-next">Далее →</button>
+            <button type="button" class="btn" data-funnel-back data-set-substep="1">← Назад</button>
+            <button type="button" class="btn solid" data-funnel-next id="anketa-clients-next">Далее →</button>
           </div>
         </div>
 
@@ -1743,8 +1882,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
           <div class="hr" style="margin-top:20px"></div>
           <div class="step-nav">
-            <button type="button" class="btn" data-set-substep="2">← Назад</button>
-            <button type="button" class="btn solid" id="anketa-req-next">Далее →</button>
+            <button type="button" class="btn" data-funnel-back data-set-substep="2">← Назад</button>
+            <button type="button" class="btn solid" data-funnel-next id="anketa-req-next">Далее →</button>
           </div>
         </div>
 
@@ -1783,7 +1922,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><a class="on">Подключение сайта</a></div>
+      <div class="navlist funnel-nav"><a class="on">Подключение сайта</a></div>
       <div class="side-steps" data-side-steps>
         <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
         <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
@@ -1909,8 +2048,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          только запуск бесплатного 24-часового периода. -->
     <div class="hr" style="margin-top:20px"></div>
     <div class="step-nav">
-      <button type="button" class="btn" id="ready-back">← Назад</button>
-      <button type="button" class="btn solid" data-go="s-install">Поставить код на сайт →</button>
+      <button type="button" class="btn" data-funnel-back id="ready-back">← Назад</button>
+      <button type="button" class="btn solid" data-funnel-next data-fb-label="К установке" data-go="s-install">Поставить код на сайт →</button>
     </div>
     </main>
   </div>
@@ -1929,134 +2068,6 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      («не проси ставить код тому, кто не заплатил») — с 24-часовым
      бесплатным периодом он снят: код можно ставить не заплатив, ничего
      не сломается. -->
-<section class="screen" id="s-pay">
-  <div class="appwrap sidebar">
-    <aside class="side">
-      <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
-      <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></a><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
-      <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
-      <div class="acct" style="margin-top:0">
-        <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
-      </div>
-    </aside>
-    <main class="main narrow">
-    <h1>Оплата подписки</h1>
-    <p class="lead" style="margin-top:8px">Виджет и документы уже работают на <span data-site-domain>alfa-school.ru</span> — оплата продлевает доступ после пробного периода.</p>
-
-    <h2 style="margin-top:20px">Что входит</h2>
-    <div class="card pad" style="margin-top:12px">
-      <h3 class="sub-h">Уже работает — пробный период, 24 часа</h3>
-      <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты<br>· Документы по постоянным адресам — ссылки не ломаются</div>
-      <h3 class="sub-h" style="margin-top:14px">Оплата продлевает</h3>
-      <div class="small" style="line-height:1.9;margin-top:6px">· Доступ не прерывается после пробного периода<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
-      <div class="hr"></div>
-      <p class="tiny" style="margin-bottom:10px"><b style="color:var(--ink)">Оплата раз в год — но это подписка, не разовая покупка</b>: меняется закон, вместе с ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.</p>
-      <div class="row" style="justify-content:space-between"><span class="small muted">Итого</span><b style="font-size:19px">12 000 ₽/год</b></div>
-    </div>
-
-    <!-- Платёжный партнёр + СБП + По счёту. Раньше здесь рисовали свою
-         форму ввода номера карты — но карту принимать будем не сами, а
-         через платёжного партнёра (Т-Банк/ЮKassa и похожие), чей виджет
-         ещё не выбран, поэтому этот таб оставлен пустым (заглушка), а не
-         додуман — рисовать чужой чекаут вслепую было бы неточно. СБП и
-         «по счёту» — свои, их макет остаётся. «По счёту» держали вне MVP
-         как B2B-цикл продажи (1–4 недели, ручное сопровождение), но
-         самостоятельно сгенерированный счёт по уже известным реквизитам —
-         это не тот цикл, а self-serve документ. Оплата счётом не мгновенна
-         (перевод идёт 1–3 рабочих дня) — в кабинет ведёт сразу, как СБП,
-         но статус сайта отмечается «ожидает оплаты» (siteStatus,
-         см. script) до тех пор, пока деньги не поступят.
-
-         Открывается по умолчанию на СБП, не на «Платёжный партнёр» —
-         иначе первое, что видно на шаге оплаты, это пустая заглушка
-         «интеграция ещё не выбрана». Вкладка партнёра осталась в
-         списке (когда провайдера выберут, встанет на своё место), но
-         не должна быть первым впечатлением от экрана оплаты. -->
-    <div class="card pad" style="margin-top:12px">
-      <div class="seg" id="pm-tabs" style="margin-bottom:14px">
-        <button type="button" data-swap="pmpartner">Партнёр</button>
-        <button type="button" class="on" data-swap="pmsbp">СБП</button>
-        <button type="button" data-swap="pminvoice">По счёту</button>
-      </div>
-
-      <div data-swapped="pmpartner" style="display:none;text-align:center;padding:24px 0">
-        <p class="tiny">Виджет платёжного партнёра — интеграция ещё не выбрана.</p>
-      </div>
-
-      <!-- Отказ СБП — независимый UX-аудит, критика A, приоритет P1: во всём
-           файле не было ни одного состояния отказа оплаты, хотя это самый
-           денежный экран. Реального бэкенда нет — исход недостижим кликом,
-           тот же паттерн, что installCheck/siteStatus='expired': демо через
-           dev-console paymentIssue='sbp-declined'; syncPayState(); -->
-      <div data-swapped="pmsbp" data-payment-issue="none" style="text-align:center">
-        <div style="width:120px;height:120px;margin:0 auto 12px;border:1.5px solid var(--line-2);border-radius:10px;background:repeating-linear-gradient(45deg,var(--ink) 0 3px,transparent 3px 6px),repeating-linear-gradient(-45deg,var(--ink) 0 3px,transparent 3px 6px);background-blend-mode:multiply;opacity:.85"></div>
-        <p class="tiny">Отсканируйте в приложении банка или введите номер телефона</p>
-        <input class="inp mono" placeholder="+7 (___) ___-__-__" style="margin-top:8px;max-width:260px">
-        <div class="hr" style="margin-top:16px"></div>
-        <button type="button" class="btn solid wide" data-set-status="paid" data-go="s-project-paid">Оплатить 12 000 ₽ → в кабинет</button>
-        <p class="tiny" style="text-align:center;margin-top:10px">Спишется один раз в год — о продлении напомним письмом заранее</p>
-      </div>
-      <div data-swapped="pmsbp" data-payment-issue="sbp-declined" style="display:none;text-align:center">
-        <div class="b red" style="font-size:15px;justify-content:center">✕ Банк отклонил платёж</div>
-        <p class="tiny" style="margin-top:8px">Бывает из-за лимита операции, недостатка средств или блокировки СБП в приложении банка. Документы и виджет продолжают работать — доступ не прерывается, пока идёт пробный период.</p>
-        <div class="hr" style="margin-top:16px"></div>
-        <button type="button" class="btn solid wide" id="sbp-retry-btn">↻ Попробовать ещё раз</button>
-        <button type="button" class="btn wide" style="margin-top:8px" id="sbp-declined-goto-invoice">Оплатить по счёту вместо этого</button>
-      </div>
-
-      <!-- Контакты и банковские реквизиты — их сознательно нет в анкете
-           (s-anketa2, вопрос «О компании»), там только то, что нужно документам.
-           Счёту нужно больше — спрашиваем здесь, и только у тех, кто выбрал
-           «по счёту»: карта и СБП это не требуют вовсе.
-
-           Правка 26.08 (по итогам разбора анкеты): раньше здесь стояла
-           СТАТИКА «ООО «Альфа Образование» / ИНН.../ОГРН...», молча взятая
-           из анкеты сайта — но плательщик по счёту не обязан быть тем же
-           лицом, что владелец сайта (бухгалтерия, агентство, другое ООО
-           того же человека). Поэтому наименование/ИНН/ОГРН здесь — свои,
-           реально вводимые поля, не подтягиваются из анкеты. Вводятся один
-           раз, на «Выставить счёт» сохраняются (savePayInvoiceReq в script)
-           и становятся дефолтом модалки «Реквизиты для счёта» в Подписке —
-           поменять их снова можно уже оттуда, без повторного ввода. -->
-      <div data-swapped="pminvoice" style="display:none">
-        <label class="f" style="margin:0">Реквизиты плательщика — для счёта, не для подвала сайта</label>
-        <p class="tiny" style="margin-top:4px">Вводится один раз — дальше можно поменять в Подписке.</p>
-        <label class="f" style="margin-top:12px">Наименование плательщика</label>
-        <input class="inp" id="pay-invoice-name" placeholder="ООО «...» или ИП Фамилия И. О.">
-        <div class="row field-row" style="margin-top:10px;gap:10px">
-          <div style="flex:1"><label class="f">ИНН</label><input class="inp mono" id="pay-invoice-inn" inputmode="numeric" placeholder="10 или 12 цифр"></div>
-          <div style="flex:1"><label class="f">ОГРН</label><input class="inp mono" id="pay-invoice-ogrn" inputmode="numeric" placeholder="1157746112233"></div>
-        </div>
-        <p class="tiny anketa-field-error" id="pay-invoice-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
-        <label class="f" style="margin-top:12px">Email для счёта</label>
-        <input class="inp" id="pay-invoice-email" placeholder="buh@alfa-school.ru">
-        <label class="f" style="margin-top:10px">Телефон</label>
-        <input class="inp mono" id="pay-invoice-phone" placeholder="+7 (___) ___-__-__">
-        <label class="f" style="margin-top:10px">Расчётный счёт</label>
-        <input class="inp mono" id="pay-invoice-account" inputmode="numeric" maxlength="20" placeholder="40702810...">
-        <p class="tiny anketa-field-error" id="pay-invoice-account-error" style="display:none;margin-top:5px;color:var(--danger)">Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
-        <div class="row field-row" style="margin-top:10px;gap:10px">
-          <div style="flex:1"><label class="f">Банк</label><input class="inp" id="pay-invoice-bank" placeholder="ПАО «...»"></div>
-          <div style="flex:1"><label class="f">БИК</label><input class="inp mono" id="pay-invoice-bik" inputmode="numeric" placeholder="044525225"></div>
-        </div>
-        <label class="f" style="margin-top:10px">Корр. счёт</label>
-        <input class="inp mono" id="pay-invoice-corr" inputmode="numeric" placeholder="30101810...">
-        <p class="tiny" style="margin-top:10px">Счёт на 12 000 ₽ придёт на почту в PDF, оплатить можно переводом с расчётного счёта.</p>
-        <div class="hr" style="margin-top:16px"></div>
-        <button type="button" class="btn solid wide" data-set-status="pending" data-go="s-project-paid">Выставить счёт → в кабинет</button>
-        <p class="tiny" style="text-align:center;margin-top:10px">Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня. Виджет и документы уже работают, ждать не нужно</p>
-      </div>
-
-      <p class="tiny" style="margin-top:14px;text-align:center">🔒 Платёж обрабатывает защищённый шлюз</p>
-    </div>
-    </main>
-  </div>
-  <!-- следует за активной вкладкой способа оплаты — партнёр ещё пустая
-       заглушка без формы, там плашке нечего запускать, поэтому скрыта -->
-  <div class="sticky-cta" id="pay-sticky"><span class="ctx">12 000 ₽/год</span><button type="button" class="btn solid" id="pay-sticky-btn" data-go="s-project-paid" data-set-status="paid">Оплатить →</button></div>
-</section>
 
 <!-- ══════════════════ ВОРОНКА ПОДКЛЮЧЕНИЯ: 4/4 · УСТАНОВКА (запуск триала) ═
      HANDOFF 6.15 п.8 — установка теперь ПЕРЕД оплатой, не после: раньше
@@ -2074,7 +2085,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><a class="on">Подключение сайта</a></div>
+      <div class="navlist funnel-nav"><a class="on">Подключение сайта</a></div>
       <div class="side-steps" data-side-steps>
         <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
         <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
@@ -2221,8 +2232,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
          на регистрации («надпись показывать над кнопками»). -->
     <p class="tiny" id="install-action-note" style="text-align:center;margin-bottom:10px">Сначала проверьте скрипт — это шаг «Проверьте, что он заработал» выше. Пробный период пойдёт с момента активации.</p>
     <div class="step-nav">
-      <button type="button" class="btn" data-go="s-ready">← Назад</button>
-      <button type="button" class="btn solid" id="install-activate-btn" disabled>Активировать пробный период →</button>
+      <button type="button" class="btn" data-funnel-back data-go="s-ready">← Назад</button>
+      <button type="button" class="btn solid" data-funnel-next data-fb-label="Запустить" id="install-activate-btn" disabled>Активировать пробный период →</button>
     </div>
     <p class="tiny" style="text-align:center;margin-top:12px"><button type="button" class="btn text sm" style="padding:0" data-go="s-project-paid" data-set-status="unpaid">Поставлю позже →</button></p>
     </main>
@@ -2276,7 +2287,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <span class="b amber" style="font-size:16px">🕐 Пробный период — осталось 21 ч 43 мин</span>
           <p class="lead" style="margin-top:8px">Документы и виджет уже работают на <span data-site-domain>alfa-school.ru</span>. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва, и мы напомним письмом заранее.</p>
           <div class="hr"></div>
-          <button type="button" class="btn solid sm" data-go="s-pay">Оплатить →</button>
+          <button type="button" class="btn solid sm" data-go="s-billing">Оплатить →</button>
         </div>
       </div>
       <div class="state" data-pay-state="expired" style="margin-top:16px">
@@ -2284,7 +2295,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <span class="b red" style="font-size:16px">⚠ Пробный период закончился</span>
           <p class="lead" style="margin-top:8px">Виджет на сайте отключён — но уже опубликованная страница политики остаётся доступной по ссылке. В кабинете документы видны для просмотра, скачивание и копирование заблокированы, пока не оплатите.</p>
           <div class="hr"></div>
-          <button type="button" class="btn solid sm" data-go="s-pay">Оплатить →</button>
+          <button type="button" class="btn solid sm" data-go="s-billing">Оплатить →</button>
         </div>
       </div>
       <div class="state" data-pay-state="pending" style="margin-top:16px">
@@ -2653,7 +2664,12 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     </aside>
     <main class="main narrow">
       <h1>Подписка</h1>
-      <p class="lead" style="margin-top:8px">Тариф, способ оплаты и закрывающие документы по <span data-site-domain>alfa-school.ru</span>.</p>
+      <!-- Лид тоже зависит от состояния: до оплаты закрывающих документов
+           ещё нет, обещать их в первой строке нельзя. -->
+      <p class="lead state" data-pay-state="paid pending" style="margin-top:8px">Тариф, способ оплаты и закрывающие документы по <span data-site-domain>alfa-school.ru</span>.</p>
+      <p class="lead state" data-pay-state="trial" style="margin-top:8px">Виджет и документы уже работают на <span data-site-domain>alfa-school.ru</span> — оплата продлевает доступ после пробного периода.</p>
+      <p class="lead state" data-pay-state="unpaid" style="margin-top:8px">Подписка на <span data-site-domain>alfa-school.ru</span> начнётся, когда сайт будет подключён.</p>
+      <p class="lead state" data-pay-state="expired" style="margin-top:8px">Пробный период закончился — оплата включит виджет и документы на <span data-site-domain>alfa-school.ru</span> снова.</p>
 
       <!-- Тариф — первым блоком (правка 9 сентября): выбор того, за что
            платим, логично стоит раньше выбора, чем платим. Линейка ещё не
@@ -2674,8 +2690,30 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            и первый год, и продление. «Карта» перестала быть заглушкой
            «эквайер не выбран» — теперь настоящая форма привязки. Дефолт
            «По счёту»: способ, который работает без интеграции. -->
-      <h2 style="margin-top:22px">Оплата</h2>
-      <div class="card pad" style="margin-top:12px">
+      <!-- До первой оплаты «Подписка» показывает не управление, а саму
+           оплату: блоки ниже перенесены с отдельного экрана «Оплата
+           подписки», который был вырезанным окном — вход в него был один,
+           кнопка «Оплатить →» на «Обзоре», и он дублировал способ оплаты и
+           выставление счёта. Правило то же, что во всём кабинете: решённое
+           — строка-сводка с «Изменить», рабочее — раскрыто. До оплаты не
+           решено ничего. -->
+      <!-- «Что входит» врал в двух состояниях из трёх: заголовок «уже работает —
+           пробный период» стоял и у истёкшего триала, где ничего не работает, и у
+           незаконченной анкеты, где ещё нечему работать. Один и тот же список с
+           одной и той же рамкой на три разные ситуации — копипаст. Теперь рамка
+           своя у каждого состояния, а неизменное (цена и «это подписка, не разовая
+           покупка») — общее. -->
+
+      <!-- Пока анкета не пройдена, платить не за что: документов нет, виджет
+           не установлен. Вместо оплаты — путь туда, где это появится. -->
+      <div class="card pad state" data-pay-state="unpaid" style="margin-top:18px">
+        <b style="font-size:15px">Подключение не закончено</b>
+        <p class="tiny" style="margin-top:6px">Документы собираются по ответам анкеты, а виджет включается установкой скрипта. Подписка начнётся после этого — пробный период даст 24 часа бесплатно.</p>
+        <button type="button" class="btn solid sm" style="margin-top:12px" data-resume-anketa>Продолжить анкету →</button>
+      </div>
+
+      <h2 class="state" data-pay-state="trial expired pending paid" style="margin-top:22px">Оплата</h2>
+      <div class="card pad state" data-pay-state="trial expired pending paid" style="margin-top:12px">
         <div class="row" style="justify-content:space-between;align-items:center" id="tariff-summary">
           <div>
             <div style="font-weight:700;font-size:14.5px" data-tariff-name>Тариф Х</div>
@@ -2758,6 +2796,9 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
               <p class="tiny anketa-field-error" id="card-cvc-error" style="display:none;margin-top:5px;color:var(--danger)">CVC — 3 цифры на обороте карты.</p>
             </div>
           </div>
+          <!-- Один и тот же экран, разные роли действия: до оплаты привязка
+               карты и есть оплата (спишем сразу), после — смена карты для
+               будущих списаний. Ярлык переключает syncPayCta. -->
           <button type="button" id="bind-card-btn" class="btn solid sm" style="margin-top:12px">Привязать карту</button>
           <p class="tiny" style="margin-top:8px">Отвязать карту можно здесь же в любой момент.</p>
           </div>
@@ -2832,6 +2873,29 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             <button type="button" class="btn sm" style="margin-top:8px" data-go="s-support">Написать в поддержку</button>
           </div>
         </div>
+        <div class="hr state" data-pay-state="trial expired"></div>
+        <!-- «Что входит» было отдельной карточкой над оплатой: шесть пунктов,
+             абзац и строка «Итого» до того, как человек доберётся до кнопки —
+             портянка (замечание пользователя). Свёрнуто в разворот внизу
+             карточки: цена уже стоит строкой тарифа, а перечень нужен тому,
+             кто сомневается, а не каждому при каждом заходе. Тот же приём
+             data-fold, что у «Зачем это нужно» в анкете. -->
+        <button type="button" class="btn text sm anketa-fold-btn state" data-pay-state="trial expired" data-fold="fold-plan" style="padding:0">Что входит в подписку ⌄</button>
+        <div id="fold-plan" style="display:none;margin-top:8px">
+          <div class="state" data-pay-state="trial">
+            <h3 class="sub-h">Уже работает — пробный период, 24 часа</h3>
+            <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты<br>· Документы по постоянным адресам — ссылки не ломаются</div>
+            <h3 class="sub-h" style="margin-top:14px">Оплата продлевает</h3>
+            <div class="small" style="line-height:1.9;margin-top:6px">· Доступ не прерывается после пробного периода<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
+          </div>
+          <div class="state" data-pay-state="expired">
+            <h3 class="sub-h">Сейчас отключено</h3>
+            <div class="small" style="line-height:1.9;margin-top:6px">· Виджет снят с сайта — cookie-баннер и подвал не показываются<br>· В кабинете документы видны, но скачать и скопировать ссылку нельзя<br>· Уже опубликованные страницы документов остаются доступны по ссылкам</div>
+            <h3 class="sub-h" style="margin-top:14px">Оплата включит снова</h3>
+            <div class="small" style="line-height:1.9;margin-top:6px">· Виджет и документы заработают как прежде<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
+          </div>
+        </div>
+        <p class="tiny state" data-pay-state="trial expired" style="margin-top:10px"><b style="color:var(--ink)">Оплата раз в год — но это подписка, не разовая покупка</b>: меняется закон, вместе с ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.</p>
       </div>
 
       <!-- Блок «Состояние» убран (правка 9 сентября): статус сайта уже
@@ -2843,8 +2907,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            и списком и читалось как часть списка. Почта перенесена сюда из
            Настроек → «Уведомления» — бухгалтерский адрес относится к
            оплате, а не к настройкам аккаунта. -->
-      <h2 style="margin-top:22px">Куда присылать акты</h2>
-      <div class="card pad" style="margin-top:12px">
+      <h2 class="state" data-pay-state="paid pending" style="margin-top:22px">Куда присылать акты</h2>
+      <div class="card pad state" data-pay-state="paid pending" style="margin-top:12px">
         <!-- Заполненная почта сворачивается в строку с «Изменить»: поле
              ввода, которое уже нечего вводить, занимает место и добавляет
              шума. Пустая остаётся полем — сворачивать нечего. -->
@@ -2864,17 +2928,13 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         </div>
       </div>
 
-      <h2 style="margin-top:22px">Акты</h2>
-      <p class="tiny" style="margin-top:4px">Закрывающие документы для бухгалтерии — один акт за оплаченный год.</p>
+      <h2 class="state" data-pay-state="paid pending" style="margin-top:22px">Акты</h2>
+      <p class="tiny state" data-pay-state="paid pending" style="margin-top:4px">Закрывающие документы для бухгалтерии — один акт за оплаченный год.</p>
       <!-- Акт появляется только после оплаты: в пробном периоде готовый
            «Акт за 2026–2027 · 12 000 ₽» лежал на экране рядом со статусом
            «пробный период» на «Обзоре» — экран утверждал оплату, которой
            не было. Состояние pending («счёт выставлен») акта тоже ещё не
            даёт: акт закрывает оплаченный период, а не выставленный счёт. -->
-      <div class="card pad state" data-pay-state="trial" style="margin-top:12px"><p class="tiny" style="margin:0">Появится после первой оплаты.</p></div>
-      <div class="card pad state" data-pay-state="pending" style="margin-top:12px"><p class="tiny" style="margin:0">Появится после первой оплаты.</p></div>
-      <div class="card pad state" data-pay-state="unpaid" style="margin-top:12px"><p class="tiny" style="margin:0">Появится после первой оплаты.</p></div>
-      <div class="card pad state" data-pay-state="expired" style="margin-top:12px"><p class="tiny" style="margin:0">Появится после первой оплаты.</p></div>
       <div class="card state" data-pay-state="paid" style="margin-top:12px;overflow:hidden">
         <div class="row" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Акт за 2026–2027</div><div class="tiny mono">05.08.2026 – 04.08.2027 · 12 000 ₽</div></div>
@@ -2889,7 +2949,9 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <!-- После отмены строка меняется на возобновление: отмена — состояние,
            а не разовое действие, и вернуться должно быть так же просто. -->
       <p class="tiny" id="cancelled-note" style="display:none;margin-top:6px;color:var(--warn)">Подписка отменена. Всё работает до 05.08.2027, продление не спишется.</p>
-      <button class="btn text sm" id="cancel-open" style="color:var(--danger);padding:0;margin-top:4px" data-go-modal="modal-cancel">Отменить подписку</button>
+      <!-- Отмена — только у того, у кого есть что отменять. Висела во всех
+           состояниях, включая пробный период и «анкета не дошла». -->
+      <button class="btn text sm state" data-pay-state="paid" id="cancel-open" style="color:var(--danger);padding:0;margin-top:4px" data-go-modal="modal-cancel">Отменить подписку</button>
       <button class="btn sm" id="resume-sub" style="display:none;margin-top:4px">Возобновить подписку</button>
     </main>
   </div>
@@ -3330,7 +3392,6 @@ var NAV_ITEMS = [
   {screen:'s-anketa2', substep:3, label:'шаг 4/6'},
   {screen:'s-ready',        label:'шаг 5/6'},
   {screen:'s-install',      label:'шаг 6/6'},
-  {screen:'s-pay',          label:'оплата'},
   {screen:'s-project-paid', label:'кабинет'},
   {screen:'s-docs',         label:'документы'},
   {screen:'s-billing',      label:'подписка'},
@@ -3339,6 +3400,49 @@ var NAV_ITEMS = [
   {screen:'s-support',      label:'поддержка'}
 ];
 function navKey(screen, substep){ return substep ? screen + '#' + substep : screen; }
+
+/* Вторая ось ленты — состояние подписки. Ярлыки словами клиента, не
+   именами переменных: 'unpaid' ему ничего не говорит. */
+var PAY_STATES = [
+  {v:'unpaid',  label:'анкета не дошла'},
+  {v:'trial',   label:'пробный период'},
+  {v:'pending', label:'счёт выставлен'},
+  {v:'paid',    label:'оплачено'},
+  {v:'expired', label:'триал истёк'}
+];
+function setPayState(v){
+  siteStatus = v;
+  // анкета считается пройденной, если сайт подключён: иначе карточка «Мои
+  // сайты» покажет «остановились на шаге 1», противореча самому статусу
+  if (v !== 'unpaid') maxStepReached = FUNNEL_STEPS.length;
+  syncPayState();
+  var cur = document.querySelector('.screen.on');
+  if (cur) goScreen(cur.id);
+}
+var stNav = document.getElementById('st-nav');
+var stNavMobile = document.getElementById('st-nav-mobile');
+if (stNav) {
+  PAY_STATES.forEach(function(st){
+    var b = document.createElement('button');
+    b.textContent = st.label;
+    b.style.cssText = 'background:none;border:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;padding:2px 6px;border-radius:5px;cursor:pointer';
+    b.dataset.stFor = st.v;
+    b.addEventListener('click', function(){ setPayState(st.v); });
+    stNav.appendChild(b);
+    var o = document.createElement('option');
+    o.value = st.v; o.textContent = st.label;
+    stNavMobile.appendChild(o);
+  });
+  stNavMobile.addEventListener('change', function(){ setPayState(stNavMobile.value); });
+}
+function paintStNav(){
+  document.querySelectorAll('[data-st-for]').forEach(function(b){
+    var on = b.dataset.stFor === siteStatus;
+    b.style.background = on ? 'var(--ink)' : 'none';
+    b.style.color = on ? '#fff' : 'inherit';
+  });
+  if (stNavMobile) stNavMobile.value = siteStatus;
+}
 
 var nav = document.getElementById('scr-nav');
 var navMobile = document.getElementById('scr-nav-mobile');
@@ -3375,6 +3479,7 @@ function paintNav(id){
     b.style.color = (b.dataset.navFor === key) ? '#fff' : 'inherit';
   });
   navMobile.value = key;
+  paintStNav();
 }
 
 /* тулбар макета переносится по строкам (зависит от ширины окна) и перекрывал
@@ -3487,7 +3592,10 @@ var paymentIssue = 'none';
 
 function syncPayState(){
   document.querySelectorAll('[data-pay-state]').forEach(function(s){
-    s.classList.toggle('on', s.dataset.payState === siteStatus);
+    // значений может быть несколько через пробел: блок оплаты в «Подписке»
+    // одинаков для «не платил», «пробный» и «истёк», а три копии разметки
+    // дали бы тройные id
+    s.classList.toggle('on', s.dataset.payState.split(' ').indexOf(siteStatus) !== -1);
   });
   // Баг, пойман визуальной проверкой (не jsdom — там некому переключить
   // вкладку И сверить итоговый рендер за один шаг): элемент с
@@ -3513,6 +3621,7 @@ function syncPayState(){
   });
   // s-docs: копирование/скачивание блокируется целиком через body-класс,
   // не по каждой из 5 строк отдельно — см. .doc-actions в CSS (HANDOFF 6.15 п.8)
+  if (typeof syncPayCta === 'function') syncPayCta();
   document.body.classList.toggle('trial-expired', siteStatus === 'expired');
   document.querySelectorAll('[data-has-site]').forEach(function(s){
     s.classList.toggle('on', (s.dataset.hasSite === 'true') === hasSite);
@@ -3585,6 +3694,8 @@ function currentFunnelStep(){
 function syncFunnelSteps(){
   var cur = currentFunnelStep();
   if (cur > maxStepReached) maxStepReached = cur;
+  if (typeof syncResumeNote === 'function') syncResumeNote();
+  if (typeof syncFunnelBar === 'function') syncFunnelBar(cur);
   document.querySelectorAll('[data-side-steps] .side-step').forEach(function(el){
     var n = parseInt(el.dataset.step, 10);
     el.hidden = n > maxStepReached;
@@ -3603,6 +3714,122 @@ function syncFunnelSteps(){
       el.textContent = 'Шаг ' + cur + ' из ' + FUNNEL_STEPS.length;
     });
   }
+}
+/* Панель воронки: показывается только на шагах анкеты и только на узком
+   экране. Ярлык и состояние кнопки «дальше» копируются с настоящей кнопки
+   шага — на «Установке» она, например, неактивна, пока скрипт не проверен,
+   и панель обязана показывать то же самое, а не свою бодрую копию. */
+function funnelTarget(sel){
+  // Не по offsetParent: на мобильном .step-nav скрыт целиком (панель его
+  // заменяет), а кнопку внутри всё равно нужно нажать. Нужный экран — тот,
+  // что .on; нужный подшаг — совпадающий с anketaSubstep.
+  return Array.prototype.slice.call(document.querySelectorAll('.screen.on [' + sel + ']'))
+    .filter(function(el){
+      var sub = el.closest('[data-substep]');
+      return !sub || parseInt(sub.dataset.substep, 10) === anketaSubstep;
+    })[0] || null;
+}
+var FUNNEL_TITLES = ['Знакомство','О сайте','Работа с клиентами','Реквизиты','Что подготовили','Установка скрипта'];
+function syncFunnelBar(cur){
+  var bar = document.getElementById('funnelbar');
+  if (!bar) return;
+  var on = cur >= 1 && cur <= FUNNEL_STEPS.length;
+  bar.hidden = !on;
+  document.body.classList.toggle('has-funnelbar', on);
+  if (!on) { closeFunnelSheet(); return; }
+  document.getElementById('fb-n').textContent = cur;
+  document.getElementById('fb-fill').style.width = Math.round(cur / FUNNEL_STEPS.length * 100) + '%';
+  var next = funnelTarget('data-funnel-next');
+  var back = funnelTarget('data-funnel-back');
+  var nb = document.getElementById('fb-next');
+  var bb = document.getElementById('fb-back');
+  // Ярлык у шага свой («Далее», «Поставить код», «Активировать»), но в панели
+  // на него отведена треть ширины: берём короткое слово, а полный текст
+  // остаётся на кнопке внутри шага — на десктопе она и видна.
+  nb.style.display = next ? '' : 'none';
+  bb.style.display = back ? '' : 'none';
+  if (next) {
+    nb.disabled = !!next.disabled;
+    nb.querySelector('span').textContent = next.dataset.fbLabel || 'Далее';
+  }
+  renderFunnelSheet(cur);
+}
+function renderFunnelSheet(cur){
+  var box = document.getElementById('fb-sheet-steps');
+  if (!box) return;
+  box.innerHTML = '';
+  FUNNEL_TITLES.forEach(function(title, i){
+    var n = i + 1;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'fb-s' + (n === cur ? ' now' : '');
+    b.innerHTML = '<span class="fb-s-n">' + n + '</span>';
+    b.appendChild(document.createTextNode(title));
+    // Шаги открываются по мере прохождения — ровно как степпер на десктопе
+    // (решение 7 сентября). Сначала будущие шаги рисовались тут погашенными,
+    // и одно и то же место продукта вело себя по-разному на двух ширинах.
+    if (n > maxStepReached) return;
+    b.addEventListener('click', function(){ closeFunnelSheet(); goFunnelStep(n); });
+    box.appendChild(b);
+  });
+}
+function closeFunnelSheet(){
+  var sh = document.getElementById('fb-sheet');
+  var btn = document.getElementById('fb-steps');
+  if (sh) sh.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+document.getElementById('fb-steps').addEventListener('click', function(){
+  var sh = document.getElementById('fb-sheet');
+  sh.hidden = !sh.hidden;
+  this.setAttribute('aria-expanded', sh.hidden ? 'false' : 'true');
+});
+document.addEventListener('click', function(e){
+  if (!e.target.closest) return;
+  if (!e.target.closest('#fb-sheet') && !e.target.closest('#fb-steps')) closeFunnelSheet();
+});
+/* «Кабинета сайта» в листе нет намеренно. В анкету попадают только два
+   пути — «+ Добавить сайт» и «Продолжить →» у незаполненного сайта; у
+   подключённого на карточке стоит «Открыть →», ведущее сразу в кабинет.
+   Значит сайт, чью анкету заполняют, кабинета не имеет никогда: ни
+   документов, ни виджета, ни подписки. Возврат «в кабинет» на уровне
+   аккаунта — это и есть «Мои сайты». Настройки и Поддержка остаются в меню
+   аватара: они тоже уровня аккаунта и доступны из воронки. */
+document.getElementById('fb-next').addEventListener('click', function(){
+  var t = funnelTarget('data-funnel-next'); if (t) t.click();
+});
+document.getElementById('fb-back').addEventListener('click', function(){
+  var t = funnelTarget('data-funnel-back'); if (t) t.click();
+});
+
+function goFunnelStep(n){
+  var st = FUNNEL_STEPS[Math.min(Math.max(n, 1), FUNNEL_STEPS.length) - 1];
+  if (!st) return;
+  if (st.substep) anketaSubstep = st.substep;
+  goScreen(st.screen);
+  syncAnketaSubstep();
+  window.scrollTo(0, 0);
+}
+/* «Продолжить →» на «Моих сайтах» возвращает на самый дальний пройденный
+   шаг, а не в начало анкеты: человек, ушедший с «Реквизитов», иначе
+   проходил бы четыре экрана заново. Шаг называется тут же, на карточке —
+   иначе непонятно, куда именно ведёт кнопка. */
+document.querySelectorAll('[data-resume-anketa]').forEach(function(b){
+  b.addEventListener('click', function(){ goFunnelStep(maxStepReached); });
+});
+function syncResumeNote(){
+  // Название компании и ИНН известны только с шага «Реквизиты» (он
+  // четвёртый). До него карточка показывала фикстуру «ООО «Альфа
+  // Образование»» у сайта, про который человек назвал один домен.
+  var knowsCompany = maxStepReached > 4;
+  document.querySelectorAll('[data-after-req]').forEach(function(el){
+    el.style.display = knowsCompany ? '' : 'none';
+  });
+  document.querySelectorAll('[data-resume-note]').forEach(function(el){
+    el.textContent = maxStepReached > 1
+      ? 'остановились на шаге ' + maxStepReached + ' из ' + FUNNEL_STEPS.length
+      : 'анкета не заполнена';
+  });
 }
 /* Клик по уже открытому шагу — возврат к нему (и по завершённому, и по
    самому дальнему посещённому). Шаги, до которых ещё не доходили, скрыты
@@ -3901,6 +4128,12 @@ wireStepGate('anketa-start-next', [
   if (pb) account.phone = pb.value.trim();
   hasSite = true;        // сайт появляется в «Моих сайтах» только после шага 1
   hasIdentity = true;    // «кто заполняет» спрашиваем один раз на аккаунт
+  // ...и появляется он там незаполненным. Раньше карточка бралась из
+  // siteStatus, который в макете по умолчанию 'trial': уйдя со второго шага
+  // анкеты, человек видел свой домен с чужими реквизитами, таймером
+  // пробного периода и кнопкой «Открыть →» — сайт, которого он не подключал.
+  // Пробный период включает только активация на шаге установки.
+  if (maxStepReached < FUNNEL_STEPS.length) { siteStatus = 'unpaid'; syncPayState(); }
   anketaSubstep = 1;
   goScreen('s-anketa2');
 }, function(){
@@ -4691,6 +4924,16 @@ function syncCompany(){
   if (mInn && mInn !== document.activeElement) mInn.value = company.inn;
   if (typeof syncPayReq === 'function') syncPayReq();
 }
+/* Ярлык действия в карточке оплаты: до первой оплаты карта списывает
+   деньги, после — просто меняется на будущее. Текст берём отсюда, чтобы
+   не разводить две карточки на два состояния. */
+function syncPayCta(){
+  var bind = document.getElementById('bind-card-btn');
+  var inv = document.getElementById('request-invoice-btn');
+  var paid = (siteStatus === 'paid' || siteStatus === 'pending');
+  if (bind) bind.textContent = paid ? 'Привязать карту' : 'Оплатить 12 000 ₽';
+  if (inv) inv.textContent = paid ? 'Сформировать счёт' : 'Выставить счёт на 12 000 ₽';
+}
 function syncTariffName(){
   document.querySelectorAll('[data-tariff-name]').forEach(function(el){ el.textContent = currentTariff; });
 }
@@ -4969,6 +5212,7 @@ if (pmTabs) {
     b.addEventListener('click', function(){
       var bar = document.getElementById('pay-sticky');
       var btn = document.getElementById('pay-sticky-btn');
+      if (!bar || !btn) return;
       if (b.dataset.swap === 'pmsbp') { btn.textContent = 'Оплатить →'; btn.dataset.setStatus = 'paid'; bar.style.display = ''; }
       else if (b.dataset.swap === 'pminvoice') { btn.textContent = 'Выставить счёт →'; btn.dataset.setStatus = 'pending'; bar.style.display = ''; }
       else { bar.style.display = 'none'; }

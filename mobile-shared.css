@@ -40,7 +40,7 @@
    сравнением именно так */
 .scr-nav-mobile{display:none}
 @media(max-width:640px){
-  #scr-nav{display:none !important}
+  #scr-nav,#st-nav{display:none !important}
   .scr-nav-mobile{display:inline-block;margin-left:6px;max-width:150px;font:inherit;letter-spacing:inherit;
     border:1px solid var(--line-2);border-radius:6px;padding:2px 4px;background:var(--paper);color:inherit}
 }
