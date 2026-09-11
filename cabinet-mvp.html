@@ -540,7 +540,6 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    даты схлопывалась, значение прилипало к подписи. Возвращаем родной
    display тем тегам, у которых он не block. */
 .js .row.state.on{display:flex}
-.js .row[hidden]{display:none}
 .js span.state.on{display:inline}
 .screen{display:block}
 .js .screen{display:none;border-top:0}
@@ -1644,19 +1643,6 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
     </aside>
     <main class="main narrow">
-      <!-- Режим правки: та же анкета, тот же шаг, но кнопка шага сохраняет и
-           возвращает в «Документы», а не ведёт дальше по воронке. Отдельный
-           экран редактирования не строим — он дублировал бы валидацию,
-           ветвления и зависимости (сфера → цели). -->
-      <div class="card pad" id="anketa-edit-bar" hidden style="margin-bottom:14px;border-color:var(--seal-blue);background:var(--seal-blue-tint)">
-        <div class="row" style="justify-content:space-between;align-items:center;gap:12px">
-          <div style="min-width:0">
-            <b style="font-size:14.5px">Правим ответы</b>
-            <p class="tiny" style="margin-top:2px">Документы пересоберём после сохранения — пришлём письмо, когда будут готовы.</p>
-          </div>
-          <button type="button" class="btn sm" style="flex:none" id="anketa-edit-cancel">Отмена</button>
-        </div>
-      </div>
       <div class="anketa-step" data-step-counter>Шаг 2 из 6</div>
       <!-- Подшаги (независимый UX-аудит, критика A, приоритет P1) — было
            одним «Шаг 2 из 4» на три независимых решения (форма
@@ -2551,41 +2537,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <!-- Единая лента причин изменений по всем документам вместе, не по
            одному отдельно (см. HANDOFF 6.16/6.17) — сгруппировано по
            событию, а не построчно продублировано с версиями выше. -->
-      <!-- Ответы анкеты, из которых собираются четыре документа из пяти.
-           Живут здесь, а не отдельным разделом: искать их человек идёт туда
-           же, где лежит результат («сменилась платформа», «начали рассылку»).
-           Вид тот же, что у тарифа и способа оплаты в «Подписке»: решённое —
-           строка-сводка с «Изменить». Сфера и домен не правятся: сфера решает,
-           какие цели вообще показываются, а домен — это привязка скрипта и,
-           по сути, другой проект. -->
-      <h2 class="state" data-pay-state="trial pending paid expired" style="margin-top:24px">Из чего собраны документы</h2>
-      <div class="card pad state" data-pay-state="trial pending paid expired" style="margin-top:12px">
-        <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px">
-          <div style="min-width:0">
-            <div style="font-weight:700;font-size:14.5px">О сайте</div>
-            <div class="tiny" style="margin-top:2px" id="ans-site">—</div>
-          </div>
-          <button type="button" class="btn sm" style="flex:none" data-edit-step="2">Изменить</button>
-        </div>
-        <div class="hr"></div>
-        <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px">
-          <div style="min-width:0">
-            <div style="font-weight:700;font-size:14.5px">Работа с клиентами</div>
-            <div class="tiny" style="margin-top:2px" id="ans-clients">—</div>
-          </div>
-          <button type="button" class="btn sm" style="flex:none" data-edit-step="3">Изменить</button>
-        </div>
-        <div class="hr"></div>
-        <p class="tiny" style="margin:0">Сфера деятельности и адрес сайта не меняются: от сферы зависит состав вопросов, а адрес — это привязка скрипта. Если нужно другое — напишите в поддержку.</p>
-      </div>
       <h2 class="state" data-pay-state="trial pending paid expired" style="margin-top:24px">История изменений</h2>
       <div class="card state" data-pay-state="trial pending paid expired" style="margin-top:12px;overflow:hidden">
-        <!-- Правка ответов попадает в историю наравне со сменой закона: для
-             клиента это одно и то же событие — «документы стали точнее». -->
-        <div class="row" id="answers-changed-note" hidden style="padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start">
-          <span class="tiny mono" style="flex:none;width:88px">Сегодня</span>
-          <span class="small">Вы изменили ответы анкеты — пересобираем документы, пришлём письмо, когда будут готовы</span>
-        </div>
         <div class="row state" data-pay-state="paid" style="padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start">
           <span class="tiny mono" style="flex:none;width:88px">15.08.2026</span>
           <span class="small">«Политика обработки персональных данных» — обновили формулировки под изменения 152-ФЗ</span>
@@ -3734,7 +3687,6 @@ function syncAnketaSubstep(){
   syncFunnelSteps();
   // подшаг меняется и без смены экрана (кнопки «Далее»/«Назад» внутри
   // анкеты) — тулбар макета должен переподсветиться и в этом случае
-  if (typeof syncAnswers === 'function') syncAnswers();
   var open = document.querySelector('.screen.on');
   if (open && open.id === 's-anketa2') paintNav('s-anketa2');
 }
@@ -3775,7 +3727,6 @@ function syncFunnelSteps(){
   var cur = currentFunnelStep();
   if (cur > maxStepReached) maxStepReached = cur;
   if (typeof syncResumeNote === 'function') syncResumeNote();
-  if (typeof syncAnketaEditUI === 'function') syncAnketaEditUI(cur);
   if (typeof syncFunnelBar === 'function') syncFunnelBar(cur);
   document.querySelectorAll('[data-side-steps] .side-step').forEach(function(el){
     var n = parseInt(el.dataset.step, 10);
@@ -3882,82 +3833,6 @@ document.getElementById('fb-next').addEventListener('click', function(){
 document.getElementById('fb-back').addEventListener('click', function(){
   var t = funnelTarget('data-funnel-back'); if (t) t.click();
 });
-
-/* ── Правка ответов анкеты ─────────────────────────────────────────────
-   Пакет фиксирован из пяти документов, поэтому правка ответа не может
-   ничего отнять — она меняет только точность текста внутри документов,
-   которые и так есть. Отсюда и решение разрешить её: устаревший ответ
-   («поставили Метрику», «начали рассылку») — это ровно тот отказ, от
-   которого продаётся подписка. Сфера и адрес сайта не правятся. */
-var anketaEditMode = false;
-var answersChanged = false;
-
-function startAnketaEdit(step){
-  anketaEditMode = true;
-  maxStepReached = FUNNEL_STEPS.length;   // в правке открыты все шаги
-  goFunnelStep(step);
-}
-function saveAnketaEdit(){
-  anketaEditMode = false;
-  answersChanged = true;
-  syncAnswers();
-  goScreen('s-docs');
-  window.scrollTo(0, 0);
-}
-function cancelAnketaEdit(){
-  anketaEditMode = false;
-  goScreen('s-docs');
-  window.scrollTo(0, 0);
-}
-/* Сводка ответов собирается из самих чекбоксов, а не из отдельной копии
-   состояния: копия разъехалась бы с формой при первой же правке. */
-function pick(sel){
-  return Array.prototype.slice.call(document.querySelectorAll(sel))
-    .filter(function(x){ return x.checked; })
-    .map(function(x){ var t = x.closest('label').querySelector('.t');
-      return t ? t.childNodes[0].textContent.trim() : ''; })
-    .filter(Boolean);
-}
-function syncAnswers(){
-  var site = document.getElementById('ans-site');
-  var cl = document.getElementById('ans-clients');
-  if (site) {
-    var plat = pick('[data-platform-pick]');
-    var an = pick('[data-excl="analytics"]');
-    var ft = pick('[data-excl="features"]');
-    site.textContent = 'Платформа: ' + (plat[0] || 'не выбрана') +
-      ' · Аналитика: ' + (an.join(', ') || 'не указана') +
-      ' · Формы и сервисы: ' + (ft.join(', ') || 'не указаны');
-  }
-  if (cl) {
-    var purposes = Array.prototype.slice.call(document.querySelectorAll('[data-purpose]'))
-      .filter(function(el){ return !el.hidden && el.querySelector('input').checked; })
-      .map(function(el){ return el.querySelector('.t').childNodes[0].textContent.trim(); });
-    cl.textContent = 'Звонки и письма по базе: ' + (callsAnswerIsNo() ? 'нет' : 'да') +
-      ' · Цели: ' + (purposes.join(', ') || 'не отмечены');
-  }
-  var note = document.getElementById('answers-changed-note');
-  if (note) note.hidden = !answersChanged;
-}
-document.querySelectorAll('[data-edit-step]').forEach(function(b){
-  b.addEventListener('click', function(){ startAnketaEdit(parseInt(b.dataset.editStep, 10)); });
-});
-var anketaEditCancel = document.getElementById('anketa-edit-cancel');
-if (anketaEditCancel) anketaEditCancel.addEventListener('click', cancelAnketaEdit);
-
-/* Ярлык кнопки шага в правке: «Сохранить» вместо «Далее». Тот же приём,
-   что у панели воронки — ярлык снимается с настоящей кнопки. */
-function syncAnketaEditUI(cur){
-  var bar = document.getElementById('anketa-edit-bar');
-  if (bar) bar.hidden = !(anketaEditMode && (cur === 2 || cur === 3));
-  [['anketa-site-next', 2], ['anketa-clients-next', 3]].forEach(function(pair){
-    var btn = document.getElementById(pair[0]);
-    if (!btn) return;
-    var on = anketaEditMode && cur === pair[1];
-    btn.textContent = on ? 'Сохранить' : 'Далее →';
-    if (on) btn.dataset.fbLabel = 'Сохранить'; else delete btn.dataset.fbLabel;
-  });
-}
 
 function goFunnelStep(n){
   var st = FUNNEL_STEPS[Math.min(Math.max(n, 1), FUNNEL_STEPS.length) - 1];
@@ -4674,7 +4549,6 @@ function callsAnswerIsNo(){
    мимо модалки). */
 var clientsNextBtn = document.getElementById('anketa-clients-next');
 function goToRequisites(){
-  if (anketaEditMode) { saveAnketaEdit(); return; }
   anketaSubstep = 3;
   syncAnketaSubstep();
   window.scrollTo(0,0);
@@ -5316,7 +5190,6 @@ if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
   var platformErr = document.getElementById('anketa-platform-error');
   if (platformErr) platformErr.style.display = platformPicked ? 'none' : 'block';
   if (!platformPicked) return;
-  if (anketaEditMode) { saveAnketaEdit(); return; }
   anketaSubstep = 2;
   syncAnketaSubstep();
 });
