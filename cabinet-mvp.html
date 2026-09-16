@@ -1082,7 +1082,13 @@ details.acc:first-child{margin-top:0}
    (149-ФЗ на реквизитах, ФЗ «О рекламе» ст.18 на рассылках), не на всех
    шести — решение из HANDOFF 6.15. Тот же приём data-fold, что и
    «Показать код установки ⌄» на s-install. */
-.anketa-fold-btn{padding:0;margin-top:8px}
+/* display:block обязателен: разворот стоит последним в карточке, а перед ним
+   может оказаться inline-flex-контрол (.seg у «Звонки и письма по базе»).
+   Кнопка тогда вставала В ОДНУ СТРОКУ справа от сегмента и читалась как
+   пояснение к нему, а не к карточке. В .row на шаге установки и у
+   .state-варианта на s-pay это ничего не меняет: там display задают
+   флекс-контейнер и правило .js .state с более высокой специфичностью. */
+.anketa-fold-btn{padding:0;margin-top:8px;display:block}
 
 /* HANDOFF 6.15 п.8 — после истечения пробного периода без оплаты
    документы в s-docs остаются просматриваемыми, но не копируются/не
@@ -1404,7 +1410,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <div class="card pad" style="max-width:440px;text-align:center;padding:36px 28px">
           <p class="lead">Пока нет ни одного сайта</p>
           <p class="tiny" style="margin-top:6px">Добавьте сайт — дальше короткая анкета, и мы подготовим документы по ней.</p>
-          <button type="button" class="btn solid wide" style="margin-top:16px" data-go="s-anketa">+ Добавить сайт</button>
+          <button type="button" class="btn solid wide" style="margin-top:16px" data-enter-funnel>+ Добавить сайт</button>
         </div>
       </div>
 
@@ -1412,7 +1418,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="row" style="justify-content:space-between;align-items:flex-start;margin-top:14px">
         <p class="small muted" style="margin:0">1 сайт</p>
         <div class="row" style="gap:8px">
-          <button class="btn sm" data-go="s-anketa" data-swapped="pvtable" style="display:none">+ Добавить сайт</button>
+          <button class="btn sm" data-enter-funnel data-swapped="pvtable" style="display:none">+ Добавить сайт</button>
           <div class="viewbar" role="group" aria-label="Вид списка">
             <button type="button" class="on" data-swap="pvcards" aria-label="Карточки" title="Карточки">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
@@ -1474,7 +1480,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
           </div>
 
-          <button type="button" class="addcard" data-go="s-anketa">
+          <button type="button" class="addcard" data-enter-funnel>
             <span class="plus">+</span>
             <b>Добавить сайт</b>
             <span>Ещё один сайт</span>
@@ -1546,14 +1552,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist funnel-nav"><a class="on">Подключение сайта</a></div>
-      <div class="side-steps" data-side-steps>
-        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
-        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
-        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>Работа с клиентами</button>
-        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Реквизиты</button>
-        <button type="button" class="side-step" data-step="5"><span class="st-mark"></span>Что подготовили</button>
-        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка скрипта</button>
-      </div>
+      <div class="side-steps" data-side-steps></div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
         <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
@@ -1562,13 +1561,14 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 1 из 6</div>
       <h1>Знакомство</h1>
-      <!-- Лид разведён по hasIdentity: на втором сайте секция «Ваша роль» и
-           контакты не показываются, и общий лид обещал бы вопрос, которого
-           на экране нет, — ровно та же неправда, за которую сняли прежнее
-           «Сначала о вас». Тот же .state[data-has-identity], что и у самой
-           секции, поэтому подпись и содержимое не могут разойтись. -->
-      <p class="lead state" data-has-identity="false" style="margin-top:8px">Кто ведёт кабинет, какой сайт подключаем и чем занимается компания.</p>
-      <p class="lead state" data-has-identity="true" style="margin-top:8px">Какой сайт подключаем и чем занимается компания.</p>
+      <!-- Шаг целиком про человека — поэтому и лид один. Домен уехал на «О
+           сайте», сфера деятельности — на «Компанию и клиентов», к целям,
+           которые от неё зависят. Раньше шаг под названием «Знакомство»
+           спрашивал разом про человека, про сайт и про компанию, а лид
+           пришлось держать в двух версиях, чтобы он не врал на втором
+           сайте; теперь врать нечему, и на втором сайте шага нет вовсе
+           (FUNNEL_ALL.skipIf по hasIdentity). -->
+      <p class="lead" style="margin-top:8px">Кто будет вести кабинет и получать письма об изменениях. Про сайт и компанию спросим дальше.</p>
 
       <!-- Одна карточка на шаг (очередь 2, ревью Ивана): до этого шаг 1 был
            тремя карточками подряд, шаг 2 — одной, шаг 4 — четырьмя, и каждый
@@ -1584,7 +1584,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            секции, чтобы исчезать вместе с ней, а не оставлять висящую
            черту над «Адресом сайта». -->
       <div class="card pad" id="anketa-start-card" style="margin-top:16px">
-        <div class="state" data-has-identity="false">
+        <div>
           <h2 style="margin-bottom:8px">Ваша роль в компании</h2>
           <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник</button><button type="button" data-swap="who-contractor" data-set-who="contractor">Подрядчик</button></div>
 
@@ -1606,43 +1606,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <input class="inp mono" id="anketa-person-backup" inputmode="tel" placeholder="+7 (___) ___-__-__">
             </div>
           </div>
-
-          <div class="hr" style="margin:14px 0"></div>
         </div>
-
-        <!-- «Название проекта» убрано (правка пользователя 16 сентября): сайт
-             везде опознаётся доменом. Придумывать ему второе имя клиента просили
-             зря — в документы оно не шло, а в кабинете дублировало домен, который
-             стоит строкой выше и крупнее. Наименование компании для карточки
-             берём с шага «Реквизиты», отдельно спрашивать нечего. -->
-        <h2 style="margin-bottom:8px" id="h-domain">Адрес сайта <span style="color:var(--danger)">*</span></h2>
-        <div class="fld">
-          <input class="inp mono" id="add-domain" aria-labelledby="h-domain" placeholder="alfa-school.ru">
-          <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
-        </div>
-
-        <div class="hr" style="margin:14px 0"></div>
-        <h2 style="margin-bottom:8px" id="h-sphere">Сфера деятельности компании <span style="color:var(--danger)">*</span></h2>
-        <select class="inp" id="anketa-sphere-select" aria-labelledby="h-sphere">
-          <option value="" selected disabled>Выберите сферу деятельности</option>
-          <option data-sphere="school">Онлайн-школа, курсы, репетиторство</option>
-          <option data-regulated="1" data-sphere="kids">Детский центр, кружки, секции</option>
-          <option data-sphere="bizserv">Услуги для бизнеса (консалтинг, бухгалтерия, юр. услуги)</option>
-          <option data-sphere="homeserv">Бытовые услуги (ремонт, клининг)</option>
-          <option data-sphere="beauty">Красота и здоровье (салон, барбершоп, фитнес)</option>
-          <option data-regulated="1" data-sphere="medicine">Медицина, клиники</option>
-          <option data-sphere="shop">Интернет-магазин</option>
-          <option data-sphere="food">Кафе, ресторан, доставка еды</option>
-          <option data-sphere="realty">Недвижимость</option>
-          <option data-regulated="1" data-sphere="finance">Финансы, страхование</option>
-          <option data-sphere="it">IT, SaaS, разработка</option>
-          <option data-sphere="manuf">Производство</option>
-          <option data-sphere="other">Другое</option>
-        </select>
-        <p class="tiny anketa-field-error" id="anketa-sphere-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите сферу деятельности — от неё зависят формулировки в документах.</p>
 
         <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-person">Зачем это нужно ⌄</button>
-        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">Ваши имя и почта — контакты кабинета: сюда напишем, когда обновим документы или что-то изменится в законе. Резервная связь необязательна — позвоним, только если письма перестанут доходить. Адрес сайта попадёт в документы и в код установки. От сферы деятельности зависят формулировки: цели сбора контактов, состав данных, оговорки.</p>
+        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">Это контакты кабинета, а не сайта: сюда напишем, когда обновим документы или что-то изменится в законе. На сайт и в документы они не попадут — там будут контакты компании, их спросим на шаге «Реквизиты». Резервная связь необязательна: позвоним, только если письма перестанут доходить.</p>
       </div>
 
       <div class="hr" style="margin-top:20px"></div>
@@ -1685,14 +1652,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist funnel-nav"><a class="on">Подключение сайта</a></div>
-      <div class="side-steps" data-side-steps>
-        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
-        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
-        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>Работа с клиентами</button>
-        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Реквизиты</button>
-        <button type="button" class="side-step" data-step="5"><span class="st-mark"></span>Что подготовили</button>
-        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка скрипта</button>
-      </div>
+      <div class="side-steps" data-side-steps></div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
         <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
@@ -1714,6 +1674,17 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <h1>О сайте</h1>
           <p class="lead" style="margin-top:8px">Что установлено на сайте и что он умеет. Счётчики и формы задают формулировки в политике персональных данных и в политике обработки cookie, платформа — инструкцию по установке на последнем шаге.</p>
           <div class="card pad" id="anketa-site-card" style="margin-top:16px">
+            <!-- Домен переехал сюда с «Знакомства»: адрес сайта — это самое
+                 «о сайте», что вообще есть, а на шаге про человека он был
+                 третьим субъектом в одной карточке. Стоит первым, потому что
+                 остальные вопросы шага — про то, что на этом сайте стоит. -->
+            <h2 style="margin-bottom:8px" id="h-domain">Адрес сайта <span style="color:var(--danger)">*</span></h2>
+            <div class="fld">
+              <input class="inp mono" id="add-domain" aria-labelledby="h-domain" placeholder="alfa-school.ru">
+              <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
+            </div>
+
+            <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:8px">Платформа сайта</h2>
             <!-- Сегмент, а не чекбоксы (правка пользователя 16 сентября): выбор
                  здесь один и взаимоисключающий, а чекбоксы это отрицали — можно
@@ -1746,26 +1717,37 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:8px">Формы и сервисы на сайте</h2>
+            <p class="tiny" style="margin-bottom:8px">Отметьте, что есть на сайте — по каждому пункту скажем, куда поставить согласие.</p>
             <div style="margin-top:4px">
-              <!-- Пунктов намеренно мало, а примеры — под каждым, тем же приёмом,
-                   что в «Целях сбора контактов» ниже. Расширять список нельзя:
-                   сегодня поп-ап записи, завтра квиз, послезавтра калькулятор —
-                   человек не найдёт свой случай и отметит «ничего нет», что хуже
-                   грубого «да, что-то такое есть». Для документов важна не марка
-                   виджета, а три факта: собирает ли контакты сторонний скрипт,
-                   есть ли авторизация, есть ли заказ и оплата. -->
-              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Оплата и оформление заказа на сайте<span class="ex">корзина, оплата картой, оформление доставки</span></span></label>
-              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Личный кабинет<span class="ex">регистрация, вход, история заказов</span></span></label>
-              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Чаты, всплывающие формы, обратный звонок<span class="ex">чат на сайте, поп-ап записи на консультацию, квиз, форма подписки</span></span></label>
-              <label class="check"><input type="checkbox" data-excl="features" data-excl-none><span class="t">Ничего из этого нет</span></label>
+              <!-- Пунктов намеренно мало. Расширять список нельзя: сегодня поп-ап
+                   записи, завтра квиз, послезавтра калькулятор — человек не найдёт
+                   свой случай и отметит «ничего нет», что хуже грубого «да,
+                   что-то такое есть». Важна не марка виджета, а три факта:
+                   есть ли заказ и оплата, есть ли авторизация, собирает ли
+                   контакты сторонний скрипт.
+
+                   Под каждой строкой раньше стоял ПРИМЕР («чат на сайте, квиз,
+                   форма подписки»), и ревью на это прямо указало: «зачем нам это
+                   знать? на что это влияет?» — пример отвечал на «что это
+                   такое», а не на «зачем спрашиваем». Теперь под строкой ЭФФЕКТ:
+                   что мы сделаем, узнав ответ. Сам вывод («вам нужно согласие в
+                   форме регистрации») — очередь 3; здесь обещание того, что
+                   ответу есть применение, и оно должно быть выполнено. -->
+              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Оплата и оформление заказа на сайте<span class="ex">в политику добавим обработку данных заказа и оплаты</span></span></label>
+              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Личный кабинет<span class="ex">согласие встанет галочкой в форму регистрации</span></span></label>
+              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Чаты, всплывающие формы, обратный звонок<span class="ex">текст согласия встанет под кнопкой отправки в каждой форме</span></span></label>
+              <label class="check"><input type="checkbox" data-excl="features" data-excl-none><span class="t">Ничего из этого нет<span class="ex">согласие в формы не понадобится, политика и cookie-баннер нужны всё равно</span></span></label>
             </div>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Политика обработки cookie должна описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей, какие формы и чаты собирают контакты. Соберём её текст из этих ответов. Платформа на документы не влияет — от неё зависит инструкция по установке на последнем шаге.</p>
+            <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Политика обработки cookie должна описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей, какие формы и чаты собирают контакты. Соберём её текст из этих ответов. Формы и сервисы решают ещё и второе — куда на сайте встанет согласие: в форму регистрации, под кнопку отправки или никуда. Платформа на документы не влияет, от неё зависит инструкция по установке на последнем шаге. Адрес сайта попадёт в ссылки на документы и в код установки.</p>
 
           </div>
           <div class="hr" style="margin-top:20px"></div>
           <div class="step-nav">
-            <button type="button" class="btn" data-funnel-back data-go="s-anketa">← Назад</button>
+            <!-- data-go снят: на втором сайте шага «Знакомство» нет, и кнопка
+                 увела бы на экран вне шкалы (счётчик и панель воронки на нём
+                 показали бы пустоту). Цель считает обработчик. -->
+            <button type="button" class="btn" data-funnel-back id="site-back">← Назад</button>
             <button type="button" class="btn solid" data-funnel-next id="anketa-site-next">Далее →</button>
           </div>
         </div>
@@ -1791,15 +1773,35 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
              спрашивать про звонки/письма клиентам, когда сайт вообще не
              собирает контакты через форму, было бы странно. -->
         <div data-substep="2" style="display:none">
-          <h1>Работа с клиентами</h1>
-          <p class="lead" style="margin-top:8px">Как вы собираете и используете контакты. От этого зависят согласия и тексты, которые встанут у форм на сайте.</p>
+          <h1>Компания и клиенты</h1>
+          <p class="lead" style="margin-top:8px">Чем занимается компания и как вы работаете с контактами. От этого зависят согласия и тексты, которые встанут у форм на сайте.</p>
           <div class="card pad" id="anketa-clients-card" style="margin-top:16px">
-            <h2 style="margin-bottom:4px">Звонки и письма по базе клиентов</h2>
-            <p class="tiny" style="margin-bottom:8px">Отметьте, обращаетесь ли вы к клиентам из своей базы — звонком, в мессенджер или на почту.</p>
-            <div class="seg" id="calls-seg" style="margin-top:4px">
-              <button type="button" class="on" data-calls-pick="yes">Да</button>
-              <button type="button" data-calls-pick="no">Нет</button>
-            </div>
+            <!-- Сфера деятельности переехала сюда с «Знакомства» и стоит ПЕРЕД
+                 целями, которые от неё зависят (PURPOSE_MAP). Раньше причина
+                 была на шаге 1, а следствие на шаге 3 — отсюда и бралась
+                 регрессия «экран целей открывается пустым»: человек мог дойти
+                 сюда, не выбрав сферу, и увидеть карточку без пунктов. Теперь
+                 выбор и его последствие видны в одном экране, и список целей
+                 перестраивается у человека на глазах. -->
+            <h2 style="margin-bottom:8px" id="h-sphere">Сфера деятельности компании <span style="color:var(--danger)">*</span></h2>
+            <select class="inp" id="anketa-sphere-select" aria-labelledby="h-sphere">
+              <option value="" selected disabled>Выберите сферу деятельности</option>
+              <option data-sphere="school">Онлайн-школа, курсы, репетиторство</option>
+              <option data-regulated="1" data-sphere="kids">Детский центр, кружки, секции</option>
+              <option data-sphere="bizserv">Услуги для бизнеса (консалтинг, бухгалтерия, юр. услуги)</option>
+              <option data-sphere="homeserv">Бытовые услуги (ремонт, клининг)</option>
+              <option data-sphere="beauty">Красота и здоровье (салон, барбершоп, фитнес)</option>
+              <option data-regulated="1" data-sphere="medicine">Медицина, клиники</option>
+              <option data-sphere="shop">Интернет-магазин</option>
+              <option data-sphere="food">Кафе, ресторан, доставка еды</option>
+              <option data-sphere="realty">Недвижимость</option>
+              <option data-regulated="1" data-sphere="finance">Финансы, страхование</option>
+              <option data-sphere="it">IT, SaaS, разработка</option>
+              <option data-sphere="manuf">Производство</option>
+              <option data-sphere="other">Другое</option>
+            </select>
+            <p class="tiny anketa-field-error" id="anketa-sphere-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите сферу деятельности — от неё зависят формулировки в документах и список целей ниже.</p>
+
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:4px">Цели сбора контактов</h2>
             <p class="tiny" style="margin-bottom:8px">Отметьте всё, что подходит — по ним подберём формулировки согласия и текст у форм на сайте. Позже можно поправить.</p>
@@ -1822,6 +1824,14 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check" data-purpose="inquiry"><input type="checkbox"><span class="t">Ответить на обращение<span class="ex">форма обратной связи, «Заказать звонок», чат на сайте</span></span></label>
             <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях<span class="ex">рассылка, подписка на новости, письма об акциях</span></span></label>
             <p class="tiny anketa-field-error" id="anketa-purpose-error" style="display:none;margin-top:8px;color:var(--danger)">Отметьте хотя бы одну цель — без них в политике нечего описывать.</p>
+            <div class="hr" style="margin:14px 0"></div>
+            <h2 style="margin-bottom:4px">Звонки и письма по базе клиентов</h2>
+            <p class="tiny" style="margin-bottom:8px">Отметьте, обращаетесь ли вы к клиентам из своей базы — звонком, в мессенджер или на почту.</p>
+            <div class="seg" id="calls-seg" style="margin-top:4px">
+              <button type="button" class="on" data-calls-pick="yes">Да</button>
+              <button type="button" data-calls-pick="no">Нет</button>
+            </div>
+
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Цель обработки — обязательная часть согласия: использовать данные для цели, которая в нём не названа, нельзя. Поэтому отмеченное определяет, что будет написано в согласии и в тексте у формы. Ответ про звонки и письма по базе решает, нужно ли отдельное согласие на рекламные сообщения, — рассылка по своей базе без него незаконна.</p>
           </div>
@@ -2016,14 +2026,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist funnel-nav"><a class="on">Подключение сайта</a></div>
-      <div class="side-steps" data-side-steps>
-        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
-        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
-        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>Работа с клиентами</button>
-        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Реквизиты</button>
-        <button type="button" class="side-step" data-step="5"><span class="st-mark"></span>Что подготовили</button>
-        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка скрипта</button>
-      </div>
+      <div class="side-steps" data-side-steps></div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
         <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
@@ -2179,14 +2182,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
       <div class="navlist funnel-nav"><a class="on">Подключение сайта</a></div>
-      <div class="side-steps" data-side-steps>
-        <button type="button" class="side-step" data-step="1"><span class="st-mark"></span>Знакомство</button>
-        <button type="button" class="side-step" data-step="2"><span class="st-mark"></span>О сайте</button>
-        <button type="button" class="side-step" data-step="3"><span class="st-mark"></span>Работа с клиентами</button>
-        <button type="button" class="side-step" data-step="4"><span class="st-mark"></span>Реквизиты</button>
-        <button type="button" class="side-step" data-step="5"><span class="st-mark"></span>Что подготовили</button>
-        <button type="button" class="side-step" data-step="6"><span class="st-mark"></span>Установка скрипта</button>
-      </div>
+      <div class="side-steps" data-side-steps></div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
         <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
@@ -3535,7 +3531,7 @@ function setPayState(v){
   siteStatus = v;
   // анкета считается пройденной, если сайт подключён: иначе карточка «Мои
   // сайты» покажет «остановились на шаге 1», противореча самому статусу
-  if (v !== 'unpaid') maxStepReached = FUNNEL_STEPS.length;
+  if (v !== 'unpaid') maxStepReached = funnelSteps().length;
   syncPayState();
   var cur = document.querySelector('.screen.on');
   if (cur) goScreen(cur.id);
@@ -3790,33 +3786,98 @@ function syncAnketaSubstep(){
    Теперь каждый экран = свой шаг, счётчик всегда над заголовком.
    s-pay намеренно вне шкалы — оплата это действие кабинета, а не шаг
    подряд (решение 6.20), поэтому у неё сайдбар кабинета, не степпер. */
-var FUNNEL_STEPS = [
-  {screen:'s-anketa',  substep:0},
-  {screen:'s-anketa2', substep:1},
-  {screen:'s-anketa2', substep:2},
-  {screen:'s-anketa2', substep:3},
-  {screen:'s-ready',   substep:0},
-  {screen:'s-install', substep:0}
+/* Один источник правды на шаг: экран, подшаг, название и условие, при
+   котором шаг из шкалы выпадает. До этого название шага лежало в ТРЁХ
+   местах — в 24 захардкоженных кнопках степпера (5 сайдбаров), в
+   FUNNEL_TITLES для мобильной панели и в <h1> самого экрана. Переименовать
+   шаг, не разойдясь где-нибудь, было невозможно; степпер теперь рисуется
+   из этого массива, <h1> остаётся в разметке как единственная копия.
+
+   skipIf: «Знакомство» спрашивает только про человека — роль и контакты
+   кабинета. На втором сайте они уже известны, и шаг стал бы пустым экраном
+   с одной кнопкой «Далее». Поэтому он выпадает целиком, а шкала честно
+   становится «из 5»: второй сайт начинается с «О сайте», и это правда —
+   про человека там спрашивать нечего.
+
+   Условие смотрит на askIdentity, а НЕ на hasIdentity напрямую: hasIdentity
+   поднимается в середине первого же прохождения (на выходе с шага 1), и
+   шкала схлопнулась бы с «из 6» на «из 5» прямо под человеком, который этот
+   шаг только что прошёл, — счётчик показал бы «Шаг 1 из 5» на втором
+   экране. askIdentity фиксируется один раз, на входе в воронку. */
+var FUNNEL_ALL = [
+  {screen:'s-anketa',  substep:0, title:'Знакомство',        skipIf:function(){ return !askIdentity; }},
+  {screen:'s-anketa2', substep:1, title:'О сайте'},
+  {screen:'s-anketa2', substep:2, title:'Компания и клиенты'},
+  {screen:'s-anketa2', substep:3, title:'Реквизиты'},
+  {screen:'s-ready',   substep:0, title:'Что подготовили'},
+  {screen:'s-install', substep:0, title:'Установка скрипта'}
 ];
+function funnelSteps(){
+  return FUNNEL_ALL.filter(function(st){ return !(st.skipIf && st.skipIf()); });
+}
+/* Номер шага «Реквизиты» — не константа: на втором сайте он третий, а не
+   четвёртый. Раньше здесь стояло `maxStepReached > 4`, и на втором сайте
+   карточка сайта показала бы наименование компании на шаг раньше, чем его
+   спросили. */
+function funnelStepNo(screen, substep){
+  var list = funnelSteps();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].screen === screen && list[i].substep === substep) return i + 1;
+  }
+  return 0;
+}
 /* Шаги открываются по мере прохождения (выбор пользователя из двух
    вариантов, 7 сентября) — список растёт, но назад уже не схлопывается:
    вернувшись со шага 4 на шаг 2, человек по-прежнему видит все четыре,
    иначе возврат читался бы как потеря прогресса. */
 var maxStepReached = 1;
+/* Спрашиваем ли «Знакомство» в ТЕКУЩЕМ прохождении. Снимок hasIdentity на
+   момент входа в воронку — см. enterFunnel() и комментарий у FUNNEL_ALL. */
+var askIdentity = true;
 function currentFunnelStep(){
   var scr = document.querySelector('.screen.on');
   if (!scr) return 0;
-  for (var i = 0; i < FUNNEL_STEPS.length; i++) {
-    var st = FUNNEL_STEPS[i];
+  var list = funnelSteps();
+  for (var i = 0; i < list.length; i++) {
+    var st = list[i];
     if (st.screen === scr.id && (st.substep === 0 || st.substep === anketaSubstep)) return i + 1;
   }
   return 0;
+}
+/* Кнопки степпера рисуются из FUNNEL_ALL, а не лежат в разметке: их было
+   24 штуки (4 сайдбара × 6 шагов), с названием шага в каждой, плюс те же
+   названия в FUNNEL_TITLES. Переименовать шаг, не разойдясь где-нибудь,
+   было нельзя — «Работа с клиентами» пришлось бы править в 5 местах.
+   Перерисовываем на каждый sync: состав шкалы зависит от hasIdentity и
+   меняется в середине прохождения. DOM переписываем только когда список
+   реально разошёлся с нужным (dataset.rendered), иначе трогали бы его на
+   каждое переключение подшага.
+   data-step — позиция в АКТУАЛЬНОЙ шкале: так его читают и подсветка
+   ниже, и обработчик клика. */
+function renderSideSteps(){
+  var list = funnelSteps();
+  var want = list.map(function(st){ return st.title; }).join('|');
+  document.querySelectorAll('[data-side-steps]').forEach(function(box){
+    if (box.dataset.rendered === want) return;
+    box.dataset.rendered = want;
+    box.innerHTML = '';
+    list.forEach(function(st, i){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'side-step';
+      b.dataset.step = i + 1;
+      b.innerHTML = '<span class="st-mark"></span>';
+      b.appendChild(document.createTextNode(st.title));
+      box.appendChild(b);
+    });
+  });
 }
 function syncFunnelSteps(){
   var cur = currentFunnelStep();
   if (cur > maxStepReached) maxStepReached = cur;
   if (typeof syncResumeNote === 'function') syncResumeNote();
   if (typeof syncFunnelBar === 'function') syncFunnelBar(cur);
+  renderSideSteps();
   document.querySelectorAll('[data-side-steps] .side-step').forEach(function(el){
     var n = parseInt(el.dataset.step, 10);
     el.hidden = n > maxStepReached;
@@ -3832,7 +3893,7 @@ function syncFunnelSteps(){
   });
   if (cur) {
     document.querySelectorAll('.screen.on [data-step-counter]').forEach(function(el){
-      el.textContent = 'Шаг ' + cur + ' из ' + FUNNEL_STEPS.length;
+      el.textContent = 'Шаг ' + cur + ' из ' + funnelSteps().length;
     });
   }
 }
@@ -3850,16 +3911,15 @@ function funnelTarget(sel){
       return !sub || parseInt(sub.dataset.substep, 10) === anketaSubstep;
     })[0] || null;
 }
-var FUNNEL_TITLES = ['Знакомство','О сайте','Работа с клиентами','Реквизиты','Что подготовили','Установка скрипта'];
 function syncFunnelBar(cur){
   var bar = document.getElementById('funnelbar');
   if (!bar) return;
-  var on = cur >= 1 && cur <= FUNNEL_STEPS.length;
+  var on = cur >= 1 && cur <= funnelSteps().length;
   bar.hidden = !on;
   document.body.classList.toggle('has-funnelbar', on);
   if (!on) { closeFunnelSheet(); return; }
   document.getElementById('fb-n').textContent = cur;
-  document.getElementById('fb-fill').style.width = Math.round(cur / FUNNEL_STEPS.length * 100) + '%';
+  document.getElementById('fb-fill').style.width = Math.round(cur / funnelSteps().length * 100) + '%';
   var next = funnelTarget('data-funnel-next');
   var back = funnelTarget('data-funnel-back');
   var nb = document.getElementById('fb-next');
@@ -3879,7 +3939,8 @@ function renderFunnelSheet(cur){
   var box = document.getElementById('fb-sheet-steps');
   if (!box) return;
   box.innerHTML = '';
-  FUNNEL_TITLES.forEach(function(title, i){
+  funnelSteps().forEach(function(st, i){
+    var title = st.title;
     var n = i + 1;
     var b = document.createElement('button');
     b.type = 'button';
@@ -3923,8 +3984,22 @@ document.getElementById('fb-back').addEventListener('click', function(){
   var t = funnelTarget('data-funnel-back'); if (t) t.click();
 });
 
+/* Единственный вход в воронку. Делает снимок askIdentity и открывает первый
+   шаг АКТУАЛЬНОЙ шкалы — на втором сайте это «О сайте», а не «Знакомство».
+   Раньше три кнопки «Добавить сайт» вели goScreen('s-anketa') напрямую, и
+   правка состава шагов их бы не затронула. */
+function enterFunnel(){
+  askIdentity = !hasIdentity;
+  maxStepReached = 1;
+  goFunnelStep(1);
+}
+document.querySelectorAll('[data-enter-funnel]').forEach(function(b){
+  b.addEventListener('click', enterFunnel);
+});
+
 function goFunnelStep(n){
-  var st = FUNNEL_STEPS[Math.min(Math.max(n, 1), FUNNEL_STEPS.length) - 1];
+  var list = funnelSteps();
+  var st = list[Math.min(Math.max(n, 1), list.length) - 1];
   if (!st) return;
   if (st.substep) anketaSubstep = st.substep;
   goScreen(st.screen);
@@ -3942,13 +4017,13 @@ function syncResumeNote(){
   // Название компании и ИНН известны только с шага «Реквизиты» (он
   // четвёртый). До него карточка показывала фикстуру «ООО «Альфа
   // Образование»» у сайта, про который человек назвал один домен.
-  var knowsCompany = maxStepReached > 4;
+  var knowsCompany = maxStepReached > funnelStepNo('s-anketa2', 3);
   document.querySelectorAll('[data-after-req]').forEach(function(el){
     el.style.display = knowsCompany ? '' : 'none';
   });
   document.querySelectorAll('[data-resume-note]').forEach(function(el){
     el.textContent = maxStepReached > 1
-      ? 'остановились на шаге ' + maxStepReached + ' из ' + FUNNEL_STEPS.length
+      ? 'остановились на шаге ' + maxStepReached + ' из ' + funnelSteps().length
       : 'анкета не заполнена';
   });
 }
@@ -3958,7 +4033,7 @@ function syncResumeNote(){
 document.addEventListener('click', function(e){
   var btn = e.target.closest ? e.target.closest('.side-step.done, .side-step.seen') : null;
   if (!btn) return;
-  var st = FUNNEL_STEPS[parseInt(btn.dataset.step, 10) - 1];
+  var st = funnelSteps()[parseInt(btn.dataset.step, 10) - 1];
   if (!st) return;
   if (st.substep) anketaSubstep = st.substep;
   goScreen(st.screen);
@@ -4232,42 +4307,29 @@ wireStepGate('anketa-req-next', [
   return ownershipChosen;
 });
 
+/* Гейт шага «Знакомство»: проверяет только контакты человека. Домен уехал
+   на «О сайте» и проверяется там же, сфера — на «Компании и клиентах»;
+   раньше оба висели на этом гейте, хотя спрашивались и правились дальше. */
 wireStepGate('anketa-start-next', [
-  {id:'add-domain', errorId:'add-domain-error', test:function(v){
-    return DOMAIN_RE.test(normalizeDomain(v)); }},
   {id:'anketa-person-name', errorId:'anketa-person-name-error'},
   {id:'anketa-person-mail', errorId:'anketa-person-mail-error', test:function(v){
     return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v); }}
 ], function(){
-  var domInput = document.getElementById('add-domain');
-  // канонический вид записываем обратно в поле: человек должен видеть ровно
-  // то, что уйдёт в ссылки на документы и в код установки
-  if (domInput) domInput.value = normalizeDomain(domInput.value);
   var pn = document.getElementById('anketa-person-name');
   var pm = document.getElementById('anketa-person-mail');
   var pb = document.getElementById('anketa-person-backup');
   if (pn && pn.value.trim()) account.name = pn.value.trim();
   if (pm && pm.value.trim()) account.mail = pm.value.trim();
   if (pb) account.phone = pb.value.trim();
-  hasSite = true;        // сайт появляется в «Моих сайтах» только после шага 1
   hasIdentity = true;    // «кто заполняет» спрашиваем один раз на аккаунт
-  // ...и появляется он там незаполненным. Раньше карточка бралась из
-  // siteStatus, который в макете по умолчанию 'trial': уйдя со второго шага
-  // анкеты, человек видел свой домен с чужими реквизитами, таймером
+  // Карточка сайта в «Моих сайтах» должна появиться незаполненной. Раньше она
+  // бралась из siteStatus, который в макете по умолчанию 'trial': уйдя из
+  // середины анкеты, человек видел свой домен с чужими реквизитами, таймером
   // пробного периода и кнопкой «Открыть →» — сайт, которого он не подключал.
   // Пробный период включает только активация на шаге установки.
-  if (maxStepReached < FUNNEL_STEPS.length) { siteStatus = 'unpaid'; syncPayState(); }
+  if (maxStepReached < funnelSteps().length) { siteStatus = 'unpaid'; syncPayState(); }
   anketaSubstep = 1;
   goScreen('s-anketa2');
-}, function(){
-  // сфера — не поле ввода, поэтому отдельным условием: без неё на подшаге
-  // «Работа с клиентами» не покажется ни одной цели, и человек упрётся в
-  // пустой список без объяснения
-  var sel = document.getElementById('anketa-sphere-select');
-  var err = document.getElementById('anketa-sphere-error');
-  var ok = !!(sel && sel.selectedOptions[0] && sel.selectedOptions[0].dataset.sphere);
-  if (err) err.style.display = ok ? 'none' : 'block';
-  return ok;
 });
 
 // Копирование в буфер — независимый UX-аудит, критика A, P3: были молча
@@ -4653,10 +4715,20 @@ function goToRequisites(){
   window.scrollTo(0,0);
 }
 if (clientsNextBtn) clientsNextBtn.addEventListener('click', function(){
-  // Список целей — обязательная часть политики, так и написано в развороте
-  // над кнопкой; при этом «Далее» пропускал без единой отметки, и политика
-  // собралась бы без целей вовсе. Проверяются только видимые чекбоксы:
-  // набор зависит от сферы (PURPOSE_MAP).
+  // Сфера проверяется здесь, а не на шаге 1: она теперь стоит в этой же
+  // карточке, первой секцией, и от неё зависит список целей ниже.
+  var sel = document.getElementById('anketa-sphere-select');
+  var sphereErr = document.getElementById('anketa-sphere-error');
+  var sphereOk = !!(sel && sel.selectedOptions[0] && sel.selectedOptions[0].dataset.sphere);
+  if (sphereErr) sphereErr.style.display = sphereOk ? 'none' : 'block';
+  if (!sphereOk) {
+    if (sel) sel.focus({preventScroll:true});
+    if (sphereErr) sphereErr.scrollIntoView({block:'center', behavior:'smooth'});
+    return;
+  }
+  // Список целей — обязательная часть согласия, так и написано в развороте
+  // над кнопкой; при этом «Далее» пропускал без единой отметки.
+  // Проверяются только видимые чекбоксы: набор зависит от сферы (PURPOSE_MAP).
   var purposeErr = document.getElementById('anketa-purpose-error');
   var anyPurpose = Array.prototype.slice.call(document.querySelectorAll('[data-purpose] input'))
     .some(function(i){ return i.checked && i.closest('[data-purpose]').offsetParent; });
@@ -5322,21 +5394,46 @@ if (saveDocsBtn) saveDocsBtn.addEventListener('click', function(){
    и меняющийся счётчик читаются как сбой интерфейса, а сами ответы не
    пропадают впустую: «Согласие на рассылки» выдаётся в любом случае, в
    том числе навырост. Путь всегда из шести шагов подряд. */
-var siteNextBtn = document.getElementById('anketa-site-next');
-if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
+/* «Назад» с «О сайте»: на первом сайте — к «Знакомству», на втором его нет,
+   поэтому к «Моим сайтам». */
+var siteBackBtn = document.getElementById('site-back');
+if (siteBackBtn) siteBackBtn.addEventListener('click', function(){
+  if (askIdentity) { goScreen('s-anketa'); window.scrollTo(0,0); return; }
+  goScreen('s-status');
+});
+
+/* Гейт шага «О сайте»: домен (переехал сюда с «Знакомства») плюс платформа.
+   Через wireStepGate, а не своим обработчиком, — ровно чтобы домен получил
+   ту же подсветку поля и тот же прокрут к первой ошибке, что и остальные
+   поля анкеты. Платформа и «Другое» — не поля ввода, поэтому extraCheck.
+   hasSite переехал сюда же с шага 1: сайт появляется в «Моих сайтах», когда
+   назван его адрес, а не когда человек назвал своё имя. */
+wireStepGate('anketa-site-next', [
+  {id:'add-domain', errorId:'add-domain-error', test:function(v){
+    return DOMAIN_RE.test(normalizeDomain(v)); }}
+], function(){
+  var domInput = document.getElementById('add-domain');
+  // канонический вид записываем обратно в поле: человек должен видеть ровно
+  // то, что уйдёт в ссылки на документы и в код установки
+  if (domInput) domInput.value = normalizeDomain(domInput.value);
+  hasSite = true;
+  syncCompany();
+  anketaSubstep = 2;
+  syncAnketaSubstep();
+  window.scrollTo(0, 0);
+}, function(){
   var platformErr = document.getElementById('anketa-platform-error');
   if (platformErr) platformErr.style.display = platformChosen ? 'none' : 'block';
-  if (!platformChosen) return;
+  if (!platformChosen) return false;
   if (sitePlatform === 'other') {
     var other = document.getElementById('platform-other');
     var otherErr = document.getElementById('platform-other-error');
     var empty = !other || !other.value.trim();
     if (other) other.classList.toggle('error', empty);
     if (otherErr) otherErr.style.display = empty ? 'block' : 'none';
-    if (empty) { if (other) other.focus({preventScroll:true}); return; }
+    if (empty) return false;
   }
-  anketaSubstep = 2;
-  syncAnketaSubstep();
+  return true;
 });
 
 /* ОТКРЫТЫЙ ВОПРОС: медицина/финансы/детские центры помечены
