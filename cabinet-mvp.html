@@ -1565,14 +1565,16 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <p class="tiny" id="fold-person" style="display:none;margin-top:8px">Это контакты кабинета: сюда напишем, когда обновим документы или что-то изменится в законе. Резервная связь необязательна — позвоним, только если письма перестанут доходить.</p>
       </div>
 
+      <!-- «Название проекта» убрано (правка пользователя 16 сентября): сайт
+           везде опознаётся доменом. Придумывать ему второе имя клиента просили
+           зря — в документы оно не шло, а в кабинете дублировало домен, который
+           стоит строкой выше и крупнее. Наименование компании для карточки
+           берём с шага «Реквизиты», отдельно спрашивать нечего. -->
       <div class="card pad" style="margin-top:10px">
-        <h2 style="margin-bottom:0">Адрес сайта и название проекта</h2>
+        <h2 style="margin-bottom:0">Адрес сайта</h2>
         <label class="f" style="margin-top:10px" for="add-domain">Адрес сайта <span style="color:var(--danger)">*</span></label>
         <input class="inp mono" id="add-domain" placeholder="alfa-school.ru">
         <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
-        <label class="f" style="margin-top:10px" for="add-name">Название проекта</label>
-        <input class="inp" id="add-name" placeholder="Интернет-магазин «Ромашка»">
-        <p class="tiny" style="margin-top:5px">Так сайт будет называться в кабинете — в документы это название не идёт, наименование компании спросим на шаге «Реквизиты».</p>
       </div>
 
       <div class="card pad" style="margin-top:10px">
@@ -4987,9 +4989,7 @@ function syncCompany(){
   // в заголовке карточки сайта — без организационной формы и кавычек:
   // рядом уже стоит домен, «ООО «…»» там только шумит
   var short = company.name.replace(/^(ООО|АО|ПАО|ЗАО|ИП)\s*/i, '').replace(/[«»"]/g, '').trim();
-  var titleInput = document.getElementById('add-name');
-  var title = (titleInput && titleInput.value.trim()) || short;
-  document.querySelectorAll('[data-company-short]').forEach(function(el){ el.textContent = title; });
+  document.querySelectorAll('[data-company-short]').forEach(function(el){ el.textContent = short; });
   var nameSet = document.getElementById('req-name-set');
   var innSet = document.getElementById('req-inn-set');
   if (nameSet) nameSet.textContent = company.name;
