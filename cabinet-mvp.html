@@ -251,6 +251,28 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
      нечем — секции и так отбиты горизонтальной чертой. */
   .check-2col .check{border-bottom:none;padding:7px 0}
 }
+/* ── ритм полей анкеты ──────────────────────────────────────────────────
+   Отступ между полями задаёт обёртка .fld, а не inline-margin на каждой
+   подписи: их было три разных (10/12/14px) вперемешку, и шаги из-за
+   этого выглядели свёрстанными по-разному — ровно то, на что указало
+   ревью. Первое поле секции отступа не получает, его даёт заголовок.
+   .f2 ставит пару коротких полей в две колонки на широком экране: в один
+   столбец анкета тянулась вниз при пустой правой половине карточки. Тот
+   же брейкпоинт, что у .check-2col, — на телефоне колонка одна.
+   min-width:0 обязателен: иначе .inp{width:100%} не даёт колонке грида
+   сжаться и карточку распирает горизонтальным скроллом. */
+.fld,.f2{margin-top:10px;min-width:0}
+/* Первое поле секции отступа не получает — его задаёт заголовок. */
+.card > .fld:first-child,.card > .f2:first-child,
+h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
+/* Внутри пары отступ между рядами — row-gap грида, а НЕ margin-top у
+   поля: у правой колонки первого ряда margin никто не гасит (:first-child
+   там только левая), и её подпись съезжала вниз на 10px относительно
+   левой. Ловится только глазом на скриншоте — в DOM всё «на месте». */
+.f2{display:grid;gap:10px 14px}
+.f2 > .fld{margin-top:0}
+@media(min-width:761px){.f2{grid-template-columns:1fr 1fr}}
+
 /* Список мессенджеров: строка на каждый, состояние у каждой своё —
    подключить можно несколько сразу. */
 .msgr-list{display:flex;flex-direction:column}
@@ -568,14 +590,15 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    «Скопировать» и «Проверить» и был свёрнут, то есть второй шаг прятался
    под третьим. Теперь путь выбирается сегментом, как на всех прошлых
    шагах, и внутри идёт нумерованная последовательность.
-   Номера — CSS-счётчиком: скрытые display:none пункты его не двигают,
-   поэтому у ветки «поручу» шаги нумеруются 1–2, а у «сам» 1–3 без
-   отдельной логики. */
-.inst-steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:inst}
+   Собственной нумерации у пунктов НЕТ (очередь 2, ревью Ивана): экран и
+   так подписан «Шаг 6 из 6», а кружки ① ② ③ внутри него заводили вторую
+   шкалу — человек видел два счётчика сразу и не понимал, какой из них
+   про его продвижение. Порядок здесь и без номеров однозначен: карточки
+   идут сверху вниз, заголовки повелительные («Скопируйте» → «Вставьте» →
+   «Проверьте»). Список остаётся <ol> — порядок смысловой, просто маркер
+   не рисуется. */
+.inst-steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
 .inst-step{display:flex;gap:14px;align-items:flex-start}
-.inst-step::before{counter-increment:inst;content:counter(inst);flex:none;width:26px;height:26px;
-  border-radius:50%;background:var(--ink);color:#fff;font-size:12.5px;font-weight:800;
-  display:grid;place-items:center;margin-top:1px}
 .inst-body{flex:1;min-width:0}
 .inst-body h3{margin:0 0 6px;font-size:15px}
 .inst-body .install-steps{margin:0}
@@ -1544,42 +1567,68 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 1 из 6</div>
       <h1>Знакомство</h1>
-      <p class="lead" style="margin-top:8px">Сначала о вас — это контакты вашего кабинета. Дальше пойдут вопросы о сайте.</p>
+      <!-- Лид разведён по hasIdentity: на втором сайте секция «Ваша роль» и
+           контакты не показываются, и общий лид обещал бы вопрос, которого
+           на экране нет, — ровно та же неправда, за которую сняли прежнее
+           «Сначала о вас». Тот же .state[data-has-identity], что и у самой
+           секции, поэтому подпись и содержимое не могут разойтись. -->
+      <p class="lead state" data-has-identity="false" style="margin-top:8px">Кто ведёт кабинет, какой сайт подключаем и чем занимается компания.</p>
+      <p class="lead state" data-has-identity="true" style="margin-top:8px">Какой сайт подключаем и чем занимается компания.</p>
 
-      <div class="card pad state" data-has-identity="false" style="margin-top:16px">
-        <h2 style="margin-bottom:0">Ваша роль в компании</h2>
-        <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник</button><button type="button" data-swap="who-contractor" data-set-who="contractor">Подрядчик</button></div>
+      <!-- Одна карточка на шаг (очередь 2, ревью Ивана): до этого шаг 1 был
+           тремя карточками подряд, шаг 2 — одной, шаг 4 — четырьмя, и каждый
+           экран читался свёрстанным отдельно. Теперь везде одна карточка,
+           вопросы внутри разделены .hr, отступы задаёт .fld, а «Зачем это
+           нужно» стоит один на карточку — в конце.
 
-        <label class="f" style="margin-top:14px" for="anketa-person-name">Как к вам обращаться <span style="color:var(--danger)">*</span></label>
-        <input class="inp" id="anketa-person-name" placeholder="Кирилл">
-        <p class="tiny anketa-field-error" id="anketa-person-name-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите имя — так будем обращаться в письмах.</p>
+           Блок «Ваша роль» + «Ваши контакты» показывается только на первом
+           сайте (data-has-identity="false"): на втором эти ответы уже есть,
+           переспрашивать нечего. Раньше это была отдельная карточка, поэтому
+           условность давалась сама собой; теперь она секция внутри общей
+           карточки — .state висит на секции, и .hr под ней лежит ВНУТРИ
+           секции, чтобы исчезать вместе с ней, а не оставлять висящую
+           черту над «Адресом сайта». -->
+      <div class="card pad" id="anketa-start-card" style="margin-top:16px">
+        <div class="state" data-has-identity="false">
+          <h2 style="margin-bottom:8px">Ваша роль в компании</h2>
+          <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник</button><button type="button" data-swap="who-contractor" data-set-who="contractor">Подрядчик</button></div>
 
-        <label class="f" style="margin-top:10px" for="anketa-person-mail">Почта <span style="color:var(--danger)">*</span></label>
-        <input class="inp" id="anketa-person-mail" type="email" placeholder="kirill@alfa-school.ru">
-        <p class="tiny anketa-field-error" id="anketa-person-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.</p>
+          <div class="hr" style="margin:14px 0"></div>
+          <h2 style="margin-bottom:8px">Ваши контакты</h2>
+          <div class="f2">
+            <div class="fld">
+              <label class="f" for="anketa-person-name">Как к вам обращаться <span style="color:var(--danger)">*</span></label>
+              <input class="inp" id="anketa-person-name" placeholder="Кирилл">
+              <p class="tiny anketa-field-error" id="anketa-person-name-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите имя — так будем обращаться в письмах.</p>
+            </div>
+            <div class="fld">
+              <label class="f" for="anketa-person-mail">Почта <span style="color:var(--danger)">*</span></label>
+              <input class="inp" id="anketa-person-mail" type="email" placeholder="kirill@alfa-school.ru">
+              <p class="tiny anketa-field-error" id="anketa-person-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.</p>
+            </div>
+            <div class="fld">
+              <label class="f" for="anketa-person-backup">Резервная связь</label>
+              <input class="inp mono" id="anketa-person-backup" inputmode="tel" placeholder="+7 (___) ___-__-__">
+            </div>
+          </div>
 
-        <label class="f" style="margin-top:10px" for="anketa-person-backup">Резервная связь</label>
-        <input class="inp mono" id="anketa-person-backup" inputmode="tel" placeholder="+7 (___) ___-__-__">
+          <div class="hr" style="margin:14px 0"></div>
+        </div>
 
-        <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-person">Зачем это нужно ⌄</button>
-        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">Это контакты кабинета: сюда напишем, когда обновим документы или что-то изменится в законе. Резервная связь необязательна — позвоним, только если письма перестанут доходить.</p>
-      </div>
+        <!-- «Название проекта» убрано (правка пользователя 16 сентября): сайт
+             везде опознаётся доменом. Придумывать ему второе имя клиента просили
+             зря — в документы оно не шло, а в кабинете дублировало домен, который
+             стоит строкой выше и крупнее. Наименование компании для карточки
+             берём с шага «Реквизиты», отдельно спрашивать нечего. -->
+        <h2 style="margin-bottom:8px" id="h-domain">Адрес сайта <span style="color:var(--danger)">*</span></h2>
+        <div class="fld">
+          <input class="inp mono" id="add-domain" aria-labelledby="h-domain" placeholder="alfa-school.ru">
+          <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
+        </div>
 
-      <!-- «Название проекта» убрано (правка пользователя 16 сентября): сайт
-           везде опознаётся доменом. Придумывать ему второе имя клиента просили
-           зря — в документы оно не шло, а в кабинете дублировало домен, который
-           стоит строкой выше и крупнее. Наименование компании для карточки
-           берём с шага «Реквизиты», отдельно спрашивать нечего. -->
-      <div class="card pad" style="margin-top:10px">
-        <h2 style="margin-bottom:0">Адрес сайта</h2>
-        <label class="f" style="margin-top:10px" for="add-domain">Адрес сайта <span style="color:var(--danger)">*</span></label>
-        <input class="inp mono" id="add-domain" placeholder="alfa-school.ru">
-        <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
-      </div>
-
-      <div class="card pad" style="margin-top:10px">
-        <h2 style="margin-bottom:10px">Сфера деятельности компании</h2>
-        <select class="inp" id="anketa-sphere-select">
+        <div class="hr" style="margin:14px 0"></div>
+        <h2 style="margin-bottom:8px" id="h-sphere">Сфера деятельности компании <span style="color:var(--danger)">*</span></h2>
+        <select class="inp" id="anketa-sphere-select" aria-labelledby="h-sphere">
           <option value="" selected disabled>Выберите сферу деятельности</option>
           <option data-sphere="school">Онлайн-школа, курсы, репетиторство</option>
           <option data-regulated="1" data-sphere="kids">Детский центр, кружки, секции</option>
@@ -1595,10 +1644,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <option data-sphere="manuf">Производство</option>
           <option data-sphere="other">Другое</option>
         </select>
-      
         <p class="tiny anketa-field-error" id="anketa-sphere-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите сферу деятельности — от неё зависят формулировки в документах.</p>
-        <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-sphere">Зачем это нужно ⌄</button>
-        <p class="tiny" id="fold-sphere" style="display:none;margin-top:8px">От сферы зависят формулировки в документах: цели сбора контактов, состав данных, оговорки.</p>
+
+        <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-person">Зачем это нужно ⌄</button>
+        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">Ваши имя и почта — контакты кабинета: сюда напишем, когда обновим документы или что-то изменится в законе. Резервная связь необязательна — позвоним, только если письма перестанут доходить. Адрес сайта попадёт в документы и в код установки. От сферы деятельности зависят формулировки: цели сбора контактов, состав данных, оговорки.</p>
       </div>
 
       <div class="hr" style="margin-top:20px"></div>
@@ -1668,7 +1717,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
         <div data-substep="1">
           <h1>О сайте</h1>
-          <p class="lead" style="margin-top:8px">Технические детали сайта — попадут в формулировки политики и cookie-документа.</p>
+          <p class="lead" style="margin-top:8px">Что установлено на сайте и что он умеет. От этого зависят формулировки в политике и в правилах про cookie-файлы.</p>
           <div class="card pad" id="anketa-site-card" style="margin-top:16px">
             <h2 style="margin-bottom:8px">Платформа сайта</h2>
             <!-- Сегмент, а не чекбоксы (правка пользователя 16 сентября): выбор
@@ -1710,13 +1759,13 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                    грубого «да, что-то такое есть». Для документов важна не марка
                    виджета, а три факта: собирает ли контакты сторонний скрипт,
                    есть ли авторизация, есть ли заказ и оплата. -->
-              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Корзина и оформление заказа<span class="ex">корзина, оформление доставки, оплата на сайте</span></span></label>
+              <label class="check"><input type="checkbox" data-excl="features"><span class="t">Оплата и оформление заказа на сайте<span class="ex">корзина, оплата картой, оформление доставки</span></span></label>
               <label class="check"><input type="checkbox" data-excl="features"><span class="t">Личный кабинет<span class="ex">регистрация, вход, история заказов</span></span></label>
               <label class="check"><input type="checkbox" data-excl="features"><span class="t">Чаты, всплывающие формы, обратный звонок<span class="ex">чат на сайте, поп-ап записи на консультацию, квиз, форма подписки</span></span></label>
               <label class="check"><input type="checkbox" data-excl="features" data-excl-none><span class="t">Ничего из этого нет</span></label>
             </div>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Политика про cookie должна описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей, какие формы и чаты собирают контакты. Соберём её текст из этих ответов.</p>
+            <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Правила про cookie-файлы должны описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей, какие формы и чаты собирают контакты. Соберём их текст из этих ответов. Платформа на документы не влияет — от неё зависит инструкция по установке на последнем шаге.</p>
 
           </div>
           <div class="hr" style="margin-top:20px"></div>
@@ -1748,15 +1797,17 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
              собирает контакты через форму, было бы странно. -->
         <div data-substep="2" style="display:none">
           <h1>Работа с клиентами</h1>
-          <p class="lead" style="margin-top:8px">Как вы собираете и используете контакты — попадёт в политику и согласия.</p>
+          <p class="lead" style="margin-top:8px">Как вы собираете и используете контакты. От этого зависят согласия и тексты, которые встанут у форм на сайте.</p>
           <div class="card pad" id="anketa-clients-card" style="margin-top:16px">
             <h2 style="margin-bottom:4px">Звонки и письма по базе клиентов</h2>
             <p class="tiny" style="margin-bottom:8px">Отметьте, обращаетесь ли вы к клиентам из своей базы — звонком, в мессенджер или на почту.</p>
-            <label class="check"><input type="checkbox" data-calls="yes" checked><span class="t">Да</span></label>
-            <label class="check"><input type="checkbox" data-calls="no"><span class="t">Нет</span></label>
+            <div class="seg" id="calls-seg" style="margin-top:4px">
+              <button type="button" class="on" data-calls-pick="yes">Да</button>
+              <button type="button" data-calls-pick="no">Нет</button>
+            </div>
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:4px">Цели сбора контактов</h2>
-            <p class="tiny" style="margin-bottom:8px">Отметьте всё, что подходит — эти цели попадут в политику. Позже можно поправить.</p>
+            <p class="tiny" style="margin-bottom:8px">Отметьте всё, что подходит — по ним подберём формулировки согласия и текст у форм на сайте. Позже можно поправить.</p>
             <!-- Раньше — 3 галочки под одну сферу (онлайн-школа), все
                  предзаполнены checked без участия человека: для остальных
                  12 сфер список не подходил и выглядел решённым за
@@ -1775,16 +1826,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check" data-purpose="payment"><input type="checkbox"><span class="t">Принять оплату онлайн<span class="ex">оплата картой на сайте, ссылка на оплату</span></span></label>
             <label class="check" data-purpose="inquiry"><input type="checkbox"><span class="t">Ответить на обращение<span class="ex">форма обратной связи, «Заказать звонок», чат на сайте</span></span></label>
             <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях<span class="ex">рассылка, подписка на новости, письма об акциях</span></span></label>
-            <!-- ТОЛЬКО ДЛЯ МАКЕТА, в продукт не переносить. В реальном
-                 продукте сюда без выбранной сферы не попасть: «Далее» на
-                 шаге «Знакомство» без неё не пускает, а заглушку списка
-                 нельзя выбрать обратно (disabled). Пустой список целей
-                 возникает исключительно от прыжка по ленте МАКЕТА, и без
-                 этой строки карточка на ревью выглядит сломанной. -->
-            <p class="tiny" id="anketa-purpose-empty" style="display:none">Сначала выберите сферу деятельности на шаге «Знакомство» — под неё и покажем подходящие цели.</p>
             <p class="tiny anketa-field-error" id="anketa-purpose-error" style="display:none;margin-top:8px;color:var(--danger)">Отметьте хотя бы одну цель — без них в политике нечего описывать.</p>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Отмеченное станет списком целей обработки в политике — это её обязательная часть: использовать данные для цели, которой в политике нет, нельзя.</p>
+            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Цель обработки — обязательная часть согласия: использовать данные для цели, которая в нём не названа, нельзя. Поэтому отмеченное определяет, что будет написано в согласии и в тексте у формы. Ответ про звонки и письма по базе решает, нужно ли отдельное согласие на рекламные сообщения, — рассылка по своей базе без него незаконна.</p>
           </div>
 
           <!-- мобильный интерстишл — см. комментарий у секции выше.
@@ -1801,114 +1845,137 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
         <div data-substep="3" style="display:none">
           <h1>Реквизиты</h1>
-          <p class="lead" style="margin-top:8px">Данные компании — попадут в документы и в реквизиты, которые открывают из подвала сайта.</p>
+          <p class="lead" style="margin-top:8px">Данные компании. Они попадут в документы и в карточку реквизитов, которую виджет открывает по ссылке в подвале сайта.</p>
 
-          <!-- Реквизиты разложены по источнику данных, а не по алфавиту
-               (8 сентября, разбор с пользователем по шаблону реквизитов):
-               что подтягивается из реестров по ИНН, что знает только сам
-               владелец, что нужно банку. Так человеку видно, почему часть
-               полей уже заполнена, и что именно от него хотят. Формы
-               собственности разводятся тем же [data-swap]/[data-swapped],
-               что и раньше: у ИП вместо ОГРН — ОГРНИП (другой реестр),
-               у самозанятого нет ни ОГРН, ни КПП. -->
+          <!-- Одна карточка на шаг (очередь 2) — было четыре подряд, и шаг
+               читался свёрстанным иначе, чем соседние. Порядок секций
+               выправлен по замечанию Ивана: реестровые данные → банк →
+               контакты. Раньше контакты стояли между ИНН и банковскими и
+               рвали связку «что подтянулось из реестра» / «что нужно для
+               счёта». Внутри секций — .fld и .f2: короткие поля (ОГРН+КПП,
+               счёт+банк, БИК+корр.счёт, почта+телефон) идут парами, длинные
+               (наименование, адрес, контакт по ПДн) занимают строку целиком.
+
+               Формы собственности разводятся тем же [data-swapped], что и
+               раньше: у ИП вместо ОГРН — ОГРНИП (другой реестр), у
+               самозанятого нет ни ОГРН, ни КПП. Сам выбор формы — сегмент,
+               а не чекбоксы: выбор один и взаимоисключающий. -->
           <div class="card pad" id="anketa-req-card" style="margin-top:16px">
             <h2 style="margin-bottom:8px">Форма собственности</h2>
-            <label class="check"><input type="checkbox" data-ownership-pick="ooo"><span class="t">ООО</span></label>
-            <label class="check"><input type="checkbox" data-ownership-pick="ip"><span class="t">ИП</span></label>
-            <label class="check"><input type="checkbox" data-ownership-pick="self"><span class="t">Самозанятый</span></label>
+            <div class="seg" id="ownership-seg" style="margin-top:4px;flex-wrap:wrap">
+              <button type="button" data-ownership-pick="ooo">ООО</button>
+              <button type="button" data-ownership-pick="ip">ИП</button>
+              <button type="button" data-ownership-pick="self">Самозанятый</button>
+            </div>
             <p class="tiny anketa-field-error" id="anketa-ownership-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите форму собственности — от неё зависит, какие реквизиты спрашивать.</p>
-          </div>
 
-          <div class="card pad" style="margin-top:10px">
+            <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:8px">Заполним по ИНН</h2>
-            <label class="f" for="anketa-inn">ИНН <span style="color:var(--danger)">*</span></label>
-            <input class="inp mono" id="anketa-inn" placeholder="10 цифр для организации, 12 для ИП и самозанятого" maxlength="12" inputmode="numeric">
-            <p class="tiny anketa-field-error" id="anketa-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
-            <p class="tiny" id="anketa-inn-found" style="display:none;margin-top:6px;color:var(--ok)">✓ Нашли по ИНН — проверьте, что всё верно</p>
+            <div class="fld">
+              <label class="f" for="anketa-inn">ИНН <span style="color:var(--danger)">*</span></label>
+              <input class="inp mono" id="anketa-inn" placeholder="10 цифр для организации, 12 для ИП и самозанятого" maxlength="12" inputmode="numeric">
+              <p class="tiny anketa-field-error" id="anketa-inn-error" style="display:none;margin-top:5px;color:var(--danger)">ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.</p>
+              <p class="tiny" id="anketa-inn-found" style="display:none;margin-top:6px;color:var(--ok)">✓ Нашли по ИНН — проверьте, что всё верно</p>
+            </div>
 
-            <div data-swapped="own-ooo" style="display:none;margin-top:10px">
+            <div class="fld" data-swapped="own-ooo" style="display:none">
               <label class="f" for="req-name-ooo">Наименование <span style="color:var(--danger)">*</span></label>
               <input class="inp" id="req-name-ooo" placeholder="ООО «Ромашка»">
               <p class="tiny anketa-field-error" id="req-name-ooo-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите наименование — оно попадёт в документы и в реквизиты на сайте.</p>
             </div>
-            <div data-swapped="own-ip" style="display:none;margin-top:10px">
+            <div class="fld" data-swapped="own-ip" style="display:none">
               <label class="f" for="req-name-ip">ФИО <span style="color:var(--danger)">*</span></label>
               <input class="inp" id="req-name-ip" placeholder="Иванова Мария Сергеевна">
               <p class="tiny anketa-field-error" id="req-name-ip-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите ФИО — оно попадёт в документы и в реквизиты на сайте.</p>
             </div>
-            <div data-swapped="own-self" style="display:none;margin-top:10px">
+            <div class="fld" data-swapped="own-self" style="display:none">
               <label class="f" for="req-name-self">ФИО <span style="color:var(--danger)">*</span></label>
               <input class="inp" id="req-name-self" placeholder="Иванова Мария Сергеевна">
               <p class="tiny anketa-field-error" id="req-name-self-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите ФИО — оно попадёт в документы и в реквизиты на сайте.</p>
             </div>
 
-            <div data-swapped="own-ooo" style="display:none">
-              <label class="f" style="margin-top:10px" for="anketa-ogrn">ОГРН <span style="color:var(--danger)">*</span></label>
-              <input class="inp mono" id="anketa-ogrn" placeholder="13 цифр" maxlength="13" inputmode="numeric">
-              <p class="tiny anketa-field-error" id="anketa-ogrn-error" style="display:none;margin-top:5px;color:var(--danger)">ОГРН — 13 цифр. Проверьте, не пропущена ли часть номера.</p>
-              <label class="f" style="margin-top:10px" for="anketa-kpp">КПП <span style="color:var(--danger)">*</span></label>
-              <input class="inp mono" id="anketa-kpp" placeholder="9 цифр" maxlength="9" inputmode="numeric">
-              <p class="tiny anketa-field-error" id="anketa-kpp-error" style="display:none;margin-top:5px;color:var(--danger)">КПП — 9 цифр.</p>
+            <div class="f2" data-swapped="own-ooo" style="display:none">
+              <div class="fld">
+                <label class="f" for="anketa-ogrn">ОГРН <span style="color:var(--danger)">*</span></label>
+                <input class="inp mono" id="anketa-ogrn" placeholder="13 цифр" maxlength="13" inputmode="numeric">
+                <p class="tiny anketa-field-error" id="anketa-ogrn-error" style="display:none;margin-top:5px;color:var(--danger)">ОГРН — 13 цифр. Проверьте, не пропущена ли часть номера.</p>
+              </div>
+              <div class="fld">
+                <label class="f" for="anketa-kpp">КПП <span style="color:var(--danger)">*</span></label>
+                <input class="inp mono" id="anketa-kpp" placeholder="9 цифр" maxlength="9" inputmode="numeric">
+                <p class="tiny anketa-field-error" id="anketa-kpp-error" style="display:none;margin-top:5px;color:var(--danger)">КПП — 9 цифр.</p>
+              </div>
             </div>
-            <div data-swapped="own-ip" style="display:none">
-              <label class="f" style="margin-top:10px" for="anketa-ogrnip">ОГРНИП <span style="color:var(--danger)">*</span></label>
+            <div class="fld" data-swapped="own-ip" style="display:none">
+              <label class="f" for="anketa-ogrnip">ОГРНИП <span style="color:var(--danger)">*</span></label>
               <input class="inp mono" id="anketa-ogrnip" placeholder="15 цифр" maxlength="15" inputmode="numeric">
               <p class="tiny anketa-field-error" id="anketa-ogrnip-error" style="display:none;margin-top:5px;color:var(--danger)">ОГРНИП — 15 цифр. Проверьте, не пропущена ли часть номера.</p>
             </div>
 
-            <label class="f" style="margin-top:10px" for="anketa-addr" id="anketa-addr-label">Юридический адрес <span style="color:var(--danger)">*</span></label>
-            <input class="inp" id="anketa-addr" placeholder="Индекс, город, улица, дом">
+            <div class="fld">
+              <label class="f" for="anketa-addr" id="anketa-addr-label">Юридический адрес <span style="color:var(--danger)">*</span></label>
+              <input class="inp" id="anketa-addr" placeholder="Индекс, город, улица, дом">
               <p class="tiny anketa-field-error" id="anketa-addr-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите адрес — он попадёт в реквизиты на сайте.</p>
-          </div>
+            </div>
 
-          <div class="card pad" style="margin-top:10px">
-            <h2 style="margin-bottom:8px">Контакты</h2>
-            <label class="f" for="anketa-company-mail">Email компании <span style="color:var(--danger)">*</span></label>
-            <input class="inp" id="anketa-company-mail" type="email" placeholder="info@alfa-school.ru">
-            <p class="tiny anketa-field-error" id="anketa-company-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — её увидят в реквизитах на сайте.</p>
+            <div class="hr" style="margin:14px 0"></div>
+            <h2 style="margin-bottom:8px">Банковские реквизиты</h2>
+            <div class="f2">
+              <div class="fld">
+                <label class="f" for="anketa-account">Расчётный счёт <span style="color:var(--danger)">*</span></label>
+                <input class="inp mono" id="anketa-account" inputmode="numeric" maxlength="20" placeholder="40702810...">
+                <p class="tiny anketa-field-error" id="anketa-account-error" style="display:none;margin-top:5px;color:var(--danger)">Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
+              </div>
+              <div class="fld">
+                <label class="f" for="anketa-bank">Банк <span style="color:var(--danger)">*</span></label>
+                <input class="inp" id="anketa-bank" placeholder="ПАО «Сбербанк»">
+                <p class="tiny anketa-field-error" id="anketa-bank-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите банк — в нём открыт расчётный счёт из поля выше.</p>
+              </div>
+              <div class="fld">
+                <label class="f" for="anketa-bik">БИК <span style="color:var(--danger)">*</span></label>
+                <input class="inp mono" id="anketa-bik" inputmode="numeric" maxlength="9" placeholder="9 цифр">
+                <p class="tiny anketa-field-error" id="anketa-bik-error" style="display:none;margin-top:5px;color:var(--danger)">БИК — 9 цифр.</p>
+              </div>
+              <div class="fld">
+                <label class="f" for="anketa-corr">Корреспондентский счёт <span style="color:var(--danger)">*</span></label>
+                <input class="inp mono" id="anketa-corr" inputmode="numeric" maxlength="20" placeholder="30101810...">
+                <p class="tiny anketa-field-error" id="anketa-corr-error" style="display:none;margin-top:5px;color:var(--danger)">Корреспондентский счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
+              </div>
+            </div>
 
-            <label class="f" style="margin-top:10px" for="anketa-company-phone">Телефон <span style="color:var(--danger)">*</span></label>
-            <input class="inp mono" id="anketa-company-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
-            <p class="tiny anketa-field-error" id="anketa-company-phone-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите телефон — он попадёт в реквизиты на сайте.</p>
+            <div class="hr" style="margin:14px 0"></div>
+            <h2 style="margin-bottom:8px">Контакты компании</h2>
+            <div class="f2">
+              <div class="fld">
+                <label class="f" for="anketa-company-mail">Email компании <span style="color:var(--danger)">*</span></label>
+                <input class="inp" id="anketa-company-mail" type="email" placeholder="info@alfa-school.ru">
+                <p class="tiny anketa-field-error" id="anketa-company-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — её увидят в реквизитах на сайте.</p>
+              </div>
+              <div class="fld">
+                <label class="f" for="anketa-company-phone">Телефон <span style="color:var(--danger)">*</span></label>
+                <input class="inp mono" id="anketa-company-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
+                <p class="tiny anketa-field-error" id="anketa-company-phone-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите телефон — он попадёт в реквизиты на сайте.</p>
+              </div>
+            </div>
 
-            <div id="anketa-post-addr-row">
-              <label class="f" style="margin-top:10px" for="anketa-post-addr">Адрес для переписки</label>
+            <div class="fld" id="anketa-post-addr-row">
+              <label class="f" for="anketa-post-addr">Адрес для переписки</label>
               <input class="inp" id="anketa-post-addr" placeholder="Если отличается от юридического">
             </div>
 
-            <label class="f" style="margin-top:10px" for="anketa-pd-contact">Куда писать по вопросам персональных данных <span style="color:var(--danger)">*</span></label>
-            <input class="inp" id="anketa-pd-contact" placeholder="Почта или телефон, куда придёт обращение">
-            <p class="tiny anketa-field-error" id="anketa-pd-contact-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта (вида name@site.ru) или телефон — по этому контакту к вам будут обращаться по вопросам персональных данных.</p>
-            <p class="tiny" id="anketa-pd-hint" style="display:none;margin-top:6px;color:var(--warn)">На бухгалтерскую почту такие обращения обычно теряются — лучше указать контакт, который точно проверяют.</p>
+            <div class="fld">
+              <label class="f" for="anketa-pd-contact">Куда писать по вопросам персональных данных <span style="color:var(--danger)">*</span></label>
+              <input class="inp" id="anketa-pd-contact" placeholder="Почта или телефон, куда придёт обращение">
+              <p class="tiny anketa-field-error" id="anketa-pd-contact-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта (вида name@site.ru) или телефон — по этому контакту к вам будут обращаться по вопросам персональных данных.</p>
+              <p class="tiny" id="anketa-pd-hint" style="display:none;margin-top:6px;color:var(--warn)">На бухгалтерскую почту такие обращения обычно теряются — лучше указать контакт, который точно проверяют.</p>
+            </div>
 
             <!-- Зеркало оговорки с шага 1: там сказано, что личные контакты
-                 на сайте не показываются, здесь — что эти показываются.
-                 Правило объясняется с обеих сторон, иначе третья подряд
-                 просьба указать почту читается как небрежность. -->
-            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-contacts">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-contacts" style="display:none;margin-top:8px">Это контакты компании — они попадут в документы и в реквизиты, которые посетитель открывает из подвала сайта.</p>
-          </div>
-
-          <div class="card pad" style="margin-top:10px">
-            <h2 style="margin-bottom:8px">Банковские реквизиты</h2>
-            <label class="f" for="anketa-account">Расчётный счёт <span style="color:var(--danger)">*</span></label>
-            <input class="inp mono" id="anketa-account" inputmode="numeric" maxlength="20" placeholder="40702810...">
-            <p class="tiny anketa-field-error" id="anketa-account-error" style="display:none;margin-top:5px;color:var(--danger)">Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
-
-            <label class="f" style="margin-top:10px" for="anketa-bank">Банк <span style="color:var(--danger)">*</span></label>
-            <input class="inp" id="anketa-bank" placeholder="ПАО «Сбербанк»">
-            <p class="tiny anketa-field-error" id="anketa-bank-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите банк — в нём открыт расчётный счёт из поля выше.</p>
-
-            <label class="f" style="margin-top:10px" for="anketa-bik">БИК <span style="color:var(--danger)">*</span></label>
-            <input class="inp mono" id="anketa-bik" inputmode="numeric" maxlength="9" placeholder="9 цифр">
-            <p class="tiny anketa-field-error" id="anketa-bik-error" style="display:none;margin-top:5px;color:var(--danger)">БИК — 9 цифр.</p>
-
-            <label class="f" style="margin-top:10px" for="anketa-corr">Корреспондентский счёт <span style="color:var(--danger)">*</span></label>
-            <input class="inp mono" id="anketa-corr" inputmode="numeric" maxlength="20" placeholder="30101810...">
-            <p class="tiny anketa-field-error" id="anketa-corr-error" style="display:none;margin-top:5px;color:var(--danger)">Корреспондентский счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
-
+                 в документы не идут, здесь — что эти идут. Правило объясняется
+                 с обеих сторон, иначе третья подряд просьба указать почту
+                 читается как небрежность. -->
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Виджет откроет их из подвала сайта. По этим же реквизитам бухгалтер контрагента выставит счёт и составит договор, ничего не запрашивая дополнительно.</p>
+            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 обязывает указывать реквизиты владельца сайта в открытом доступе — без них проверяющий не может установить, кто отвечает за сайт. Виджет откроет их по ссылке в подвале. По этим же реквизитам бухгалтер контрагента выставит счёт и составит договор, ничего не запрашивая дополнительно. Контакты здесь — компании, а не ваши личные: их увидит любой посетитель сайта.</p>
           </div>
 
           <div class="hr" style="margin-top:20px"></div>
@@ -2148,6 +2215,14 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       </div>
     </div>
 
+    <!-- Заголовок над списком вместо кружков-номеров: убрав вторую шкалу
+         шагов, мы заодно стёрли границу между ВОПРОСОМ («Кто поставит
+         код?») и ПОСЛЕДОВАТЕЛЬНОСТЬЮ действий — четыре одинаковые
+         карточки подряд читались как один список, в котором первый пункт
+         почему-то спрашивает. Заголовок восстанавливает границу, не
+         заводя счётчика. Тот же приём, что у .mail-self-h2 ниже:
+         заголовок стоит над карточкой, а не внутри неё. -->
+    <h2 style="margin-top:18px">Что сделать</h2>
     <ol class="inst-steps">
       <li class="inst-step card pad" data-install-branch="self">
         <div class="inst-body">
@@ -2208,8 +2283,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       </li>
 
       <!-- Шаг проверки один на обе ветки: и после своей установки, и
-           после чужой проверять надо одно и то же. Номер ставит CSS-
-           счётчик, поэтому у «сам» он третий, у «поручу» — второй. -->
+           после чужой проверять надо одно и то же. -->
       <li class="inst-step card pad">
         <div class="inst-body">
           <!-- Ветка «поручу» обрывалась в никуда: человек отправлял инструкцию
@@ -2228,13 +2302,13 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <div data-install-branch="delegate" style="display:none">
             <h3>Ждём установки</h3>
             <p class="tiny" style="margin-bottom:10px">Как только код появится на сайте, мы увидим это сами и напишем вам. Вернётесь по ссылке из письма и запустите пробный период — отсчёт начнётся с вашего нажатия, а не с момента установки.</p>
+            <!-- Кнопка «Подключить Telegram» отсюда убрана (очередь 2, ревью
+                 Ивана): подключение мессенджера — не часть установки скрипта,
+                 и брендированная кнопка чужой функции посреди шага сбивала с
+                 единственного действия, которое здесь от человека нужно.
+                 Мессенджеры остаются в Настройках; строка «Напишем на …»
+                 выше показывает актуальный список каналов и так. -->
             <div id="notify-where" style="margin-bottom:10px"></div>
-            <!-- Предложение подключить мессенджер стоит здесь не как реклама
-                 функции: человек прямо сейчас собирается ЖДАТЬ события, и
-                 мессенджер делает это событие мгновенным. -->
-            <div id="notify-offer" style="display:none;margin-bottom:10px">
-              <button type="button" class="btn-social" data-connect-messenger="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Подключить Telegram</button>
-            </div>
             <button type="button" class="btn text sm install-check-btn" style="padding:0">↻ Проверить сейчас</button>
           </div>
           <div data-install="found" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--ok-tint);border:1px solid rgba(26,122,82,.25)">
@@ -4100,6 +4174,9 @@ function wireStepGate(btnId, fields, onPass, extraCheck){
       // валидное поле краснело через нажатие и без текста ошибки
       var bad = v === '' || !!(f.test && !f.test(v));
       input.classList.toggle('error', bad);
+      // aria-invalid снимает тот же делегированный input-обработчик, что и
+      // класс .error — раньше он его снимал, но никто не ставил
+      if (bad) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid');
       if (error) error.style.display = bad ? 'block' : 'none';
       if (bad) ok = false;
     });
@@ -4155,10 +4232,9 @@ wireStepGate('anketa-req-next', [
 ], function(){ captureCompany(); syncCompany(); goScreen('s-ready'); }, function(){
   // форма собственности не поле ввода, поэтому проверяется отдельным
   // условием: без неё непонятно, какие из скрытых полей вообще нужны
-  var picked = document.querySelector('[data-ownership-pick]:checked');
   var err = document.getElementById('anketa-ownership-error');
-  if (err) err.style.display = picked ? 'none' : 'block';
-  return !!picked;
+  if (err) err.style.display = ownershipChosen ? 'none' : 'block';
+  return ownershipChosen;
 });
 
 wireStepGate('anketa-start-next', [
@@ -4543,22 +4619,30 @@ document.querySelectorAll('[data-find]').forEach(function(b){
 /* Платформа: выбор строго один, снять последний нельзя — иначе на шаге
    установки нечего было бы открывать. sitePlatform двигается здесь же,
    эту связь анкета→install-таб однажды уже случайно рвали (см. 6.38). */
-/* «Звоните, пишете по базе клиентов?» — два чекбокса вместо Да/Нет,
-   ответ обязателен: снять последний нельзя. «Да» предотмечен, потому что
-   так у большинства, а цена ошибки несимметрична — пропустить нужный
-   документ хуже, чем получить лишний. */
-document.querySelectorAll('[data-calls]').forEach(function(box){
-  box.addEventListener('change', function(){
-    if (!box.checked) { box.checked = true; return; }
-    document.querySelectorAll('[data-calls]').forEach(function(other){
-      if (other !== box) other.checked = false;
-    });
+/* «Звоните, пишете по базе клиентов?» — сегмент: выбор один из двух и
+   обязателен. Раньше стояла пара чекбоксов, которой обработчик запрещал
+   сниматься и гасил соседнюю, то есть чекбокс изображал радиокнопку —
+   ровно то, на что указало ревью (очередь 2: один контрол на один тип
+   вопроса). «Да» выбран заранее, потому что так у большинства, а цена
+   ошибки несимметрична: пропустить нужный документ хуже, чем получить
+   лишний. Отсюда же и отсутствие «не выбрано» — в отличие от платформы
+   и формы собственности, здесь пустого состояния нет. */
+var callsAnswer = 'yes';
+function syncCallsSeg(){
+  document.querySelectorAll('#calls-seg [data-calls-pick]').forEach(function(b){
+    var on = b.dataset.callsPick === callsAnswer;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+document.querySelectorAll('#calls-seg [data-calls-pick]').forEach(function(b){
+  b.addEventListener('click', function(){
+    callsAnswer = b.dataset.callsPick;
+    syncCallsSeg();
   });
 });
-function callsAnswerIsNo(){
-  var no = document.querySelector('[data-calls="no"]');
-  return !!(no && no.checked);
-}
+syncCallsSeg();
+function callsAnswerIsNo(){ return callsAnswer === 'no'; }
 /* «Далее» с этого подшага: при ответе «Нет» сначала предупреждение. Из
    пакета документ при этом НЕ уходит — пакет фиксирован из пяти
    документов независимо от ответов, клиент получает всё сразу, чтобы не
@@ -4592,9 +4676,10 @@ if (clientsNextBtn) clientsNextBtn.addEventListener('click', function(){
 var noCallsContinue = document.getElementById('no-calls-continue');
 if (noCallsContinue) noCallsContinue.addEventListener('click', goToRequisites);
 
-/* Форма собственности — те же чекбоксы-как-радио, что у платформы:
-   вид общий со всей анкетой, но выбор один. Панели полей переключаются
-   тем же [data-swapped], что и раньше. */
+/* Форма собственности — сегмент, как платформа и роль. Были чекбоксы,
+   которым обработчик запрещал сниматься и гасил соседние; выбор здесь
+   взаимоисключающий, и контрол теперь это показывает. Панели полей
+   переключаются тем же [data-swapped], что и раньше. */
 /* Кнопка установки живёт в двух состояниях. Пока скрипт не найден — она
    проверяет сайт; найдя — превращается в «Запустить пробный период», и
    отсчёт 24 часов идёт с нажатия. В макете первая проверка всегда
@@ -4696,23 +4781,33 @@ function syncOwnershipFields(){
   if (acct) acct.placeholder = self ? '40817810...' : '40702810...';
 }
 
-document.querySelectorAll('[data-ownership-pick]').forEach(function(box){
-  box.addEventListener('change', function(){
-    if (!box.checked) { box.checked = true; return; }
-    document.querySelectorAll('[data-ownership-pick]').forEach(function(other){
-      if (other !== box) other.checked = false;
-    });
-    siteOwnership = box.dataset.ownershipPick;
+/* Ничего не выбрано на старте — как у платформы и сферы: форму
+   собственности решает клиент. siteOwnership при этом стартует с 'ooo'
+   (её читает syncPayState ещё до анкеты), поэтому «выбрано ли» держим
+   отдельным флагом, а не значением переменной. */
+var ownershipChosen = false;
+function syncOwnershipSeg(){
+  document.querySelectorAll('#ownership-seg [data-ownership-pick]').forEach(function(b){
+    var on = ownershipChosen && b.dataset.ownershipPick === siteOwnership;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  document.querySelectorAll('[data-swapped^="own-"]').forEach(function(panel){
+    panel.style.display = (ownershipChosen && panel.dataset.swapped === 'own-' + siteOwnership) ? '' : 'none';
+  });
+}
+document.querySelectorAll('#ownership-seg [data-ownership-pick]').forEach(function(b){
+  b.addEventListener('click', function(){
+    siteOwnership = b.dataset.ownershipPick;
+    ownershipChosen = true;
+    syncOwnershipSeg();
     var ownErr = document.getElementById('anketa-ownership-error');
     if (ownErr) ownErr.style.display = 'none';
-    var card = box.closest('.anketa-col') || document;
-    card.querySelectorAll('[data-swapped^="own-"]').forEach(function(panel){
-      panel.style.display = (panel.dataset.swapped === 'own-' + siteOwnership) ? '' : 'none';
-    });
     syncOwnershipFields();
     syncPayState();
   });
 });
+syncOwnershipSeg();
 
 /* Автоподстановка по ИНН (решение пользователя 8 сентября: без кнопки —
    довёл до нужной длины, поля заполнились). В макете данные демо-фикстура:
@@ -4735,9 +4830,8 @@ var lastInnFill = {};
 if (innInput) innInput.addEventListener('input', function(){
   var digits = innInput.value.replace(/\D/g, '');
   var found = document.getElementById('anketa-inn-found');
-  var picked = document.querySelector('[data-ownership-pick]:checked');
-  var need = picked && picked.dataset.ownershipPick === 'ooo' ? 10 : 12;
-  if (!picked || digits.length !== need) {
+  var need = siteOwnership === 'ooo' ? 10 : 12;
+  if (!ownershipChosen || digits.length !== need) {
     if (found) found.style.display = 'none';
     // Убираем то, что подставили сами: 10 — префикс 12, поэтому при вводе
     // 12-значного ИНН в форму ООО подстановка успевала сработать на
@@ -4751,7 +4845,7 @@ if (innInput) innInput.addEventListener('input', function(){
     });
     return;
   }
-  var map = INN_LOOKUP[picked.dataset.ownershipPick] || {};
+  var map = INN_LOOKUP[siteOwnership] || {};
   Object.keys(map).forEach(function(id){
     var el = document.getElementById(id);
     if (!el) return;
@@ -4828,10 +4922,25 @@ document.querySelectorAll('[data-excl]').forEach(function(box){
   });
 });
 
+/* Тексты ошибок озвучиваются по мере появления: показываются они сменой
+   display, а такую смену скринридер сам не замечает. Ставим атрибут
+   разом на все .anketa-field-error, а не руками в разметке, — иначе
+   следующее добавленное поле его снова не получит. */
+document.querySelectorAll('.anketa-field-error').forEach(function(el){
+  el.setAttribute('aria-live', 'polite');
+  el.setAttribute('role', 'status');
+});
+
 document.querySelectorAll('[data-fold]').forEach(function(b){
+  var box = document.getElementById(b.dataset.fold);
+  // связь кнопки с текстом и её состояние — раньше свёрнутый текст был для
+  // скринридера просто пропавшим куском, а кнопка ничего о нём не сообщала
+  if (box) { b.setAttribute('aria-controls', b.dataset.fold); b.setAttribute('aria-expanded', 'false'); }
   b.addEventListener('click', function(){
-    var box = document.getElementById(b.dataset.fold);
-    if (box) box.style.display = (box.style.display === 'none') ? 'block' : 'none';
+    if (!box) return;
+    var open = box.style.display === 'none';
+    box.style.display = open ? 'block' : 'none';
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
 });
 
@@ -5271,14 +5380,15 @@ var PURPOSE_MAP = {
   manuf: ['booking', 'consult', 'contract', 'inquiry', 'promo'],
   other: ['booking', 'order', 'property', 'consult', 'contract', 'payment', 'inquiry', 'promo']
 };
+/* Заглушка «Выберите сферу» не несёт data-sphere. Раньше при ней все цели
+   скрывались, и шаг «Работа с клиентами» открывался без единого пункта —
+   карточка с заголовком и пустотой под ним. Теперь без выбранной сферы
+   показываем полный набор ('other' — надмножество всех восьми целей):
+   лишние пункты человек просто не отметит, а пустого экрана не бывает
+   никогда. Заглушка-пояснение за ненадобностью убрана. */
 function syncPurposes(){
   var picked = sphereSelect.selectedOptions[0];
-  // заглушка «Выберите сферу» не несёт data-sphere: пока её не сменили,
-  // ни одна цель не показывается — список целей зависит от сферы
   var sphere = picked && picked.dataset.sphere;
-  var empty = document.getElementById('anketa-purpose-empty');
-  if (empty) empty.style.display = sphere ? 'none' : 'block';
-  if (!sphere) { document.querySelectorAll('[data-purpose]').forEach(function(el){ el.hidden = true; }); return; }
   var allowed = PURPOSE_MAP[sphere] || PURPOSE_MAP.other;
   document.querySelectorAll('[data-purpose]').forEach(function(el){
     el.hidden = allowed.indexOf(el.dataset.purpose) === -1;
