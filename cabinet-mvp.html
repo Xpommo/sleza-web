@@ -494,8 +494,16 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .projcard{position:relative;border:1px solid var(--line-2);border-radius:12px;padding:15px 16px;
   background:var(--white);display:flex;flex-direction:column;min-height:180px;transition:border-color .15s ease-out}
 .projcard:hover{border-color:rgba(17,17,16,.3)}
-.projcard .dom{font-family:var(--mono);font-size:var(--fs-sm);font-weight:700}
-.projcard .name{font-size:var(--fs-md);font-weight:700;letter-spacing:-.01em;margin-top:1px}
+/* Домен — главная строка карточки, наименование компании под ним вторичной.
+   Было наоборот: домен 13px, название компании 14px, то есть крупнее. Это
+   противоречило собственному решению продукта — поле «Название проекта»
+   убрали именно потому, что «сайт везде опознаётся доменом» (коммит
+   9f75de8), а витрина сайтов при этом опознавала его названием компании.
+   Наименование к тому же появляется только после шага «Реквизиты»
+   (data-after-req), то есть до него главной строкой и так был домен —
+   иерархия менялась на ходу. */
+.projcard .dom{font-family:var(--mono);font-size:var(--fs-md);font-weight:700;letter-spacing:-.01em}
+.projcard .name{font-size:var(--fs-sm);font-weight:400;margin-top:2px}
 .projcard .strip{margin:10px 0}
 .projcard .meta{font-size:var(--fs-xs);color:rgba(17,17,16,.62);line-height:1.6}
 .projcard .act{margin-top:auto;padding-top:11px;border-top:1px solid var(--line)}
