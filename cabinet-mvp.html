@@ -83,39 +83,59 @@
      спасала синяя рамка). Двойное кольцо: светлый ободок читается на
      тёмных кнопках, брендовый — на светлом фоне страницы. */
   --ring:0 0 0 2px var(--paper), 0 0 0 4px var(--brand);
+
+  /* ── типографическая шкала ──────────────────────────────────────────
+     Семь ступеней и три насыщенности — всё, что нужно этому продукту.
+     До сведения в файле было 14 размеров и 26 различных пар
+     «размер + насыщенность» (измерено вычисленными стилями на 16 экранах),
+     из них восемь встречались РОВНО ОДИН РАЗ на один экран: 16/700,
+     14.5/800, 13.5/400, 13/600, 12/600, 11.5/400, 9.5/400. То есть каждый
+     экран верстался своим кеглем — это и есть «на каждом шаге появляется
+     новый интерфейсный элемент», только в типографике.
+     Правило: новый font-size в этом файле не появляется. Если роль не
+     ложится ни в одну ступень — значит роль придумана лишняя. */
+  --fs-h1:26px;      /* заголовок экрана */
+  --fs-h1-sm:22px;   /* он же на телефоне; крупное число в статистике */
+  --fs-glyph:18px;   /* знак в круге: «+», номер шага в мобильной панели */
+  --fs-lg:15px;      /* заголовок секции, основной текст, поле ввода */
+  --fs-md:14px;      /* кнопка, навигация, название, строка списка */
+  --fs-sm:13px;      /* подпись поля, сегмент, вторичный текст */
+  --fs-xs:12px;      /* подсказка, пример, мета */
+  --fs-kicker:10.5px;/* кикер, моно-капс, шапка таблицы */
+  --fs-chip:10px;    /* чип, бейдж */
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--warm);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background:var(--warm);color:var(--ink);font-family:var(--sans);font-size:var(--fs-lg);line-height:1.55;-webkit-font-smoothing:antialiased}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 button{font-family:inherit}
 a{color:inherit;text-decoration:none}
 :focus-visible{outline:none;box-shadow:var(--ring);border-radius:10px}
-input,select,textarea{font-family:inherit;font-size:15px}
+input,select,textarea{font-family:inherit;font-size:var(--fs-lg)}
 textarea.inp{resize:vertical;line-height:1.5}
 
-.nojs{display:block;background:var(--warn-tint);color:var(--warn);font-size:13px;padding:9px 18px;text-align:center}
+.nojs{display:block;background:var(--warn-tint);color:var(--warn);font-size:var(--fs-sm);padding:9px 18px;text-align:center}
 .js .nojs{display:none}
 
-h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:0}
-h2{font-size:15px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
-h3{font-size:15px;font-weight:800;letter-spacing:-.01em;margin:0}
+h1{font-size:var(--fs-h1);font-weight:800;letter-spacing:-.03em;margin:0}
+h2{font-size:var(--fs-lg);font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
+h3{font-size:var(--fs-lg);font-weight:800;letter-spacing:-.01em;margin:0}
 p{margin:0}
-.lead{font-size:15px;color:rgba(17,17,16,.65)}
+.lead{font-size:var(--fs-lg);color:rgba(17,17,16,.65)}
 .muted{color:rgba(17,17,16,.6)}
 /* UX-аудит (25.08, критика A): .45/.55 давали 3.0:1/4.1-4.2:1 на --warm/--paper —
    ниже WCAG AA 4.5:1 для обычного текста (10.5-12px не проходит по «крупному
    тексту» 3:1). .62 даёт ≥4.75:1 на самом тёмном фоне (--warm) из трёх, с запасом
    на --paper/--white — посчитано по формуле контраста WCAG, не на глаз. */
-.micro{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.62)}
-.small{font-size:13px}
-.tiny{font-size:12px;color:rgba(17,17,16,.62)}
+.micro{font-family:var(--mono);font-size:var(--fs-kicker);letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.62)}
+.small{font-size:var(--fs-sm)}
+.tiny{font-size:var(--fs-xs);color:rgba(17,17,16,.62)}
 .card{background:var(--white);border:1px solid var(--line-2);border-radius:12px}
 .pad{padding:16px 18px}
 .hr{height:1px;background:var(--line);margin:14px 0}
 .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14.5px;font-weight:700;
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:var(--fs-md);font-weight:700;
   border:1.5px solid var(--line-2);background:var(--white);color:var(--ink);padding:12px 20px;border-radius:10px;cursor:pointer;
   transition:transform 160ms ease-out,border-color .15s ease-out,background-color .15s ease-out,color .15s ease-out}
 .btn:hover{border-color:rgba(17,17,16,.4)}
@@ -124,7 +144,7 @@ p{margin:0}
 .btn.solid:hover{background:var(--brand);border-color:var(--brand)}
 .btn.text{border-color:transparent;background:none;padding:12px 4px;color:rgba(17,17,16,.7)}
 .btn.text:hover{color:var(--ink);background:none}
-.btn.sm{padding:8px 14px;font-size:13px;border-radius:9px}
+.btn.sm{padding:8px 14px;font-size:var(--fs-sm);border-radius:9px}
 /* На телефоне .btn.sm и вкладки платформы были 35px в высоту при норме
    44px (WCAG 2.5.8). Больнее всего на шаге 6: четыре вкладки платформы
    стоят в ряд, промахнуться по соседней легко. Инлайновые ссылки внутри
@@ -137,9 +157,9 @@ p{margin:0}
 .btn.wide{width:100%}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
 
-.b{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
+.b{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-sm);font-weight:700}
 .b.red{color:var(--danger)} .b.amber{color:var(--warn)} .b.green{color:var(--ok)}
-.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.06em;
   text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--line);color:rgba(17,17,16,.6)}
 /* Текст чипа темнее заливки-акцента: на тинте 10–12% сам акцент давал
    3,2–4,1:1 при 10px. Оттенок тот же, четвёртого цвета не заводим. */
@@ -167,16 +187,16 @@ p{margin:0}
 .find button.hd{width:100%;display:flex;align-items:center;gap:10px;padding:13px 15px;background:none;border:0;cursor:pointer;text-align:left}
 .find .dot{width:9px;height:9px;border-radius:999px;flex:none;background:var(--ok)}
 .find .dot.red{background:var(--danger)} .find .dot.amber{background:var(--warn)}
-.find .nm{font-size:14.5px;font-weight:800;letter-spacing:-.01em}
-.find .st{font-size:12px;font-weight:700}
+.find .nm{font-size:var(--fs-md);font-weight:700;letter-spacing:-.01em}
+.find .st{font-size:var(--fs-xs);font-weight:700}
 .find .st.red{color:var(--danger)} .find .st.amber{color:var(--warn)}
 .find .chev{margin-left:auto;color:rgba(17,17,16,.55);transition:transform .15s;flex:none}
 .find.open .chev{transform:rotate(90deg)}
 .find .bd{display:none;border-top:1px solid var(--line);padding:13px 15px;background:var(--paper)}
 .find.open .bd{display:block}
-.find .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.4);margin:9px 0 2px}
+.find .lbl{font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.4);margin:9px 0 2px}
 .find .lbl:first-child{margin-top:0}
-.find .txt{font-size:13px;color:var(--ink-2)}
+.find .txt{font-size:var(--fs-sm);color:var(--ink-2)}
 /* «Что подготовили» на s-ready слито с бывшим отдельным списком
    «Документы» (27 августа, правка пользователя — те же 5 названий
    показывались дважды подряд, читалось как дубль, хотя смысл был разный:
@@ -184,9 +204,9 @@ p{margin:0}
    двустрочному тик+название+причина ужиться в той же раскрывашке
    .find/[data-find], что уже несёт превью — один пункт списка, не два. */
 .find .hd.stacked{align-items:flex-start}
-.find .tick{color:var(--ok);font-size:15px;line-height:1.4;flex:none;margin-top:1px}
-.find .n{font-size:14px;font-weight:700}
-.find .w{font-size:12.5px;color:rgba(17,17,16,.6);margin-top:1px}
+.find .tick{color:var(--ok);font-size:var(--fs-lg);line-height:1.4;flex:none;margin-top:1px}
+.find .n{font-size:var(--fs-md);font-weight:700}
+.find .w{font-size:var(--fs-xs);color:rgba(17,17,16,.6);margin-top:1px}
 
 /* Вход через Telegram/Яндекс (8 сентября, правка пользователя: «почему
    вход только через почту»). Соцкнопки стоят ПЕРЕД формой — это более
@@ -201,19 +221,19 @@ p{margin:0}
    при любой длине текста. */
 .btn-social{display:grid;grid-template-columns:18px 1fr;align-items:center;gap:12px;width:100%;
   padding:11px 18px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--white);
-  font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;
+  font-family:inherit;font-size:var(--fs-md);font-weight:700;color:var(--ink);cursor:pointer;
   text-align:left;transition:border-color .15s ease-out,transform 160ms ease-out}
 .btn-social + .btn-social{margin-top:8px}
 .btn-social:hover{border-color:var(--ink)}
 .btn-social:active{transform:scale(.99)}
 .btn-social svg{flex:none}
 .or-div{display:flex;align-items:center;gap:12px;margin:16px 0;
-  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45)}
+  font-family:var(--mono);font-size:var(--fs-kicker);letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45)}
 .or-div::before,.or-div::after{content:"";flex:1;height:1px;background:var(--line)}
-label.f{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
+label.f{display:block;font-size:var(--fs-sm);font-weight:700;margin-bottom:5px}
 h3 + label.f,.card h3 + .f{margin-top:12px}
 .inp{width:100%;border:1.5px solid var(--line-2);border-radius:10px;padding:11px 13px;background:var(--white);
-  font-size:15px;color:var(--ink)}
+  font-size:var(--fs-lg);color:var(--ink)}
 .inp:focus{outline:none;border-color:var(--brand);box-shadow:var(--ring)}
 /* Состояние ошибки поля — независимый UX-аудит, критика A, P2: во всём
    файле не было ни одной визуальной ошибки, включая банковские реквизиты
@@ -234,12 +254,12 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
 .check input:checked{background:var(--ok);border-color:var(--ok)}
 .check input:checked::after{content:"";position:absolute;left:6px;top:2px;width:4px;height:9px;
   border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
-.check .t{font-size:14px}
+.check .t{font-size:var(--fs-md)}
 /* Пример под названием цели: абстрактную формулировку человек не мог
    сопоставить с тем, что стоит у него на сайте («Ответить на обращение»
    — это форма? чат? кнопка звонка?). Пример переводит цель в то, что
    он видит у себя. */
-.check .ex{display:block;font-size:12px;line-height:1.45;color:rgba(17,17,16,.62);margin-top:3px}
+.check .ex{display:block;font-size:var(--fs-xs);line-height:1.45;color:rgba(17,17,16,.62);margin-top:3px}
 /* .check-2col (две колонки для коротких чекбоксов) удалён: он применялся
    ровно к одному списку — «Аналитика на сайте», — и в той же карточке
    соседний список «Формы и сервисы» шёл в одну колонку, потому что там
@@ -274,13 +294,13 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .msgr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .msgr:last-child{border-bottom:0}
 .msgr-ico{display:flex;flex:none}
-.msgr-name{font-size:14px;font-weight:700;flex:1;min-width:0}
+.msgr-name{font-size:var(--fs-md);font-weight:700;flex:1;min-width:0}
 .msgr .btn{flex:none}
 /* «Отключить» словом весило больше самой строки — заменено крестиком с
    подсказкой при наведении (title, как у тумблеров виджета). Размер держим
    не меньше 32px, на телефоне 44px: иначе крестик не попасть пальцем. */
 .msgr-unlink{flex:none;width:32px;height:32px;display:grid;place-items:center;border:0;background:none;
-  color:var(--danger);font-size:15px;line-height:1;border-radius:8px;cursor:pointer;font-family:inherit}
+  color:var(--danger);font-size:var(--fs-lg);line-height:1;border-radius:8px;cursor:pointer;font-family:inherit}
 .msgr-unlink:hover{background:var(--danger-tint)}
 /* Списки в модалке отмены: что перестанет работать и что уже сделано.
    Маркеры цветом, а не иконками — модалка узкая, иконки съели бы строку. */
@@ -291,7 +311,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
    карточкой. Термин «маркировка», а не «пометка»: так в законе и так
    называется наша же плашка в подвале сайта. */
 .markdemo{border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:14px 16px;background:var(--paper)}
-.markdemo .sent{font-size:13.5px;line-height:1.7}
+.markdemo .sent{font-size:var(--fs-sm);line-height:1.7}
 /* Знак маркировки — капля, знак самой Слезы: на странице клиента должно
    читаться, кто её поставил. Не звёздочка: звёздочка в тексте значит
    сноску, а тут не сноска, а метка реестра. */
@@ -301,19 +321,19 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .cnl-stats{display:flex;gap:10px;margin-top:14px}
 .cnl-stat{flex:1;min-width:0;text-align:center;background:var(--paper);border:1px solid var(--line-2);
   border-radius:10px;padding:10px 6px}
-.cnl-stat b{display:block;font-size:22px;font-weight:800;line-height:1.1;letter-spacing:-.02em}
-.cnl-stat span{display:block;font-size:10.5px;line-height:1.35;color:rgba(17,17,16,.62);margin-top:4px}
+.cnl-stat b{display:block;font-size:var(--fs-h1-sm);font-weight:800;line-height:1.1;letter-spacing:-.02em}
+.cnl-stat span{display:block;font-size:var(--fs-kicker);line-height:1.35;color:rgba(17,17,16,.62);margin-top:4px}
 /* Последствия — единственный цветной блок в модалке: это и есть то, что
    человек должен взвесить, остальное не должно с ним спорить за внимание. */
 .cnl-loss{margin-top:8px;background:var(--danger-tint);border-radius:10px;padding:12px 14px}
 .loss-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.loss-list li{position:relative;padding-left:20px;font-size:12.5px;line-height:1.5;color:rgba(17,17,16,.75)}
+.loss-list li{position:relative;padding-left:20px;font-size:var(--fs-xs);line-height:1.5;color:rgba(17,17,16,.75)}
 .loss-list li::before{position:absolute;left:0;top:0;font-weight:800}
 .loss-list li.loss::before{content:"✕";color:var(--danger)}
 .loss-list li.kept::before{content:"✓";color:var(--ok)}
 @media(max-width:640px){ .msgr-unlink{width:44px;height:44px} }
 .seg{display:inline-flex;gap:3px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
-.seg button{background:none;border:0;padding:8px 15px;border-radius:8px;font-size:13.5px;font-weight:700;
+.seg button{background:none;border:0;padding:8px 15px;border-radius:8px;font-size:var(--fs-sm);font-weight:700;
   color:rgba(17,17,16,.6);cursor:pointer;transition:transform 160ms ease-out,background-color .15s ease-out,color .15s ease-out}
 .seg button.on{background:var(--ink);color:#fff}
 .seg button:active{transform:scale(.97)}
@@ -328,12 +348,12 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
   #platform-seg button{flex:1 1 calc(50% - 2px);padding:9px 8px}
 }
 
-.code{font-family:var(--mono);font-size:12px;background:var(--ink);color:#f2f0ec;border-radius:10px;
+.code{font-family:var(--mono);font-size:var(--fs-xs);background:var(--ink);color:#f2f0ec;border-radius:10px;
   padding:13px 14px;overflow-x:auto;white-space:pre;line-height:1.7}
-.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:13px;flex-wrap:wrap}
-.tabs button{background:none;border:0;padding:8px 12px;font-size:13px;font-weight:700;color:rgba(17,17,16,.65);
-  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
-.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
+/* .tabs удалён: переключатель платформы на шаге установки переведён на
+   сегмент (тот же вопрос, что на шаге «О сайте», — значит тот же контрол),
+   и после этого класс не использовался в разметке ни разу. Он был
+   единственным контролом такого вида на весь файл. */
 
 .was{color:rgba(17,17,16,.4);text-decoration:line-through}
 .now{color:var(--ok);font-weight:700}
@@ -347,13 +367,24 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .js .side{display:flex}
 .logo{display:flex;align-items:center;gap:8px;padding:0 6px;margin-bottom:20px}
 .logo svg{flex:none}
-.logo b{font-size:14px;font-weight:800;letter-spacing:-.02em}
+.logo b{font-size:var(--fs-md);font-weight:800;letter-spacing:-.02em}
+/* Статусная строка экрана или карточки проекта: «✓ Пакет документов готов»,
+   «🕐 Пробный период — осталось…», «Подключение не закончено». Это реальная,
+   последовательно применяемая роль — но до сведения типографики она была
+   набрана ДЕВЯТЬЮ копиями inline-стиля font-size:15px поверх класса .b.
+   Правка одной копии разошлась бы с остальными восемью, и это ровно тот
+   механизм, которым файл накопил 14 размеров шрифта. Теперь одно место. */
+.statusline{font-size:var(--fs-lg);font-weight:700}
+/* Словомарка на экранах входа: тот же знак, что в сайдбаре, поэтому тот же
+   кегль. Стояла инлайном на 15px против 14px в .logo b — один и тот же
+   текст в двух размерах на соседних экранах. */
+.logo-word{font-size:var(--fs-md);font-weight:800;letter-spacing:-.02em}
 .backlink,button.backlink{display:inline-flex;align-items:center;gap:6px;padding:0 10px;margin-bottom:10px;
-  font-size:12px;font-weight:700;color:rgba(17,17,16,.62);background:none;border:0;cursor:pointer;font-family:inherit}
+  font-size:var(--fs-xs);font-weight:700;color:rgba(17,17,16,.62);background:none;border:0;cursor:pointer;font-family:inherit}
 .backlink:hover{color:var(--ink)}
 .navlist{display:flex;flex-direction:column;gap:2px}
 .navlist a,.navlist button{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;
-  font-size:14px;font-weight:700;color:rgba(17,17,16,.68);cursor:pointer;background:none;border:0;font-family:inherit;text-align:left;
+  font-size:var(--fs-md);font-weight:700;color:rgba(17,17,16,.68);cursor:pointer;background:none;border:0;font-family:inherit;text-align:left;
   transition:transform 160ms ease-out,background-color .15s ease-out,color .15s ease-out}
 .navlist a:hover,.navlist button:hover{background:var(--white);color:var(--ink)}
 .navlist button:active{transform:scale(.98)}
@@ -372,12 +403,12 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .side-steps{display:flex;flex-direction:column;gap:1px;margin:4px 0 0 12px;
   padding-left:12px;border-left:1px solid var(--line-2)}
 .side-step{display:flex;align-items:center;gap:9px;width:100%;padding:6px 9px;border-radius:7px;
-  font-family:inherit;font-size:12.5px;font-weight:600;text-align:left;
+  font-family:inherit;font-size:var(--fs-xs);font-weight:700;text-align:left;
   color:rgba(17,17,16,.5);background:none;border:0;cursor:default;
   transition:background-color .15s ease-out,color .15s ease-out}
 .side-step .st-mark{flex:none;width:15px;height:15px;border-radius:999px;
   border:1.5px solid var(--line-2);display:grid;place-items:center;
-  font-size:9.5px;font-weight:800;color:transparent}
+  font-size:var(--fs-chip);font-weight:800;color:transparent}
 /* пройденный шаг кликабелен — вернуться и поправить ответ можно из любой
    точки пути, не только кнопкой «Назад» на соседнем шаге */
 .side-step.done,.side-step.seen{color:rgba(17,17,16,.62);cursor:pointer}
@@ -392,10 +423,10 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
   border-radius:9px;cursor:pointer;text-align:left}
 .acct-btn:hover{background:var(--white)}
 .avatar{width:30px;height:30px;border-radius:999px;background:var(--ink);color:#fff;display:grid;place-items:center;
-  font-size:12px;font-weight:800;flex:none}
+  font-size:var(--fs-xs);font-weight:800;flex:none}
 .acct-btn .who{min-width:0;flex:1}
-.acct-btn .name{display:block;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.acct-btn .mail{display:block;font-size:11px;color:rgba(17,17,16,.62);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-btn .name{display:block;font-size:var(--fs-sm);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-btn .mail{display:block;font-size:var(--fs-xs);color:rgba(17,17,16,.62);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acct-menu{display:none;position:absolute;left:0;right:0;bottom:calc(100% + 6px);background:var(--white);
   border:1px solid var(--line-2);border-radius:11px;box-shadow:0 10px 30px rgba(17,17,16,.14);padding:6px;z-index:20;
   transform-origin:bottom left;opacity:0;transform:scale(.95);
@@ -434,7 +465,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 }
 
 .acct-menu a,.acct-menu button{display:flex;width:100%;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;
-  font-size:13.5px;font-weight:600;color:var(--ink-2);background:none;border:0;cursor:pointer;text-align:left}
+  font-size:var(--fs-sm);font-weight:700;color:var(--ink-2);background:none;border:0;cursor:pointer;text-align:left}
 .acct-menu a:hover,.acct-menu button:hover{background:var(--paper);color:var(--ink)}
 .acct-menu .div{height:1px;background:var(--line);margin:5px 2px}
 /* «Поддержка» дублируется сюда только на мобильном — см. @media 820px ниже,
@@ -456,24 +487,24 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
   min-height:180px;padding:24px 16px;text-align:center;cursor:pointer;color:rgba(17,17,16,.5)}
 .addcard:hover{border-color:var(--ink);color:var(--ink)}
 .addcard .plus{width:32px;height:32px;border-radius:999px;background:var(--warm);display:grid;place-items:center;
-  font-size:18px;font-weight:700;color:var(--ink);line-height:1}
-.addcard b{font-size:13.5px;color:var(--ink)}
-.addcard span{font-size:11.5px;max-width:24ch}
+  font-size:var(--fs-glyph);font-weight:700;color:var(--ink);line-height:1}
+.addcard b{font-size:var(--fs-sm);color:var(--ink)}
+.addcard span{font-size:var(--fs-xs);max-width:24ch}
 
 .projcard{position:relative;border:1px solid var(--line-2);border-radius:12px;padding:15px 16px;
   background:var(--white);display:flex;flex-direction:column;min-height:180px;transition:border-color .15s ease-out}
 .projcard:hover{border-color:rgba(17,17,16,.3)}
-.projcard .dom{font-family:var(--mono);font-size:13px;font-weight:600}
-.projcard .name{font-size:14.5px;font-weight:700;letter-spacing:-.01em;margin-top:1px}
+.projcard .dom{font-family:var(--mono);font-size:var(--fs-sm);font-weight:700}
+.projcard .name{font-size:var(--fs-md);font-weight:700;letter-spacing:-.01em;margin-top:1px}
 .projcard .strip{margin:10px 0}
-.projcard .meta{font-size:11.5px;color:rgba(17,17,16,.62);line-height:1.6}
+.projcard .meta{font-size:var(--fs-xs);color:rgba(17,17,16,.62);line-height:1.6}
 .projcard .act{margin-top:auto;padding-top:11px;border-top:1px solid var(--line)}
 .projcard .act .actbtn{width:100%}
 .projcard .act .actbtn::after{content:"";position:absolute;inset:0}
 .js .projcard .state.on{display:flex;flex-direction:column;flex:1}
 
 .actbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  padding:9px 10px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;
+  padding:9px 10px;border-radius:8px;font-size:var(--fs-xs);font-weight:700;cursor:pointer;white-space:nowrap;
   border:1.5px solid transparent;background:none;color:rgba(17,17,16,.7);
   transition:transform 160ms ease-out,border-color .15s ease-out,background-color .15s ease-out,color .15s ease-out}
 .actbtn:active{transform:scale(.97)}
@@ -489,15 +520,15 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .viewbar button.on{background:var(--ink);color:#fff}
 
 .projtable{width:100%;border-collapse:collapse;border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--white)}
-.projtable th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:rgba(17,17,16,.62);
-  font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line)}
-.projtable td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:12.5px}
+.projtable th{text-align:left;font-size:var(--fs-kicker);text-transform:uppercase;letter-spacing:.06em;color:rgba(17,17,16,.62);
+  font-weight:700;padding:10px 14px;border-bottom:1px solid var(--line)}
+.projtable td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:var(--fs-xs)}
 .projtable tr:last-child td{border-bottom:0}
 .projtable tr:hover td{background:var(--warm)}
-.projtable .dom{font-family:var(--mono);font-size:12.5px;font-weight:600}
-.projtable .meta{font-size:11px;color:rgba(17,17,16,.62)}
+.projtable .dom{font-family:var(--mono);font-size:var(--fs-xs);font-weight:700}
+.projtable .meta{font-size:var(--fs-xs);color:rgba(17,17,16,.62)}
 .projtable td.act{text-align:right}
-.projtable td.act .actbtn{padding:6px 12px;font-size:12px}
+.projtable td.act .actbtn{padding:6px 12px;font-size:var(--fs-xs)}
 .projtable tr.state.on{display:table-row}
 
 .main{padding:26px 30px 90px}
@@ -520,7 +551,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
      меню аккаунта (см. .support-mobile выше и data-acct-menu в разметке),
      там уже Настройки/Выйти — тот же уровень частоты, то же место. */
   .navlist:not(.support){display:inline-flex;gap:2px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
-  .navlist:not(.support) a,.navlist:not(.support) button{padding:7px 11px;border-radius:7px;font-size:13px}
+  .navlist:not(.support) a,.navlist:not(.support) button{padding:7px 11px;border-radius:7px;font-size:var(--fs-sm)}
   .navlist.support{display:none}
   /* В воронке навигация состоит из одного неактивного пункта
      «Подключение сайта» — это подпись, а не переход. На мобильном она
@@ -595,12 +626,12 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .inst-steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
 .inst-step{display:flex;gap:14px;align-items:flex-start}
 .inst-body{flex:1;min-width:0}
-.inst-body h3{margin:0 0 6px;font-size:15px}
+.inst-body h3{margin:0 0 6px;font-size:var(--fs-lg)}
 .inst-body .install-steps{margin:0}
 .inst-plat{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 @media(max-width:640px){
   .inst-step{gap:10px}
-  .inst-step::before{width:23px;height:23px;font-size:11.5px}
+  .inst-step::before{width:23px;height:23px;font-size:var(--fs-xs)}
 }
 
 /* ── нижняя панель разделов (только телефон) ────────────────────────────
@@ -629,7 +660,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
     padding:6px;box-shadow:0 16px 36px -12px rgba(17,17,16,.35)}
   .more-sheet[hidden]{display:none}
   .more-sheet button{display:flex;width:100%;align-items:center;gap:9px;padding:11px 10px;border-radius:9px;
-    border:0;background:none;font:inherit;font-size:13.5px;color:rgba(17,17,16,.72);cursor:pointer;text-align:left}
+    border:0;background:none;font:inherit;font-size:var(--fs-sm);color:rgba(17,17,16,.72);cursor:pointer;text-align:left}
   .more-sheet button:hover{background:var(--paper);color:var(--ink)}
   .more-sheet .div{height:1px;background:var(--line);margin:5px 0}
   .tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -638,7 +669,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
   .tab:active{transform:scale(.93)}
   .tab,.tab .tab-ico{transition:color .18s ease,background .18s ease,transform .18s ease}
   .tab svg{width:20px;height:20px}
-  .tab span{font-size:10px;line-height:1;letter-spacing:-.01em;white-space:nowrap}
+  .tab span{font-size:var(--fs-chip);line-height:1;letter-spacing:-.01em;white-space:nowrap}
   .tab.on{color:var(--ink)}
   .tab.on span{font-weight:700}
   /* центральный пункт приподнят кружком поверх панели */
@@ -688,7 +719,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
    Unbounded/Manrope, JetBrains Mono вместо IBM Plex) — тянуть три лишних
    семейства ради превью дорого, визуально разница незаметна. */
 .fpreview{border-radius:10px;border:1px solid var(--line-2)}
-.fpreview .lbl{background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;
+.fpreview .lbl{background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:var(--fs-chip);
   text-transform:uppercase;letter-spacing:.08em;color:rgba(17,17,16,.62);border-bottom:1px solid var(--line-2);
   border-radius:9px 9px 0 0}
 .sleza-widget{position:relative;display:flex;flex-wrap:wrap;align-items:center;row-gap:10px;column-gap:16px;
@@ -708,18 +739,18 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
   display:grid;place-items:center;flex:none;align-self:flex-start;margin-top:2px}
 .cc-icon svg{width:16px;height:16px}
 .cc-text{flex:1;min-width:0}
-.cc-title{font-weight:700;font-size:15px;line-height:1.25;margin:0 0 5px}
-.cc-body{font-size:12.5px;line-height:1.55;color:var(--w-muted);margin:0 0 6px}
-.cc-link{display:inline-block;font-size:12px;font-weight:600;color:var(--w-accent);text-decoration:none;cursor:pointer}
+.cc-title{font-weight:800;font-size:var(--fs-lg);line-height:1.25;margin:0 0 5px}
+.cc-body{font-size:var(--fs-xs);line-height:1.55;color:var(--w-muted);margin:0 0 6px}
+.cc-link{display:inline-block;font-size:var(--fs-xs);font-weight:700;color:var(--w-accent);text-decoration:none;cursor:pointer}
 .cc-link:hover{text-decoration:underline}
 .cc-action{flex:none;display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:196px}
-.cc-accept{display:block;width:100%;font:inherit;font-weight:700;font-size:13.5px;padding:12px 22px;
+.cc-accept{display:block;width:100%;font:inherit;font-weight:700;font-size:var(--fs-sm);padding:12px 22px;
   border-radius:9px;border:0;background:var(--w-accent);color:var(--w-on-accent);cursor:pointer}
 /* цвет текста кнопки зависит от скина: в тёмной теме акцент светлый
    (#6E9BFF) и текст должен быть тёмным, в светлой акцент насыщенный
    (#2E5FE0) и текст белый — фиксированный цвет тонул бы в одной из двух */
 .cc-accept:hover{filter:brightness(1.08)}
-.cc-note{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+.cc-note{font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.06em;text-transform:uppercase;
   color:var(--w-muted);opacity:.75;margin:0;text-align:center}
 /* На узком экране полоса складывается обратно в карточку: иконка над
    текстом, кнопка на всю ширину. Тот же брейкпоинт, что у подвала. */
@@ -732,14 +763,14 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
    изображён. Прежде вместо превью стояла пунктирная заглушка с
    пояснением: текст без картинки объяснял меньше, чем картинка с
    подписью. Подпись общая для баннера и подвала. */
-.skin-auto-note{font-size:11.5px;color:rgba(17,17,16,.55);margin:8px 2px 0;display:none}
+.skin-auto-note{font-size:var(--fs-xs);color:rgba(17,17,16,.55);margin:8px 2px 0;display:none}
 .w-brand{display:flex;align-items:center;gap:8px;flex:none;text-decoration:none;color:var(--w-text)}
 .w-brand svg{width:18px;height:18px;color:var(--w-accent);flex:none}
-.w-brand-name{font-weight:700;font-size:14px;letter-spacing:-.01em}
+.w-brand-name{font-weight:700;font-size:var(--fs-md);letter-spacing:-.01em}
 .w-sep{width:1px;height:22px;align-self:center;background:var(--w-line);flex:none}
 .w-pills{display:flex;flex-wrap:wrap;align-items:center;gap:6px;row-gap:8px}
 .pill-wrap{position:relative;flex:none}
-.pill{display:flex;align-items:center;gap:7px;font:inherit;font-size:12.5px;font-weight:600;color:var(--w-muted);
+.pill{display:flex;align-items:center;gap:7px;font:inherit;font-size:var(--fs-xs);font-weight:700;color:var(--w-muted);
   background:transparent;border:1px solid transparent;padding:7px 11px;border-radius:9px;cursor:pointer;
   white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
 .pill:hover{background:var(--w-hover);color:var(--w-text)}
@@ -752,7 +783,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .pill:not(.locked) .lockmark{display:none}
 .pill-wrap.disabled .pill{opacity:.42}
 .w-links{display:flex;align-items:center;gap:12px;flex:none;margin-left:auto;padding-left:12px;
-  font-size:12px;color:var(--w-muted)}
+  font-size:var(--fs-xs);color:var(--w-muted)}
 .w-links a{color:var(--w-muted);text-decoration:none;cursor:pointer}
 .w-links a:hover{color:var(--w-text);text-decoration:underline}
 .w-links .dot-sep{opacity:.5}
@@ -766,20 +797,20 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
   white-space:normal;font-family:var(--sans)}
 .w-pop[hidden]{display:none}
 .pop-close{position:absolute;top:10px;right:10px;width:20px;height:20px;border:0;background:none;
-  color:var(--w-muted);cursor:pointer;display:grid;place-items:center;border-radius:5px;font-size:13px;line-height:1}
+  color:var(--w-muted);cursor:pointer;display:grid;place-items:center;border-radius:5px;font-size:var(--fs-sm);line-height:1}
 .pop-close:hover{background:var(--w-hover);color:var(--w-text)}
-.pop-meta{font-family:var(--mono);font-size:10px;letter-spacing:.02em;text-transform:uppercase;
+.pop-meta{font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.02em;text-transform:uppercase;
   color:var(--w-amber);margin:0 0 8px;line-height:1.5;padding-right:14px}
-.pop-title{font-weight:700;font-size:14px;line-height:1.3;margin:0 0 8px;padding-right:14px}
-.pop-body{font-size:12.5px;line-height:1.55;color:var(--w-muted);margin:0 0 12px}
-.pop-lock{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--w-amber);
+.pop-title{font-weight:700;font-size:var(--fs-md);line-height:1.3;margin:0 0 8px;padding-right:14px}
+.pop-body{font-size:var(--fs-xs);line-height:1.55;color:var(--w-muted);margin:0 0 12px}
+.pop-lock{display:flex;align-items:center;gap:7px;font-size:var(--fs-xs);font-weight:700;color:var(--w-amber);
   background:var(--w-amber-soft);border-radius:7px;padding:7px 9px;margin-bottom:10px}
 .pop-lock svg{width:12px;height:12px;flex:none}
-.pop-hint{font-size:11.5px;color:var(--w-amber);background:var(--w-amber-soft);border-radius:7px;
+.pop-hint{font-size:var(--fs-xs);color:var(--w-amber);background:var(--w-amber-soft);border-radius:7px;
   padding:7px 9px;margin:0 0 10px}
 .pop-hint[hidden]{display:none}
 .w-switch-row{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;margin-bottom:8px;
-  font-size:12.5px;font-weight:600;cursor:pointer}
+  font-size:var(--fs-xs);font-weight:700;cursor:pointer}
 .w-sw{position:relative;display:inline-flex;width:34px;height:20px;flex:none}
 .w-sw input{position:absolute;inset:0;z-index:1;opacity:0;margin:0;cursor:pointer}
 .w-sw .track{position:absolute;inset:0;background:var(--w-line);border-radius:999px;transition:background .15s}
@@ -789,7 +820,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .w-sw input:checked + .track::after{transform:translateX(14px);background:#fff}
 .w-sw input:disabled + .track{opacity:.4;cursor:not-allowed}
 .pop-links{display:flex;flex-direction:column;gap:6px}
-.pop-links a{font-size:12px;font-weight:600;color:var(--w-accent);text-decoration:none;cursor:pointer}
+.pop-links a{font-size:var(--fs-xs);font-weight:700;color:var(--w-accent);text-decoration:none;cursor:pointer}
 .pop-links a:hover{text-decoration:underline}
 @media(max-width:640px){
   .sleza-widget{padding:12px 14px}
@@ -806,34 +837,34 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .pass-eye:hover{color:var(--ink)}
 .remember{margin-top:11px;display:flex;align-items:center;gap:9px;cursor:pointer}
 .remember input{width:16px;height:16px;accent-color:var(--brand)}
-.remember span{font-size:13px;color:rgba(17,17,16,.65)}
+.remember span{font-size:var(--fs-sm);color:rgba(17,17,16,.65)}
 
 /* сплит-регистрация: форма + панель пользы */
 .split{min-height:100vh;display:flex}
 .split-value{flex:0 0 42%;background:var(--ink);color:#fff;padding:56px 44px;display:flex;flex-direction:column;justify-content:center}
-.split-value .kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.split-value .kicker{font-family:var(--mono);font-size:var(--fs-kicker);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)}
 /* Была <h2>, стояла в DOM раньше <h1>Регистрация</h1> в форме справа —
    единственное место в файле с этим паттерном (impeccable critique,
    2 сентября). Это маркетинг-тэглайн, не структурный заголовок страницы —
    понижена до .split-tagline, а не переставлена местами с настоящим h1. */
-.split-value .split-tagline{display:block;color:#fff;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.25;margin:10px 0 22px}
+.split-value .split-tagline{display:block;color:#fff;font-size:var(--fs-h1);font-weight:800;letter-spacing:-.02em;line-height:1.25;margin:10px 0 22px}
 /* Масштаб задачи под заголовком: .tiny здесь не годится — он красит
    тёмным, а колонка тёмная, текст в ней тонул. */
-.split-value .split-scope{margin:-14px 0 20px;font-size:13px;line-height:1.6;color:rgba(255,255,255,.72)}
+.split-value .split-scope{margin:-14px 0 20px;font-size:var(--fs-sm);line-height:1.6;color:rgba(255,255,255,.72)}
 .split-value .why{display:flex;gap:12px;padding:14px 0;border-top:1px solid rgba(255,255,255,.14)}
 .split-value .why:last-child{padding-bottom:0}
-.split-value .why b{display:block;font-size:14px;font-weight:700}
-.split-value .why span{display:block;margin-top:2px;font-size:12.5px;color:rgba(255,255,255,.6);line-height:1.5}
+.split-value .why b{display:block;font-size:var(--fs-md);font-weight:700}
+.split-value .why span{display:block;margin-top:2px;font-size:var(--fs-xs);color:rgba(255,255,255,.6);line-height:1.5}
 .split-form{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 24px}
 @media(max-width:820px){
   .split{display:block}
   .split-value{padding:32px 24px}
-  .split-value .split-tagline{font-size:21px}
+  .split-value .split-tagline{font-size:var(--fs-h1-sm)}
 }
 
 @media(max-width:600px){
   .startwrap{padding:20px 14px 80px}
-  h1{font-size:22px}
+  h1{font-size:var(--fs-h1-sm)}
 }
 
 /* ── липкая плашка действия, разд.2 ТЗ 12.08 ──────────────────────────
@@ -866,7 +897,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
     height:60px;padding:0 6px;position:relative}
   .fb-side{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;
     justify-content:center;height:60px;border:0;background:none;padding:0;cursor:pointer;
-    font-family:inherit;font-size:13px;font-weight:700;color:rgba(17,17,16,.55);
+    font-family:inherit;font-size:var(--fs-sm);font-weight:700;color:rgba(17,17,16,.55);
     transition:color .18s ease,transform .18s ease}
   .fb-side:active{transform:scale(.93)}
   .fb-side.fb-go{color:var(--ink)}
@@ -875,10 +906,10 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
   .fb-center{flex:1;min-width:0;position:relative;display:flex;flex-direction:column;
     align-items:center;justify-content:flex-end;height:60px;padding-bottom:7px;border:0;
     background:none;cursor:pointer;font-family:inherit;color:rgba(17,17,16,.55)}
-  .fb-center .fb-c{font-size:10px;line-height:1;white-space:nowrap}
+  .fb-center .fb-c{font-size:var(--fs-chip);line-height:1;white-space:nowrap}
   .fb-center .fb-n{position:absolute;top:-20px;width:54px;height:54px;border-radius:999px;
     background:var(--paper);border:1px solid var(--line-2);display:grid;place-items:center;
-    font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ink);
+    font-family:var(--mono);font-size:var(--fs-glyph);font-weight:700;color:var(--ink);
     box-shadow:0 8px 20px -8px rgba(17,17,16,.3);
     transition:top .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease}
   .fb-center[aria-expanded="true"]{color:var(--ink)}
@@ -890,7 +921,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
     background:var(--white);border:1px solid var(--line-2);border-radius:16px;
     padding:12px;box-shadow:0 16px 36px -12px rgba(17,17,16,.35)}
   .fb-sheet button{display:flex;width:100%;align-items:center;gap:9px;padding:10px;
-    border-radius:9px;border:0;background:none;font:inherit;font-size:13.5px;
+    border-radius:9px;border:0;background:none;font:inherit;font-size:var(--fs-sm);
     color:rgba(17,17,16,.72);cursor:pointer;text-align:left}
   .fb-sheet button:not([disabled]):hover{background:var(--paper);color:var(--ink)}
   .fb-sheet button[disabled]{opacity:.4;cursor:default}
@@ -899,7 +930,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
      и .btn). Без этой строки скрытый «Кабинет сайта» продолжал рисоваться. */
   .fb-sheet button[hidden]{display:none}
   .fb-sheet .fb-s-n{flex:none;width:22px;height:22px;border-radius:999px;display:grid;
-    place-items:center;font-family:var(--mono);font-size:11px;
+    place-items:center;font-family:var(--mono);font-size:var(--fs-xs);
     background:var(--paper);border:1px solid var(--line-2)}
   .fb-sheet .fb-s.now{color:var(--ink);font-weight:700}
   .fb-sheet .fb-s.now .fb-s-n{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -931,7 +962,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
     background:var(--paper);border-top:1px solid var(--line);
     box-shadow:0 -8px 20px rgba(17,17,16,.08)
   }
-  .sticky-cta .ctx{font-size:13px;font-weight:700;color:rgba(17,17,16,.6);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sticky-cta .ctx{font-size:var(--fs-sm);font-weight:700;color:rgba(17,17,16,.6);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sticky-cta .btn{flex:none}
   /* s-install: «Скрипт не найден» + длинный текст кнопки не помещались
      вдвоём на 390px — обрезалось до «Скрипт не н…», без смысла. Контекст
@@ -993,7 +1024,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
   .preview-accordion{display:block;margin-top:18px}
   /* заголовок разворота — единственный тап-таргет на этом экране ниже
      44px (был 23px, по высоте строки) */
-  .preview-accordion summary{cursor:pointer;font-size:15px;font-weight:800;letter-spacing:-.02em;
+  .preview-accordion summary{cursor:pointer;font-size:var(--fs-lg);font-weight:800;letter-spacing:-.02em;
     list-style:none;min-height:44px;display:flex;align-items:center}
   .preview-accordion summary::-webkit-details-marker{display:none}
   .preview-accordion summary::after{content:"⌄";float:right;color:rgba(17,17,16,.4)}
@@ -1016,7 +1047,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
    (карточки, формы, превью виджета), не пара строк как на s-ready. */
 details.acc{margin-top:24px}
 details.acc:first-child{margin-top:0}
-.acc-title{font-size:15px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px;cursor:pointer;list-style:none}
+.acc-title{font-size:var(--fs-lg);font-weight:800;letter-spacing:-.02em;margin:0 0 10px;cursor:pointer;list-style:none}
 .acc-title::-webkit-details-marker{display:none}
 .acc-title::after{display:none}
 /* <summary> без heading внутри — скринридер в Настройках слышит только
@@ -1051,7 +1082,7 @@ details.acc:first-child{margin-top:0}
 .install-howto{margin:0}
 .install-howto>.acc-title{display:flex;align-items:center;justify-content:space-between;gap:10px;
   margin:0;padding:10px 13px;border:1.5px solid var(--line-2);border-radius:10px;
-  background:var(--paper);font-size:14px;list-style:none}
+  background:var(--paper);font-size:var(--fs-md);list-style:none}
 .install-howto>.acc-title:hover{border-color:var(--ink)}
 .install-howto[open]>.acc-title{border-radius:10px 10px 0 0;border-bottom-color:transparent}
 .install-howto[open] .howto-chev{transform:rotate(180deg)}
@@ -1059,7 +1090,7 @@ details.acc:first-child{margin-top:0}
 .install-steps{margin:0;padding:12px 20px 14px 36px;display:flex;flex-direction:column;gap:7px;
   border:1.5px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px}
 .install-steps li{line-height:1.5}
-.anketa-step{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.62);margin-bottom:6px}
+.anketa-step{font-family:var(--mono);font-size:var(--fs-kicker);letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.62);margin-bottom:6px}
 /* Крошки подшагов («О компании · О сайте · Работа с клиентами») отсюда
    убраны 7 сентября: те же три названия теперь стоят в степпере сайдбара,
    причём кликабельные. Здесь они были дублем и вдобавок выглядели
@@ -1105,7 +1136,7 @@ details.acc:first-child{margin-top:0}
    инлайн-наборами и размечался то h3, то h2 — в «Виджете» доходило до
    того, что мелкий уппер-кейс был h2, а крупное название блока над ним
    вообще не заголовком. */
-.sub-h{margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)}
+.sub-h{margin:0;font-size:var(--fs-sm);font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)}
 .doc-actions{display:inline-flex;gap:6px;flex:none}
 /* «Изменить» стоит в мета-строке под названием, а не четвёртой кнопкой
    справа: справа он ломал колонки — либо сдвигал у своей строки и чип, и
@@ -1137,12 +1168,12 @@ details.acc:first-child{margin-top:0}
      подсказка над первой строкой была бы срезана. Слева от кнопок пустое
      место есть всегда. */
   .icobtn::after{content:attr(data-tip);position:absolute;right:calc(100% + 8px);top:50%;
-    transform:translateY(-50%);background:var(--ink);color:#fff;font-size:11px;line-height:1;
+    transform:translateY(-50%);background:var(--ink);color:#fff;font-size:var(--fs-xs);line-height:1;
     white-space:nowrap;padding:6px 8px;border-radius:6px;opacity:0;pointer-events:none;
     transition:opacity .12s ease-out}
   .icobtn:hover::after,.icobtn:focus-visible::after{opacity:1}
 }
-.tiny .doc-edit{margin-left:8px;padding:0;font-size:12px;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.tiny .doc-edit{margin-left:8px;padding:0;font-size:var(--fs-xs);color:var(--ink);text-decoration:underline;text-underline-offset:3px}
 @media(max-width:640px){.tiny .doc-edit{display:block;margin-left:0;margin-top:5px}}
 body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 </style>
@@ -1243,7 +1274,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <div class="startwrap" style="max-width:400px;padding-top:56px">
     <div class="row" style="gap:9px;margin-bottom:28px">
       <svg width="26" height="17" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg>
-      <b class="mono" style="font-size:15px;font-weight:800">Слеза Белый Сайт</b>
+      <b class="mono logo-word">Слеза Белый Сайт</b>
       <span class="chip out">макет</span>
     </div>
     <h1>Вход в кабинет</h1>
@@ -1278,7 +1309,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <div class="startwrap" style="max-width:400px;padding-top:56px">
     <div class="row" style="gap:9px;margin-bottom:28px">
       <svg width="26" height="17" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg>
-      <b class="mono" style="font-size:15px;font-weight:800">Слеза Белый Сайт</b>
+      <b class="mono logo-word">Слеза Белый Сайт</b>
       <span class="chip out">макет</span>
     </div>
 
@@ -1295,7 +1326,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </div>
 
     <div class="state" data-state="sent" style="text-align:center">
-      <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:22px">✉️</div>
+      <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:var(--fs-h1-sm)">✉️</div>
       <h1>Проверьте почту</h1>
       <p class="lead" style="margin-top:10px">Прислали ссылку для входа на <b id="maillogin-addr">you@company.ru</b>. Ссылка действует 30 минут.</p>
       <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-status" data-set-hassite="false">Перешёл по ссылке (демо) →</button>
@@ -1328,7 +1359,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="authbox">
         <div class="row" style="gap:9px;margin-bottom:24px">
           <svg width="26" height="17" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg>
-          <b class="mono" style="font-size:15px;font-weight:800">Слеза Белый Сайт</b>
+          <b class="mono logo-word">Слеза Белый Сайт</b>
           <span class="chip out">макет</span>
         </div>
         <h1 style="margin-bottom:6px">Регистрация</h1>
@@ -2034,7 +2065,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </aside>
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 5 из 6</div>
-    <div class="b green" style="font-size:15px">✓ Пакет документов готов</div>
+    <div class="b green statusline">✓ Пакет документов готов</div>
     <h1 style="margin-top:6px">Что подготовили</h1>
     <p class="lead" style="margin-top:8px">Собрали пакет документов под <span data-site-domain>alfa-school.ru</span>. Можно прочитать прямо сейчас — откройте любой.</p>
 
@@ -2102,7 +2133,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          брейкпоинту дублируем разметку, тот же приём, что и .support-mobile -->
     <div class="preview-block">
       <h2 style="margin-top:18px">Вот что появится на сайте</h2>
-      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
+      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
         <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
@@ -2118,7 +2149,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            времени, автоматическая пометка запрещённых слов, имён и
            компаний), а в макете она жила только плашкой в подвале — человек
            узнавал о ней уже после установки. -->
-      <div class="lbl" style="margin-top:14px;background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">маркировка в тексте страниц</div>
+      <div class="lbl" style="margin-top:14px;background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">маркировка в тексте страниц</div>
       <div class="markdemo">
         <p class="sent">…в интервью для издания «Пример»<span class="mk" title="Маркировано Слезой"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z"></path></svg></span> сказал, что…</p>
         <p class="tiny" style="margin-top:8px">Сами сверим страницы с реестрами регулятора — иностранные агенты, экстремистские и террористические организации — и промаркируем упоминания. Реестры меняются, следить за ними не придётся.</p>
@@ -2126,7 +2157,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </div>
     <details class="preview-accordion">
       <summary>Вот что появится на сайте</summary>
-      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
+      <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
         <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
@@ -2303,7 +2334,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             <button type="button" class="btn text sm install-check-btn" style="padding:0">↻ Проверить сейчас</button>
           </div>
           <div data-install="found" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--ok-tint);border:1px solid rgba(26,122,82,.25)">
-            <div class="b green" style="font-size:14px">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
+            <div class="b green" style="font-size:var(--fs-md)">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
             <p class="tiny" style="margin-top:5px">Всё на месте. Осталось активировать пробный период — 24 часа документы и виджет работают бесплатно.</p>
           </div>
         </div>
@@ -2367,7 +2398,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <p class="lead" style="margin-top:6px"><span class="mono" style="font-weight:700;color:var(--ink)" data-site-domain>alfa-school.ru</span> · что сейчас с сайтом и что делать дальше</p>
           <div class="row" style="gap:8px;align-items:baseline;margin-top:8px">
             <span class="tiny" data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span>
-            <button type="button" class="btn text sm" style="padding:0;font-size:12px" data-go-modal="modal-req-set">Изменить</button>
+            <button type="button" class="btn text sm" style="padding:0;font-size:var(--fs-xs)" data-go-modal="modal-req-set">Изменить</button>
           </div>
         </div>
       </div>
@@ -2380,7 +2411,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            период и таймер, а не врать про «актуальны», пока не оплачено. -->
       <div class="state" data-pay-state="trial" style="margin-top:16px">
         <div class="card pad" style="border-color:rgba(184,121,0,.35)">
-          <span class="b amber" style="font-size:16px">🕐 Пробный период — осталось 21 ч 43 мин</span>
+          <span class="b amber statusline">🕐 Пробный период — осталось 21 ч 43 мин</span>
           <p class="lead" style="margin-top:8px">Документы и виджет уже работают на <span data-site-domain>alfa-school.ru</span>. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва, и мы напомним письмом заранее.</p>
           <div class="hr"></div>
           <button type="button" class="btn solid sm" data-go="s-billing">Оплатить →</button>
@@ -2388,7 +2419,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="state" data-pay-state="expired" style="margin-top:16px">
         <div class="card pad" style="border-color:rgba(214,56,22,.35)">
-          <span class="b red" style="font-size:16px">⚠ Пробный период закончился</span>
+          <span class="b red statusline">⚠ Пробный период закончился</span>
           <p class="lead" style="margin-top:8px">Виджет снят с сайта — cookie-баннер и подвал больше не показываются посетителям. Оплата вернёт всё на место.</p>
           <div class="hr"></div>
           <button type="button" class="btn solid sm" data-go="s-billing">Оплатить →</button>
@@ -2396,7 +2427,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="state" data-pay-state="pending" style="margin-top:16px">
         <div class="card pad" style="border-color:rgba(184,121,0,.35)">
-          <span class="b amber" style="font-size:16px">⏳ Счёт выставлен</span>
+          <span class="b amber statusline">⏳ Счёт выставлен</span>
           <p class="lead" style="margin-top:8px">Документы и виджет уже работают на <span data-site-domain>alfa-school.ru</span>. Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня.</p>
           <div data-payment-issue="invoice-stalled" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(184,121,0,.25)">
             <p class="small" style="color:var(--warn);font-weight:700">Счёт выставлен больше 3 дней назад и всё ещё не оплачен.</p>
@@ -2407,7 +2438,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="state on" data-pay-state="paid" style="margin-top:16px">
         <div class="card pad" style="border-color:rgba(26,122,82,.3)">
-          <span class="b green" style="font-size:16px">✓ Документы актуальны</span>
+          <span class="b green statusline">✓ Документы актуальны</span>
           <p class="lead" style="margin-top:8px">Документы подготовлены и подключены через виджет. Следим за законом и обновим сами, если что-то изменится.</p>
           <div class="hr"></div>
           <p class="tiny">Сегодня, 09:14 — сверили с действующей редакцией 152-ФЗ. Изменений не было.</p>
@@ -2415,7 +2446,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="state" data-pay-state="unpaid" style="margin-top:16px">
         <div class="card pad">
-          <span class="b" style="font-size:16px;color:rgba(17,17,16,.62)">— Пока не установлено</span>
+          <span class="b statusline" style="color:rgba(17,17,16,.62)">— Пока не установлено</span>
           <p class="lead" style="margin-top:8px">Документы собраны, но скрипт ещё не стоит на сайте — поэтому виджет не работает и пробный период не запущен.</p>
           <div class="hr"></div>
           <!-- Ведёт на установку, а не на «Что подготовили» (правка пользователя
@@ -2557,7 +2588,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            документов нельзя: их не существует. Тот же приём, что в
            «Подписке» — вместо содержимого путь туда, где оно появится. -->
       <div class="card pad state" data-pay-state="unpaid" style="margin-top:18px">
-        <b style="font-size:15px">Документы ещё не собраны</b>
+        <b class="statusline">Документы ещё не собраны</b>
         <p class="tiny" style="margin-top:6px">Мы собираем их по ответам анкеты: сфера деятельности, формы на сайте, реквизиты компании. Как только анкета пройдена — пакет появится здесь целиком.</p>
         <button type="button" class="btn solid sm" style="margin-top:12px" data-resume-anketa>Продолжить анкету →</button>
       </div>
@@ -2580,7 +2611,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            документа — номер сайта плюс номер документа в каталоге. -->
       <div class="card pad row state" data-pay-state="trial pending paid expired" style="margin-top:16px;justify-content:space-between;align-items:center;gap:12px">
         <div style="min-width:0">
-          <div style="font-weight:700;font-size:14.5px">Все документы сайта</div>
+          <div style="font-weight:700;font-size:var(--fs-md)">Все документы сайта</div>
           <div class="tiny mono" style="margin-top:3px;overflow-wrap:anywhere">cdn.sleza.media/<span data-site-id>486312</span></div>
         </div>
         <span class="doc-actions"><button type="button" class="btn sm copy-link-btn" data-copy-text="https://cdn.sleza.media/486312">Скопировать ссылку</button></span>
@@ -2591,7 +2622,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            уже показан в превью на s-ready), открывается в новой вкладке. -->
       <div class="card state" data-pay-state="trial pending paid expired" style="margin-top:10px;overflow:hidden">
         <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия<button type="button" class="btn text sm doc-edit" data-go-modal="modal-req-set">Изменить</button></div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия<button type="button" class="btn text sm doc-edit" data-go-modal="modal-req-set">Изменить</button></div></div>
           <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/01" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/01" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span><!-- «Изменить» есть только у реквизитов: остальные четыре документа мы
      собираем сами из ответов анкеты, а реквизиты — единственное, что
      клиент правит напрямую (сменился адрес, банк, телефон). Раньше вход
@@ -2602,19 +2633,19 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
      запрещать. -->
         </div>
         <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Политика обработки cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
           <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/02" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/02" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
         <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Политика обработки персональных данных</div><div class="tiny mono"><span class="state" data-pay-state="paid">v2 · 15.08.2026 · обновили формулировки под изменения 152-ФЗ</span><span class="state" data-pay-state="trial pending expired">v1 · 05.08.2026 · первая версия</span></div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Политика обработки персональных данных</div><div class="tiny mono"><span class="state" data-pay-state="paid">v2 · 15.08.2026 · обновили формулировки под изменения 152-ФЗ</span><span class="state" data-pay-state="trial pending expired">v1 · 05.08.2026 · первая версия</span></div></div>
           <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/03" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/03" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
         <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на обработку персональных данных</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Согласие на обработку персональных данных</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
           <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/12" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/12" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
         <div class="row docrow" style="padding:13px 16px">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
           <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/13" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/13" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
       </div>
@@ -2675,7 +2706,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div id="set-view">
           <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px">
             <div style="min-width:0">
-              <div style="font-weight:700;font-size:14.5px" id="set-view-name">Кирилл</div>
+              <div style="font-weight:700;font-size:var(--fs-md)" id="set-view-name">Кирилл</div>
               <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere" id="set-view-mail">director@alfa-school.ru</div>
               <div class="tiny" style="margin-top:2px" id="set-view-phone">Резервная связь не указана</div>
             </div>
@@ -2710,7 +2741,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="card pad" style="margin-top:12px">
         <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px">
           <div style="min-width:0">
-            <div style="font-weight:700;font-size:14.5px">По ссылке из письма</div>
+            <div style="font-weight:700;font-size:var(--fs-md)">По ссылке из письма</div>
             <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere" data-acct-mail-plain>director@alfa-school.ru</div>
             <div class="tiny" style="margin-top:2px">Пароль не нужен — присылаем ссылку на эту почту</div>
           </div>
@@ -2824,7 +2855,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <!-- Пока анкета не пройдена, платить не за что: документов нет, виджет
            не установлен. Вместо оплаты — путь туда, где это появится. -->
       <div class="card pad state" data-pay-state="unpaid" style="margin-top:18px">
-        <b style="font-size:15px">Подключение не закончено</b>
+        <b class="statusline">Подключение не закончено</b>
         <p class="tiny" style="margin-top:6px">Документы собираются по ответам анкеты, а виджет включается установкой скрипта. Подписка начнётся после этого — пробный период даст 24 часа бесплатно.</p>
         <button type="button" class="btn solid sm" style="margin-top:12px" data-resume-anketa>Продолжить анкету →</button>
       </div>
@@ -2833,7 +2864,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="card pad state" data-pay-state="trial expired pending paid" style="margin-top:12px">
         <div class="row" style="justify-content:space-between;align-items:center" id="tariff-summary">
           <div>
-            <div style="font-weight:700;font-size:14.5px" data-tariff-name>Тариф Х</div>
+            <div style="font-weight:700;font-size:var(--fs-md)" data-tariff-name>Тариф Х</div>
             <div class="tiny mono" style="margin-top:2px">12 000 ₽/год</div>
           </div>
           <button type="button" class="btn sm" id="tariff-edit">Изменить</button>
@@ -2852,7 +2883,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             <button type="button" data-tariff="Тариф Z">Тариф Z</button>
           </div>
           <div style="margin-top:10px;padding:12px 14px;border:1px solid var(--line-2);border-radius:10px;background:var(--paper)">
-            <div style="font-weight:700;font-size:14px" id="tariff-preview-name">Тариф Х</div>
+            <div style="font-weight:700;font-size:var(--fs-md)" id="tariff-preview-name">Тариф Х</div>
             <ul class="small" id="tariff-preview-items" style="margin:8px 0 0;padding-left:18px;line-height:1.7"></ul>
           </div>
           <div class="row" style="margin-top:12px;gap:10px">
@@ -2868,7 +2899,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
              шла во всю ширину. Три разные ширины в одной карточке. -->
         <div class="row" style="justify-content:space-between;align-items:center" id="paymode-summary">
           <div>
-            <div style="font-weight:700;font-size:14.5px" id="paymode-name">По счёту</div>
+            <div style="font-weight:700;font-size:var(--fs-md)" id="paymode-name">По счёту</div>
             <div class="tiny" style="margin-top:2px" id="paymode-note">Счёт на почту, оплата переводом</div>
           </div>
           <button type="button" class="btn sm" id="paymode-edit">Изменить</button>
@@ -2926,7 +2957,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <div id="card-bound" style="display:none">
             <div class="card pad row" style="border-color:var(--line);justify-content:space-between;align-items:center">
               <div>
-                <div style="font-weight:700;font-size:14.5px">Карта <span class="mono" id="card-bound-mask">···· 2323</span></div>
+                <div style="font-weight:700;font-size:var(--fs-md)">Карта <span class="mono" id="card-bound-mask">···· 2323</span></div>
                 <div class="tiny mono" style="margin-top:2px">до <span id="card-bound-exp">11/12</span> · <span data-card-site>alfa-school.ru</span></div>
               </div>
               <span class="chip green">привязана</span>
@@ -2943,7 +2974,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
                свёрнутом состоянии. -->
           <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px" id="payreq-summary">
             <div style="min-width:0">
-              <div style="font-weight:700;font-size:14.5px" id="payreq-name">ООО «Альфа Образование»</div>
+              <div style="font-weight:700;font-size:var(--fs-md)" id="payreq-name">ООО «Альфа Образование»</div>
               <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere" id="payreq-details">ИНН 7701234567 · buh@alfa-school.ru · +7 (495) 123-45-67 · счёт …2345</div>
               <div class="tiny" style="margin-top:2px" id="payreq-source">Реквизиты плательщика · из анкеты</div>
             </div>
@@ -2971,7 +3002,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <div id="invoice-ready" style="display:none;margin-top:12px">
             <div class="card pad row" style="border-color:var(--line);justify-content:space-between;align-items:center;gap:12px">
               <div style="min-width:0">
-                <div style="font-weight:700;font-size:14.5px">Счёт <span id="invoice-no">№ 2026-0142</span> · 12 000 ₽</div>
+                <div style="font-weight:700;font-size:var(--fs-md)">Счёт <span id="invoice-no">№ 2026-0142</span> · 12 000 ₽</div>
                 <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere">cdn.sleza.media/<span data-site-id>486312</span>/invoice-2026-0142.pdf</div>
               </div>
               <span class="doc-actions">
@@ -3031,7 +3062,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
              шума. Пустая остаётся полем — сворачивать нечего. -->
         <div class="row" id="docs-email-set" style="display:none;justify-content:space-between;align-items:center">
           <div>
-            <div class="mono" style="font-weight:700;font-size:14px" id="docs-email-value">buh@alfa-school.ru</div>
+            <div class="mono" style="font-weight:700;font-size:var(--fs-md)" id="docs-email-value">buh@alfa-school.ru</div>
             <div class="tiny" style="margin-top:2px">Сюда придут чеки и акты</div>
           </div>
           <button type="button" class="btn sm" id="docs-email-edit">Изменить</button>
@@ -3054,7 +3085,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            даёт: акт закрывает оплаченный период, а не выставленный счёт. -->
       <div class="card state" data-pay-state="paid" style="margin-top:12px;overflow:hidden">
         <div class="row" style="padding:13px 16px">
-          <div style="flex:1"><div style="font-weight:700;font-size:14.5px">Акт за 2026–2027</div><div class="tiny mono">05.08.2026 – 04.08.2027 · 12 000 ₽</div></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Акт за 2026–2027</div><div class="tiny mono">05.08.2026 – 04.08.2027 · 12 000 ₽</div></div>
           <span class="chip green">готов</span><a class="btn sm" href="https://cdn.sleza.media/486312/act-2026-2027.pdf" target="_blank" rel="noopener">Скачать PDF</a>
         </div>
       </div>
@@ -3080,7 +3111,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <div class="row" style="justify-content:space-between"><h3 id="modal-req-set-title">Реквизиты владельца</h3><button class="btn text sm" data-modal-close="modal-req-set">✕</button></div>
     <p class="tiny" style="margin-top:2px">Попадают в документ «Реквизиты владельца» и в подвал сайта. Реквизиты для счёта — отдельные, они в «Подписке».</p>
 
-    <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ok);margin-top:14px">✓ заполним сами — вам нужно только проверить</div>
+    <div style="font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.09em;text-transform:uppercase;color:var(--ok);margin-top:14px">✓ заполним сами — вам нужно только проверить</div>
     <label class="f" style="margin-top:8px">Наименование</label>
     <input class="inp" id="modal-req-name-set" value="ООО «Альфа Образование»">
     <label class="f" style="margin-top:10px">ОГРН</label>
@@ -3090,7 +3121,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <input class="inp mono" id="modal-req-inn-set" value="7701234567">
 
     <div class="hr" style="margin-top:16px"></div>
-    <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--danger)">заполнено вами — можно поправить</div>
+    <div style="font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.09em;text-transform:uppercase;color:var(--danger)">заполнено вами — можно поправить</div>
     <label class="f" style="margin-top:8px">Адрес для переписки <span style="color:var(--danger)">*</span></label>
     <input class="inp" placeholder="Индекс, город, улица, дом" value="119019, Москва, ул. Воздвиженка, д. 10">
     <label class="f" style="margin-top:10px">Почта <span style="color:var(--danger)">*</span></label>
@@ -3296,7 +3327,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="card pad" style="margin-top:16px">
         <div class="row" style="justify-content:space-between;align-items:center">
           <div>
-            <h2 style="font-size:15px;margin:0">Cookie-баннер</h2>
+            <h2 style="margin:0">Cookie-баннер</h2>
             <p class="tiny" id="banner-status-p" style="margin-top:3px;color:var(--ok)">✓ Показывается посетителям</p>
           </div>
           <label class="switch" title="Включить/выключить баннер">
@@ -3330,7 +3361,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="card pad" style="margin-top:16px">
         <div class="row" style="justify-content:space-between;align-items:center">
           <div>
-            <h2 style="font-size:15px;margin:0">Подвал сайта</h2>
+            <h2 style="margin:0">Подвал сайта</h2>
             <p class="tiny" id="footer-status-p" style="margin-top:3px;color:var(--ok)">✓ Показывается посетителям</p>
           </div>
           <label class="switch" title="Включить/выключить подвал сайта">
@@ -3457,7 +3488,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div class="card pad" style="margin-bottom:10px">
           <div class="row" style="justify-content:space-between;align-items:flex-start">
             <div>
-              <div style="font-weight:700;font-size:14px">Не появился баннер после установки скрипта</div>
+              <div style="font-weight:700;font-size:var(--fs-md)">Не появился баннер после установки скрипта</div>
               <div class="tiny" style="margin-top:2px">3 дня назад</div>
             </div>
             <span class="chip green">отвечено</span>
