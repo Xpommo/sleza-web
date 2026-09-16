@@ -300,6 +300,16 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
   color:rgba(17,17,16,.6);cursor:pointer;transition:transform 160ms ease-out,background-color .15s ease-out,color .15s ease-out}
 .seg button.on{background:var(--ink);color:#fff}
 .seg button:active{transform:scale(.97)}
+/* Четыре платформы в одну строку на телефоне не помещаются, а простой
+   перенос отдавал последней кнопке всю ширину — выбранная растягивалась
+   во всю строку и переставала читаться как один из четырёх равных
+   вариантов. На узком экране — сетка 2×2. */
+@media(max-width:640px){
+  /* gap здесь задаётся другим правилом как 8px, и две кнопки переставали
+     влезать в ряд на пару пикселей — поэтому и gap, и базис заданы явно. */
+  #platform-seg{display:flex;gap:3px}
+  #platform-seg button{flex:1 1 calc(50% - 2px);padding:9px 8px}
+}
 
 .code{font-family:var(--mono);font-size:12px;background:var(--ink);color:#f2f0ec;border-radius:10px;
   padding:13px 14px;overflow-x:auto;white-space:pre;line-height:1.7}
@@ -1659,16 +1669,24 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <p class="lead" style="margin-top:8px">Технические детали сайта — попадут в формулировки политики и cookie-документа.</p>
           <div class="card pad" id="anketa-site-card" style="margin-top:16px">
             <h2 style="margin-bottom:8px">Платформа сайта</h2>
-            <!-- Платформа одна, поэтому чекбоксы ведут себя как радио: выбор
-                 переключается, снять последний нельзя. Вид общий с остальными
-                 вопросами шага (правка пользователя 8 сентября), но множественный
-                 выбор здесь был бы враньём — от платформы зависит, какую одну
-                 инструкцию открыть на шаге установки (sitePlatform). -->
-            <div class="check-2col" style="margin-top:4px">
-              <label class="check"><input type="checkbox" data-platform-pick="tilda"><span class="t">Тильда</span></label>
-              <label class="check"><input type="checkbox" data-platform-pick="wp"><span class="t">WordPress</span></label>
-              <label class="check"><input type="checkbox" data-platform-pick="bitrix"><span class="t">Битрикс</span></label>
-              <label class="check"><input type="checkbox" data-platform-pick="other"><span class="t">Другое</span></label>
+            <!-- Сегмент, а не чекбоксы (правка пользователя 16 сентября): выбор
+                 здесь один и взаимоисключающий, а чекбоксы это отрицали — можно
+                 было отметить и Тильду, и WordPress. Тот же контрол, что у
+                 «Ваша роль в компании». Ничего не выбрано по умолчанию: платформу
+                 решает клиент, а не мы (то же правило, что у сферы). -->
+            <div class="seg" id="platform-seg" style="margin-top:4px;flex-wrap:wrap">
+              <button type="button" data-platform-pick="tilda">Тильда</button>
+              <button type="button" data-platform-pick="wp">WordPress</button>
+              <button type="button" data-platform-pick="bitrix">Битрикс</button>
+              <button type="button" data-platform-pick="other">Другое</button>
+            </div>
+            <!-- «Другое» без названия — это тот же «не выбрано»: инструкцию под
+                 него не подобрать, и мы не узнаем, какую платформу поддержать
+                 следующей. Поэтому поле появляется сразу и спрашивается. -->
+            <div id="platform-other-wrap" style="display:none;margin-top:10px">
+              <label class="f" style="margin-top:0" for="platform-other">Какая платформа?</label>
+              <input class="inp" id="platform-other" placeholder="Например: Webflow, Joomla, самописный сайт">
+              <p class="tiny anketa-field-error" id="platform-other-error" style="display:none;margin-top:5px;color:var(--danger)">Напишите, на чём сделан сайт — от этого зависит инструкция по установке.</p>
             </div>
             <p class="tiny anketa-field-error" id="anketa-platform-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите платформу — от неё зависит инструкция по установке на последнем шаге.</p>
 
@@ -4767,18 +4785,34 @@ document.querySelectorAll('#install-cms-tabs [data-platform]').forEach(function(
   });
 });
 
-document.querySelectorAll('[data-platform-pick]').forEach(function(box){
-  box.addEventListener('change', function(){
-    if (!box.checked) { box.checked = true; return; }
-    document.querySelectorAll('[data-platform-pick]').forEach(function(other){
-      if (other !== box) other.checked = false;
-    });
-    sitePlatform = box.dataset.platformPick;
+/* Платформа — сегмент. Свой обработчик, а не общий [data-swap]: панелей
+   под ним нет, а фальшивый data-swap уже заводил нас в коллизию на шаге
+   установки. Ничего не выбрано на старте — выбор за клиентом. */
+var platformChosen = false;
+function syncPlatformSeg(){
+  document.querySelectorAll('#platform-seg [data-platform-pick]').forEach(function(b){
+    var on = platformChosen && b.dataset.platformPick === sitePlatform;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  var wrap = document.getElementById('platform-other-wrap');
+  if (wrap) wrap.style.display = (platformChosen && sitePlatform === 'other') ? '' : 'none';
+}
+document.querySelectorAll('#platform-seg [data-platform-pick]').forEach(function(b){
+  b.addEventListener('click', function(){
+    sitePlatform = b.dataset.platformPick;
+    platformChosen = true;
+    syncPlatformSeg();
     var platErr = document.getElementById('anketa-platform-error');
     if (platErr) platErr.style.display = 'none';
+    if (sitePlatform === 'other') {
+      var inp = document.getElementById('platform-other');
+      if (inp) inp.focus({preventScroll:true});
+    }
     syncPayState();
   });
 });
+syncPlatformSeg();
 
 document.querySelectorAll('[data-excl]').forEach(function(box){
   box.addEventListener('change', function(){
@@ -5186,10 +5220,17 @@ if (saveDocsBtn) saveDocsBtn.addEventListener('click', function(){
    том числе навырост. Путь всегда из шести шагов подряд. */
 var siteNextBtn = document.getElementById('anketa-site-next');
 if (siteNextBtn) siteNextBtn.addEventListener('click', function(){
-  var platformPicked = document.querySelector('[data-platform-pick]:checked');
   var platformErr = document.getElementById('anketa-platform-error');
-  if (platformErr) platformErr.style.display = platformPicked ? 'none' : 'block';
-  if (!platformPicked) return;
+  if (platformErr) platformErr.style.display = platformChosen ? 'none' : 'block';
+  if (!platformChosen) return;
+  if (sitePlatform === 'other') {
+    var other = document.getElementById('platform-other');
+    var otherErr = document.getElementById('platform-other-error');
+    var empty = !other || !other.value.trim();
+    if (other) other.classList.toggle('error', empty);
+    if (otherErr) otherErr.style.display = empty ? 'block' : 'none';
+    if (empty) { if (other) other.focus({preventScroll:true}); return; }
+  }
   anketaSubstep = 2;
   syncAnketaSubstep();
 });
