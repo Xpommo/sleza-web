@@ -240,17 +240,12 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    — это форма? чат? кнопка звонка?). Пример переводит цель в то, что
    он видит у себя. */
 .check .ex{display:block;font-size:12px;line-height:1.45;color:rgba(17,17,16,.62);margin-top:3px}
-/* Списки из коротких названий (платформа, аналитика) на широком экране
-   идут в две колонки: одинарной колонкой шаг «О сайте» вытягивался на
-   745px при том, что справа оставалась пустая половина карточки. Списки
-   с примерами под строкой сюда не попадают — там длина строки нужна. */
-@media(min-width:761px){
-  .check-2col{display:grid;grid-template-columns:1fr 1fr;column-gap:26px}
-  /* без линеек: в две колонки они обрываются на середине последнего ряда,
-     когда пунктов нечётное число. Строки здесь однострочные, разделять их
-     нечем — секции и так отбиты горизонтальной чертой. */
-  .check-2col .check{border-bottom:none;padding:7px 0}
-}
+/* .check-2col (две колонки для коротких чекбоксов) удалён: он применялся
+   ровно к одному списку — «Аналитика на сайте», — и в той же карточке
+   соседний список «Формы и сервисы» шёл в одну колонку, потому что там
+   под каждой строкой пример и нужна её длина. Две сетки для двух списков
+   подряд читались как разная вёрстка внутри одного экрана, а выигрыш был
+   60px высоты. Все списки чекбоксов теперь одноколоночные. */
 /* ── ритм полей анкеты ──────────────────────────────────────────────────
    Отступ между полями задаёт обёртка .fld, а не inline-margin на каждой
    подписи: их было три разных (10/12/14px) вперемешку, и шаги из-за
@@ -258,7 +253,7 @@ h3 + label.f,.card h3 + .f{margin-top:12px}
    ревью. Первое поле секции отступа не получает, его даёт заголовок.
    .f2 ставит пару коротких полей в две колонки на широком экране: в один
    столбец анкета тянулась вниз при пустой правой половине карточки. Тот
-   же брейкпоинт, что у .check-2col, — на телефоне колонка одна.
+   Брейкпоинт 761px — тот же, что у остальной адаптивной вёрстки.
    min-width:0 обязателен: иначе .inp{width:100%} не даёт колонке грида
    сжаться и карточку распирает горизонтальным скроллом. */
 .fld,.f2{margin-top:10px;min-width:0}
@@ -1717,7 +1712,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
         <div data-substep="1">
           <h1>О сайте</h1>
-          <p class="lead" style="margin-top:8px">Что установлено на сайте и что он умеет. От этого зависят формулировки в политике и в правилах про cookie-файлы.</p>
+          <p class="lead" style="margin-top:8px">Что установлено на сайте и что он умеет. Счётчики и формы задают формулировки в политике персональных данных и в политике обработки cookie, платформа — инструкцию по установке на последнем шаге.</p>
           <div class="card pad" id="anketa-site-card" style="margin-top:16px">
             <h2 style="margin-bottom:8px">Платформа сайта</h2>
             <!-- Сегмент, а не чекбоксы (правка пользователя 16 сентября): выбор
@@ -1743,7 +1738,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:8px">Аналитика на сайте</h2>
-            <div class="check-2col" style="margin-top:4px">
+            <div style="margin-top:4px">
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Яндекс.Метрика</span></label>
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Google Analytics</span></label>
               <label class="check"><input type="checkbox" data-excl="analytics" data-excl-none><span class="t">Нет аналитики</span></label>
@@ -1765,7 +1760,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <label class="check"><input type="checkbox" data-excl="features" data-excl-none><span class="t">Ничего из этого нет</span></label>
             </div>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Правила про cookie-файлы должны описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей, какие формы и чаты собирают контакты. Соберём их текст из этих ответов. Платформа на документы не влияет — от неё зависит инструкция по установке на последнем шаге.</p>
+            <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Политика обработки cookie должна описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей, какие формы и чаты собирают контакты. Соберём её текст из этих ответов. Платформа на документы не влияет — от неё зависит инструкция по установке на последнем шаге.</p>
 
           </div>
           <div class="hr" style="margin-top:20px"></div>
@@ -1845,7 +1840,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
         <div data-substep="3" style="display:none">
           <h1>Реквизиты</h1>
-          <p class="lead" style="margin-top:8px">Данные компании. Они попадут в документы и в карточку реквизитов, которую виджет открывает по ссылке в подвале сайта.</p>
+          <p class="lead" style="margin-top:8px">Реквизиты владельца сайта — наименование, адрес, контакты и банковский счёт. Все четыре части требует 149-ФЗ ст.10, по ним же контрагент выставляет счёт. Попадут в документы и в карточку, которую виджет открывает по ссылке в подвале сайта.</p>
 
           <!-- Одна карточка на шаг (очередь 2) — было четыре подряд, и шаг
                читался свёрстанным иначе, чем соседние. Порядок секций
@@ -2058,7 +2053,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <p class="tiny" style="margin-top:8px">cdn.sleza.media/<span data-site-id>486312</span>/01 — откроется после установки</p></div>
     </div>
     <div class="find">
-      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки cookie</span><span class="w" style="display:block">Подключим баннер-уведомление о cookie и текст политики.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки cookie</span><span class="w" style="display:block">Подключим cookie-баннер и текст политики.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте <span data-site-domain>alfa-school.ru</span>, включая аналитику и работу виджета на платформе Тильда…</div>
       <p class="tiny" style="margin-top:8px">cdn.sleza.media/<span data-site-id>486312</span>/02 — откроется после установки</p></div>
     </div>
@@ -2230,7 +2225,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <div class="inst-plat">
             <span class="tiny">Платформа с шага «О сайте». Другая — переключите:</span>
           </div>
-          <div class="tabs" id="install-cms-tabs"><button type="button" class="on" data-platform="tilda">Тильда</button><button type="button" data-platform="wp">WordPress</button><button type="button" data-platform="bitrix">Битрикс</button><button type="button" data-platform="other">Другой сайт</button></div>
+          <div class="seg" id="install-cms-tabs" style="margin-bottom:13px;flex-wrap:wrap"><button type="button" class="on" data-platform="tilda">Тильда</button><button type="button" data-platform="wp">WordPress</button><button type="button" data-platform="bitrix">Битрикс</button><button type="button" data-platform="other">Другое</button></div>
           <div class="code" id="install-code">&lt;script src="https://cdn.sleza.media/w.js"
 data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <button class="btn sm solid copy-code-btn" style="margin-top:10px" data-copy-target="install-code">Скопировать код</button>
@@ -3305,7 +3300,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="card pad" style="margin-top:16px">
         <div class="row" style="justify-content:space-between;align-items:center">
           <div>
-            <h2 style="font-size:15px;margin:0">Баннер cookie</h2>
+            <h2 style="font-size:15px;margin:0">Cookie-баннер</h2>
             <p class="tiny" id="banner-status-p" style="margin-top:3px;color:var(--ok)">✓ Показывается посетителям</p>
           </div>
           <label class="switch" title="Включить/выключить баннер">
