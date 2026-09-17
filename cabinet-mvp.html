@@ -1597,7 +1597,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <p class="tiny anketa-field-error" id="anketa-who-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите роль — от неё зависит, предложим ли поручить установку разработчику.</p>
 
           <div class="hr" style="margin:14px 0"></div>
-          <h2 style="margin-bottom:8px">Ваши контакты</h2>
+          <h2 style="margin-bottom:8px">Куда вам писать</h2>
           <div class="f2">
             <div class="fld">
               <label class="f" for="anketa-person-name">Как к вам обращаться <span style="color:var(--danger)">*</span></label>
@@ -1617,7 +1617,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         </div>
 
         <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-person">Зачем это нужно ⌄</button>
-        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">Это контакты кабинета, а не сайта: сюда напишем, когда обновим документы или что-то изменится в законе. На сайт и в документы они не попадут — там будут контакты компании, их спросим на шаге «Реквизиты». Резервная связь необязательна: позвоним, только если письма перестанут доходить.</p>
+        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">Роль решает одно: предложим ли на последнем шаге поручить установку кода разработчику. Подрядчику это предлагать незачем — он и есть тот, кому поручают. Остальное здесь — контакты кабинета, а не сайта: сюда напишем, когда обновим документы или что-то изменится в законе. На сайт и в документы они не попадут — там будут контакты компании, их спросим на шаге «Реквизиты». Резервная связь необязательна: позвоним, только если письма перестанут доходить.</p>
       </div>
 
       <div class="hr" style="margin-top:20px"></div>
@@ -1680,7 +1680,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
         <div data-substep="1">
           <h1>О сайте</h1>
-          <p class="lead" style="margin-top:8px">Что установлено на сайте и что он умеет. Счётчики и формы задают формулировки в политике обработки персональных данных и в политике обработки cookie, платформа — инструкцию по установке на последнем шаге.</p>
+          <p class="lead" style="margin-top:8px">Адрес сайта, на чём он сделан и что на нём стоит. Четыре вопроса.</p>
           <div class="card pad" id="anketa-site-card" style="margin-top:16px">
             <!-- Домен переехал сюда с «Знакомства»: адрес сайта — это самое
                  «о сайте», что вообще есть, а на шаге про человека он был
@@ -1693,7 +1693,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:8px" id="h-platform">Платформа сайта</h2>
+            <h2 style="margin-bottom:8px" id="h-platform">Платформа сайта <span style="color:var(--danger)">*</span></h2>
             <!-- Сегмент, а не чекбоксы (правка пользователя 16 сентября): выбор
                  здесь один и взаимоисключающий, а чекбоксы это отрицали — можно
                  было отметить и Тильду, и WordPress. Тот же контрол, что у
@@ -1716,17 +1716,19 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <p class="tiny anketa-field-error" id="anketa-platform-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите платформу — от неё зависит инструкция по установке на последнем шаге.</p>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:8px" id="h-analytics">Аналитика на сайте</h2>
+            <h2 style="margin-bottom:4px" id="h-analytics">Аналитика на сайте <span style="color:var(--danger)">*</span></h2>
+            <p class="tiny" style="margin-bottom:8px">Счётчики посетителей. Если не знаете, что стоит на сайте — так и отметьте, посмотрим сами.</p>
             <div style="margin-top:4px">
-              <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Яндекс.Метрика</span></label>
-              <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Google Analytics</span></label>
+              <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Яндекс.Метрика<span class="ex">опишем её в политике обработки cookie</span></span></label>
+              <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Google Analytics<span class="ex">опишем её в политике и предупредим о рисках</span></span></label>
               <label class="check"><input type="checkbox" data-excl="analytics" data-excl-none><span class="t">Ничего из этого нет<span class="ex">счётчиков на сайте не стоит</span></span></label>
+              <label class="check"><input type="checkbox" data-excl="analytics" data-excl-none><span class="t">Не знаю<span class="ex">посмотрим сами, когда код встанет на сайт</span></span></label>
             </div>
-            <p class="tiny anketa-field-error" id="anketa-analytics-error" style="display:none;margin-top:6px;color:var(--danger)">Отметьте счётчики или «Ничего из этого нет» — от этого зависит текст политики обработки cookie.</p>
+            <p class="tiny anketa-field-error" id="anketa-analytics-error" style="display:none;margin-top:6px;color:var(--danger)">Отметьте счётчики, «Ничего из этого нет» или «Не знаю» — от этого зависит текст политики обработки cookie.</p>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:8px" id="h-features">Формы и сервисы на сайте</h2>
-            <p class="tiny" style="margin-bottom:8px">Отметьте, что есть на сайте — под каждым пунктом написано, куда встанет согласие.</p>
+            <h2 style="margin-bottom:4px" id="h-features">Формы и сервисы на сайте <span style="color:var(--danger)">*</span></h2>
+            <p class="tiny" style="margin-bottom:8px">Что посетитель может сделать на сайте. Под каждым пунктом написано, куда встанет согласие.</p>
             <div style="margin-top:4px">
               <!-- Пунктов намеренно мало. Расширять список нельзя: сегодня поп-ап
                    записи, завтра квиз, послезавтра калькулятор — человек не найдёт
@@ -1814,7 +1816,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <p class="tiny anketa-field-error" id="anketa-sphere-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите сферу деятельности — от неё зависят формулировки в документах и список целей ниже.</p>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:4px">Цели сбора контактов</h2>
+            <h2 style="margin-bottom:4px">Цели сбора контактов <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Отметьте всё, что подходит — по этим целям соберём формулировки согласия и текст у форм на сайте.</p>
             <!-- Раньше — 3 галочки под одну сферу (онлайн-школа), все
                  предзаполнены checked без участия человека: для остальных
@@ -1836,7 +1838,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях<span class="ex">рассылка, подписка на новости, письма об акциях</span></span></label>
             <p class="tiny anketa-field-error" id="anketa-purpose-error" style="display:none;margin-top:8px;color:var(--danger)">Отметьте хотя бы одну цель — без них в политике нечего описывать.</p>
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:4px" id="h-calls">Звонки и письма по базе клиентов</h2>
+            <h2 style="margin-bottom:4px" id="h-calls">Звонки и письма по базе клиентов <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Ответьте, обращаетесь ли вы к клиентам из своей базы — звонком, в мессенджере или письмом.</p>
             <div class="seg" id="calls-seg" role="group" aria-labelledby="h-calls" style="margin-top:4px">
               <button type="button" class="on" data-calls-pick="yes">Да</button>
@@ -1861,7 +1863,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
         <div data-substep="3" style="display:none">
           <h1>Реквизиты</h1>
-          <p class="lead" style="margin-top:8px">Наименование, адрес и электронная почта владельца сайта — их 149-ФЗ ст.10 ч.2 требует держать на сайте в открытом доступе. Банковские реквизиты закон не требует: по ним контрагент выставит счёт и оплатит договор. Всё это попадёт в документы и в карточку, которую виджет открывает по ссылке в подвале сайта.</p>
+          <p class="lead" style="margin-top:8px">Данные компании для документов и для счёта. Начните с ИНН — большую часть подставим из реестра.</p>
 
           <!-- Одна карточка на шаг (очередь 2) — было четыре подряд, и шаг
                читался свёрстанным иначе, чем соседние. Порядок секций
@@ -1886,7 +1888,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <p class="tiny anketa-field-error" id="anketa-ownership-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите, кто владеет сайтом — от этого зависит, какие реквизиты спрашивать.</p>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:8px">Заполним по ИНН</h2>
+            <h2 style="margin-bottom:4px">Данные из реестра</h2>
+            <p class="tiny" style="margin-bottom:8px">Введите ИНН — наименование, ОГРН, КПП и адрес подставим сами. Останется проверить.</p>
             <div class="fld">
               <label class="f" for="anketa-inn">ИНН <span style="color:var(--danger)">*</span></label>
               <input class="inp mono" id="anketa-inn" placeholder="10 цифр для организации, 12 для ИП и самозанятого" maxlength="12" inputmode="numeric">
@@ -1991,7 +1994,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  с обеих сторон, иначе третья подряд просьба указать почту
                  читается как небрежность. -->
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 ч.2 обязывает владельца сайта держать в открытом доступе наименование, место нахождения и адрес, а также адрес электронной почты — без них проверяющий не может установить, кто отвечает за сайт. Виджет откроет их по ссылке в подвале. Телефон и банковские реквизиты закон не требует — мы их спрашиваем, чтобы бухгалтер контрагента выставил счёт и составил договор, ничего не запрашивая дополнительно. Контакты здесь — компании, а не ваши личные: их увидит любой посетитель сайта.</p>
+            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 ч.2 обязывает владельца сайта держать в открытом доступе наименование, место нахождения и адрес, а также адрес электронной почты — без них проверяющий не может установить, кто отвечает за сайт. Эти поля виджет откроет по ссылке в подвале, их увидит любой посетитель: это контакты компании, а не ваши личные.<br><br>Телефон, банковские реквизиты, КПП и юридический адрес закон публиковать не требует — мы спрашиваем их, чтобы бухгалтер контрагента выставил счёт и составил договор, ничего не запрашивая дополнительно.<br><br>Отдельно спрашиваем, куда писать по вопросам персональных данных: этот контакт по 152-ФЗ тоже публикуется, а на бухгалтерской почте такие обращения обычно теряются.</p>
           </div>
 
           <div class="hr" style="margin-top:20px"></div>
