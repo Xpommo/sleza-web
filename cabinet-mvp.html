@@ -227,9 +227,6 @@ p{margin:0}
 .btn-social:hover{border-color:var(--ink)}
 .btn-social:active{transform:scale(.99)}
 .btn-social svg{flex:none}
-.or-div{display:flex;align-items:center;gap:12px;margin:16px 0;
-  font-family:var(--mono);font-size:var(--fs-kicker);letter-spacing:.1em;text-transform:uppercase;color:rgba(17,17,16,.45)}
-.or-div::before,.or-div::after{content:"";flex:1;height:1px;background:var(--line)}
 label.f{display:block;font-size:var(--fs-sm);font-weight:700;margin-bottom:5px}
 h3 + label.f,.card h3 + .f{margin-top:12px}
 .inp{width:100%;border:1.5px solid var(--line-2);border-radius:10px;padding:11px 13px;background:var(--white);
@@ -355,7 +352,6 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
    и после этого класс не использовался в разметке ни разу. Он был
    единственным контролом такого вида на весь файл. */
 
-.was{color:rgba(17,17,16,.4);text-decoration:line-through}
 .now{color:var(--ok);font-weight:700}
 
 /* ══ каркас кабинета: сайдбар + контент, зеркалит components/app/AppShell.js ══ */
@@ -476,8 +472,6 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .acct-menu .support-mobile{display:none}
 
 /* ── «Мои сайты» — карточки/таблица, портировано из cabinet-b.html (s-list) ── */
-.strip{display:flex;gap:4px}
-.strip i{height:6px;flex:1;border-radius:999px;background:var(--ok);display:block}
 .strip i.red{background:var(--danger)} .strip i.amber{background:var(--warn)} .strip i.blue{background:var(--brand)}
 
 .projgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
@@ -588,12 +582,6 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 
 /* ── шаги воронки ── */
 .startwrap{max-width:640px;margin:0 auto;padding:26px 20px 90px}
-.startbar{position:sticky;top:0;z-index:10;background:var(--paper);border-bottom:1px solid var(--line)}
-.startbar-in{max-width:640px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:9px}
-.startbar .prog{height:3px;background:var(--line-2)}
-.startbar .prog i{display:block;height:100%;background:var(--ink)}
-.ctxbar{background:var(--warm);border-bottom:1px solid var(--line-2);padding:8px 20px}
-.ctxbar-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
 .state{display:block}
 .js .state{display:none}
@@ -835,14 +823,6 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 /* ── вход / регистрация — портировано из frontend/app/app/login/LoginClient.js,
      провайдеры (Telegram/ВК/MAX) сознательно не переносим — см. шапку файла ── */
 .authbox{width:100%;max-width:400px}
-.pass-wrap{position:relative}
-.pass-wrap input{padding-right:52px}
-.pass-eye{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:42px;height:42px;
-  display:grid;place-items:center;border-radius:9px;border:0;background:none;color:rgba(17,17,16,.45);cursor:pointer}
-.pass-eye:hover{color:var(--ink)}
-.remember{margin-top:11px;display:flex;align-items:center;gap:9px;cursor:pointer}
-.remember input{width:16px;height:16px;accent-color:var(--brand)}
-.remember span{font-size:var(--fs-sm);color:rgba(17,17,16,.65)}
 
 /* сплит-регистрация: форма + панель пользы */
 .split{min-height:100vh;display:flex}
@@ -978,9 +958,6 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 }
 
 /* ── s-project, разд.3.1 ТЗ 12.08 — только мобильный, десктоп не трогаем ── */
-.verdict-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px}
-.verdict-risk::before{content:"· "}
-.proj-recheck-bottom{display:none}
 @media(max-width:640px){
   /* строка вердикта разъезжалась по колонкам — стек, риск отдельной строкой */
   .verdict-line{flex-direction:column;align-items:flex-start;gap:2px}
@@ -1083,14 +1060,12 @@ details.acc:first-child{margin-top:0}
    и отодвигали кнопку проверки, поэтому свёрнуты (8 сентября). Заголовок
    оформлен рамкой, чтобы читался как «здесь есть что открыть», а не как
    обычная подпись. */
-.install-howto{margin:0}
 .install-howto>.acc-title{display:flex;align-items:center;justify-content:space-between;gap:10px;
   margin:0;padding:10px 13px;border:1.5px solid var(--line-2);border-radius:10px;
   background:var(--paper);font-size:var(--fs-md);list-style:none}
 .install-howto>.acc-title:hover{border-color:var(--ink)}
 .install-howto[open]>.acc-title{border-radius:10px 10px 0 0;border-bottom-color:transparent}
 .install-howto[open] .howto-chev{transform:rotate(180deg)}
-.howto-chev{transition:transform .15s ease-out;color:rgba(17,17,16,.5)}
 .install-steps{margin:0;padding:12px 20px 14px 36px;display:flex;flex-direction:column;gap:7px;
   border:1.5px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px}
 .install-steps li{line-height:1.5}
@@ -4668,9 +4643,6 @@ document.querySelectorAll('.msgr').forEach(function(row){
   row.querySelector('.msgr-link').addEventListener('click', function(){ messengers[row.dataset.messenger] = true; syncMessengers(); });
   row.querySelector('.msgr-unlink').addEventListener('click', function(){ messengers[row.dataset.messenger] = false; syncMessengers(); });
 });
-document.querySelectorAll('#notify-offer [data-connect-messenger]').forEach(function(b){
-  b.addEventListener('click', function(){ messengers[b.dataset.connectMessenger] = true; syncMessengers(); });
-});
 syncMessengers();
 
 document.querySelectorAll('#tabbar .tab').forEach(function(t){
@@ -5676,21 +5648,6 @@ if (sphereSelect) {
   });
 }
 
-/* липкая плашка на s-pay повторяет действие активной вкладки способа
-   оплаты — «партнёр» ещё заглушка без формы, там плашку прячем */
-var pmTabs = document.getElementById('pm-tabs');
-if (pmTabs) {
-  pmTabs.querySelectorAll('[data-swap]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var bar = document.getElementById('pay-sticky');
-      var btn = document.getElementById('pay-sticky-btn');
-      if (!bar || !btn) return;
-      if (b.dataset.swap === 'pmsbp') { btn.textContent = 'Оплатить →'; btn.dataset.setStatus = 'paid'; bar.style.display = ''; }
-      else if (b.dataset.swap === 'pminvoice') { btn.textContent = 'Выставить счёт →'; btn.dataset.setStatus = 'pending'; bar.style.display = ''; }
-      else { bar.style.display = 'none'; }
-    });
-  });
-}
 
 /* состояния внутри экрана */
 document.querySelectorAll('[data-state-to]').forEach(function(b){
@@ -5718,16 +5675,6 @@ document.addEventListener('click', function(){
 });
 
 /* показать/скрыть пароль */
-document.querySelectorAll('[data-pass-toggle]').forEach(function(b){
-  b.addEventListener('click', function(){
-    var input = document.getElementById(b.dataset.passToggle);
-    var show = input.type === 'password';
-    input.type = show ? 'text' : 'password';
-    b.querySelector('.eye-show').style.display = show ? 'none' : '';
-    b.querySelector('.eye-hide').style.display = show ? '' : 'none';
-    b.setAttribute('aria-pressed', show ? 'true' : 'false');
-  });
-});
 
 /* модалка реквизитов — Escape, фокус-ловушка (Tab не должен утекать под
    скрим), возврат фокуса на кнопку-триггер при закрытии, клик по фону
