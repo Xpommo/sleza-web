@@ -1571,6 +1571,18 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            (FUNNEL_ALL.skipIf по hasIdentity). -->
       <p class="lead" style="margin-top:8px">Кто вы, как входите в кабинет и куда вам писать. Про сайт и компанию спросим дальше.</p>
 
+      <!-- Шапка «кто вы» стоит ВНЕ карточки, рядом с заголовком экрана: внутри
+           она читалась как очередная строка формы. Аватар и имя приходят из
+           того аккаунта, которым человек вошёл, — это не вопрос анкеты, а то,
+           что мы о нём уже знаем. -->
+      <div class="row" style="gap:12px;align-items:center;margin-top:16px">
+        <span class="avatar avatar-lg" data-acct-initial>К</span>
+        <div style="min-width:0">
+          <div style="font-weight:700;font-size:var(--fs-md)" data-acct-name-inline>Кирилл</div>
+          <p class="tiny" style="margin-top:2px" id="auth-note">Вошли через Telegram — имя и аватарку взяли оттуда.</p>
+        </div>
+      </div>
+
       <!-- Одна карточка на шаг (очередь 2, ревью Ивана): до этого шаг 1 был
            тремя карточками подряд, шаг 2 — одной, шаг 4 — четырьмя, и каждый
            экран читался свёрстанным отдельно. Теперь везде одна карточка,
@@ -1586,21 +1598,23 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            черту над «Адресом сайта». -->
       <div class="card pad" id="anketa-start-card" style="margin-top:16px">
         <div>
-          <div class="row" style="gap:12px;align-items:center">
-            <span class="avatar avatar-lg" data-acct-initial>К</span>
+          <!-- Способы входа свёрнуты в строку: развёрнутым списком из трёх
+               кнопок «Подключить» они перетягивали внимание с полей анкеты,
+               хотя действие здесь необязательное — второй способ нужен «на
+               всякий случай», а не для прохождения шага. Состояние строки
+               («Вход: Telegram») собирает syncMessengers, чтобы список и
+               сводка не разошлись. -->
+          <div class="row" style="justify-content:space-between;align-items:baseline;gap:12px">
             <div style="min-width:0">
-              <div style="font-weight:700;font-size:var(--fs-md)" data-acct-name-inline>Кирилл</div>
-              <p class="tiny" style="margin-top:2px" id="auth-note">Вошли через Telegram — имя и аватарку взяли оттуда.</p>
+              <div class="f" style="margin-bottom:0">Вход в кабинет</div>
+              <p class="tiny" style="margin-top:2px" data-auth-summary>Telegram</p>
             </div>
+            <button type="button" class="btn text sm" style="padding:0;flex:none" data-fold="fold-authlist">Добавить способ ⌄</button>
           </div>
-
-          <div class="hr" style="margin:14px 0"></div>
-          <h2 style="margin-bottom:4px">Как вы входите</h2>
-          <p class="tiny" style="margin-bottom:8px">Привяжите второй способ, чтобы не потерять доступ, если первый перестанет работать. Уведомления о продлении и статусе виджета придут туда же.</p>
-          <div id="profile-msgr-host"></div>
-
-            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-auth">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-auth" style="display:none;margin-top:8px">Способ входа он же канал уведомлений: сообщим о продлении, оплате и о том, что виджет перестал отвечать. Отвязать способ можно позже в Настройках — здесь список только добавляет, чтобы нельзя было оборвать себе доступ посреди подключения.</p>
+          <div id="fold-authlist" style="display:none;margin-top:10px">
+            <p class="tiny" style="margin-bottom:8px">Привяжите второй способ, чтобы не потерять доступ, если первый перестанет работать. Уведомления о продлении и статусе виджета придут туда же. Отвязать можно позже в Настройках.</p>
+            <div id="profile-msgr-host"></div>
+          </div>
 
           <div class="hr" style="margin:14px 0"></div>
           <h2 style="margin-bottom:8px" id="h-who">Ваша роль в компании <span style="color:var(--danger)">*</span></h2>
@@ -4834,6 +4848,11 @@ function syncMessengers(){
     if ((el = row.querySelector('.msgr-unlink'))) el.style.display = on ? '' : 'none';
   });
   var linked = Object.keys(messengers).filter(function(k){ return messengers[k]; });
+  // Сводка в свёрнутой строке на шаге «Ваш профиль» — из того же состояния,
+  // что и сам список: иначе строка и список разошлись бы.
+  document.querySelectorAll('[data-auth-summary]').forEach(function(el){
+    el.textContent = linked.length ? linked.join(' · ') : 'только по ссылке из письма';
+  });
   var where = document.getElementById('notify-where');
   var offer = document.getElementById('notify-offer');
   if (where) where.innerHTML = '<p class="tiny">Напишем на <b>' + account.mail + '</b>' +
