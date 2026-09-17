@@ -197,7 +197,7 @@ p{margin:0}
 .find .lbl{font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.4);margin:9px 0 2px}
 .find .lbl:first-child{margin-top:0}
 .find .txt{font-size:var(--fs-sm);color:var(--ink-2)}
-/* «Что подготовили» на s-ready слито с бывшим отдельным списком
+/* «Пакет документов» на s-ready слито с бывшим отдельным списком
    «Документы» (27 августа, правка пользователя — те же 5 названий
    показывались дважды подряд, читалось как дубль, хотя смысл был разный:
    тут — тик+причина, там — превью текста). .hd.stacked позволяет
@@ -1356,12 +1356,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            (PRODUCT.md). Перечень семи законов и двенадцати составов нужно
            иметь наготове: макет сейчас называет пять — 152-ФЗ, 149-ФЗ,
            38-ФЗ, 114-ФЗ и закон «О СМИ». -->
-      <p class="split-scope">Требования к сайтам описаны в 7 федеральных законах, за нарушение предусмотрено 12 составов КоАП. Собираем это в одно решение.</p>
-      <div class="why"><div><b>Соберём под вашу компанию</b><span>Заполните анкету о сайте и компании — документы соберём под ваши данные и вашу сферу деятельности.</span></div></div>
-      <div class="why"><div><b>Виджет на сайт</b><span>Один скрипт: показывает cookie-баннер, ставит внизу страниц подвал со ссылками на документы и реквизиты и держит эти ссылки рабочими.</span></div></div>
-      <div class="why"><div><b>Маркируем упоминания из реестров</b><span>Скрипт сверяется с реестрами иностранных агентов и экстремистских организаций и сам маркирует упоминания на ваших страницах.</span></div></div>
-        <div class="why"><div><b>Следим, что всё работает</b><span>Проверяем, что виджет и документы на сайте работают исправно — не нужно проверять это самим.</span></div></div>
-      <div class="why"><div><b>Когда поменяется закон, перепишем сами</b><span>Вам придёт письмо, что документы уже обновлены.</span></div></div>
+      <p class="split-scope">Требования к сайту разбросаны по нескольким федеральным законам, и за каждое есть свой штраф. Собираем их в один пакет документов и один скрипт.</p>
+      <div class="why"><div><b>Собираем документы под вашу компанию</b><span>Заполните анкету о сайте и компании — остальное сделаем по вашим данным и вашей сфере деятельности.</span></div></div>
+      <div class="why"><div><b>Ставим виджет на сайт</b><span>Один скрипт: показывает cookie-баннер, ставит внизу страниц подвал со ссылками на документы и реквизиты, следит, чтобы эти ссылки работали.</span></div></div>
+      <div class="why"><div><b>Маркируем упоминания по реестрам</b><span>Скрипт сверяется с реестрами иностранных агентов, экстремистских и террористических организаций и сам маркирует такие упоминания на ваших страницах.</span></div></div>
+        <div class="why"><div><b>Следим, что всё на месте</b><span>Проверяем виджет и документы на сайте сами — вам этого делать не нужно.</span></div></div>
+      <div class="why"><div><b>Переписываем документы при изменении закона</b><span>Пришлём письмо, когда обновим.</span></div></div>
     </div>
     <div class="split-form">
       <div class="authbox">
@@ -1478,7 +1478,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                 <div class="name" data-company-short data-after-req>Альфа Образование</div>
               </div>
               <div class="meta">Документы не готовы<span data-after-req><br><span data-company-inn>ИНН 7701234567</span></span><br><span data-resume-note>анкета не заполнена</span></div>
-              <div class="act"><button type="button" class="actbtn solid" data-resume-anketa>Продолжить →</button></div>
+              <div class="act"><button type="button" class="actbtn solid" data-resume-anketa>Продолжить анкету →</button></div>
             </div>
             <div class="state" data-pay-state="pending">
               <div>
@@ -1536,7 +1536,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line data-after-req>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
               <td><span class="small muted">Документы не готовы</span></td>
               <td class="meta"><span data-resume-note>анкета не заполнена</span></td>
-              <td class="act"><button type="button" class="actbtn outline" data-resume-anketa>Продолжить →</button></td>
+              <td class="act"><button type="button" class="actbtn outline" data-resume-anketa>Продолжить анкету →</button></td>
             </tr>
             <tr class="state" data-pay-state="pending">
               <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
@@ -1599,7 +1599,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </aside>
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 1 из 6</div>
-      <h1>Знакомство</h1>
+      <h1>Ваши контакты</h1>
       <!-- Шаг целиком про человека — поэтому и лид один. Домен уехал на «О
            сайте», сфера деятельности — на «Компанию и клиентов», к целям,
            которые от неё зависят. Раньше шаг под названием «Знакомство»
@@ -1649,7 +1649,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <p class="tiny anketa-field-error" id="anketa-person-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.</p>
             </div>
             <div class="fld">
-              <label class="f" for="anketa-person-backup">Резервная связь</label>
+              <label class="f" for="anketa-person-backup">Телефон на случай, если письма не дойдут</label>
               <input class="inp mono" id="anketa-person-backup" inputmode="tel" placeholder="+7 (___) ___-__-__">
             </div>
           </div>
@@ -1728,7 +1728,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <h2 style="margin-bottom:8px" id="h-domain">Адрес сайта <span style="color:var(--danger)">*</span></h2>
             <div class="fld">
               <input class="inp mono" id="add-domain" aria-labelledby="h-domain" placeholder="alfa-school.ru">
-              <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без пути после слэша.</p>
+              <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без продолжения после косой черты.</p>
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
@@ -1822,8 +1822,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
              спрашивать про звонки/письма клиентам, когда сайт вообще не
              собирает контакты через форму, было бы странно. -->
         <div data-substep="2" style="display:none">
-          <h1>Компания и клиенты</h1>
-          <p class="lead" style="margin-top:8px">Чем занимается компания и как вы работаете с контактами. От этого зависят согласия и тексты, которые встанут у форм на сайте.</p>
+          <h1>Работа с клиентами</h1>
+          <p class="lead" style="margin-top:8px">Как вы работаете с контактами клиентов. От этого зависят согласия и тексты, которые встанут у форм на сайте.</p>
           <div class="card pad" id="anketa-clients-card" style="margin-top:16px">
             <!-- Сфера деятельности переехала сюда с «Знакомства» и стоит ПЕРЕД
                  целями, которые от неё зависят (PURPOSE_MAP). Раньше причина
@@ -1832,7 +1832,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  сюда, не выбрав сферу, и увидеть карточку без пунктов. Теперь
                  выбор и его последствие видны в одном экране, и список целей
                  перестраивается у человека на глазах. -->
-            <h2 style="margin-bottom:8px" id="h-sphere">Сфера деятельности компании <span style="color:var(--danger)">*</span></h2>
+            <h2 style="margin-bottom:4px" id="h-sphere">Сфера деятельности компании <span style="color:var(--danger)">*</span></h2>
+            <p class="tiny" style="margin-bottom:8px">Под неё подберём список целей ниже и оговорки в документах.</p>
             <select class="inp" id="anketa-sphere-select" aria-labelledby="h-sphere">
               <option value="" selected disabled>Выберите сферу деятельности</option>
               <option data-sphere="school">Онлайн-школа, курсы, репетиторство</option>
@@ -2055,7 +2056,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      пяти документов, который ниже показывает и этот экран, переход
      между ними был мгновенным лишним кликом. Его единственная ценность —
      построчные пояснения «зачем этот документ» — перенесена сюда, в
-     список «Что подготовили»: было «готово»-чипом без объяснения, стало
+     список «Пакет документов»: было «готово»-чипом без объяснения, стало
      tick+название+одна строка причины (тот же `.pkg`-компонент, что был
      у удалённого экрана). Оплата по-прежнему вне нумерации — отдельное
      кабинетное действие (см. s-pay, решение 6.20).
@@ -2084,10 +2085,10 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 5 из 6</div>
     <div class="b green statusline">✓ Пакет документов собран</div>
-    <h1 style="margin-top:6px">Что подготовили</h1>
+    <h1 style="margin-top:6px">Пакет документов</h1>
     <p class="lead" style="margin-top:8px">Собрали пакет под <span data-site-domain>alfa-school.ru</span>. Откройте любой документ — покажем начало текста. Полностью он откроется на сайте после установки.</p>
 
-    <!-- «Что подготовили» и «Документы» были двумя списками из тех же 5
+    <!-- «Пакет документов» и «Документы» были двумя списками из тех же 5
          названий подряд (тик+причина, затем превью-текста) — читалось как
          дубль. Слито в один: каждый пункт — тик+название+причина видны
          сразу, превью раскрывается по клику ([data-find], тот же приём,
@@ -2100,12 +2101,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          не условие доступа, документы и виджет включаются установкой. -->
     <p class="tiny" style="margin:6px 0 12px">Нажмите на документ, чтобы прочитать</p>
     <div class="find">
-      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">149-ФЗ · реквизиты владельца</span><span class="w" style="display:block">Виджет внизу страниц откроет их по данным из анкеты.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
-      <div class="bd"><div class="txt">ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233 · 119019, Москва, ул. Воздвиженка, д. 10…</div>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">149-ФЗ · реквизиты владельца</span><span class="w" style="display:block">Виджет внизу страниц откроет их по данным из анкеты.</span></span><span class="chip fill">начало текста</span><span class="chev">›</span></button>
+      <div class="bd"><div class="txt" data-req-preview>ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233 · 119019, Москва, ул. Воздвиженка, д. 10…</div>
       <p class="tiny" style="margin-top:8px">cdn.sleza.media/<span data-site-id>486312</span>/01 — откроется после установки</p></div>
     </div>
     <div class="find">
-      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки cookie</span><span class="w" style="display:block">Подключим cookie-баннер и текст политики.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки cookie</span><span class="w" style="display:block">Подключим cookie-баннер и текст политики.</span></span><span class="chip fill">начало текста</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте <span data-site-domain>alfa-school.ru</span>, включая аналитику и работу виджета на платформе Тильда…</div>
       <p class="tiny" style="margin-top:8px">cdn.sleza.media/<span data-site-id>486312</span>/02 — откроется после установки</p></div>
     </div>
@@ -2124,12 +2125,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          тот же уровень нереактивности, что и у подвала сайта на этом же
          экране, не новое ограничение. -->
     <div class="find">
-      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки персональных данных</span><span class="w" style="display:block">Соберём под вашу сферу и способ сбора контактов.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · политика обработки персональных данных</span><span class="w" style="display:block">Соберём под вашу сферу и способ сбора контактов.</span></span><span class="chip fill">начало текста</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящая Политика в отношении обработки персональных данных определяет порядок и условия обработки персональных данных Оператором: ООО «Альфа Образование». Цели обработки: запись на занятия, ответы на обращения, информирование о наборах и акциях — по сфере деятельности «Онлайн-школа, курсы, репетиторство»…</div>
       <p class="tiny" style="margin-top:8px">cdn.sleza.media/<span data-site-id>486312</span>/03 — откроется после установки</p></div>
     </div>
     <div class="find">
-      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · согласие на обработку персональных данных</span><span class="w" style="display:block">Текст согласия для форм на сайте.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">152-ФЗ · согласие на обработку персональных данных</span><span class="w" style="display:block">Текст согласия для форм на сайте.</span></span><span class="chip fill">начало текста</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящим я свободно, своей волей и в своём интересе даю согласие на обработку моих персональных данных Оператору — ООО «Альфа Образование» — в целях записи на занятия, обработки обращений и информирования о наборах и акциях…</div>
       <p class="tiny" style="margin-top:8px">cdn.sleza.media/<span data-site-id>486312</span>/12 — откроется после установки</p></div>
     </div>
@@ -2140,7 +2141,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          вопрос «работа с клиентами» (звонки/мессенджеры/почта), а не
          обезличенный список «товары-работы-услуги». -->
     <div class="find">
-      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">38-ФЗ, ч.1 ст.18 · согласие на получение рекламных сообщений</span><span class="w" style="display:block">Входит в пакет — понадобится, как только начнёте писать по базе.</span></span><span class="chip fill">превью</span><span class="chev">›</span></button>
+      <button class="hd stacked" data-find><span class="tick">✓</span><span style="flex:1"><span class="n" style="display:block">38-ФЗ, ч.1 ст.18 · согласие на получение рекламных сообщений</span><span class="w" style="display:block">Входит в пакет — понадобится, как только начнёте писать по базе.</span></span><span class="chip fill">начало текста</span><span class="chev">›</span></button>
       <div class="bd"><div class="txt">Настоящим я даю согласие на получение рекламных и информационных сообщений от ООО «Альфа Образование» по телефону, в мессенджерах и на почту — по каналам, которые компания использует для связи с клиентами…</div>
       <p class="tiny" style="margin-top:8px">cdn.sleza.media/<span data-site-id>486312</span>/13 — откроется после установки</p></div>
     </div>
@@ -2194,11 +2195,11 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <div class="hr" style="margin-top:20px"></div>
     <div class="step-nav">
       <button type="button" class="btn" data-funnel-back id="ready-back">← Назад</button>
-      <button type="button" class="btn solid" data-funnel-next data-fb-label="К установке" data-go="s-install">Поставить код на сайт →</button>
+      <button type="button" class="btn solid" data-funnel-next data-fb-label="Поставить код" data-go="s-install">Поставить код на сайт →</button>
     </div>
     </main>
   </div>
-  <div class="sticky-cta solo"><button type="button" class="btn solid" data-go="s-install">Поставить код →</button></div>
+  <div class="sticky-cta solo"><button type="button" class="btn solid" data-go="s-install">Поставить код на сайт →</button></div>
 </section>
 
 <!-- ══════════════════ ОПЛАТА (действие из кабинета, вне воронки подключения) ═
@@ -2239,7 +2240,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </aside>
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 6 из 6</div>
-    <h1>Установка скрипта</h1>
+    <h1>Установка</h1>
     <p class="lead" style="margin-top:8px">Осталось добавить на сайт одну строку кода и проверить, что она встала. После этого включим документы и виджет на 24 часа бесплатно.</p>
 
     <!-- Выбор пути — сегментом, как на всех прошлых шагах (форма
@@ -2262,7 +2263,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
          почему-то спрашивает. Заголовок восстанавливает границу, не
          заводя счётчика. Тот же приём, что у .mail-self-h2 ниже:
          заголовок стоит над карточкой, а не внутри неё. -->
-    <h2 style="margin-top:18px">Что сделать</h2>
+    <h2 style="margin-top:18px">Что сделать по шагам</h2>
     <ol class="inst-steps">
       <li class="inst-step card pad" data-install-branch="self">
         <div class="inst-body">
@@ -2310,7 +2311,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
 
       <li class="inst-step card pad" data-install-branch="delegate" style="display:none">
         <div class="inst-body">
-          <h3>Отправьте инструкцию ответственному</h3>
+          <h2 style="margin-bottom:0">Отправьте инструкцию ответственному</h2>
           <label class="f" style="margin-top:6px" for="install-dev-email">Почта ответственного</label>
           <input class="inp mono" id="install-dev-email" placeholder="dev@studio.ru">
           <p class="tiny anketa-field-error" id="install-dev-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту — иначе некуда отправлять.</p>
@@ -2335,12 +2336,12 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
                наполовину сгорит. Поэтому: увидели сами → написали → человек
                вернулся и запустил часы. -->
           <div data-install-branch="self">
-            <h2 style="margin-bottom:0">Проверьте, что он заработал</h2>
+            <h2 style="margin-bottom:0">Проверьте, что код заработал</h2>
             <p class="tiny" style="margin-bottom:10px">Откроем ваш сайт и поищем строку кода на странице.</p>
             <button type="button" class="btn sm solid install-check-btn">↻ Проверить скрипт на сайте</button>
           </div>
           <div data-install-branch="delegate" style="display:none">
-            <h3>Ждём установки</h3>
+            <h2 style="margin-bottom:0">Дождитесь установки</h2>
             <p class="tiny" style="margin-bottom:10px">Как только код появится на сайте, мы увидим это сами и напишем вам. Вернётесь по ссылке из письма и запустите пробный период — отсчёт начнётся с вашего нажатия, а не с момента установки.</p>
             <!-- Кнопка «Подключить Telegram» отсюда убрана (очередь 2, ревью
                  Ивана): подключение мессенджера — не часть установки скрипта,
@@ -2363,7 +2364,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
          админку чужого сайта нереалистично, честный сценарий это переслать
          себе и доделать с компьютера; на десктопе это и так тот компьютер -->
     <div class="mail-self" data-install-branch="self">
-      <h2 class="mail-self-h2" style="margin-top:18px">Отправить себе на почту</h2>
+      <h2 class="mail-self-h2" style="margin-top:18px">Отправьте себе на почту</h2>
       <div class="card pad">
         <p class="tiny" style="margin-bottom:10px">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
         <label class="f" for="install-self-email">Почта</label><input class="inp mono" id="install-self-email" value="director@alfa-school.ru"><p class="tiny anketa-field-error" id="install-self-email-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите почту — иначе некуда отправлять.</p><button id="send-self-btn" class="btn solid sm" style="margin-top:10px">Отправить себе</button>
@@ -2375,7 +2376,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
          видимой причины читается как сломанная, а причину под ней
          замечают вторым движением, если замечают. Тот же приём, что
          на регистрации («надпись показывать над кнопками»). -->
-    <p class="tiny" id="install-action-note" style="text-align:center;margin-bottom:10px">Сначала проверьте скрипт — это шаг «Проверьте, что он заработал» выше. Пробный период пойдёт с момента активации.</p>
+    <p class="tiny" id="install-action-note" style="text-align:center;margin-bottom:10px">Сначала проверьте код на сайте — кнопка проверки выше. Пробный период пойдёт с момента активации.</p>
     <div class="step-nav">
       <button type="button" class="btn" data-funnel-back data-go="s-ready">← Назад</button>
       <button type="button" class="btn solid" data-funnel-next data-fb-label="Запустить" id="install-activate-btn" disabled>Активировать пробный период →</button>
@@ -2467,7 +2468,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <span class="b statusline" style="color:rgba(17,17,16,.62)">— Пока не установлено</span>
           <p class="lead" style="margin-top:8px">Документы собраны, но скрипт ещё не стоит на сайте — поэтому виджет не работает и пробный период не запущен.</p>
           <div class="hr"></div>
-          <!-- Ведёт на установку, а не на «Что подготовили» (правка пользователя
+          <!-- Ведёт на установку, а не на «Пакет документов» (правка пользователя
                8 сентября): в этом состоянии человек ушёл именно с шага установки,
                нажав «Поставлю позже» — возвращать его на шаг назад значит
                заставить пройти уже пройденное. -->
@@ -2707,7 +2708,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     </aside>
     <main class="main narrow">
       <h1>Настройки</h1>
-      <p class="lead" style="margin-top:8px">Ваши контакты и вход в кабинет — общие для всех сайтов. Данные компании для документов живут в самом сайте.</p>
+      <p class="lead" style="margin-top:8px">Ваши контакты и вход в кабинет — общие для всех сайтов. Данные компании для документов задаются отдельно у каждого сайта — в разделе «Документы».</p>
 
       <!-- Настройки сжаты до Контактов и Реквизитов — Подписка и Виджет
            переехали на свои экраны верхнего уровня в сайдбаре (HANDOFF
@@ -2727,7 +2728,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             <div style="min-width:0">
               <div style="font-weight:700;font-size:var(--fs-md)" id="set-view-name">Кирилл</div>
               <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere" id="set-view-mail">director@alfa-school.ru</div>
-              <div class="tiny" style="margin-top:2px" id="set-view-phone">Резервная связь не указана</div>
+              <div class="tiny" style="margin-top:2px" id="set-view-phone">Телефон не указан</div>
             </div>
             <button type="button" class="btn sm" style="flex:none" id="set-edit">Изменить</button>
           </div>
@@ -2741,7 +2742,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <p class="tiny anketa-field-error" id="set-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.</p>
           <!-- Резервная связь спрашивается на шаге «Знакомство»; формулировка
                та же, иначе название сущности разъезжается между экранами. -->
-          <label class="f" style="margin-top:10px" for="set-phone">Резервная связь</label>
+          <label class="f" style="margin-top:10px" for="set-phone">Телефон на случай, если письма не дойдут</label>
           <input class="inp mono" id="set-phone" inputmode="tel" placeholder="+7 (___) ___-__-__">
           <p class="tiny" style="margin-top:6px">Необязательно — позвоним, только если письма перестанут доходить.</p>
           <div class="row" style="margin-top:12px;gap:10px">
@@ -3233,7 +3234,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
 <div class="modal-overlay" data-state="closed" id="modal-no-script" role="dialog" aria-modal="true" aria-labelledby="modal-no-script-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-no-script-title">Пока не видим скрипт</h3><button class="btn text sm" data-modal-close="modal-no-script">✕</button></div>
-    <p class="tiny" style="margin-top:10px">Не нашли код на сайте <b data-site-domain>alfa-school.ru</b>. Проверьте, что строка вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда мешает кеш.</p>
+    <p class="tiny" style="margin-top:10px">Не нашли код на сайте <b data-site-domain>alfa-school.ru</b>. Проверьте, что строка вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда страница не успевает обновиться.</p>
     <div class="row" style="margin-top:16px">
       <button class="btn solid" id="no-script-retry" data-modal-close="modal-no-script">Проверить ещё раз</button>
       <button class="btn text" data-go="s-support" data-modal-close="modal-no-script">Написать в поддержку</button>
@@ -3291,9 +3292,9 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
          а вендор комплаенса, посчитавший клиенту несуществующие спасённые
          штрафы, теряет ровно то, что продаёт. -->
     <div class="cnl-stats">
-      <div class="cnl-stat"><b>417</b><span>переходов по документам</span></div>
-      <div class="cnl-stat"><b>1</b><span>обновление под закон</span></div>
-      <div class="cnl-stat"><b>5</b><span>документов работают</span></div>
+      <div class="cnl-stat"><b>417</b><span>открытий документов</span></div>
+      <div class="cnl-stat"><b>1</b><span>обновление при изменении закона</span></div>
+      <div class="cnl-stat"><b>5</b><span>документа на сайте</span></div>
     </div>
     <p class="tiny" style="margin-top:14px">Всё продолжит работать до <b>05.08.2027</b> — до конца оплаченного периода. После этой даты:</p>
     <div class="cnl-loss">
@@ -3505,7 +3506,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="find">
         <button class="hd" data-find><span class="nm" style="flex:1">Виджет не появился на сайте — что делать?</span><span class="chev">›</span></button>
-        <div class="bd"><div class="txt">Откройте раздел «Виджет» — там видно, что сейчас показывается посетителям. Если баннера и подвала нет, разверните «Показать код установки» и проверьте, что строка стоит внутри &lt;head&gt; и страницы опубликованы заново. Иногда мешает кеш сайта: изменения появляются с задержкой.</div></div>
+        <div class="bd"><div class="txt">Откройте раздел «Виджет» — там видно, что сейчас показывается посетителям. Если баннера и подвала нет, разверните «Показать код установки» и проверьте, что строка стоит внутри &lt;head&gt; и страницы опубликованы заново. Иногда страница сайта не успевает обновиться: изменения появляются с задержкой.</div></div>
       </div>
 
       <!-- Ответ поддержки виден прямо здесь, не только по почте — email
@@ -3587,7 +3588,7 @@ var PAY_STATES = [
   {v:'trial',   label:'пробный период'},
   {v:'pending', label:'счёт выставлен'},
   {v:'paid',    label:'оплачено'},
-  {v:'expired', label:'триал истёк'}
+  {v:'expired', label:'пробный период закончился'}
 ];
 function setPayState(v){
   siteStatus = v;
@@ -3699,7 +3700,10 @@ var siteStatus = 'trial';
 var messengers = {};
 var company = {
   name:'ООО «Альфа Образование»', inn:'7701234567', mail:'buh@alfa-school.ru',
-  phone:'+7 (495) 123-45-67', account:'40702810900000012345'
+  phone:'+7 (495) 123-45-67', account:'40702810900000012345',
+  ogrn:'1157746112233', kpp:'770101001', addr:'119019, Москва, ул. Воздвиженка, д. 10',
+  bank:'ПАО «Сбербанк»', bik:'044525225', corr:'30101810400000000225',
+  postAddr:'', pdContact:'pd@alfa-school.ru'
 };
 var hasSite = true; // false только сразу после регистрации — реальный «пустой» первый заход
 var hasIdentity = false; // true после первого прохода Блока 1 анкеты — «Кто заполняет» на 2+ сайте больше не спрашиваем (HANDOFF 6.15)
@@ -3871,12 +3875,12 @@ function syncAnketaSubstep(){
    шаг только что прошёл, — счётчик показал бы «Шаг 1 из 5» на втором
    экране. askIdentity фиксируется один раз, на входе в воронку. */
 var FUNNEL_ALL = [
-  {screen:'s-anketa',  substep:0, title:'Знакомство',        skipIf:function(){ return !askIdentity; }},
+  {screen:'s-anketa',  substep:0, title:'Ваши контакты',      skipIf:function(){ return !askIdentity; }},
   {screen:'s-anketa2', substep:1, title:'О сайте'},
-  {screen:'s-anketa2', substep:2, title:'Компания и клиенты'},
+  {screen:'s-anketa2', substep:2, title:'Работа с клиентами'},
   {screen:'s-anketa2', substep:3, title:'Реквизиты'},
-  {screen:'s-ready',   substep:0, title:'Что подготовили'},
-  {screen:'s-install', substep:0, title:'Установка скрипта'}
+  {screen:'s-ready',   substep:0, title:'Пакет документов'},
+  {screen:'s-install', substep:0, title:'Установка'}
 ];
 function funnelSteps(){
   return FUNNEL_ALL.filter(function(st){ return !(st.skipIf && st.skipIf()); });
@@ -3950,7 +3954,7 @@ function syncFunnelSteps(){
     el.classList.toggle('now', n === cur);
     // Галочка = шаг ЗАВЕРШЁН, то есть с него ушли вперёд (n < максимума
     // пройденного), а не просто «здесь были». До 7 сентября хватало
-    // захода на шаг: вернувшись с «Установки» на «Что подготовили»,
+    // захода на шаг: вернувшись с «Установки» на «Пакет документов»,
     // человек видел галочку на установке, которую не делал —
     // прямая правка пользователя. Самый дальний посещённый шаг остаётся
     // видимым и кликабельным (.seen), но без галочки: он открыт, не сделан.
@@ -4116,7 +4120,7 @@ document.addEventListener('click', function(e){
 var SITE_ID = '486312';
 /* Домен приводим к каноническому виду при переходе с шага 1. Раньше
    протокол и путь срезались только внутри проверки регуляркой, а дальше в
-   дело шло сырое значение — на «Что подготовили» печаталось
+   дело шло сырое значение — на «Пакет документов» печаталось
    cdn.sleza.media/https://alfa-school-ru/kurs/requisites. */
 function normalizeDomain(v){
   return String(v).trim()
@@ -4652,7 +4656,7 @@ function syncSetView(){
   var t = document.getElementById('set-view-phone');
   if (n) n.textContent = account.name;
   if (m) m.textContent = account.mail;
-  if (t) t.textContent = account.phone ? 'Резервная связь: ' + account.phone : 'Резервная связь не указана';
+  if (t) t.textContent = account.phone ? 'Резервная связь: ' + account.phone : 'Телефон не указан';
 }
 /* Подключение мессенджера — состояние, а не мигающее подтверждение: тот
    же вывод, что уже трижды делали (проверка скрипта, привязка карты,
@@ -4863,7 +4867,7 @@ function syncInstallAction(){
   if (activate) activate.disabled = !found;
   if (note) note.textContent = found
     ? 'Пробный период — 24 часа — начнётся с этого нажатия'
-    : 'Сначала проверьте скрипт — это шаг «Проверьте, что он заработал» выше. Пробный период пойдёт с момента активации';
+    : 'Сначала проверьте код на сайте — кнопка проверки выше. Пробный период пойдёт с момента активации';
 }
 var installActivateBtn = document.getElementById('install-activate-btn');
 if (installActivateBtn) installActivateBtn.addEventListener('click', function(){
@@ -5252,8 +5256,32 @@ function captureCompany(){
   if (val('anketa-company-mail')) company.mail = val('anketa-company-mail');
   if (val('anketa-company-phone')) company.phone = val('anketa-company-phone');
   if (val('anketa-account')) company.account = val('anketa-account');
+  // Остальные семь полей раньше не читались вообще — ни в переменную, ни
+  // в текст. Из-за этого превью «Реквизиты владельца» на «Пакет документов»
+  // показывало ОГРН и адрес из демо-фикстуры рядом с наименованием и ИНН,
+  // только что введёнными человеком.
+  if (val('anketa-ogrn') || val('anketa-ogrnip')) company.ogrn = val('anketa-ogrn') || val('anketa-ogrnip');
+  if (val('anketa-kpp')) company.kpp = val('anketa-kpp');
+  if (val('anketa-addr')) company.addr = val('anketa-addr');
+  if (val('anketa-bank')) company.bank = val('anketa-bank');
+  if (val('anketa-bik')) company.bik = val('anketa-bik');
+  if (val('anketa-corr')) company.corr = val('anketa-corr');
+  if (val('anketa-post-addr')) company.postAddr = val('anketa-post-addr');
+  if (val('anketa-pd-contact')) company.pdContact = val('anketa-pd-contact');
 }
 function syncCompany(){
+  /* Превью документа «Реквизиты владельца» собирается из company, а не из
+     зашитой строки: КПП и юридический адрес в шаблон пока не идут (дефект
+     A, очередь 1), поэтому в превью их и нет — оно показывает ровно то,
+     что попадёт в документ. Порядок полей — как в шаблоне. */
+  document.querySelectorAll('[data-req-preview]').forEach(function(el){
+    var parts = [company.name, 'ИНН ' + company.inn];
+    if (company.ogrn) parts.push('ОГРН ' + company.ogrn);
+    if (company.addr) parts.push(company.addr);
+    if (company.mail) parts.push(company.mail);
+    if (company.pdContact) parts.push('по вопросам ПДн: ' + company.pdContact);
+    el.textContent = parts.join(' · ') + '…';
+  });
   document.querySelectorAll('[data-company-line]').forEach(function(el){
     el.textContent = company.name + ' · ИНН ' + company.inn;
   });
