@@ -1444,7 +1444,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                 <div class="dom" data-site-domain>alfa-school.ru</div>
                 <div class="name" data-company-short data-after-req>Альфа Образование</div>
               </div>
-              <div class="meta">Документы не готовы<span data-after-req><br><span data-company-inn>ИНН 7701234567</span></span><br><span data-resume-note>анкета не заполнена</span></div>
+              <div class="meta"><span data-unpaid-short>Документы не готовы</span><span data-after-req><br><span data-company-inn>ИНН 7701234567</span></span><br><span data-resume-note>анкета не заполнена</span></div>
               <div class="act"><button type="button" class="actbtn solid" data-resume-anketa>Продолжить анкету →</button></div>
             </div>
             <div class="state" data-pay-state="pending">
@@ -1495,7 +1495,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <tbody>
             <tr class="state on" data-pay-state="unpaid">
               <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line data-after-req>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
-              <td><span class="small muted">Документы не готовы</span></td>
+              <td><span class="small muted" data-unpaid-short>Документы не готовы</span></td>
               <td class="meta"><span data-resume-note>анкета не заполнена</span></td>
               <td class="act"><button type="button" class="actbtn outline" data-resume-anketa>Продолжить анкету →</button></td>
             </tr>
@@ -2426,8 +2426,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       </div>
       <div class="state" data-pay-state="unpaid" style="margin-top:16px">
         <div class="card pad">
-          <span class="b statusline" style="color:rgba(17,17,16,.62)">— Пока не установлено</span>
-          <p class="lead" style="margin-top:8px">Документы собраны, но скрипт ещё не стоит на сайте — поэтому виджет не работает и пробный период не запущен.</p>
+          <span class="b statusline" style="color:rgba(17,17,16,.62)" data-unpaid-title>Документы собраны, скрипт не установлен</span>
+          <p class="lead" style="margin-top:8px" data-unpaid-note>Пакет готов. Виджет включится, когда код встанет на сайт.</p>
           <div class="hr"></div>
           <!-- Ведёт на установку, а не на «Пакет документов» (правка пользователя
                8 сентября): в этом состоянии человек ушёл именно с шага установки,
@@ -2569,8 +2569,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            документов нельзя: их не существует. Тот же приём, что в
            «Подписке» — вместо содержимого путь туда, где оно появится. -->
       <div class="card pad state" data-pay-state="unpaid" style="margin-top:18px">
-        <b class="statusline">Документы ещё не собраны</b>
-        <p class="tiny" style="margin-top:6px">Мы собираем их по ответам анкеты: сфера деятельности, формы на сайте, реквизиты компании. Как только анкета пройдена — пакет появится здесь целиком.</p>
+        <b class="statusline" data-unpaid-title>Анкета не закончена</b>
+        <p class="tiny" style="margin-top:6px" data-unpaid-note>Документы собираем по ответам анкеты.</p>
         <button type="button" class="btn solid sm" style="margin-top:12px" data-resume-anketa>Продолжить анкету →</button>
       </div>
 
@@ -2836,8 +2836,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <!-- Пока анкета не пройдена, платить не за что: документов нет, виджет
            не установлен. Вместо оплаты — путь туда, где это появится. -->
       <div class="card pad state" data-pay-state="unpaid" style="margin-top:18px">
-        <b class="statusline">Подключение не закончено</b>
-        <p class="tiny" style="margin-top:6px">Документы собираются по ответам анкеты, а виджет включается установкой скрипта. Подписка начнётся после этого — пробный период даст 24 часа бесплатно.</p>
+        <b class="statusline" data-unpaid-title>Анкета не закончена</b>
+        <p class="tiny" style="margin-top:6px" data-unpaid-note>Документы собираем по ответам анкеты.</p>
         <button type="button" class="btn solid sm" style="margin-top:12px" data-resume-anketa>Продолжить анкету →</button>
       </div>
 
@@ -3021,13 +3021,17 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
              карточки: цена уже стоит строкой тарифа, а перечень нужен тому,
              кто сомневается, а не каждому при каждом заходе. Тот же приём
              data-fold, что у «Зачем это нужно» в анкете. -->
-        <button type="button" class="btn text sm anketa-fold-btn state" data-pay-state="trial expired" data-fold="fold-plan" style="padding:0">Что входит в подписку ⌄</button>
+        <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-plan" style="padding:0">Что входит в подписку ⌄</button>
         <div id="fold-plan" style="display:none;margin-top:8px">
           <div class="state" data-pay-state="trial">
             <h3 class="sub-h">Уже работает — пробный период, 24 часа</h3>
             <div class="small" style="line-height:1.9;margin-top:6px">· Готовый пакет документов под ваш сайт<br>· Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты<br>· Документы по постоянным адресам — ссылки не ломаются</div>
             <h3 class="sub-h" style="margin-top:14px">Оплата продлевает</h3>
             <div class="small" style="line-height:1.9;margin-top:6px">· Доступ не прерывается после пробного периода<br>· Следим за законом и обновляем документы сами<br>· Уведомления, если что-то изменилось</div>
+          </div>
+          <div class="state" data-pay-state="paid pending unpaid">
+            <h3 class="sub-h">Что работает по подписке</h3>
+            <div class="small" style="line-height:1.9;margin-top:6px">· Пакет документов под ваш сайт, собранный по вашим ответам<br>· Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты<br>· Маркировка упоминаний по реестрам на ваших страницах<br>· Переписываем документы при изменении закона и присылаем письмо<br>· Проверяем, что виджет и документы на сайте на месте</div>
           </div>
           <div class="state" data-pay-state="expired">
             <h3 class="sub-h">Сейчас отключено</h3>
@@ -4044,7 +4048,37 @@ function goFunnelStep(n){
 document.querySelectorAll('[data-resume-anketa]').forEach(function(b){
   b.addEventListener('click', function(){ goFunnelStep(maxStepReached); });
 });
+/* Статус unpaid производится ДВУМЯ разными событиями: выход из анкеты на
+   полпути и «Поставлю позже» после полностью пройденной анкеты. Экраны при
+   этом описывали его по-разному: клиент, прошедший всю анкету и решивший
+   поставить код позже, видел в «Моих сайтах» «Документы не готовы», в
+   «Обзоре» «Документы собраны», в «Документах» «ещё не собраны», в
+   «Подписке» «собираются по ответам анкеты». А кнопка «Продолжить анкету»
+   на всех четырёх вела goFunnelStep(maxStepReached), то есть на ШАГ
+   УСТАНОВКИ, а не в анкету. Различаем по тому, дошли ли дальше
+   «Реквизитов»: после них пакет собран. */
+function packageReady(){
+  return maxStepReached > funnelStepNo('s-anketa2', 3);
+}
+function syncUnpaidTexts(){
+  var ready = packageReady();
+  document.querySelectorAll('[data-unpaid-title]').forEach(function(el){
+    el.textContent = ready ? 'Документы собраны, скрипт не установлен' : 'Анкета не закончена';
+  });
+  document.querySelectorAll('[data-unpaid-note]').forEach(function(el){
+    el.textContent = ready
+      ? 'Пакет готов. Виджет включится, когда код встанет на сайт, — тогда же пойдёт пробный период.'
+      : 'Документы собираем по ответам анкеты: сфера деятельности, формы на сайте, реквизиты компании. Пакет появится, когда анкета пройдена.';
+  });
+  document.querySelectorAll('[data-unpaid-short]').forEach(function(el){
+    el.textContent = ready ? 'Скрипт не установлен' : 'Документы не готовы';
+  });
+  document.querySelectorAll('[data-resume-anketa]').forEach(function(el){
+    el.textContent = ready ? 'Поставить код на сайт →' : 'Продолжить анкету →';
+  });
+}
 function syncResumeNote(){
+  syncUnpaidTexts();
   // Название компании и ИНН известны только с шага «Реквизиты» (он
   // четвёртый). До него карточка показывала фикстуру «ООО «Альфа
   // Образование»» у сайта, про который человек назвал один домен.
