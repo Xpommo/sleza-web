@@ -418,6 +418,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .acct-btn{display:flex;align-items:center;gap:9px;width:100%;background:none;border:0;padding:8px 8px;
   border-radius:9px;cursor:pointer;text-align:left}
 .acct-btn:hover{background:var(--white)}
+.avatar-lg{width:44px;height:44px;font-size:var(--fs-lg);flex:none}
 .avatar{width:30px;height:30px;border-radius:999px;background:var(--ink);color:#fff;display:grid;place-items:center;
   font-size:var(--fs-xs);font-weight:800;flex:none}
 .acct-btn .who{min-width:0;flex:1}
@@ -1260,9 +1261,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <p class="lead" style="margin-top:8px">Выберите, чем удобнее войти — пароль не нужен.</p>
 
 <div style="margin-top:20px">
-        <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
-        <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
-        <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
+        <button type="button" class="btn-social" data-go="s-status" data-auth-provider="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
+        <button type="button" class="btn-social" data-go="s-status" data-auth-provider="Яндекс"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
+        <button type="button" class="btn-social" data-go="s-status" data-auth-provider="MAX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
         <button type="button" class="btn-social" data-go="s-maillogin" data-mail-flow="login"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2b2b2b"/><rect x="6" y="8.4" width="12" height="8.4" rx="1.6" stroke="#fff" stroke-width="1.5"/><path d="M6.4 9.4l5.6 4 5.6-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg> Через почту</button>
     </div>
 
@@ -1349,9 +1350,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
              смотрит на неё, а не вниз на согласие — сообщение должно
              попадаться на глаза там же, где случился отказ. -->
         <p class="tiny anketa-field-error" id="r-consent-error" style="display:none;margin-bottom:10px;color:var(--danger)">Без согласия зарегистрировать аккаунт нельзя.</p>
-        <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
-        <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
-        <button type="button" class="btn-social" data-social-signup><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
+        <button type="button" class="btn-social" data-social-signup data-auth-provider="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
+        <button type="button" class="btn-social" data-social-signup data-auth-provider="Яндекс"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
+        <button type="button" class="btn-social" data-social-signup data-auth-provider="MAX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
         <!-- Четвёртый способ — почта: не у всех есть Telegram, Яндекс или MAX,
              а покупает нас часто бухгалтер или директор. Вход по ссылке из
              письма, без пароля (решение 10 сентября). -->
@@ -1560,7 +1561,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     </aside>
     <main class="main narrow">
       <div class="anketa-step" data-step-counter>Шаг 1 из 6</div>
-      <h1>Ваши контакты</h1>
+      <h1>Ваш профиль</h1>
       <!-- Шаг целиком про человека — поэтому и лид один. Домен уехал на «О
            сайте», сфера деятельности — на «Компанию и клиентов», к целям,
            которые от неё зависят. Раньше шаг под названием «Знакомство»
@@ -1568,7 +1569,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            пришлось держать в двух версиях, чтобы он не врал на втором
            сайте; теперь врать нечему, и на втором сайте шага нет вовсе
            (FUNNEL_ALL.skipIf по hasIdentity). -->
-      <p class="lead" style="margin-top:8px">Кто будет вести кабинет и получать письма об изменениях. Про сайт и компанию спросим дальше.</p>
+      <p class="lead" style="margin-top:8px">Кто вы, как входите в кабинет и куда вам писать. Про сайт и компанию спросим дальше.</p>
 
       <!-- Одна карточка на шаг (очередь 2, ревью Ивана): до этого шаг 1 был
            тремя карточками подряд, шаг 2 — одной, шаг 4 — четырьмя, и каждый
@@ -1585,6 +1586,20 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            черту над «Адресом сайта». -->
       <div class="card pad" id="anketa-start-card" style="margin-top:16px">
         <div>
+          <div class="row" style="gap:12px;align-items:center">
+            <span class="avatar avatar-lg" data-acct-initial>К</span>
+            <div style="min-width:0">
+              <div style="font-weight:700;font-size:var(--fs-md)" data-acct-name-inline>Кирилл</div>
+              <p class="tiny" style="margin-top:2px" id="auth-note">Вошли через Telegram — имя и аватарку взяли оттуда.</p>
+            </div>
+          </div>
+
+          <div class="hr" style="margin:14px 0"></div>
+          <h2 style="margin-bottom:4px">Как вы входите</h2>
+          <p class="tiny" style="margin-bottom:8px">Привяжите второй способ, чтобы не потерять доступ, если первый перестанет работать. Уведомления о продлении и статусе виджета придут туда же.</p>
+          <div id="profile-msgr-host"></div>
+
+          <div class="hr" style="margin:14px 0"></div>
           <h2 style="margin-bottom:8px" id="h-who">Ваша роль в компании <span style="color:var(--danger)">*</span></h2>
           <!-- Ничего не выбрано на старте и вопрос обязателен — то же правило,
                что у платформы, сферы и формы владения. Раньше здесь был зашит
@@ -1605,13 +1620,47 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <p class="tiny anketa-field-error" id="anketa-person-name-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите имя — так будем обращаться в письмах.</p>
             </div>
             <div class="fld">
-              <label class="f" for="anketa-person-mail">Почта <span style="color:var(--danger)">*</span></label>
-              <input class="inp" id="anketa-person-mail" type="email" placeholder="kirill@alfa-school.ru">
-              <p class="tiny anketa-field-error" id="anketa-person-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.</p>
-            </div>
-            <div class="fld">
               <label class="f" for="anketa-person-backup">Телефон на случай, если письма не дойдут</label>
               <input class="inp mono" id="anketa-person-backup" inputmode="tel" placeholder="+7 (___) ___-__-__">
+            </div>
+          </div>
+
+          <div class="fld">
+            <label class="f" for="anketa-person-mail">Почта <span style="color:var(--danger)">*</span></label>
+            <!-- Подтверждение кодом прямо у поля. Почта — единственный канал,
+                 которым мы сообщаем об изменениях закона и обновлении
+                 документов: непроверенный адрес означает, что клиент об этом
+                 не узнает. Поэтому подтверждение обязательно, а не по желанию.
+                 Три состояния переключаются явным style.display, а не классом
+                 .state: у .state в этом файле своё правило display:block,
+                 которое ломает flex-строку (грабля ловилась трижды). -->
+            <div id="mail-step-enter">
+              <div class="row" style="gap:8px;align-items:flex-start">
+                <input class="inp" id="anketa-person-mail" type="email" autocomplete="email" placeholder="kirill@alfa-school.ru" style="flex:1;min-width:0">
+                <button type="button" class="btn sm" id="mail-send-code" style="flex:none">Подтвердить</button>
+              </div>
+              <p class="tiny anketa-field-error" id="anketa-person-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.</p>
+            </div>
+
+            <div id="mail-step-code" style="display:none">
+              <p class="tiny" style="margin-bottom:6px">Отправили код на <b data-mail-sent-to>kirill@alfa-school.ru</b></p>
+              <label class="f" for="mail-code">Код из письма</label>
+              <div class="row" style="gap:8px;align-items:flex-start">
+                <input class="inp mono" id="mail-code" inputmode="numeric" maxlength="6" placeholder="6 цифр" style="flex:none;width:150px">
+                <button type="button" class="btn sm solid" id="mail-check-code" style="flex:none">Готово</button>
+              </div>
+              <p class="tiny anketa-field-error" id="mail-code-error" style="display:none;margin-top:5px;color:var(--danger)">Код из письма — шесть цифр. Проверьте, не пропущена ли цифра.</p>
+              <p class="tiny" style="margin-top:6px">Не пришло? <button type="button" class="btn text sm" style="padding:0" id="mail-resend">Отправить снова</button> · <button type="button" class="btn text sm" style="padding:0" id="mail-change">Изменить почту</button></p>
+            </div>
+
+            <p class="tiny anketa-field-error" id="anketa-mail-error" style="display:none;margin-top:6px;color:var(--danger)">Подтвердите почту — на неё придут письма об обновлении документов, и без проверки мы не знаем, доходят ли они.</p>
+
+            <div id="mail-step-done" style="display:none">
+              <div class="row" style="gap:8px;align-items:baseline">
+                <span class="b green" style="font-size:var(--fs-md)">✓ Почта подтверждена</span>
+                <span class="tiny mono" data-mail-sent-to>kirill@alfa-school.ru</span>
+                <button type="button" class="btn text sm" style="padding:0" id="mail-change-done">Изменить</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1838,6 +1887,17 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях<span class="ex">рассылка, подписка на новости, письма об акциях</span></span></label>
             <p class="tiny anketa-field-error" id="anketa-purpose-error" style="display:none;margin-top:8px;color:var(--danger)">Отметьте хотя бы одну цель — без них в политике нечего описывать.</p>
             <div class="hr" style="margin:14px 0"></div>
+            <h2 style="margin-bottom:4px" id="h-fields">Какие данные собираете <span style="color:var(--danger)">*</span></h2>
+            <p class="tiny" style="margin-bottom:8px">Что посетитель вводит в формы на сайте. Из отмеченного соберём состав данных в политике и в согласии — перечислить его там обязательно.</p>
+            <label class="check" data-pdfield="name"><input type="checkbox"><span class="t">Имя<span class="ex">или ФИО, если нужно в договор</span></span></label>
+            <label class="check" data-pdfield="phone"><input type="checkbox"><span class="t">Телефон</span></label>
+            <label class="check" data-pdfield="email"><input type="checkbox"><span class="t">Email</span></label>
+            <label class="check" data-pdfield="messenger"><input type="checkbox"><span class="t">Мессенджер<span class="ex">Telegram, WhatsApp, MAX — напишем в документе те, что отметите</span></span></label>
+            <label class="check" data-pdfield="address"><input type="checkbox"><span class="t">Адрес доставки<span class="ex">если возите заказы</span></span></label>
+            <label class="check" data-pdfield="birth"><input type="checkbox"><span class="t">Дата рождения<span class="ex">запись на приём, скидки по возрасту</span></span></label>
+            <p class="tiny anketa-field-error" id="anketa-pdfield-error" style="display:none;margin-top:8px;color:var(--danger)">Отметьте хотя бы одно — без состава данных политику и согласие составить нельзя.</p>
+
+            <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:4px" id="h-calls">Звонки и письма по базе клиентов <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Ответьте, обращаетесь ли вы к клиентам из своей базы — звонком, в мессенджере или письмом.</p>
             <div class="seg" id="calls-seg" role="group" aria-labelledby="h-calls" style="margin-top:4px">
@@ -1846,7 +1906,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
 
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Цель обработки — обязательная часть согласия: использовать данные для цели, которая в нём не названа, нельзя. Поэтому отмеченное определяет, что будет написано в согласии и в тексте у формы. Ответ про звонки и письма по базе определяет, как будет сформулировано согласие на рекламные сообщения: какие каналы в нём названы. Сам документ входит в пакет в любом случае — рассылка по своей базе без такого согласия незаконна.</p>
+            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Состав данных и цель обработки — две обязательные части и политики, и согласия: без них документ недействителен. Цель обработки — использовать данные для цели, которая в нём не названа, нельзя. Поэтому отмеченное определяет, что будет написано в согласии и в тексте у формы. Ответ про звонки и письма по базе определяет, как будет сформулировано согласие на рекламные сообщения: какие каналы в нём названы. Сам документ входит в пакет в любом случае — рассылка по своей базе без такого согласия незаконна.</p>
           </div>
 
           <!-- мобильный интерстишл — см. комментарий у секции выше.
@@ -3665,7 +3725,10 @@ var siteStatus = 'trial';
    выполняется раньше кода ниже. Те же грабли ловим третий раз — сначала
    footerSkin, потом company, теперь messengers. Правило: всё, что читает
    sync-функция из goScreen, объявляется в этом блоке. */
-var messengers = {};
+// Ключ — название способа входа; он же канал уведомлений (см. Настройки).
+// Тот, которым человек вошёл, привязан по определению: подпись на шаге
+// «Ваш профиль» говорит «Вошли через …», и строка обязана это показывать.
+var messengers = {Telegram: true};
 var company = {
   name:'ООО «Альфа Образование»', inn:'7701234567', mail:'buh@alfa-school.ru',
   phone:'+7 (495) 123-45-67', account:'40702810900000012345',
@@ -3843,7 +3906,7 @@ function syncAnketaSubstep(){
    шаг только что прошёл, — счётчик показал бы «Шаг 1 из 5» на втором
    экране. askIdentity фиксируется один раз, на входе в воронку. */
 var FUNNEL_ALL = [
-  {screen:'s-anketa',  substep:0, title:'Ваши контакты',      skipIf:function(){ return !askIdentity; }},
+  {screen:'s-anketa',  substep:0, title:'Ваш профиль',        skipIf:function(){ return !askIdentity; }},
   {screen:'s-anketa2', substep:1, title:'О сайте'},
   {screen:'s-anketa2', substep:2, title:'Работа с клиентами'},
   {screen:'s-anketa2', substep:3, title:'Реквизиты'},
@@ -4379,13 +4442,71 @@ wireStepGate('anketa-req-next', [
   return ownershipChosen;
 });
 
+/* Подтверждение почты кодом (пункт ревью: «почту стоит подтверждать
+   отправкой кодика, это можно прям в этом поле делать»). В макете код
+   принимается любой из шести цифр — честная имитация, как у «Проверить
+   скрипт на сайте»: реальная проверка требует бэкенда, а показать
+   состояние и путь человека можно и так. */
+var mailConfirmed = false;
+var MAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
+function mailStep(name){
+  ['enter','code','done'].forEach(function(k){
+    var el = document.getElementById('mail-step-' + k);
+    if (el) el.style.display = (k === name) ? '' : 'none';
+  });
+}
+function sendMailCode(){
+  var inp = document.getElementById('anketa-person-mail');
+  var err = document.getElementById('anketa-person-mail-error');
+  var v = inp.value.trim();
+  var ok = MAIL_RE.test(v);
+  inp.classList.toggle('error', !ok);
+  if (err) err.style.display = ok ? 'none' : 'block';
+  if (!ok) { inp.focus({preventScroll:true}); return; }
+  document.querySelectorAll('[data-mail-sent-to]').forEach(function(el){ el.textContent = v; });
+  mailStep('code');
+  var code = document.getElementById('mail-code');
+  if (code) { code.value = ''; code.focus({preventScroll:true}); }
+}
+var mailSendBtn = document.getElementById('mail-send-code');
+if (mailSendBtn) mailSendBtn.addEventListener('click', sendMailCode);
+var mailResend = document.getElementById('mail-resend');
+if (mailResend) mailResend.addEventListener('click', function(){
+  var code = document.getElementById('mail-code');
+  if (code) { code.value = ''; code.focus({preventScroll:true}); }
+  var err = document.getElementById('mail-code-error');
+  if (err) err.style.display = 'none';
+  mailResend.textContent = 'Отправили ещё раз';
+  setTimeout(function(){ mailResend.textContent = 'Отправить снова'; }, 2500);
+});
+var mailCheck = document.getElementById('mail-check-code');
+if (mailCheck) mailCheck.addEventListener('click', function(){
+  var code = document.getElementById('mail-code');
+  var err = document.getElementById('mail-code-error');
+  var ok = /^\d{6}$/.test(code.value.trim());
+  code.classList.toggle('error', !ok);
+  if (err) err.style.display = ok ? 'none' : 'block';
+  if (!ok) { code.focus({preventScroll:true}); return; }
+  mailConfirmed = true;
+  mailStep('done');
+  var whoErr = document.getElementById('anketa-mail-error');
+  if (whoErr) whoErr.style.display = 'none';
+});
+['mail-change', 'mail-change-done'].forEach(function(id){
+  var b = document.getElementById(id);
+  if (b) b.addEventListener('click', function(){
+    mailConfirmed = false;
+    mailStep('enter');
+    var inp = document.getElementById('anketa-person-mail');
+    if (inp) inp.focus({preventScroll:true});
+  });
+});
+
 /* Гейт шага «Знакомство»: проверяет только контакты человека. Домен уехал
    на «О сайте» и проверяется там же, сфера — на «Компании и клиентах»;
    раньше оба висели на этом гейте, хотя спрашивались и правились дальше. */
 wireStepGate('anketa-start-next', [
-  {id:'anketa-person-name', errorId:'anketa-person-name-error'},
-  {id:'anketa-person-mail', errorId:'anketa-person-mail-error', test:function(v){
-    return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v); }}
+  {id:'anketa-person-name', errorId:'anketa-person-name-error'}
 ], function(){
   var pn = document.getElementById('anketa-person-name');
   var pm = document.getElementById('anketa-person-mail');
@@ -4403,12 +4524,18 @@ wireStepGate('anketa-start-next', [
   anketaSubstep = 1;
   goScreen('s-anketa2');
 }, function(){
-  // Роль — не поле ввода, поэтому отдельным условием. Раньше её вообще не
-  // проверяли: предвыбор в разметке делал гейт ненужным на вид, но и
-  // превращал «не ответил» в «ответил "директор"».
+  // Роль и подтверждение почты — не поля ввода, поэтому отдельным условием.
+  // Роль раньше вообще не проверяли: предвыбор в разметке делал гейт
+  // ненужным на вид, но и превращал «не ответил» в «ответил "директор"».
+  // Формат почты проверяет само подтверждение, гейту важен его факт.
+  var ok = true;
   var err = document.getElementById('anketa-who-error');
   if (err) err.style.display = whoChosen ? 'none' : 'block';
-  return whoChosen;
+  if (!whoChosen) ok = false;
+  var mailErr = document.getElementById('anketa-mail-error');
+  if (mailErr) mailErr.style.display = mailConfirmed ? 'none' : 'block';
+  if (!mailConfirmed) ok = false;
+  return ok;
 });
 
 // Копирование в буфер — независимый UX-аудит, критика A, P3: были молча
@@ -4676,6 +4803,31 @@ function syncMessengers(){
     (linked.length ? ' и в ' + linked.join(', ') + '.' : '.') + '</p>';
   if (offer) offer.style.display = linked.length ? 'none' : '';
 }
+/* Список способов входа на шаге «Ваш профиль» — клон списка из Настроек.
+   Разметка объявлена ОДИН раз: у строки Telegram внутри длинный SVG, и
+   вторая копия в разметке разошлась бы с первой при любой правке. Клон
+   делается ДО навешивания обработчиков ниже, поэтому обе копии получают
+   их одинаково, а состояние у них общее — объект `messengers`. */
+(function(){
+  var host = document.getElementById('profile-msgr-host');
+  var src = document.querySelector('#s-settings .msgr-list');
+  if (host && src) host.appendChild(src.cloneNode(true));
+})();
+
+/* Чем человек вошёл. Ставится кнопкой провайдера на входе и на
+   регистрации; способ сразу считается привязанным — он и есть тот, через
+   который человек уже прошёл. */
+var authProvider = 'Telegram';
+document.querySelectorAll('[data-auth-provider]').forEach(function(b){
+  b.addEventListener('click', function(){
+    authProvider = b.dataset.authProvider;
+    messengers[authProvider] = true;
+    syncMessengers();
+    var note = document.getElementById('auth-note');
+    if (note) note.textContent = 'Вошли через ' + authProvider + ' — имя и аватарку взяли оттуда.';
+  });
+});
+
 document.querySelectorAll('.msgr').forEach(function(row){
   row.querySelector('.msgr-link').addEventListener('click', function(){ messengers[row.dataset.messenger] = true; syncMessengers(); });
   row.querySelector('.msgr-unlink').addEventListener('click', function(){ messengers[row.dataset.messenger] = false; syncMessengers(); });
@@ -4819,7 +4971,13 @@ if (clientsNextBtn) clientsNextBtn.addEventListener('click', function(){
   var anyPurpose = Array.prototype.slice.call(document.querySelectorAll('[data-purpose] input'))
     .some(function(i){ return i.checked && i.closest('[data-purpose]').offsetParent; });
   if (purposeErr) purposeErr.style.display = anyPurpose ? 'none' : 'block';
-  if (!anyPurpose) return;
+  // Состав данных — обязательная часть политики и согласия, поэтому тот же
+  // гейт, что у целей. Пункта-отрицания здесь нет намеренно: «сайт ничего
+  // не собирает» уже сказано на шаге «О сайте».
+  var fieldErr = document.getElementById('anketa-pdfield-error');
+  var anyField = !!document.querySelector('[data-pdfield] input:checked');
+  if (fieldErr) fieldErr.style.display = anyField ? 'none' : 'block';
+  if (!anyPurpose || !anyField) return;
   if (callsAnswerIsNo()) {
     var m = document.getElementById('modal-no-calls');
     if (m) { openModal(m, clientsNextBtn); return; }
