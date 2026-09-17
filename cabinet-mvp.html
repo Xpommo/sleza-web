@@ -1292,7 +1292,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg> Через Telegram</button>
         <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
         <button type="button" class="btn-social" data-go="s-status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
-        <button type="button" class="btn-social" data-go="s-maillogin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2b2b2b"/><rect x="6" y="8.4" width="12" height="8.4" rx="1.6" stroke="#fff" stroke-width="1.5"/><path d="M6.4 9.4l5.6 4 5.6-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg> Через почту</button>
+        <button type="button" class="btn-social" data-go="s-maillogin" data-mail-flow="login"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2b2b2b"/><rect x="6" y="8.4" width="12" height="8.4" rx="1.6" stroke="#fff" stroke-width="1.5"/><path d="M6.4 9.4l5.6 4 5.6-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg> Через почту</button>
     </div>
 
     <p class="tiny" style="text-align:center;margin-top:28px">Нет аккаунта? <button type="button" class="btn text sm" style="padding:0" data-go="s-register">Создать</button></p>
@@ -1337,7 +1337,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:var(--fs-h1-sm)">✉️</div>
       <h1>Проверьте почту</h1>
       <p class="lead" style="margin-top:10px">Прислали ссылку для входа на <b id="maillogin-addr">you@company.ru</b>. Ссылка действует 30 минут.</p>
-      <button type="button" class="btn solid wide" style="margin-top:24px" data-go="s-status" data-set-hassite="false">Перешёл по ссылке (демо) →</button>
+      <button type="button" class="btn solid wide" style="margin-top:24px" id="maillogin-done" data-go="s-status">Перешёл по ссылке (демо) →</button>
       <p class="tiny" style="margin-top:16px">Не пришло письмо? <button type="button" class="btn text sm" style="padding:0" data-state-to="request">Ввести почту заново</button></p>
     </div>
   </div>
@@ -1384,7 +1384,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <!-- Четвёртый способ — почта: не у всех есть Telegram, Яндекс или MAX,
              а покупает нас часто бухгалтер или директор. Вход по ссылке из
              письма, без пароля (решение 10 сентября). -->
-        <button type="button" class="btn-social" data-social-signup data-signup-go="s-maillogin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2b2b2b"/><rect x="6" y="8.4" width="12" height="8.4" rx="1.6" stroke="#fff" stroke-width="1.5"/><path d="M6.4 9.4l5.6 4 5.6-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg> Через почту</button>
+        <button type="button" class="btn-social" data-social-signup data-signup-go="s-maillogin" data-mail-flow="signup"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2b2b2b"/><rect x="6" y="8.4" width="12" height="8.4" rx="1.6" stroke="#fff" stroke-width="1.5"/><path d="M6.4 9.4l5.6 4 5.6-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg> Через почту</button>
         <!-- ВОПРОС ОТКРЫТ (8 сентября): точную формулировку и связку
              «политика ПДн + оферта» уточняет юрист. Пока одним чекбоксом до
              входа — по его разъяснению согласие на обработку ПДн принимается
@@ -1624,8 +1624,16 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            черту над «Адресом сайта». -->
       <div class="card pad" id="anketa-start-card" style="margin-top:16px">
         <div>
-          <h2 style="margin-bottom:8px">Ваша роль в компании</h2>
-          <div class="seg"><button type="button" class="on" data-swap="who-owner" data-set-who="owner">Директор / собственник</button><button type="button" data-swap="who-staff" data-set-who="staff">Сотрудник</button><button type="button" data-swap="who-contractor" data-set-who="contractor">Подрядчик</button></div>
+          <h2 style="margin-bottom:8px" id="h-who">Ваша роль в компании <span style="color:var(--danger)">*</span></h2>
+          <!-- Ничего не выбрано на старте и вопрос обязателен — то же правило,
+               что у платформы, сферы и формы владения. Раньше здесь был зашит
+               предвыбор «Директор / собственник» без гейта: подрядчик,
+               пролиставший шаг, размечался директором и получал на шаге
+               установки выбор «Поручу другому», бессмысленный для него.
+               data-swap снят: панелей [data-swapped="who-*"] в файле нет,
+               атрибут висел только чтобы подцепиться к общему обработчику. -->
+          <div class="seg" id="who-seg" role="group" aria-labelledby="h-who" style="flex-wrap:wrap"><button type="button" data-set-who="owner">Директор / собственник</button><button type="button" data-set-who="staff">Сотрудник</button><button type="button" data-set-who="contractor">Подрядчик</button></div>
+          <p class="tiny anketa-field-error" id="anketa-who-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите роль — от неё зависит, предложим ли поручить установку разработчику.</p>
 
           <div class="hr" style="margin:14px 0"></div>
           <h2 style="margin-bottom:8px">Ваши контакты</h2>
@@ -1724,13 +1732,13 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:8px">Платформа сайта</h2>
+            <h2 style="margin-bottom:8px" id="h-platform">Платформа сайта</h2>
             <!-- Сегмент, а не чекбоксы (правка пользователя 16 сентября): выбор
                  здесь один и взаимоисключающий, а чекбоксы это отрицали — можно
                  было отметить и Тильду, и WordPress. Тот же контрол, что у
                  «Ваша роль в компании». Ничего не выбрано по умолчанию: платформу
                  решает клиент, а не мы (то же правило, что у сферы). -->
-            <div class="seg" id="platform-seg" style="margin-top:4px;flex-wrap:wrap">
+            <div class="seg" id="platform-seg" role="group" aria-labelledby="h-platform" style="margin-top:4px;flex-wrap:wrap">
               <button type="button" data-platform-pick="tilda">Тильда</button>
               <button type="button" data-platform-pick="wp">WordPress</button>
               <button type="button" data-platform-pick="bitrix">Битрикс</button>
@@ -1747,15 +1755,16 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <p class="tiny anketa-field-error" id="anketa-platform-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите платформу — от неё зависит инструкция по установке на последнем шаге.</p>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:8px">Аналитика на сайте</h2>
+            <h2 style="margin-bottom:8px" id="h-analytics">Аналитика на сайте</h2>
             <div style="margin-top:4px">
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Яндекс.Метрика</span></label>
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Google Analytics</span></label>
               <label class="check"><input type="checkbox" data-excl="analytics" data-excl-none><span class="t">Ничего из этого нет<span class="ex">счётчиков на сайте не стоит</span></span></label>
             </div>
+            <p class="tiny anketa-field-error" id="anketa-analytics-error" style="display:none;margin-top:6px;color:var(--danger)">Отметьте счётчики или «Ничего из этого нет» — от этого зависит текст политики обработки cookie.</p>
 
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:8px">Формы и сервисы на сайте</h2>
+            <h2 style="margin-bottom:8px" id="h-features">Формы и сервисы на сайте</h2>
             <p class="tiny" style="margin-bottom:8px">Отметьте, что есть на сайте — под каждым пунктом написано, куда встанет согласие.</p>
             <div style="margin-top:4px">
               <!-- Пунктов намеренно мало. Расширять список нельзя: сегодня поп-ап
@@ -1777,6 +1786,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <label class="check"><input type="checkbox" data-excl="features"><span class="t">Чаты, всплывающие формы, обратный звонок<span class="ex">текст согласия встанет под кнопкой отправки в каждой форме</span></span></label>
               <label class="check"><input type="checkbox" data-excl="features" data-excl-none><span class="t">Ничего из этого нет<span class="ex">согласие в формы не понадобится, политика и cookie-баннер нужны всё равно</span></span></label>
             </div>
+            <p class="tiny anketa-field-error" id="anketa-features-error" style="display:none;margin-top:6px;color:var(--danger)">Отметьте, что есть на сайте, или «Ничего из этого нет» — от этого зависит, куда встанет согласие.</p>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Политика обработки cookie должна описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей, какие формы и чаты собирают контакты. Соберём её текст из этих ответов. Формы и сервисы решают ещё и второе — куда на сайте встанет согласие: в форму регистрации, под кнопку отправки или никуда. Платформа на документы не влияет, от неё зависит инструкция по установке на последнем шаге. Адрес сайта попадёт в ссылки на документы и в код установки.</p>
 
@@ -1864,9 +1874,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях<span class="ex">рассылка, подписка на новости, письма об акциях</span></span></label>
             <p class="tiny anketa-field-error" id="anketa-purpose-error" style="display:none;margin-top:8px;color:var(--danger)">Отметьте хотя бы одну цель — без них в политике нечего описывать.</p>
             <div class="hr" style="margin:14px 0"></div>
-            <h2 style="margin-bottom:4px">Звонки и письма по базе клиентов</h2>
+            <h2 style="margin-bottom:4px" id="h-calls">Звонки и письма по базе клиентов</h2>
             <p class="tiny" style="margin-bottom:8px">Ответьте, обращаетесь ли вы к клиентам из своей базы — звонком, в мессенджере или письмом.</p>
-            <div class="seg" id="calls-seg" style="margin-top:4px">
+            <div class="seg" id="calls-seg" role="group" aria-labelledby="h-calls" style="margin-top:4px">
               <button type="button" class="on" data-calls-pick="yes">Да</button>
               <button type="button" data-calls-pick="no">Нет</button>
             </div>
@@ -1905,13 +1915,13 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                самозанятого нет ни ОГРН, ни КПП. Сам выбор формы — сегмент,
                а не чекбоксы: выбор один и взаимоисключающий. -->
           <div class="card pad" id="anketa-req-card" style="margin-top:16px">
-            <h2 style="margin-bottom:8px">Форма собственности</h2>
-            <div class="seg" id="ownership-seg" style="margin-top:4px;flex-wrap:wrap">
+            <h2 style="margin-bottom:8px" id="h-ownership">Кто владеет сайтом <span style="color:var(--danger)">*</span></h2>
+            <div class="seg" id="ownership-seg" role="group" aria-labelledby="h-ownership" style="margin-top:4px;flex-wrap:wrap">
               <button type="button" data-ownership-pick="ooo">ООО</button>
               <button type="button" data-ownership-pick="ip">ИП</button>
               <button type="button" data-ownership-pick="self">Самозанятый</button>
             </div>
-            <p class="tiny anketa-field-error" id="anketa-ownership-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите форму собственности — от неё зависит, какие реквизиты спрашивать.</p>
+            <p class="tiny anketa-field-error" id="anketa-ownership-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите, кто владеет сайтом — от этого зависит, какие реквизиты спрашивать.</p>
 
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:8px">Заполним по ИНН</h2>
@@ -2532,7 +2542,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         <div>
         <h2>Документы</h2>
         <div class="card pad" style="margin-top:12px">
-          <div class="row" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">5 актуальны</span></div>
+          <div class="row state" data-pay-state="trial pending paid expired" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip green">5 действуют</span></div>
+          <div class="row state" data-pay-state="unpaid" style="justify-content:space-between"><span class="small muted">Статус</span><span class="chip">ещё не собраны</span></div>
           <div class="row state" data-pay-state="paid" style="justify-content:space-between;margin-top:8px"><span class="small muted">Обновлены</span><span class="small" style="font-weight:700">15.08.2026</span></div>
           <!-- У проекта, созданного вчера, обновлений нет и быть не может:
                закон не менялся за сутки. До первого продления показываем
@@ -2561,7 +2572,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <span class="tiny mono" style="flex:none;width:88px">15.08.2026</span>
           <span class="small">Обновили «Политику обработки персональных данных» под изменения 152-ФЗ</span>
         </div>
-        <div class="row" style="padding:12px 16px;align-items:flex-start">
+        <div class="row state" data-pay-state="trial pending paid expired" style="padding:12px 16px;align-items:flex-start">
           <span class="tiny mono" style="flex:none;width:88px">05.08.2026</span>
           <span class="small">Пакет документов сформирован — 5 документов, первая версия</span>
         </div>
@@ -2631,7 +2642,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="card state" data-pay-state="trial pending paid expired" style="margin-top:10px;overflow:hidden">
         <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Реквизиты владельца</div><div class="tiny mono">v1 · 05.08.2026 · первая версия<button type="button" class="btn text sm doc-edit" data-go-modal="modal-req-set">Изменить</button></div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/01" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/01" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span><!-- «Изменить» есть только у реквизитов: остальные четыре документа мы
+          <span class="chip green">действует</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/01" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/01" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span><!-- «Изменить» есть только у реквизитов: остальные четыре документа мы
      собираем сами из ответов анкеты, а реквизиты — единственное, что
      клиент правит напрямую (сменился адрес, банк, телефон). Раньше вход
      был один: крошечная ссылка в шапке «Обзора» рядом с ИНН — искать
@@ -2642,19 +2653,19 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         </div>
         <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Политика обработки cookie</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/02" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/02" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
+          <span class="chip green">действует</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/02" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/02" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
         <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Политика обработки персональных данных</div><div class="tiny mono"><span class="state" data-pay-state="paid">v2 · 15.08.2026 · обновили формулировки под изменения 152-ФЗ</span><span class="state" data-pay-state="trial pending expired">v1 · 05.08.2026 · первая версия</span></div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/03" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/03" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
+          <span class="chip green">действует</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/03" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/03" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
         <div class="row docrow" style="padding:13px 16px;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Согласие на обработку персональных данных</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/12" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/12" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
+          <span class="chip green">действует</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/12" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/12" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
         <div class="row docrow" style="padding:13px 16px">
           <div style="flex:1"><div style="font-weight:700;font-size:var(--fs-md)">Согласие на получение рекламных сообщений</div><div class="tiny mono">v1 · 05.08.2026 · первая версия</div></div>
-          <span class="chip green">актуальна</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/13" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/13" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
+          <span class="chip green">действует</span><span class="doc-actions"><button type="button" class="icobtn copy-link-btn" data-copy-text="https://cdn.sleza.media/486312/13" data-tip="Скопировать ссылку" aria-label="Скопировать ссылку"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg></button><a class="icobtn" href="https://cdn.sleza.media/486312/13" target="_blank" rel="noopener" data-tip="Открыть документ" aria-label="Открыть документ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a></span>
         </div>
       </div>
 
@@ -2667,7 +2678,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <span class="tiny mono" style="flex:none;width:88px">15.08.2026</span>
           <span class="small">«Политика обработки персональных данных» — обновили формулировки под изменения 152-ФЗ</span>
         </div>
-        <div class="row" style="padding:12px 16px;align-items:flex-start">
+        <div class="row state" data-pay-state="trial pending paid expired" style="padding:12px 16px;align-items:flex-start">
           <span class="tiny mono" style="flex:none;width:88px">05.08.2026</span>
           <span class="small">Пакет документов сформирован — 5 документов, первая версия</span>
         </div>
@@ -3523,10 +3534,11 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <summary class="acc-title"><h3>Написать в поддержку</h3></summary>
       <div class="card pad" style="margin-top:10px;max-width:520px">
         <div class="state on" data-state="form">
-          <label class="f">Опишите, что случилось</label>
+          <label class="f" for="ticket-text">Опишите, что случилось</label>
           <textarea class="inp" id="ticket-text" style="min-height:110px" placeholder="Например: не появился баннер на сайте после установки скрипта"></textarea>
+          <p class="tiny anketa-field-error" id="ticket-text-error" style="display:none;margin-top:5px;color:var(--danger)">Опишите, что случилось — иначе нам не с чем разбираться.</p>
           <p class="tiny" style="margin-top:6px">Ответ придёт сюда же, на «Мои обращения» — на почту пришлём только уведомление, что вам ответили.</p>
-          <button type="button" class="btn solid" style="margin-top:12px" id="ticket-submit" data-state-to="sent">Отправить</button>
+          <button type="button" class="btn solid" style="margin-top:12px" id="ticket-submit">Отправить</button>
         </div>
         <div class="state" data-state="sent">
           <span class="b green">✓ Обращение отправлено</span>
@@ -3697,11 +3709,15 @@ var sitePlatform = 'tilda'; // 'tilda'|'wp'|'bitrix'|'other' — из анкет
 // вкладка «По счёту» на s-pay скрыта (независимый список правок, «Деньги»,
 // 25.08) — см. syncPayState.
 var siteOwnership = 'ooo';
-// 'owner'|'staff'|'webmaster'|'agency' — «Кто заполняет анкету» (s-anketa,
-// Блок 1). Эффект сейчас один: блок «поручить установку» не показывается
-// подрядчикам (syncWhoVisible) — веб-мастер и есть тот, кому поручают.
-// Предзаполнение ПДн-контакта по этой роли отменено 9 сентября, см. ниже.
+// 'owner'|'staff'|'contractor' — «Ваша роль в компании» (s-anketa).
+// Комментарий раньше перечислял 'webmaster'|'agency', которых разметка
+// никогда не выставляла. Эффект один: блок «поручить установку» не
+// показывается подрядчику (syncWhoVisible) — он сам и есть тот, кому
+// поручают. Предзаполнение ПДн-контакта по роли отменено 9 сентября.
+// Значение по умолчанию нужно syncWhoVisible до прохождения шага 1;
+// «выбрал ли человек» держим отдельным флагом, как у платформы.
 var whoFills = 'owner';
+var whoChosen = false;
 
 /* Данные шага «Знакомство» — это аккаунт, а не проект (правило
    пользователя, 9 сентября): имя, почта и резервный телефон живут в
@@ -4159,6 +4175,10 @@ document.querySelectorAll('[data-go]').forEach(function(b){
     if (b.dataset.setStatus) siteStatus = b.dataset.setStatus;
     if (b.dataset.setStatus === 'pending') savePayInvoiceReq();
     if (b.dataset.setHassite) hasSite = (b.dataset.setHassite === 'true');
+    // Экран «Проверьте почту» один на вход и на регистрацию, поэтому
+    // «сайтов ещё нет» выставляется не кнопкой на нём, а интентом с того
+    // экрана, откуда пришли: у входа сайт уже есть.
+    if (b.dataset.mailFlow) mailFlow = b.dataset.mailFlow;
     if (b.dataset.setHasidentity) hasIdentity = (b.dataset.setHasidentity === 'true');
     if (b.dataset.setSubstep) anketaSubstep = parseInt(b.dataset.setSubstep, 10);
     goScreen(b.dataset.go);
@@ -4380,6 +4400,13 @@ wireStepGate('anketa-start-next', [
   if (maxStepReached < funnelSteps().length) { siteStatus = 'unpaid'; syncPayState(); }
   anketaSubstep = 1;
   goScreen('s-anketa2');
+}, function(){
+  // Роль — не поле ввода, поэтому отдельным условием. Раньше её вообще не
+  // проверяли: предвыбор в разметке делал гейт ненужным на вид, но и
+  // превращал «не ответил» в «ответил "директор"».
+  var err = document.getElementById('anketa-who-error');
+  if (err) err.style.display = whoChosen ? 'none' : 'block';
+  return whoChosen;
 });
 
 // Копирование в буфер — независимый UX-аудит, критика A, P3: были молча
@@ -4874,6 +4901,24 @@ installActionBtn.addEventListener('click', function(){
 
 /* Блок «поручить установку» не показываем подрядчикам: веб-мастер или
    агентство и есть тот, кому это поручают (правка пользователя). */
+document.querySelectorAll('#who-seg [data-set-who]').forEach(function(b){
+  b.addEventListener('click', function(){
+    whoFills = b.dataset.setWho;
+    whoChosen = true;
+    syncWhoSeg();
+    syncWhoVisible();
+    var err = document.getElementById('anketa-who-error');
+    if (err) err.style.display = 'none';
+  });
+});
+function syncWhoSeg(){
+  document.querySelectorAll('#who-seg [data-set-who]').forEach(function(b){
+    var on = whoChosen && b.dataset.setWho === whoFills;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+syncWhoSeg();
 function syncWhoVisible(){
   document.querySelectorAll('[data-who-visible]').forEach(function(el){
     el.style.display = el.dataset.whoVisible.split(' ').indexOf(whoFills) === -1 ? 'none' : '';
@@ -5123,7 +5168,8 @@ document.querySelectorAll('[data-swap]').forEach(function(b){
     });
     if (b.dataset.setPlatform) sitePlatform = b.dataset.setPlatform;
     if (b.dataset.setOwnership) { siteOwnership = b.dataset.setOwnership; syncPayState(); }
-    if (b.dataset.setWho) { whoFills = b.dataset.setWho; syncWhoVisible(); }
+    if (b.dataset.setWho) { whoFills = b.dataset.setWho; whoChosen = true; syncWhoSeg(); syncWhoVisible(); }
+    // ↑ остаётся для кнопок вне #who-seg, если такие появятся
   });
 });
 
@@ -5408,6 +5454,10 @@ if (bindCardBtn) bindCardBtn.addEventListener('click', function(){
   document.getElementById('card-bound-mask').textContent = '···· ' + digits.slice(-4);
   document.getElementById('card-bound-exp').textContent = cardExpInput.value.trim();
   syncCardBound(true);
+  // Кнопка до оплаты подписана ценой («Оплатить 12 000 ₽»), значит и
+  // должна оплачивать: переводим сайт в 'paid'. Пока этого не было,
+  // статус 'paid' был недостижим из интерфейса вообще.
+  if (siteStatus !== 'paid') { siteStatus = 'paid'; syncPayState(); }
 });
 var unbindCardBtn = document.getElementById('unbind-card-btn');
 if (unbindCardBtn) unbindCardBtn.addEventListener('click', function(){
@@ -5489,9 +5539,17 @@ wireStepGate('anketa-site-next', [
   syncAnketaSubstep();
   window.scrollTo(0, 0);
 }, function(){
+  var ok = true;
+  [['analytics','anketa-analytics-error'],['features','anketa-features-error']].forEach(function(pair){
+    var any = !!document.querySelector('[data-excl="' + pair[0] + '"]:checked');
+    var err = document.getElementById(pair[1]);
+    if (err) err.style.display = any ? 'none' : 'block';
+    if (!any) ok = false;
+  });
   var platformErr = document.getElementById('anketa-platform-error');
   if (platformErr) platformErr.style.display = platformChosen ? 'none' : 'block';
-  if (!platformChosen) return false;
+  if (!platformChosen) ok = false;
+  if (!ok) return false;
   if (sitePlatform === 'other') {
     var other = document.getElementById('platform-other');
     var otherErr = document.getElementById('platform-other-error');
@@ -5738,6 +5796,9 @@ if (requestInvoiceBtn) requestInvoiceBtn.addEventListener('click', function(){
   invoiceRequested = true;
   var box = document.getElementById('invoice-ready');
   if (box) box.style.display = '';
+  // Выставленный счёт — это и есть состояние «ждём оплаты по счёту».
+  // Без этого перехода статус 'pending' был недостижим из интерфейса.
+  if (siteStatus !== 'pending' && siteStatus !== 'paid') { siteStatus = 'pending'; syncPayState(); }
   requestInvoiceBtn.textContent = 'Сформировать заново';
 });
 
@@ -5771,12 +5832,23 @@ if (resumeSub) resumeSub.addEventListener('click', function(){ subCancelled = fa
 
 /* новый тикет — добавляется в «Мои обращения» со статусом «открыто»,
    ответ появляется там же, когда поддержка ответит (не только на почту) */
+/* Зачем пришли на «Проверьте почту»: из входа или из регистрации.
+   От этого зависит, пустой аккаунт за ссылкой или уже с сайтом. */
+var mailFlow = 'signup';
+var mailLoginDone = document.getElementById('maillogin-done');
+if (mailLoginDone) mailLoginDone.addEventListener('click', function(){
+  if (mailFlow === 'signup') { hasSite = false; syncCompany(); }
+});
+
 var ticketSubmit = document.getElementById('ticket-submit');
 if (ticketSubmit) {
   ticketSubmit.addEventListener('click', function(){
     var textEl = document.getElementById('ticket-text');
     var text = textEl.value.trim();
-    if (!text) return;
+    var err = document.getElementById('ticket-text-error');
+    textEl.classList.toggle('error', !text);
+    if (err) err.style.display = text ? 'none' : 'block';
+    if (!text) { textEl.focus({preventScroll:true}); return; }
     var list = document.getElementById('ticket-list');
     var card = document.createElement('div');
     card.className = 'card pad';
@@ -5803,6 +5875,13 @@ if (ticketSubmit) {
     card.appendChild(head);
     list.insertBefore(card, list.firstChild);
     textEl.value = '';
+    // Экран успеха переключаем здесь, а не атрибутом [data-state-to] на
+    // кнопке: атрибут срабатывал безусловно и показывал «Обращение
+    // отправлено · Заявка №1043» даже на пустом поле.
+    var scope = ticketSubmit.closest('.screen');
+    scope.querySelectorAll('[data-state]').forEach(function(st){
+      st.classList.toggle('on', st.dataset.state === 'sent');
+    });
   });
 }
 </script>
