@@ -1599,6 +1599,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <p class="tiny" style="margin-bottom:8px">Привяжите второй способ, чтобы не потерять доступ, если первый перестанет работать. Уведомления о продлении и статусе виджета придут туда же.</p>
           <div id="profile-msgr-host"></div>
 
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-auth">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-auth" style="display:none;margin-top:8px">Способ входа он же канал уведомлений: сообщим о продлении, оплате и о том, что виджет перестал отвечать. Отвязать способ можно позже в Настройках — здесь список только добавляет, чтобы нельзя было оборвать себе доступ посреди подключения.</p>
+
           <div class="hr" style="margin:14px 0"></div>
           <h2 style="margin-bottom:8px" id="h-who">Ваша роль в компании <span style="color:var(--danger)">*</span></h2>
           <!-- Ничего не выбрано на старте и вопрос обязателен — то же правило,
@@ -1610,6 +1613,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                атрибут висел только чтобы подцепиться к общему обработчику. -->
           <div class="seg" id="who-seg" role="group" aria-labelledby="h-who" style="flex-wrap:wrap"><button type="button" data-set-who="owner">Директор / собственник</button><button type="button" data-set-who="staff">Сотрудник</button><button type="button" data-set-who="contractor">Подрядчик</button></div>
           <p class="tiny anketa-field-error" id="anketa-who-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите роль — от неё зависит, предложим ли поручить установку разработчику.</p>
+
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-role">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-role" style="display:none;margin-top:8px">Роль решает одно: предложим ли на последнем шаге поручить установку кода разработчику. Подрядчику это предлагать незачем — он и есть тот, кому поручают.</p>
 
           <div class="hr" style="margin:14px 0"></div>
           <h2 style="margin-bottom:8px">Куда вам писать</h2>
@@ -1666,7 +1672,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         </div>
 
         <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-person">Зачем это нужно ⌄</button>
-        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">Роль решает одно: предложим ли на последнем шаге поручить установку кода разработчику. Подрядчику это предлагать незачем — он и есть тот, кому поручают. Остальное здесь — контакты кабинета, а не сайта: сюда напишем, когда обновим документы или что-то изменится в законе. На сайт и в документы они не попадут — там будут контакты компании, их спросим на шаге «Реквизиты». Резервная связь необязательна: позвоним, только если письма перестанут доходить.</p>
+        <p class="tiny" id="fold-person" style="display:none;margin-top:8px">Это контакты кабинета, а не сайта: сюда напишем, когда обновим документы или что-то изменится в законе. На сайт и в документы они не попадут — там будут контакты компании, их спросим на шаге «Реквизиты». Телефон необязателен: позвоним, только если письма перестанут доходить. Почту подтверждаем кодом, потому что это единственный канал, которым мы сообщаем об изменениях, — непроверенный адрес означает, что вы о них не узнаете.</p>
       </div>
 
       <div class="hr" style="margin-top:20px"></div>
@@ -1741,6 +1747,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <p class="tiny anketa-field-error" id="add-domain-error" style="display:none;margin-top:5px;color:var(--danger)">Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без продолжения после косой черты.</p>
             </div>
 
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-domain">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-domain" style="display:none;margin-top:8px">Домен попадёт в текст всех пяти документов, в ссылки, по которым они открываются, и в код установки. Сайт мы везде опознаём по нему — второго имени не просим.</p>
+
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:8px" id="h-platform">Платформа сайта <span style="color:var(--danger)">*</span></h2>
             <!-- Сегмент, а не чекбоксы (правка пользователя 16 сентября): выбор
@@ -1764,16 +1773,22 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
             <p class="tiny anketa-field-error" id="anketa-platform-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите платформу — от неё зависит инструкция по установке на последнем шаге.</p>
 
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-platform">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-platform" style="display:none;margin-top:8px">На документы платформа не влияет. От неё зависит только инструкция на последнем шаге: куда именно вставлять код — в настройках Тильды, в header.php у WordPress или в шаблоне Битрикса.</p>
+
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:4px" id="h-analytics">Аналитика на сайте <span style="color:var(--danger)">*</span></h2>
-            <p class="tiny" style="margin-bottom:8px">Счётчики посетителей. Если не знаете, что стоит на сайте — так и отметьте, посмотрим сами.</p>
+            <p class="tiny" style="margin-bottom:8px">Счётчики посетителей. Если не знаете, что установлено — так и отметьте.</p>
             <div style="margin-top:4px">
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Яндекс.Метрика<span class="ex">опишем её в политике обработки cookie</span></span></label>
               <label class="check"><input type="checkbox" data-excl="analytics"><span class="t">Google Analytics<span class="ex">опишем её в политике и предупредим о рисках</span></span></label>
               <label class="check"><input type="checkbox" data-excl="analytics" data-excl-none><span class="t">Ничего из этого нет<span class="ex">счётчиков на сайте не стоит</span></span></label>
-              <label class="check"><input type="checkbox" data-excl="analytics" data-excl-none><span class="t">Не знаю<span class="ex">посмотрим сами, когда код встанет на сайт</span></span></label>
+              <label class="check"><input type="checkbox" data-excl="analytics" data-excl-none><span class="t">Не знаю<span class="ex">в политике опишем аналитические cookie, не называя счётчик</span></span></label>
             </div>
             <p class="tiny anketa-field-error" id="anketa-analytics-error" style="display:none;margin-top:6px;color:var(--danger)">Отметьте счётчики, «Ничего из этого нет» или «Не знаю» — от этого зависит текст политики обработки cookie.</p>
+
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-analytics">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-analytics" style="display:none;margin-top:8px">Политика обработки cookie должна описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей. Отдельно про Google Analytics — он отправляет данные посетителей на зарубежные серверы, и по 152-ФЗ это отдельный риск, о котором стоит поговорить.</p>
 
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:4px" id="h-features">Формы и сервисы на сайте <span style="color:var(--danger)">*</span></h2>
@@ -1800,7 +1815,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
             <p class="tiny anketa-field-error" id="anketa-features-error" style="display:none;margin-top:6px;color:var(--danger)">Отметьте, что есть на сайте, или «Ничего из этого нет» — от этого зависит, куда встанет согласие.</p>
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-site">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Политика обработки cookie должна описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей, какие формы и чаты собирают контакты. Соберём её текст из этих ответов. Формы и сервисы решают ещё и второе — куда на сайте встанет согласие: в форму регистрации, под кнопку отправки или никуда. Платформа на документы не влияет, от неё зависит инструкция по установке на последнем шаге. Адрес сайта попадёт в ссылки на документы и в код установки.</p>
+            <p class="tiny" id="fold-site" style="display:none;margin-top:8px">Отмеченное решает две вещи. Первая — что будет написано в политике обработки cookie: формы и чаты собирают контакты, и это её обязательная часть. Вторая — куда именно на сайте встанет согласие: галочкой в форму регистрации, текстом под кнопкой отправки или никуда, если сайт контакты не собирает.</p>
 
           </div>
           <div class="hr" style="margin-top:20px"></div>
@@ -1864,6 +1879,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </select>
             <p class="tiny anketa-field-error" id="anketa-sphere-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите сферу деятельности — от неё зависят формулировки в документах и список целей ниже.</p>
 
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-sphere">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-sphere" style="display:none;margin-top:8px">Сфера подбирает список целей в следующем блоке: у интернет-магазина и у салона он разный. Она же задаёт оговорки в политике — например, про обработку данных несовершеннолетних, если вы работаете с детьми.</p>
+
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:4px">Цели сбора контактов <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Отметьте всё, что подходит — по этим целям соберём формулировки согласия и текст у форм на сайте.</p>
@@ -1886,6 +1904,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check" data-purpose="inquiry"><input type="checkbox"><span class="t">Ответить на обращение<span class="ex">форма обратной связи, «Заказать звонок», чат на сайте</span></span></label>
             <label class="check" data-purpose="promo"><input type="checkbox"><span class="t">Рассказывать об акциях и новых предложениях<span class="ex">рассылка, подписка на новости, письма об акциях</span></span></label>
             <p class="tiny anketa-field-error" id="anketa-purpose-error" style="display:none;margin-top:8px;color:var(--danger)">Отметьте хотя бы одну цель — без них в политике нечего описывать.</p>
+
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-purpose">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-purpose" style="display:none;margin-top:8px">Цель обработки — обязательная часть согласия: использовать данные для цели, которая в нём не названа, нельзя. Поэтому отмеченное определяет, что будет написано в согласии и в тексте у формы на сайте.</p>
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:4px" id="h-fields">Какие данные собираете <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Что посетитель вводит в формы на сайте. Из отмеченного соберём состав данных в политике и в согласии — перечислить его там обязательно.</p>
@@ -1897,6 +1918,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <label class="check" data-pdfield="birth"><input type="checkbox"><span class="t">Дата рождения<span class="ex">запись на приём, скидки по возрасту</span></span></label>
             <p class="tiny anketa-field-error" id="anketa-pdfield-error" style="display:none;margin-top:8px;color:var(--danger)">Отметьте хотя бы одно — без состава данных политику и согласие составить нельзя.</p>
 
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-pdfields">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-pdfields" style="display:none;margin-top:8px">Состав данных — вторая обязательная часть и политики, и согласия, наравне с целью. Перечислять его нужно точно: если в документе написан Telegram, а вы пишете в WhatsApp, документ неточен.</p>
+
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:4px" id="h-calls">Звонки и письма по базе клиентов <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Ответьте, обращаетесь ли вы к клиентам из своей базы — звонком, в мессенджере или письмом.</p>
@@ -1906,7 +1930,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             </div>
 
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-reklama">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Состав данных и цель обработки — две обязательные части и политики, и согласия: без них документ недействителен. Цель обработки — использовать данные для цели, которая в нём не названа, нельзя. Поэтому отмеченное определяет, что будет написано в согласии и в тексте у формы. Ответ про звонки и письма по базе определяет, как будет сформулировано согласие на рекламные сообщения: какие каналы в нём названы. Сам документ входит в пакет в любом случае — рассылка по своей базе без такого согласия незаконна.</p>
+            <p class="tiny" id="fold-reklama" style="display:none;margin-top:8px">Ответ определяет, как будет сформулировано согласие на рекламные сообщения: какие каналы в нём названы. Сам документ входит в пакет в любом случае — рассылка по своей базе без такого согласия незаконна, так требует 38-ФЗ ч.1 ст.18.</p>
           </div>
 
           <!-- мобильный интерстишл — см. комментарий у секции выше.
@@ -1946,6 +1970,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <button type="button" data-ownership-pick="self">Самозанятый</button>
             </div>
             <p class="tiny anketa-field-error" id="anketa-ownership-error" style="display:none;margin-top:6px;color:var(--danger)">Выберите, кто владеет сайтом — от этого зависит, какие реквизиты спрашивать.</p>
+
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-ownership">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-ownership" style="display:none;margin-top:8px">От этого зависит, что спрашивать дальше: у ООО есть ОГРН и КПП, у ИП вместо ОГРН — ОГРНИП из другого реестра, у самозанятого нет ни того, ни другого, а вместо юридического адреса — адрес для переписки.</p>
 
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:4px">Данные из реестра</h2>
@@ -1997,6 +2024,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
               <p class="tiny anketa-field-error" id="anketa-addr-error" style="display:none;margin-top:5px;color:var(--danger)">Укажите адрес — он попадёт в реквизиты на сайте.</p>
             </div>
 
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-registry">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-registry" style="display:none;margin-top:8px">149-ФЗ ст.10 ч.2 обязывает владельца сайта держать в открытом доступе наименование, место нахождения и адрес. Виджет откроет их по ссылке в подвале — их увидит любой посетитель. КПП закон публиковать не требует: он нужен, чтобы бухгалтер контрагента выставил счёт.</p>
+
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:8px">Банковские реквизиты</h2>
             <div class="f2">
@@ -2021,6 +2051,9 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                 <p class="tiny anketa-field-error" id="anketa-corr-error" style="display:none;margin-top:5px;color:var(--danger)">Корреспондентский счёт — 20 цифр. Проверьте, не пропущена ли часть номера.</p>
               </div>
             </div>
+
+            <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-bank">Зачем это нужно ⌄</button>
+            <p class="tiny" id="fold-bank" style="display:none;margin-top:8px">Банковские реквизиты закон публиковать не требует. Мы спрашиваем их, чтобы бухгалтер контрагента выставил счёт и составил договор, ничего не запрашивая дополнительно.</p>
 
             <div class="hr" style="margin:14px 0"></div>
             <h2 style="margin-bottom:8px">Контакты компании</h2>
@@ -2054,7 +2087,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  с обеих сторон, иначе третья подряд просьба указать почту
                  читается как небрежность. -->
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-149">Зачем это нужно ⌄</button>
-            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">149-ФЗ ст.10 ч.2 обязывает владельца сайта держать в открытом доступе наименование, место нахождения и адрес, а также адрес электронной почты — без них проверяющий не может установить, кто отвечает за сайт. Эти поля виджет откроет по ссылке в подвале, их увидит любой посетитель: это контакты компании, а не ваши личные.<br><br>Телефон, банковские реквизиты, КПП и юридический адрес закон публиковать не требует — мы спрашиваем их, чтобы бухгалтер контрагента выставил счёт и составил договор, ничего не запрашивая дополнительно.<br><br>Отдельно спрашиваем, куда писать по вопросам персональных данных: этот контакт по 152-ФЗ тоже публикуется, а на бухгалтерской почте такие обращения обычно теряются.</p>
+            <p class="tiny" id="fold-149" style="display:none;margin-top:8px">Это контакты компании, а не ваши личные: их увидит любой посетитель сайта. Адрес электронной почты требует публиковать 149-ФЗ ст.10 ч.2, телефон — нет, он для счёта и договора. Контакт по вопросам персональных данных спрашиваем отдельно: его публикация требуется по 152-ФЗ, а на бухгалтерской почте такие обращения обычно теряются.</p>
           </div>
 
           <div class="hr" style="margin-top:20px"></div>
@@ -2792,7 +2825,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         </div>
         <div class="hr"></div>
         <h3 class="sub-h">Мессенджеры</h3>
-        <p class="tiny" style="margin-top:4px;margin-bottom:10px">Вход в один тап и уведомления туда же — о продлении, оплате и статусе виджета. Можно подключить несколько.</p>
+        <p class="tiny" style="margin-top:4px;margin-bottom:10px">Вход в один тап и уведомления туда же — о продлении, оплате и статусе виджета. Можно подключить несколько, здесь же и отвязать.</p>
         <!-- Список, а не «подключить один»: человек может держать Telegram
              для себя и MAX для рабочих уведомлений. Каждая строка сама себе
              состояние — подключено или нет. -->
@@ -4792,9 +4825,13 @@ function syncSetView(){
 function syncMessengers(){
   document.querySelectorAll('.msgr').forEach(function(row){
     var on = !!messengers[row.dataset.messenger];
-    row.querySelector('.msgr-on').style.display = on ? '' : 'none';
-    row.querySelector('.msgr-link').style.display = on ? 'none' : '';
-    row.querySelector('.msgr-unlink').style.display = on ? '' : 'none';
+    // Копия списка на шаге подключения — без крестика «отвязать»: там
+    // список только добавляет способ. Поэтому каждый элемент строки
+    // проверяется на существование, а не берётся как данность.
+    var el;
+    if ((el = row.querySelector('.msgr-on'))) el.style.display = on ? '' : 'none';
+    if ((el = row.querySelector('.msgr-link'))) el.style.display = on ? 'none' : '';
+    if ((el = row.querySelector('.msgr-unlink'))) el.style.display = on ? '' : 'none';
   });
   var linked = Object.keys(messengers).filter(function(k){ return messengers[k]; });
   var where = document.getElementById('notify-where');
@@ -4811,7 +4848,14 @@ function syncMessengers(){
 (function(){
   var host = document.getElementById('profile-msgr-host');
   var src = document.querySelector('#s-settings .msgr-list');
-  if (host && src) host.appendChild(src.cloneNode(true));
+  if (!host || !src) return;
+  var copy = src.cloneNode(true);
+  // На шаге подключения список только ДОБАВЛЯЕТ способ: крестик «отвязать»
+  // и чип «подключён» с него сняты. Отвязать способ, которым человек прямо
+  // сейчас вошёл, — значит оборвать себе доступ в середине анкеты; управление
+  // способами живёт в Настройках, там же и отвязывание.
+  copy.querySelectorAll('.msgr-unlink').forEach(function(x){ x.remove(); });
+  host.appendChild(copy);
 })();
 
 /* Чем человек вошёл. Ставится кнопкой провайдера на входе и на
@@ -4829,8 +4873,12 @@ document.querySelectorAll('[data-auth-provider]').forEach(function(b){
 });
 
 document.querySelectorAll('.msgr').forEach(function(row){
-  row.querySelector('.msgr-link').addEventListener('click', function(){ messengers[row.dataset.messenger] = true; syncMessengers(); });
-  row.querySelector('.msgr-unlink').addEventListener('click', function(){ messengers[row.dataset.messenger] = false; syncMessengers(); });
+  // Крестика «отвязать» нет в копии списка на шаге подключения —
+  // там список только добавляет способ, поэтому проверяем наличие.
+  var link = row.querySelector('.msgr-link');
+  var unlink = row.querySelector('.msgr-unlink');
+  if (link) link.addEventListener('click', function(){ messengers[row.dataset.messenger] = true; syncMessengers(); });
+  if (unlink) unlink.addEventListener('click', function(){ messengers[row.dataset.messenger] = false; syncMessengers(); });
 });
 syncMessengers();
 
