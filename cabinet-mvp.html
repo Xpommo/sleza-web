@@ -1283,9 +1283,11 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      Раньше это было «Восстановление пароля» — обломок модели с почтой и
      паролем, убранной 8 сентября. Пароля в продукте нет, восстанавливать
      нечего. Форма и два её состояния (запрос → «проверьте почту») ровно
-     те, что нужны входу по ссылке, поэтому экран переосмыслен, а не
-     удалён. Решение 10 сентября: вход по почте — ссылкой из письма, без
-     пароля. Годовая подписка, заходят раз в несколько месяцев — пароль к
+     те, что нужны входу по коду, поэтому экран переосмыслен, а не
+     удалён. Вход по почте — КОДОМ подтверждения, без пароля (уточнение
+     модели владельцем 17 сентября; прежнее решение 10 сентября было
+     «ссылкой из письма»). Код — тот же механизм и тот же контрол, что
+     подтверждение почты на шаге «Ваш профиль»: один способ, один вид. Годовая подписка, заходят раз в несколько месяцев — пароль к
      такому сервису забудут гарантированно, а письмо всё равно придёт.
      Заодно уходит целый класс: требования к паролю, смена, восстановление. -->
 <section class="screen" id="s-maillogin">
@@ -1298,22 +1300,32 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
     <div class="state on" data-state="request">
       <h1>Вход по почте</h1>
-      <p class="lead" style="margin-top:8px">Пришлём ссылку для входа — пароль не нужен.</p>
+      <p class="lead" style="margin-top:8px">Пришлём код для входа — пароль не нужен.</p>
       <div style="margin-top:20px">
         <label class="f" for="f-mail">Почта</label>
         <input class="inp" id="f-mail" type="email" autocomplete="email" placeholder="you@company.ru">
-        <p class="tiny anketa-field-error" id="f-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придёт ссылка для входа.</p>
+        <p class="tiny anketa-field-error" id="f-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — на неё придёт код для входа.</p>
       </div>
-      <button type="button" class="btn solid wide" style="margin-top:20px" id="maillogin-send">Прислать ссылку</button>
+      <button type="button" class="btn solid wide" style="margin-top:20px" id="maillogin-send">Прислать код</button>
       <p class="tiny" style="text-align:center;margin-top:24px">Есть Telegram, Яндекс или MAX? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти через них</button></p>
     </div>
 
     <div class="state" data-state="sent" style="text-align:center">
       <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:var(--fs-h1-sm)">✉️</div>
       <h1>Проверьте почту</h1>
-      <p class="lead" style="margin-top:10px">Прислали ссылку для входа на <b id="maillogin-addr">you@company.ru</b>. Ссылка действует 30 минут.</p>
-      <button type="button" class="btn solid wide" style="margin-top:24px" id="maillogin-done" data-go="s-status">Перешёл по ссылке (демо) →</button>
-      <p class="tiny" style="margin-top:16px">Не пришло письмо? <button type="button" class="btn text sm" style="padding:0" data-state-to="request">Ввести почту заново</button></p>
+      <p class="lead" style="margin-top:10px">Прислали код на <b id="maillogin-addr">you@company.ru</b>. Код действует 30 минут.</p>
+      <!-- Поле кода, а не кнопка «перешёл по ссылке»: вход по коду
+           подтверждения (уточнение модели владельцем). Контрол и состояния
+           те же, что у подтверждения почты на шаге «Ваш профиль» — один
+           механизм, один вид. Код в макете принимается любой из шести цифр:
+           честная имитация, как у «Проверить скрипт на сайте». -->
+      <div style="margin-top:20px;text-align:left">
+        <label class="f" for="maillogin-code">Код из письма</label>
+        <input class="inp mono" id="maillogin-code" inputmode="numeric" maxlength="6" placeholder="6 цифр">
+        <p class="tiny anketa-field-error" id="maillogin-code-error" style="display:none;margin-top:5px;color:var(--danger)">Код из письма — шесть цифр. Проверьте, не пропущена ли цифра.</p>
+      </div>
+      <button type="button" class="btn solid wide" style="margin-top:16px" id="maillogin-done">Войти →</button>
+      <p class="tiny" style="margin-top:16px">Не пришло письмо? <button type="button" class="btn text sm" style="padding:0" id="maillogin-resend">Отправить снова</button> · <button type="button" class="btn text sm" style="padding:0" data-state-to="request">Ввести почту заново</button></p>
     </div>
   </div>
 </section>
@@ -1357,8 +1369,8 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <button type="button" class="btn-social" data-social-signup data-auth-provider="Яндекс"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FC3F1D"/><path d="M13.2 18.5h2V5.5h-2.9c-2.9 0-4.5 1.5-4.5 3.7 0 1.8.9 2.8 2.4 3.9l-2.6 5.4h2.2l2.9-6-1-.7c-1.2-.8-1.8-1.5-1.8-2.8 0-1.2.8-2 2.3-2h1v11.5z" fill="#fff"/></svg> Через Яндекс</button>
         <button type="button" class="btn-social" data-social-signup data-auth-provider="MAX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5B57F5"/><path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff"/></svg> Через MAX</button>
         <!-- Четвёртый способ — почта: не у всех есть Telegram, Яндекс или MAX,
-             а покупает нас часто бухгалтер или директор. Вход по ссылке из
-             письма, без пароля (решение 10 сентября). -->
+             а покупает нас часто бухгалтер или директор. Вход по коду из
+             письма, без пароля (уточнение 17 сентября). -->
         <button type="button" class="btn-social" data-social-signup data-signup-go="s-maillogin" data-mail-flow="signup"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2b2b2b"/><rect x="6" y="8.4" width="12" height="8.4" rx="1.6" stroke="#fff" stroke-width="1.5"/><path d="M6.4 9.4l5.6 4 5.6-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg> Через почту</button>
         <!-- ВОПРОС ОТКРЫТ (8 сентября): точную формулировку и связку
              «политика ПДн + оферта» уточняет юрист. Пока одним чекбоксом до
@@ -1587,7 +1599,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <button type="button" class="btn sm" style="flex:none" data-fold="fold-authlist"><span id="auth-add-label">Добавить вход через Яндекс или MAX</span> ⌄</button>
       </div>
       <div id="fold-authlist" class="card pad" style="display:none;margin-top:10px">
-        <p class="tiny" style="margin-bottom:10px">Вход в один тап с любого устройства, и уведомления о продлении и статусе виджета придут в мессенджер, а не только на почту. Войти по ссылке из письма можно всегда — второй способ нужен для удобства, не вместо почты. Отвязать можно позже в Настройках.</p>
+        <p class="tiny" style="margin-bottom:10px">Вход в один тап с любого устройства, и уведомления о продлении и статусе виджета придут в мессенджер, а не только на почту. Войти по коду из письма можно всегда — второй способ нужен для удобства, не вместо почты. Отвязать можно позже в Настройках.</p>
         <div id="profile-msgr-host"></div>
       </div>
 
@@ -2402,7 +2414,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           </div>
           <div data-install-branch="delegate" style="display:none">
             <h2 style="margin-bottom:0">Дождитесь установки</h2>
-            <p class="tiny" style="margin-bottom:10px">Как только код появится на сайте, мы увидим это сами и напишем вам. Вернётесь по ссылке из письма и запустите пробный период — отсчёт начнётся с вашего нажатия, а не с момента установки.</p>
+            <p class="tiny" style="margin-bottom:10px">Как только код появится на сайте, мы увидим это сами и напишем вам. Вернётесь в кабинет по ссылке из письма и запустите пробный период — отсчёт начнётся с вашего нажатия, а не с момента установки.</p>
             <!-- Кнопка «Подключить Telegram» отсюда убрана (очередь 2, ревью
                  Ивана): подключение мессенджера — не часть установки скрипта,
                  и брендированная кнопка чужой функции посреди шага сбивала с
@@ -2812,8 +2824,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         </div>
       </div>
 
-      <!-- Способы входа. Пароля в продукте нет: вход по ссылке из письма
-           либо через провайдера (решение 10 сентября). Мессенджер здесь
+      <!-- Способы входа. Пароля в продукте нет: вход по коду из письма
+           либо через провайдера (уточнение 17 сентября). Мессенджер здесь
            подсвечен намеренно — это не «ещё одна настройка», а заметная
            выгода: вход в один тап и уведомления туда же, куда человек и
            так смотрит. Поэтому блок, а не строчка в списке. -->
@@ -2821,9 +2833,9 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="card pad" style="margin-top:12px">
         <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px">
           <div style="min-width:0">
-            <div style="font-weight:700;font-size:var(--fs-md)">По ссылке из письма</div>
+            <div style="font-weight:700;font-size:var(--fs-md)">По коду из письма</div>
             <div class="tiny mono" style="margin-top:2px;overflow-wrap:anywhere" data-acct-mail-plain>director@alfa-school.ru</div>
-            <div class="tiny" style="margin-top:2px">Пароль не нужен — присылаем ссылку на эту почту</div>
+            <div class="tiny" style="margin-top:2px">Пароль не нужен — присылаем код на эту почту</div>
           </div>
         </div>
         <div class="hr"></div>
@@ -4843,7 +4855,7 @@ function syncAuthLine(){
   var linked = AUTH_METHODS.filter(function(k){ return messengers[k]; });
   var free = AUTH_METHODS.filter(function(k){ return !messengers[k]; });
   var note = document.getElementById('auth-note');
-  if (note) note.textContent = linked.length ? 'вход через ' + ruList(linked, 'и') : 'вход по ссылке из письма';
+  if (note) note.textContent = linked.length ? 'вход через ' + ruList(linked, 'и') : 'вход по коду из письма';
   var lbl = document.getElementById('auth-add-label');
   var btn = lbl && lbl.closest('button');
   if (lbl) lbl.textContent = free.length ? 'Добавить вход через ' + ruList(free, 'или') : 'Все способы входа привязаны';
@@ -6097,11 +6109,27 @@ if (resumeSub) resumeSub.addEventListener('click', function(){ subCancelled = fa
 /* новый тикет — добавляется в «Мои обращения» со статусом «открыто»,
    ответ появляется там же, когда поддержка ответит (не только на почту) */
 /* Зачем пришли на «Проверьте почту»: из входа или из регистрации.
-   От этого зависит, пустой аккаунт за ссылкой или уже с сайтом. */
+   От этого зависит, пустой аккаунт за кодом или уже с сайтом. */
 var mailFlow = 'signup';
 var mailLoginDone = document.getElementById('maillogin-done');
 if (mailLoginDone) mailLoginDone.addEventListener('click', function(){
+  var code = document.getElementById('maillogin-code');
+  var err = document.getElementById('maillogin-code-error');
+  var ok = /^\d{6}$/.test(code.value.trim());
+  code.classList.toggle('error', !ok);
+  if (err) err.style.display = ok ? 'none' : 'block';
+  if (!ok) { code.focus({preventScroll:true}); return; }
   if (mailFlow === 'signup') { hasSite = false; syncCompany(); }
+  goScreen('s-status');
+});
+var mailLoginResend = document.getElementById('maillogin-resend');
+if (mailLoginResend) mailLoginResend.addEventListener('click', function(){
+  var code = document.getElementById('maillogin-code');
+  if (code) { code.value = ''; code.classList.remove('error'); code.focus({preventScroll:true}); }
+  var err = document.getElementById('maillogin-code-error');
+  if (err) err.style.display = 'none';
+  mailLoginResend.textContent = 'Отправили ещё раз';
+  setTimeout(function(){ mailLoginResend.textContent = 'Отправить снова'; }, 2500);
 });
 
 var ticketSubmit = document.getElementById('ticket-submit');
