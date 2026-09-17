@@ -95,6 +95,7 @@
      Правило: новый font-size в этом файле не появляется. Если роль не
      ложится ни в одну ступень — значит роль придумана лишняя. */
   --fs-h1:26px;      /* заголовок экрана */
+  --fs-q:17px;       /* заголовок вопроса или блока внутри карточки */
   --fs-h1-sm:22px;   /* он же на телефоне; крупное число в статистике */
   --fs-glyph:18px;   /* знак в круге: «+», номер шага в мобильной панели */
   --fs-lg:15px;      /* заголовок секции, основной текст, поле ввода */
@@ -118,7 +119,7 @@ textarea.inp{resize:vertical;line-height:1.5}
 .js .nojs{display:none}
 
 h1{font-size:var(--fs-h1);font-weight:800;letter-spacing:-.03em;margin:0}
-h2{font-size:var(--fs-lg);font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
+h2{font-size:var(--fs-q);font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
 h3{font-size:var(--fs-lg);font-weight:800;letter-spacing:-.01em;margin:0}
 p{margin:0}
 .lead{font-size:var(--fs-lg);color:rgba(17,17,16,.65)}
@@ -331,7 +332,7 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 @media(max-width:640px){ .msgr-unlink{width:44px;height:44px} }
 .seg{display:inline-flex;gap:3px;border:1px solid var(--line-2);background:var(--white);border-radius:10px;padding:3px}
 .seg button{background:none;border:0;padding:8px 15px;border-radius:8px;font-size:var(--fs-sm);font-weight:700;
-  color:rgba(17,17,16,.6);cursor:pointer;transition:transform 160ms ease-out,background-color .15s ease-out,color .15s ease-out}
+  color:rgba(17,17,16,.82);cursor:pointer;transition:transform 160ms ease-out,background-color .15s ease-out,color .15s ease-out}
 .seg button.on{background:var(--ink);color:#fff}
 .seg button:active{transform:scale(.97)}
 /* Четыре платформы в одну строку на телефоне не помещаются, а простой
@@ -1099,7 +1100,9 @@ details.acc:first-child{margin-top:0}
    пояснение к нему, а не к карточке. В .row на шаге установки и у
    .state-варианта на s-pay это ничего не меняет: там display задают
    флекс-контейнер и правило .js .state с более высокой специфичностью. */
-.anketa-fold-btn{padding:0;margin-top:8px;display:block}
+.anketa-fold-btn{padding:0;margin-top:8px;display:block;
+  font-size:var(--fs-xs);font-weight:700;color:rgba(17,17,16,.55)}
+.anketa-fold-btn:hover{color:var(--ink)}
 
 /* HANDOFF 6.15 п.8 — после истечения пробного периода без оплаты
    документы в s-docs остаются просматриваемыми, но не копируются/не
@@ -1116,7 +1119,7 @@ details.acc:first-child{margin-top:0}
    инлайн-наборами и размечался то h3, то h2 — в «Виджете» доходило до
    того, что мелкий уппер-кейс был h2, а крупное название блока над ним
    вообще не заголовком. */
-.sub-h{margin:0;font-size:var(--fs-sm);font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,17,16,.62)}
+.sub-h{margin:0;font-size:var(--fs-xs);font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(17,17,16,.55)}
 .doc-actions{display:inline-flex;gap:6px;flex:none}
 /* «Изменить» стоит в мета-строке под названием, а не четвёртой кнопкой
    справа: справа он ломал колонки — либо сдвигал у своей строки и чип, и
@@ -1569,7 +1572,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
            пришлось держать в двух версиях, чтобы он не врал на втором
            сайте; теперь врать нечему, и на втором сайте шага нет вовсе
            (FUNNEL_ALL.skipIf по hasIdentity). -->
-      <p class="lead" style="margin-top:8px">Подключаем сайт: шесть шагов, на выходе — пакет документов и строка кода для сайта. Начнём с вас: кто вы и куда вам писать. Про сайт и компанию спросим дальше.</p>
+      <p class="lead" style="margin-top:8px">Шесть шагов, на выходе — пакет документов и строка кода для сайта. Начнём с вас.</p>
 
       <!-- Шапка «кто вы» стоит ВНЕ карточки, рядом с заголовком экрана: внутри
            она читалась как очередная строка формы. Аватар и имя приходят из
@@ -1617,7 +1620,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-role">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-role" style="display:none;margin-top:8px">Роль решает одно: предложим ли на последнем шаге поручить установку кода разработчику. Подрядчику это предлагать незачем — он и есть тот, кому поручают.</p>
 
-          <div class="hr" style="margin:14px 0"></div>
+          <div class="hr" style="margin:22px 0"></div>
           <h2 style="margin-bottom:8px">Куда вам писать</h2>
           <div class="f2">
             <div class="fld">
@@ -1750,7 +1753,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-domain">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-domain" style="display:none;margin-top:8px">Домен попадёт в текст всех пяти документов, в ссылки, по которым они открываются, и в код установки. Сайт мы везде опознаём по нему — второго имени не просим.</p>
 
-            <div class="hr" style="margin:14px 0"></div>
+            <div class="hr" style="margin:22px 0"></div>
             <h2 style="margin-bottom:8px" id="h-platform">Платформа сайта <span style="color:var(--danger)">*</span></h2>
             <!-- Сегмент, а не чекбоксы (правка пользователя 16 сентября): выбор
                  здесь один и взаимоисключающий, а чекбоксы это отрицали — можно
@@ -1776,7 +1779,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-platform">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-platform" style="display:none;margin-top:8px">На документы платформа не влияет. От неё зависит только инструкция на последнем шаге: куда именно вставлять код — в настройках Тильды, в header.php у WordPress или в шаблоне Битрикса.</p>
 
-            <div class="hr" style="margin:14px 0"></div>
+            <div class="hr" style="margin:22px 0"></div>
             <h2 style="margin-bottom:4px" id="h-analytics">Аналитика на сайте <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Счётчики посетителей. Если не знаете, что установлено — так и отметьте.</p>
             <div style="margin-top:4px">
@@ -1790,7 +1793,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-analytics">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-analytics" style="display:none;margin-top:8px">Политика обработки cookie должна описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей. Отдельно про Google Analytics — он отправляет данные посетителей на зарубежные серверы, и по 152-ФЗ это отдельный риск, о котором стоит поговорить.</p>
 
-            <div class="hr" style="margin:14px 0"></div>
+            <div class="hr" style="margin:22px 0"></div>
             <h2 style="margin-bottom:4px" id="h-features">Формы и сервисы на сайте <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Что посетитель может сделать на сайте. Под каждым пунктом написано, куда встанет согласие.</p>
             <div style="margin-top:4px">
@@ -1882,7 +1885,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-sphere">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-sphere" style="display:none;margin-top:8px">Сфера подбирает список целей в следующем блоке: у интернет-магазина и у салона он разный. Она же задаёт оговорки в политике — например, про обработку данных несовершеннолетних, если вы работаете с детьми.</p>
 
-            <div class="hr" style="margin:14px 0"></div>
+            <div class="hr" style="margin:22px 0"></div>
             <h2 style="margin-bottom:4px">Цели сбора контактов <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Отметьте всё, что подходит — по этим целям соберём формулировки согласия и текст у форм на сайте.</p>
             <!-- Раньше — 3 галочки под одну сферу (онлайн-школа), все
@@ -1907,7 +1910,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-purpose">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-purpose" style="display:none;margin-top:8px">Цель обработки — обязательная часть согласия: использовать данные для цели, которая в нём не названа, нельзя. Поэтому отмеченное определяет, что будет написано в согласии и в тексте у формы на сайте.</p>
-            <div class="hr" style="margin:14px 0"></div>
+            <div class="hr" style="margin:22px 0"></div>
             <h2 style="margin-bottom:4px" id="h-fields">Какие данные собираете <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Что посетитель вводит в формы на сайте. Из отмеченного соберём состав данных в политике и в согласии — перечислить его там обязательно.</p>
             <label class="check" data-pdfield="name"><input type="checkbox"><span class="t">Имя<span class="ex">или ФИО, если нужно в договор</span></span></label>
@@ -1921,7 +1924,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-pdfields">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-pdfields" style="display:none;margin-top:8px">Состав данных — вторая обязательная часть и политики, и согласия, наравне с целью. Перечислять его нужно точно: если в документе написан Telegram, а вы пишете в WhatsApp, документ неточен.</p>
 
-            <div class="hr" style="margin:14px 0"></div>
+            <div class="hr" style="margin:22px 0"></div>
             <h2 style="margin-bottom:4px" id="h-calls">Звонки и письма по базе клиентов <span style="color:var(--danger)">*</span></h2>
             <p class="tiny" style="margin-bottom:8px">Ответьте, обращаетесь ли вы к клиентам из своей базы — звонком, в мессенджере или письмом.</p>
             <div class="seg" id="calls-seg" role="group" aria-labelledby="h-calls" style="margin-top:4px">
@@ -1974,7 +1977,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-ownership">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-ownership" style="display:none;margin-top:8px">От этого зависит, что спрашивать дальше: у ООО есть ОГРН и КПП, у ИП вместо ОГРН — ОГРНИП из другого реестра, у самозанятого нет ни того, ни другого, а вместо юридического адреса — адрес для переписки.</p>
 
-            <div class="hr" style="margin:14px 0"></div>
+            <div class="hr" style="margin:22px 0"></div>
             <h2 style="margin-bottom:4px">Данные из реестра</h2>
             <p class="tiny" style="margin-bottom:8px">Введите ИНН — наименование, ОГРН, КПП и адрес подставим сами. Останется проверить.</p>
             <div class="fld">
@@ -2027,7 +2030,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-registry">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-registry" style="display:none;margin-top:8px">149-ФЗ ст.10 ч.2 обязывает владельца сайта держать в открытом доступе наименование, место нахождения и адрес. Виджет откроет их по ссылке в подвале — их увидит любой посетитель. КПП закон публиковать не требует: он нужен, чтобы бухгалтер контрагента выставил счёт.</p>
 
-            <div class="hr" style="margin:14px 0"></div>
+            <div class="hr" style="margin:22px 0"></div>
             <h2 style="margin-bottom:8px">Банковские реквизиты</h2>
             <div class="f2">
               <div class="fld">
@@ -2055,7 +2058,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <button type="button" class="btn text sm anketa-fold-btn" data-fold="fold-bank">Зачем это нужно ⌄</button>
             <p class="tiny" id="fold-bank" style="display:none;margin-top:8px">Банковские реквизиты закон публиковать не требует. Мы спрашиваем их, чтобы бухгалтер контрагента выставил счёт и составил договор, ничего не запрашивая дополнительно.</p>
 
-            <div class="hr" style="margin:14px 0"></div>
+            <div class="hr" style="margin:22px 0"></div>
             <h2 style="margin-bottom:8px">Контакты компании</h2>
             <div class="f2">
               <div class="fld">
