@@ -1582,12 +1582,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <span class="avatar avatar-lg" data-acct-initial>К</span>
         <div style="min-width:0;flex:1">
           <div style="font-weight:700;font-size:var(--fs-md)" data-acct-name-inline>Кирилл</div>
-          <p class="tiny" style="margin-top:2px" id="auth-note">Вошли через Telegram — имя и аватарку взяли оттуда.</p>
+          <p class="tiny" style="margin-top:2px" id="auth-note">вход через Telegram</p>
         </div>
-        <button type="button" class="btn sm" style="flex:none" data-fold="fold-authlist">Добавить способ входа ⌄</button>
+        <button type="button" class="btn sm" style="flex:none" data-fold="fold-authlist"><span id="auth-add-label">Добавить вход через Яндекс или MAX</span> ⌄</button>
       </div>
       <div id="fold-authlist" class="card pad" style="display:none;margin-top:10px">
-        <p class="tiny" style="margin-bottom:10px">Привяжите второй способ, чтобы не потерять доступ, если первый перестанет работать. Уведомления о продлении и статусе виджета придут туда же. Отвязать можно позже в Настройках.</p>
+        <p class="tiny" style="margin-bottom:10px">Вход в один тап с любого устройства, и уведомления о продлении и статусе виджета придут в мессенджер, а не только на почту. Войти по ссылке из письма можно всегда — второй способ нужен для удобства, не вместо почты. Отвязать можно позже в Настройках.</p>
         <div id="profile-msgr-host"></div>
       </div>
 
@@ -3765,6 +3765,10 @@ var siteStatus = 'trial';
 // Тот, которым человек вошёл, привязан по определению: подпись на шаге
 // «Ваш профиль» говорит «Вошли через …», и строка обязана это показывать.
 var messengers = {Telegram: true};
+// Порядок как на экране входа. Объявлено здесь, а не рядом с syncAuthLine:
+// syncMessengers вызывается из syncAccount при первом goScreen, то есть
+// раньше того места в скрипте — var поднялся бы без значения.
+var AUTH_METHODS = ['Telegram', 'Яндекс', 'MAX'];
 var company = {
   name:'ООО «Альфа Образование»', inn:'7701234567', mail:'buh@alfa-school.ru',
   phone:'+7 (495) 123-45-67', account:'40702810900000012345',
@@ -4825,6 +4829,27 @@ function syncSetView(){
 /* Каждый мессенджер подключается и отключается сам по себе: человек может
    держать Telegram для себя и MAX для рабочих уведомлений. Раньше блок
    позволял только один — подключение второго молча заменяло первый. */
+/* Строка состояния и ярлык кнопки собираются из того же состояния, что и
+   сам список способов, — иначе разойдутся. Ярлык перечисляет ИМЕННО те
+   варианты, которые ещё не привязаны: смысл предложения должен читаться
+   из кнопки, а не открываться по клику. */
+/* Перечисление по-русски: запятые, а последний через союз. join(' и ')
+   давал «Telegram и Яндекс и MAX». */
+function ruList(items, conj){
+  if (items.length < 2) return items.join('');
+  return items.slice(0, -1).join(', ') + ' ' + conj + ' ' + items[items.length - 1];
+}
+function syncAuthLine(){
+  var linked = AUTH_METHODS.filter(function(k){ return messengers[k]; });
+  var free = AUTH_METHODS.filter(function(k){ return !messengers[k]; });
+  var note = document.getElementById('auth-note');
+  if (note) note.textContent = linked.length ? 'вход через ' + ruList(linked, 'и') : 'вход по ссылке из письма';
+  var lbl = document.getElementById('auth-add-label');
+  var btn = lbl && lbl.closest('button');
+  if (lbl) lbl.textContent = free.length ? 'Добавить вход через ' + ruList(free, 'или') : 'Все способы входа привязаны';
+  if (btn) btn.disabled = !free.length;
+}
+
 function syncMessengers(){
   document.querySelectorAll('.msgr').forEach(function(row){
     var on = !!messengers[row.dataset.messenger];
@@ -4836,6 +4861,7 @@ function syncMessengers(){
     if ((el = row.querySelector('.msgr-link'))) el.style.display = on ? 'none' : '';
     if ((el = row.querySelector('.msgr-unlink'))) el.style.display = on ? '' : 'none';
   });
+  syncAuthLine();
   var linked = Object.keys(messengers).filter(function(k){ return messengers[k]; });
   var where = document.getElementById('notify-where');
   var offer = document.getElementById('notify-offer');
@@ -4870,8 +4896,7 @@ document.querySelectorAll('[data-auth-provider]').forEach(function(b){
     authProvider = b.dataset.authProvider;
     messengers[authProvider] = true;
     syncMessengers();
-    var note = document.getElementById('auth-note');
-    if (note) note.textContent = 'Вошли через ' + authProvider + ' — имя и аватарку взяли оттуда.';
+    syncAuthLine();
   });
 });
 
