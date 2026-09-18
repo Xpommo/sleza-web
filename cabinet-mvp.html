@@ -145,6 +145,14 @@ p{margin:0}
 .btn.solid:hover{background:var(--brand);border-color:var(--brand)}
 .btn.text{border-color:transparent;background:none;padding:12px 4px;color:rgba(17,17,16,.7)}
 .btn.text:hover{color:var(--ink);background:none}
+/* Ступень «12/700 мета, второстепенное действие» из типографической
+   лестницы — те же значения, что у .anketa-fold-btn («Зачем это нужно»).
+   Нужна для действий, которые стоят В мета-строке под контролом:
+   «Отправить снова», «Изменить почту», «Изменить». Они шли .btn.text.sm —
+   13/700 при .7, то есть темнее и крупнее подписи поля рядом, хотя это
+   самое тихое, что есть в блоке. */
+.btn.text.meta{padding:0;font-size:var(--fs-xs);font-weight:700;color:rgba(17,17,16,.55)}
+.btn.text.meta:hover{color:var(--ink)}
 .btn.sm{padding:8px 14px;font-size:var(--fs-sm);border-radius:9px}
 /* На телефоне .btn.sm и вкладки платформы были 35px в высоту при норме
    44px (WCAG 2.5.8). Больнее всего на шаге 6: четыре вкладки платформы
@@ -285,6 +293,19 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .f2{display:grid;gap:10px 14px}
 .f2 > .fld{margin-top:0}
 @media(min-width:761px){.f2{grid-template-columns:1fr 1fr}}
+
+/* ── вложенная панель состояния поля ───────────────────────────────────
+   Подтверждение почты кодом — конечный автомат из трёх состояний одного
+   поля (ввод → код → подтверждено). Без контейнера среднее состояние
+   читалось как «ещё контент, вываленный в карточку», а не как «то же
+   поле, но в процессе»: владелец так и сказал — «выбивается из общего
+   визуала». Подложка --paper на белой карточке плюс тонкая рамка — тот
+   же приём, что у развернутых блоков в анкете, новых цветов не заводит.
+   Панель во всю ширину поля, без левого отступа: сдвиг сломал бы
+   выравнивание с остальными полями сетки, а вложенность показывает
+   подложка. */
+.mail-panel{padding:12px 14px;background:var(--paper);
+  border:1px solid var(--line);border-radius:10px}
 
 /* Список мессенджеров: строка на каждый, состояние у каждой своё —
    подключить можно несколько сразу. */
@@ -1100,9 +1121,15 @@ details.acc:first-child{margin-top:0}
    пояснение к нему, а не к карточке. В .row на шаге установки и у
    .state-варианта на s-pay это ничего не меняет: там display задают
    флекс-контейнер и правило .js .state с более высокой специфичностью. */
-.anketa-fold-btn{padding:0;margin-top:8px;display:block;
+/* Селектор из трёх классов — не для красоты: .btn.sm (13px) и .btn.text
+   (цвет .7) весят по (0,2,0) и перебивали одноклассовый .anketa-fold-btn.
+   То есть перевод разворотов на ступень «12/700 приглушённое» был записан,
+   но в браузере не применялся: все шестнадцать «Зачем это нужно» так и
+   остались 13/700 при .7 — темнее и крупнее подписей полей рядом, ровно
+   то, на что указывало ревью. Ловится только вычисленным стилем. */
+.btn.text.anketa-fold-btn{padding:0;margin-top:8px;display:block;
   font-size:var(--fs-xs);font-weight:700;color:rgba(17,17,16,.55)}
-.anketa-fold-btn:hover{color:var(--ink)}
+.btn.text.anketa-fold-btn:hover{color:var(--ink)}
 
 /* HANDOFF 6.15 п.8 — после истечения пробного периода без оплаты
    документы в s-docs остаются просматриваемыми, но не копируются/не
@@ -1313,7 +1340,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
     <div class="state" data-state="sent" style="text-align:center">
       <div style="width:52px;height:52px;margin:0 auto 18px;border-radius:999px;background:var(--brand-tint);display:grid;place-items:center;font-size:var(--fs-h1-sm)">✉️</div>
       <h1>Проверьте почту</h1>
-      <p class="lead" style="margin-top:10px">Прислали код на <b id="maillogin-addr">you@company.ru</b>. Код действует 30 минут.</p>
+      <p class="lead" style="margin-top:10px">Отправили код на <b id="maillogin-addr">you@company.ru</b>. Код действует 30 минут.</p>
       <!-- Поле кода, а не кнопка «перешёл по ссылке»: вход по коду
            подтверждения (уточнение модели владельцем). Контрол и состояния
            те же, что у подтверждения почты на шаге «Ваш профиль» — один
@@ -1325,7 +1352,13 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
         <p class="tiny anketa-field-error" id="maillogin-code-error" style="display:none;margin-top:5px;color:var(--danger)">Код из письма — шесть цифр. Проверьте, не пропущена ли цифра.</p>
       </div>
       <button type="button" class="btn solid wide" style="margin-top:16px" id="maillogin-done">Войти →</button>
-      <p class="tiny" style="margin-top:16px">Не пришло письмо? <button type="button" class="btn text sm" style="padding:0" id="maillogin-resend">Отправить снова</button> · <button type="button" class="btn text sm" style="padding:0" data-state-to="request">Ввести почту заново</button></p>
+      <!-- Мета-строка та же, что у подтверждения почты на шаге «Ваш профиль»:
+           один механизм — один вид. Действия на ступени 12/700 приглушённой
+           («мета, второстепенное действие»), а не 13/700 тёмной: раньше они
+           весили больше подписи поля над ними. Формулировка «Изменить почту»
+           тоже общая — «Ввести почту заново» называло то же самое действие
+           вторым именем. -->
+      <p class="tiny" style="margin-top:16px">Не пришло письмо? <button type="button" class="btn text meta" id="maillogin-resend">Отправить снова</button> <span style="white-space:nowrap">· <button type="button" class="btn text meta" data-state-to="request">Изменить почту</button></span></p>
     </div>
   </div>
 </section>
@@ -1647,40 +1680,58 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           </div>
 
           <div class="fld">
-            <label class="f" for="anketa-person-mail">Почта <span style="color:var(--danger)">*</span></label>
             <!-- Подтверждение кодом прямо у поля. Почта — единственный канал,
                  которым мы сообщаем об изменениях закона и обновлении
                  документов: непроверенный адрес означает, что клиент об этом
                  не узнает. Поэтому подтверждение обязательно, а не по желанию.
                  Три состояния переключаются явным style.display, а не классом
                  .state: у .state в этом файле своё правило display:block,
-                 которое ломает flex-строку (грабля ловилась трижды). -->
+                 которое ломает flex-строку (грабля ловилась трижды).
+                 Подпись поля живёт ВНУТРИ состояния, а не над всеми тремя:
+                 общая «Почта *» висела и над состоянием ввода кода, где поля
+                 почты на экране уже нет, — и читалась как второй заголовок
+                 того же ранга над «Кодом из письма» (два label.f 13/700 друг
+                 в друге), а в подтверждённом состоянии удваивала слово
+                 «Почта». Теперь на каждом состоянии подпись ровно одна и
+                 называет тот контрол, который сейчас виден. -->
             <div id="mail-step-enter">
+              <label class="f" for="anketa-person-mail">Почта <span style="color:var(--danger)">*</span></label>
               <div class="row" style="gap:8px;align-items:flex-start">
                 <input class="inp" id="anketa-person-mail" type="email" autocomplete="email" placeholder="kirill@alfa-school.ru" style="flex:1;min-width:0">
-                <button type="button" class="btn sm" id="mail-send-code" style="flex:none">Подтвердить</button>
+                <button type="button" class="btn sm" id="mail-send-code" style="flex:none">Прислать код</button>
               </div>
               <p class="tiny anketa-field-error" id="anketa-person-mail-error" style="display:none;margin-top:5px;color:var(--danger)">Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.</p>
             </div>
 
-            <div id="mail-step-code" style="display:none">
-              <p class="tiny" style="margin-bottom:6px">Отправили код на <b data-mail-sent-to>kirill@alfa-school.ru</b></p>
+            <!-- Вложенная панель: это не ещё один блок карточки, а то же поле
+                 в процессе. Подложку и рамку даёт .mail-panel — без них
+                 состояние читалось как контент, вываленный в карточку.
+                 Кнопка обведённая, как и в состоянии ввода: чёрная на экране
+                 одна, и это «Далее» внизу. Поле кода — половина своей строки,
+                 та же доля, что у короткого поля в паре .f2: 150px вплотную к
+                 кнопке были шириной ниоткуда, а во всю ширину коробка под
+                 шесть цифр стоит пустой. -->
+            <div id="mail-step-code" class="mail-panel" style="display:none">
               <label class="f" for="mail-code">Код из письма</label>
               <div class="row" style="gap:8px;align-items:flex-start">
-                <input class="inp mono" id="mail-code" inputmode="numeric" maxlength="6" placeholder="6 цифр" style="flex:none;width:150px">
-                <button type="button" class="btn sm solid" id="mail-check-code" style="flex:none">Готово</button>
+                <input class="inp mono" id="mail-code" inputmode="numeric" maxlength="6" placeholder="6 цифр" style="flex:0 1 50%;min-width:0">
+                <button type="button" class="btn sm" id="mail-check-code" style="flex:none">Подтвердить</button>
               </div>
               <p class="tiny anketa-field-error" id="mail-code-error" style="display:none;margin-top:5px;color:var(--danger)">Код из письма — шесть цифр. Проверьте, не пропущена ли цифра.</p>
-              <p class="tiny" style="margin-top:6px">Не пришло? <button type="button" class="btn text sm" style="padding:0" id="mail-resend">Отправить снова</button> · <button type="button" class="btn text sm" style="padding:0" id="mail-change">Изменить почту</button></p>
+              <p class="tiny" style="margin-top:8px">Отправили на <b data-mail-sent-to>kirill@alfa-school.ru</b>. Не пришло? <button type="button" class="btn text meta" id="mail-resend">Отправить снова</button> <span style="white-space:nowrap">· <button type="button" class="btn text meta" id="mail-change">Изменить почту</button></span></p>
             </div>
 
             <p class="tiny anketa-field-error" id="anketa-mail-error" style="display:none;margin-top:6px;color:var(--danger)">Подтвердите почту — на неё придут письма об обновлении документов, и без проверки мы не знаем, доходят ли они.</p>
 
-            <div id="mail-step-done" style="display:none">
+            <!-- Подтверждённое состояние — та же панель: слот у поля один,
+                 и высота карточки не прыгает при переключении состояний.
+                 Подложка нейтральная, статус несёт зелёная галочка — ещё
+                 одна цветная подложка на карточку не заводится. -->
+            <div id="mail-step-done" class="mail-panel" style="display:none">
               <div class="row" style="gap:8px;align-items:baseline">
                 <span class="b green" style="font-size:var(--fs-md)">✓ Почта подтверждена</span>
                 <span class="tiny mono" data-mail-sent-to>kirill@alfa-school.ru</span>
-                <button type="button" class="btn text sm" style="padding:0" id="mail-change-done">Изменить</button>
+                <button type="button" class="btn text meta" id="mail-change-done">Изменить</button>
               </div>
             </div>
           </div>
@@ -2346,7 +2397,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
           <div class="seg" id="install-platform-seg" role="group" aria-labelledby="h-install-platform" style="margin-bottom:13px;flex-wrap:wrap"><button type="button" class="on" data-platform="tilda">Тильда</button><button type="button" data-platform="wp">WordPress</button><button type="button" data-platform="bitrix">Битрикс</button><button type="button" data-platform="other">Другое</button></div>
           <div class="code" id="install-code">&lt;script src="https://cdn.sleza.media/w.js"
 data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
-          <button class="btn sm solid copy-code-btn" style="margin-top:10px" data-copy-target="install-code">Скопировать код</button>
+          <button class="btn sm copy-code-btn" style="margin-top:10px" data-copy-target="install-code">Скопировать код</button>
         </div>
       </li>
 
@@ -2410,7 +2461,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
           <div data-install-branch="self">
             <h2 style="margin-bottom:0">Проверьте, что код заработал</h2>
             <p class="tiny" style="margin-bottom:10px">Откроем ваш сайт и поищем строку кода на странице.</p>
-            <button type="button" class="btn sm solid install-check-btn">↻ Проверить скрипт на сайте</button>
+            <button type="button" class="btn sm install-check-btn">↻ Проверить скрипт на сайте</button>
           </div>
           <div data-install-branch="delegate" style="display:none">
             <h2 style="margin-bottom:0">Дождитесь установки</h2>
@@ -3516,7 +3567,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <p class="tiny" style="margin-top:14px;color:rgba(17,17,16,.55)">Публикуем и датируем сами — если понадобится доказать, что было опубликовано и когда, ответ уже в системе, не в голове.</p>
 
       <div class="card pad" style="margin-top:16px">
-        <button class="btn text sm" data-fold="widget-code" style="padding:0">Показать код установки ⌄</button>
+        <button class="btn text sm anketa-fold-btn" data-fold="widget-code" style="margin-top:0">Показать код установки ⌄</button>
         <div id="widget-code" style="display:none;margin-top:10px">
           <div class="code" id="widget-code-block">&lt;script src="https://cdn.sleza.media/w.js"
 data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
