@@ -294,18 +294,25 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
 .f2 > .fld{margin-top:0}
 @media(min-width:761px){.f2{grid-template-columns:1fr 1fr}}
 
-/* ── вложенная панель состояния поля ───────────────────────────────────
-   Подтверждение почты кодом — конечный автомат из трёх состояний одного
-   поля (ввод → код → подтверждено). Без контейнера среднее состояние
-   читалось как «ещё контент, вываленный в карточку», а не как «то же
-   поле, но в процессе»: владелец так и сказал — «выбивается из общего
-   визуала». Подложка --paper на белой карточке плюс тонкая рамка — тот
-   же приём, что у развернутых блоков в анкете, новых цветов не заводит.
-   Панель во всю ширину поля, без левого отступа: сдвиг сломал бы
-   выравнивание с остальными полями сетки, а вложенность показывает
-   подложка. */
-.mail-panel{padding:12px 14px;background:var(--paper);
+/* ── панель состояния ──────────────────────────────────────────────────
+   Один приём на весь файл: блок, у которого есть состояния (подтверждение
+   почты кодом, проверка скрипта на сайте), показывает текущее состояние
+   панелью, а не россыпью текста в карточке. Без контейнера состояние
+   читается как «ещё контент, вываленный в карточку», а не как «тот же
+   блок, но в процессе» — владелец так и сказал про подтверждение почты:
+   «выбивается из общего визуала».
+
+   Приём в файле уже был — зелёная плашка «Скрипт найден» на шаге
+   установки, — но жил инлайн-стилями и без имени, поэтому вторая такая
+   же панель получилась другого цвета. Теперь класс один, модификатор
+   один: .ok — состояние разрешилось успехом (почта подтверждена, скрипт
+   найден), базовый вариант — процесс.
+
+   Панель во всю ширину блока, без левого отступа: сдвиг сломал бы
+   выравнивание с полями сетки, а вложенность показывает подложка. */
+.state-panel{padding:12px 14px;background:var(--paper);
   border:1px solid var(--line);border-radius:10px}
+.state-panel.ok{background:var(--ok-tint);border-color:rgba(26,122,82,.25)}
 
 /* Список мессенджеров: строка на каждый, состояние у каждой своё —
    подключить можно несколько сразу. */
@@ -766,6 +773,12 @@ h2 + .fld,h2 + .f2,.hr + .fld,.hr + .f2{margin-top:0}
    (#6E9BFF) и текст должен быть тёмным, в светлой акцент насыщенный
    (#2E5FE0) и текст белый — фиксированный цвет тонул бы в одной из двух */
 .cc-accept:hover{filter:brightness(1.08)}
+/* Баннер в кабинете показан витриной: это то, что увидит ПОСЕТИТЕЛЬ сайта
+   клиента, а не действие для владельца кабинета. Кнопка нажималась и не
+   делала ничего — единственный оставшийся в файле контрол без назначения.
+   Выключаем нажатие и уводим из обхода табом, вид не трогаем: превью должно
+   выглядеть ровно так, как встанет на сайт. */
+.cookie-card .cc-accept{pointer-events:none;cursor:default}
 .cc-note{font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.06em;text-transform:uppercase;
   color:var(--w-muted);opacity:.75;margin:0;text-align:center}
 /* На узком экране полоса складывается обратно в карточку: иконка над
@@ -1204,7 +1217,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <button type="button" data-tab-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button>
   <button type="button" data-tab-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button>
   <div class="div"></div>
-  <button type="button"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button>
+  <button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button>
 </div>
 <!-- Нижняя панель воронки. Таббара в анкете нет и быть не должно: он ведёт
      в «Обзор», «Документы», «Подписку» и «Виджет», а для заполняемого сайта
@@ -1458,7 +1471,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -1493,7 +1506,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                 <div class="dom" data-site-domain>alfa-school.ru</div>
                 <div class="name" data-company-short data-after-req>Альфа Образование</div>
               </div>
-              <div class="meta"><span data-unpaid-short>Документы не готовы</span><span data-after-req><br><span data-company-inn>ИНН 7701234567</span></span><br><span data-resume-note>анкета не заполнена</span></div>
+              <div class="meta"><span data-unpaid-short>Документы не готовы</span><span data-after-req><br><span data-company-inn>ИНН 7701234567</span></span><br><span data-resume-note>анкета не закончена</span></div>
               <div class="act"><button type="button" class="actbtn solid" data-resume-anketa>Продолжить анкету →</button></div>
             </div>
             <div class="state" data-pay-state="pending">
@@ -1501,7 +1514,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                 <div class="dom" data-site-domain>alfa-school.ru</div>
                 <div class="name" data-company-short>Альфа Образование</div>
               </div>
-              <div class="meta">⏳ Ожидает оплаты<br><span data-company-inn>ИНН 7701234567</span><br>счёт выставлен · обычно 1–3 рабочих дня</div>
+              <div class="meta">⏳ Счёт выставлен<br><span data-company-inn>ИНН 7701234567</span><br>оплата обычно проходит за 1–3 рабочих дня</div>
               <div class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></div>
             </div>
             <div class="state" data-pay-state="paid">
@@ -1545,13 +1558,13 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
             <tr class="state on" data-pay-state="unpaid">
               <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line data-after-req>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
               <td><span class="small muted" data-unpaid-short>Документы не готовы</span></td>
-              <td class="meta"><span data-resume-note>анкета не заполнена</span></td>
+              <td class="meta"><span data-resume-note>анкета не закончена</span></td>
               <td class="act"><button type="button" class="actbtn outline" data-resume-anketa>Продолжить анкету →</button></td>
             </tr>
             <tr class="state" data-pay-state="pending">
               <td><div class="dom" data-site-domain>alfa-school.ru</div><div class="meta"><span data-company-line>ООО «Альфа Образование» · ИНН 7701234567</span></div></td>
-              <td><span class="b amber">⏳ Ожидает оплаты</span></td>
-              <td class="meta">счёт выставлен</td>
+              <td><span class="b amber">⏳ Счёт выставлен</span></td>
+              <td class="meta">обычно 1–3 рабочих дня</td>
               <td class="act"><button type="button" class="actbtn outline" data-go="s-project-paid">Открыть →</button></td>
             </tr>
             <tr class="state" data-pay-state="paid">
@@ -1604,7 +1617,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="side-steps" data-side-steps></div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -1711,7 +1724,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
                  та же доля, что у короткого поля в паре .f2: 150px вплотную к
                  кнопке были шириной ниоткуда, а во всю ширину коробка под
                  шесть цифр стоит пустой. -->
-            <div id="mail-step-code" class="mail-panel" style="display:none">
+            <div id="mail-step-code" class="state-panel" style="display:none">
               <label class="f" for="mail-code">Код из письма</label>
               <div class="row" style="gap:8px;align-items:flex-start">
                 <input class="inp mono" id="mail-code" inputmode="numeric" maxlength="6" placeholder="6 цифр" style="flex:0 1 50%;min-width:0">
@@ -1723,11 +1736,12 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
             <p class="tiny anketa-field-error" id="anketa-mail-error" style="display:none;margin-top:6px;color:var(--danger)">Подтвердите почту — на неё придут письма об обновлении документов, и без проверки мы не знаем, доходят ли они.</p>
 
-            <!-- Подтверждённое состояние — та же панель: слот у поля один,
-                 и высота карточки не прыгает при переключении состояний.
-                 Подложка нейтральная, статус несёт зелёная галочка — ещё
-                 одна цветная подложка на карточку не заводится. -->
-            <div id="mail-step-done" class="mail-panel" style="display:none">
+            <!-- Подтверждённое состояние — та же панель в варианте .ok:
+                 слот у поля один, высота карточки не прыгает, а зелёная
+                 подложка — ровно та же, что у «Скрипт найден» на шаге
+                 установки. Два успешных состояния в продукте обязаны
+                 выглядеть одинаково. -->
+            <div id="mail-step-done" class="state-panel ok" style="display:none">
               <div class="row" style="gap:8px;align-items:baseline">
                 <span class="b green" style="font-size:var(--fs-md)">✓ Почта подтверждена</span>
                 <span class="tiny mono" data-mail-sent-to>kirill@alfa-school.ru</span>
@@ -1784,7 +1798,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="side-steps" data-side-steps></div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -2202,7 +2216,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="side-steps" data-side-steps></div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -2277,7 +2291,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <h2 style="margin-top:18px">Вот что появится на сайте</h2>
       <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
-        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div>
+        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept" tabindex="-1">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
       </div>
       <div class="fpreview" style="margin-top:14px">
@@ -2301,7 +2315,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <summary>Вот что появится на сайте</summary>
       <div class="lbl" style="background:var(--paper);padding:8px 14px;font-family:var(--mono);font-size:var(--fs-chip);letter-spacing:.09em;text-transform:uppercase;color:rgba(17,17,16,.62);border:1px solid var(--line-2);border-bottom:0;border-radius:10px 10px 0 0">cookie-баннер при первом заходе</div>
       <div style="border:1px solid var(--line-2);border-top:0;border-radius:0 0 10px 10px;padding:16px;background:var(--paper)" data-banner-host>
-        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div>
+        <div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept" tabindex="-1">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div>
         <p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>
       </div>
       <div class="fpreview" style="margin-top:14px">
@@ -2358,7 +2372,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
       <div class="side-steps" data-side-steps></div>
       <div class="acct" style="margin-top:auto">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -2475,7 +2489,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             <div id="notify-where" style="margin-bottom:10px"></div>
             <button type="button" class="btn text sm install-check-btn" style="padding:0">↻ Проверить сейчас</button>
           </div>
-          <div data-install="found" style="display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--ok-tint);border:1px solid rgba(26,122,82,.25)">
+          <div data-install="found" class="state-panel ok" style="display:none;margin-top:12px">
             <div class="b green" style="font-size:var(--fs-md)">✓ Скрипт найден на <span data-site-domain>alfa-school.ru</span></div>
             <p class="tiny" style="margin-top:5px">Всё на месте. Осталось активировать пробный период — 24 часа документы и виджет работают бесплатно.</p>
           </div>
@@ -2525,7 +2539,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -2595,7 +2609,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
                8 сентября): в этом состоянии человек ушёл именно с шага установки,
                нажав «Поставлю позже» — возвращать его на шаг назад значит
                заставить пройти уже пройденное. -->
-          <button type="button" class="btn solid sm" data-go="s-install">Установить скрипт →</button>
+          <button type="button" class="btn solid sm" data-go="s-install">Поставить код на сайт →</button>
         </div>
       </div>
 
@@ -2719,7 +2733,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -2826,7 +2840,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -2950,7 +2964,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -3265,7 +3279,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
 </section>
 
 <!-- модалка реквизитов (настройки) -->
-<div class="modal-overlay" data-state="closed" id="modal-req-set" role="dialog" aria-modal="true" aria-labelledby="modal-req-set-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" id="modal-req-set" role="dialog" aria-modal="true" aria-labelledby="modal-req-set-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-req-set-title">Реквизиты владельца</h3><button class="btn text sm" data-modal-close="modal-req-set">✕</button></div>
     <p class="tiny" style="margin-top:2px">Попадают в документ «Реквизиты владельца» и в подвал сайта. Реквизиты для счёта — отдельные, они в «Подписке».</p>
@@ -3308,7 +3322,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
      рядом с блоком на s-billing. Наименование/ИНН/ОГРН здесь — свои,
      не синхронизируются с modal-req-set: правка 26.08, см. комментарий
      на s-pay pminvoice. -->
-<div class="modal-overlay" data-state="closed" id="modal-req-invoice" role="dialog" aria-modal="true" aria-labelledby="modal-req-invoice-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" id="modal-req-invoice" role="dialog" aria-modal="true" aria-labelledby="modal-req-invoice-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-req-invoice-title">Реквизиты для счёта</h3><button class="btn text sm" data-modal-close="modal-req-invoice">✕</button></div>
     <label class="f" style="margin-top:14px" for="modal-invoice-name">Наименование плательщика</label>
@@ -3343,7 +3357,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
      случае, в том числе на вырост — модалка не про его отсутствие, а про то,
      что рассылка без согласия незаконна, если человек однажды всё-таки
      начнёт писать. Не блокирует переход. -->
-<div class="modal-overlay" data-state="closed" id="modal-no-calls" role="dialog" aria-modal="true" aria-labelledby="modal-no-calls-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" id="modal-no-calls" role="dialog" aria-modal="true" aria-labelledby="modal-no-calls-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-no-calls-title">Если однажды начнёте писать по базе</h3><button class="btn text sm" data-modal-close="modal-no-calls">✕</button></div>
     <p class="tiny" style="margin-top:10px">Вы ответили, что не пишете и не звоните по базе клиентов. Если однажды отправите письмо или сообщение по базе, на это нужно предварительное согласие адресата — так требует 38-ФЗ ч.1 ст.18. Согласие уже входит в ваш пакет, доплачивать за него не нужно.</p>
@@ -3358,7 +3372,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
      (8 сентября, вторая итерация): инлайн удлинял и без того длинный шаг,
      а ответ на нажатие должен попасться на глаза сразу. Тон лояльный —
      код мог не успеть попасть в кеш, это нормально, а не ошибка человека. -->
-<div class="modal-overlay" data-state="closed" id="modal-no-script" role="dialog" aria-modal="true" aria-labelledby="modal-no-script-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" id="modal-no-script" role="dialog" aria-modal="true" aria-labelledby="modal-no-script-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-no-script-title">Пока не видим скрипт</h3><button class="btn text sm" data-modal-close="modal-no-script">✕</button></div>
     <p class="tiny" style="margin-top:10px">Не нашли код на сайте <b data-site-domain>alfa-school.ru</b>. Проверьте, что строка вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда страница не успевает обновиться.</p>
@@ -3395,7 +3409,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
      отменить», причину ухода не спрашиваем, третьего шага нет. Подключение
      у нас в один клик, и делать отмену заметно тяжелее подключения нельзя:
      затруднённый отказ — то самое, на что мы указываем клиентам сами. -->
-<div class="modal-overlay" data-state="closed" id="modal-cancel-help" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-help-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" id="modal-cancel-help" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-help-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-cancel-help-title">Может, получится помочь?</h3><button class="btn text sm" data-modal-close="modal-cancel-help">✕</button></div>
     <p class="tiny" style="margin-top:10px">Если виджет мешает вёрстке, документы не подходят под ваш случай или счёт пришёл не тот — это чинится за день. Отменить успеете всегда: подписка активна до <b>05.08.2027</b>.</p>
@@ -3406,7 +3420,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
   </div>
 </div>
 
-<div class="modal-overlay" data-state="closed" id="modal-cancel" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+<div class="modal-overlay" id="modal-cancel" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-cancel-title">Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
     <!-- Наполнено 10 сентября, переработано в тот же день: первая версия
@@ -3457,7 +3471,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -3509,7 +3523,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
              баннера нет и не было: «убрать текст "баннер с реальным
              отказом"... у нас нет реального отказа и он не нужен». Отказ —
              через настройки браузера, крестик просто закрывает баннер. -->
-        <div data-banner-host><div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div><p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p></div>
+        <div data-banner-host><div class="cookie-card" data-skin="dark"><div class="cc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.3"></circle><circle cx="9" cy="9.6" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.2" cy="9" r="1" fill="currentColor" stroke="none"></circle><circle cx="14.6" cy="14.3" r="1" fill="currentColor" stroke="none"></circle><circle cx="9.3" cy="14.6" r="1" fill="currentColor" stroke="none"></circle></svg></div><div class="cc-text"><h4 class="cc-title">Сайт использует cookie</h4><p class="cc-body">Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с условиями обработки cookie. Отключить их можно в настройках браузера.</p><a class="cc-link">Политика обработки cookie →</a></div><div class="cc-action"><button type="button" class="cc-accept" tabindex="-1">Принять и продолжить</button><p class="cc-note">обязательное согласие · Слеза</p></div></div><p class="skin-auto-note" data-note="banner">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p></div>
                 </div>
         <div id="banner-off-placeholder" style="display:none;border:1px dashed var(--line-2);border-radius:10px;padding:20px 16px;text-align:center">
           <p class="tiny">Баннер выключен — посетители его не видят.</p>
@@ -3603,7 +3617,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="navlist support" style="margin-top:auto"><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></a></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
-        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
+        <div class="acct-menu" data-acct-menu><button type="button" data-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button><button type="button" class="support-mobile" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button><div class="div"></div><button type="button" data-logout><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5V5.6a2 2 0 0 0-2-2H6.4a2 2 0 0 0-2 2v12.8a2 2 0 0 0 2 2h7.1a2 2 0 0 0 2-2v-1.9"/><path d="M11 12h9.4M17.6 8.8 20.8 12l-3.2 3.2"/></svg><span>Выйти</span></button></div>
       </div>
     </aside>
     <main class="main narrow">
@@ -4258,7 +4272,7 @@ function syncResumeNote(){
   document.querySelectorAll('[data-resume-note]').forEach(function(el){
     el.textContent = maxStepReached > 1
       ? 'остановились на шаге ' + maxStepReached + ' из ' + funnelSteps().length
-      : 'анкета не заполнена';
+      : 'анкета не закончена';
   });
 }
 /* Клик по уже открытому шагу — возврат к нему (и по завершённому, и по
@@ -6006,6 +6020,22 @@ document.querySelectorAll('[data-acct-toggle]').forEach(function(b){
 });
 document.addEventListener('click', function(){
   document.querySelectorAll('[data-acct-menu]').forEach(function(m){ m.classList.remove('open'); });
+});
+
+/* «Выйти» — двенадцать кнопок (по одной в меню аккаунта на каждом экране
+   кабинета плюс мобильный лист «Ещё») и ни одного обработчика: единственное
+   действие каркаса, которое ничего не делало. Раз вход переделан на код из
+   письма, выход обязан вести туда же, откуда входят. Состояние сайта не
+   сбрасывается: это макет, и следующий вход должен показать тот же кабинет,
+   а не пустой. */
+document.querySelectorAll('[data-logout]').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('[data-acct-menu]').forEach(function(m){ m.classList.remove('open'); });
+    var sheet = document.getElementById('more-sheet');
+    if (sheet) sheet.hidden = true;
+    goScreen('s-login');
+    window.scrollTo(0,0);
+  });
 });
 
 /* показать/скрыть пароль */
