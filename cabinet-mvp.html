@@ -1214,6 +1214,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
      уместны, в отличие от разделов, между которыми ходят постоянно. -->
 <div class="more-sheet" id="more-sheet" hidden>
   <button type="button" data-tab-go="s-status"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a2 2 0 0 0-2-2h-6.6l-1.7-2.3a2 2 0 0 0-1.6-.8H5.5a2 2 0 0 0-2 2Z"/></svg><span>Мои сайты</span></button>
+  <button type="button" data-tab-go="s-billing"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button>
   <button type="button" data-tab-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button>
   <button type="button" data-tab-go="s-settings"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9v2.4M12 18.7v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.9 12h2.4M18.7 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg><span>Настройки</span></button>
   <div class="div"></div>
@@ -1255,7 +1256,6 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
 
 <nav class="tabbar" id="tabbar" hidden aria-label="Разделы кабинета">
   <button type="button" class="tab" data-tab="s-widget"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button>
-  <button type="button" class="tab" data-tab="s-billing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button>
   <button type="button" class="tab tab-center" data-tab="s-docs"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></span><span>Документы</span></button>
   <button type="button" class="tab" data-tab="s-project-paid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button>
   <button type="button" class="tab" data-tab="__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="19" cy="12" r="1.4" fill="currentColor"/></svg><span>Ещё</span></button>
@@ -1418,19 +1418,24 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
              а покупает нас часто бухгалтер или директор. Вход по коду из
              письма, без пароля (уточнение 17 сентября). -->
         <button type="button" class="btn-social" data-social-signup data-signup-go="s-maillogin" data-mail-flow="signup"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#2b2b2b"/><rect x="6" y="8.4" width="12" height="8.4" rx="1.6" stroke="#fff" stroke-width="1.5"/><path d="M6.4 9.4l5.6 4 5.6-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg> Через почту</button>
-        <!-- ВОПРОС ОТКРЫТ (8 сентября): точную формулировку и связку
-             «политика ПДн + оферта» уточняет юрист. Пока одним чекбоксом до
-             входа — по его разъяснению согласие на обработку ПДн принимается
-             до регистрации при любом способе входа, а правила сервиса обычно
-             зашивают туда же. Не отмечен по умолчанию: продукт существует
-             ради 152-ФЗ ч.1 ст.9, преднастроенное «да» на собственной
-             регистрации противоречило бы тому, что он продаёт.
-             Стоит под кнопками (правка пользователя 8 сентября) — юридически
-             это ничего не меняет: кнопка провайдера всё равно не сработает,
-             пока согласие не отмечено. -->
+        <!-- РЕШЕНО владельцем 18 сентября: две галочки вместо одной. Было
+             «Принимаю политику ПДн И условия оферты» одним чекбоксом — то
+             самое bundled consent, объединение согласий в одну галочку,
+             которое запрещает ч.1 ст.9 152-ФЗ и которое продукт берётся
+             чинить у клиентов. Делать на собственной регистрации то, за что
+             берёшь деньги с других, нельзя вне зависимости от того, чем это
+             оправдано.
+             Ни одна не отмечена по умолчанию — по той же причине.
+             Стоят под кнопками (правка владельца 8 сентября): юридически это
+             ничего не меняет, кнопка провайдера не сработает, пока обе не
+             отмечены. -->
         <label class="check" style="margin-top:16px">
           <input type="checkbox" id="r-consent">
-          <span class="t">Принимаю <a href="#" style="text-decoration:underline">политику обработки персональных данных</a> и условия <a href="#" style="text-decoration:underline">оферты</a></span>
+          <span class="t">Даю согласие на обработку моих персональных данных — <a href="#" style="text-decoration:underline">политика</a></span>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="r-offer">
+          <span class="t">Принимаю условия <a href="#" style="text-decoration:underline">оферты</a></span>
         </label>
 
         <p class="tiny" style="text-align:center;margin-top:24px">Уже есть аккаунт? <button type="button" class="btn text sm" style="padding:0" data-go="s-login">Войти</button></p>
@@ -1467,7 +1472,7 @@ body.trial-expired .doc-actions{opacity:.4;pointer-events:none}
   <div class="appwrap sidebar">
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
-      <div class="navlist"><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a2 2 0 0 0-2-2h-6.6l-1.7-2.3a2 2 0 0 0-1.6-.8H5.5a2 2 0 0 0-2 2Z"/></svg><span>Мои сайты</span></a></div>
+      <div class="navlist"><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a2 2 0 0 0-2-2h-6.6l-1.7-2.3a2 2 0 0 0-1.6-.8H5.5a2 2 0 0 0-2 2Z"/></svg><span>Мои сайты</span></a><button type="button" data-go="s-billing"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button></div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
@@ -2540,7 +2545,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></a><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><button type="button" data-go="s-billing"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
+      <div class="navlist"><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></a><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
@@ -2671,7 +2676,18 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
             </div>
           </div>
           <div class="hr"></div>
-          <button type="button" class="btn text sm" style="padding:0" data-go="s-billing">Управлять подпиской →</button>
+          <!-- Счёт общий на все сайты аккаунта — сказано прямо там, где человек
+               смотрит на деньги конкретного сайта, иначе «Подписка» в разделе
+               сайта снова читается как отдельная подписка этого сайта. -->
+          <p class="tiny">Счёт, тариф и акты — общие для всех сайтов аккаунта.</p>
+          <button type="button" class="btn text sm" style="padding:0;margin-top:6px" data-go="s-billing">Открыть подписку аккаунта →</button>
+          <!-- После отключения строка меняется на возврат: отключение —
+               состояние, а не разовое действие, и вернуться должно быть так
+               же просто. Только у оплаченного сайта: висело во всех
+               состояниях, включая пробный период и «анкета не дошла». -->
+          <p class="tiny" id="cancelled-note" style="display:none;margin-top:8px;color:var(--warn)">Сайт отключается. Виджет и документы работают до 05.08.2027, в следующий счёт этот сайт не войдёт.</p>
+          <button class="btn text sm state" data-pay-state="paid" id="cancel-open" style="color:var(--danger);padding:0;margin-top:8px" data-go-modal="modal-cancel">Отключить этот сайт</button>
+          <button class="btn sm" id="resume-sub" style="display:none;margin-top:8px">Вернуть сайт в подписку</button>
         </div>
         </div>
 
@@ -2734,7 +2750,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></a><button type="button" data-go="s-billing"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
+      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></a><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
@@ -2964,8 +2980,13 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
   <div class="appwrap sidebar">
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
-      <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></a><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
+      <!-- Подписка живёт на уровне аккаунта, а не сайта (решение владельца
+           18 сентября): счёт, тариф, реквизиты плательщика и акты общие на
+           все сайты. Пока пункт стоял в меню сайта, его название обещало
+           «подписку этого сайта» и спорило с тарифами У/Z, которые тут же
+           обещают общий счёт на все. Поэтому здесь аккаунтное меню, без
+           «← Мои сайты» и без разделов сайта. -->
+      <div class="navlist"><button type="button" data-go="s-status"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V9.5a2 2 0 0 0-2-2h-6.6l-1.7-2.3a2 2 0 0 0-1.6-.8H5.5a2 2 0 0 0-2 2Z"/></svg><span>Мои сайты</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></a></div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
@@ -2976,10 +2997,10 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <h1>Подписка</h1>
       <!-- Лид тоже зависит от состояния: до оплаты закрывающих документов
            ещё нет, обещать их в первой строке нельзя. -->
-      <p class="lead state" data-pay-state="paid pending" style="margin-top:8px">Тариф, способ оплаты и закрывающие документы по <span data-site-domain>alfa-school.ru</span>.</p>
-      <p class="lead state" data-pay-state="trial" style="margin-top:8px">Виджет и документы уже работают на <span data-site-domain>alfa-school.ru</span> — оплата продлевает доступ после пробного периода.</p>
-      <p class="lead state" data-pay-state="unpaid" style="margin-top:8px">Подписка на <span data-site-domain>alfa-school.ru</span> начнётся, когда сайт будет подключён.</p>
-      <p class="lead state" data-pay-state="expired" style="margin-top:8px">Пробный период закончился — оплата включит виджет и документы на <span data-site-domain>alfa-school.ru</span> снова.</p>
+      <p class="lead state" data-pay-state="paid pending" style="margin-top:8px">Тариф, способ оплаты и закрывающие документы — общие для всех сайтов аккаунта. Состояние каждого сайта — в его разделе.</p>
+      <p class="lead state" data-pay-state="trial" style="margin-top:8px">Виджет и документы уже работают на <span data-site-domain>alfa-school.ru</span> — оплата продлевает доступ после пробного периода. Счёт один на все сайты аккаунта.</p>
+      <p class="lead state" data-pay-state="unpaid" style="margin-top:8px">Подписка начнётся, когда будет подключён первый сайт. Счёт и акты — общие на все сайты аккаунта.</p>
+      <p class="lead state" data-pay-state="expired" style="margin-top:8px">Пробный период закончился — оплата включит виджет и документы снова. Счёт один на все сайты аккаунта.</p>
 
       <!-- Тариф — первым блоком (правка 9 сентября): выбор того, за что
            платим, логично стоит раньше выбора, чем платим. Линейка ещё не
@@ -3268,17 +3289,11 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
         </div>
       </div>
 
-      <!-- Отмена подписки — в самом низу экрана и отдельно от всего:
-           необратимое действие не должно соседствовать со способом
-           оплаты, где на него легко попасть мимоходом. -->
-      <div class="hr" style="margin-top:22px"></div>
-      <!-- После отмены строка меняется на возобновление: отмена — состояние,
-           а не разовое действие, и вернуться должно быть так же просто. -->
-      <p class="tiny" id="cancelled-note" style="display:none;margin-top:6px;color:var(--warn)">Подписка отменена. Всё работает до 05.08.2027, продление не спишется.</p>
-      <!-- Отмена — только у того, у кого есть что отменять. Висела во всех
-           состояниях, включая пробный период и «анкета не дошла». -->
-      <button class="btn text sm state" data-pay-state="paid" id="cancel-open" style="color:var(--danger);padding:0;margin-top:4px" data-go-modal="modal-cancel">Отменить подписку</button>
-      <button class="btn sm" id="resume-sub" style="display:none;margin-top:4px">Возобновить подписку</button>
+      <!-- Отключение сайта переехало в раздел сайта («Обзор»): счёт общий на
+           все сайты аккаунта, а выключают один конкретный сайт — здесь, рядом
+           со счётом, кнопка читалась бы как «закрыть подписку целиком».
+           Разделитель, отбивавший её от способа оплаты, ушёл вместе с ней:
+           линия в никуда на конце экрана обещает продолжение, которого нет. -->
     </main>
   </div>
 </section>
@@ -3417,17 +3432,17 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
 <div class="modal-overlay" id="modal-cancel-help" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-help-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
     <div class="row" style="justify-content:space-between"><h3 id="modal-cancel-help-title">Может, получится помочь?</h3><button class="btn text sm" data-modal-close="modal-cancel-help">✕</button></div>
-    <p class="tiny" style="margin-top:10px">Если виджет мешает вёрстке, документы не подходят под ваш случай или счёт пришёл не тот — это чинится за день. Отменить успеете всегда: подписка активна до <b>05.08.2027</b>.</p>
+    <p class="tiny" style="margin-top:10px">Если виджет мешает вёрстке, документы не подходят под ваш случай или счёт пришёл не тот — это чинится за день. Отключить успеете всегда: сайт работает до <b>05.08.2027</b>.</p>
     <div class="row" style="margin-top:16px">
       <button class="btn solid" data-go="s-support" data-modal-close="modal-cancel-help">Написать в поддержку</button>
-      <button class="btn" id="cancel-final" style="border-color:var(--danger);color:var(--danger)" data-modal-close="modal-cancel-help">Всё равно отменить</button>
+      <button class="btn" id="cancel-final" style="border-color:var(--danger);color:var(--danger)" data-modal-close="modal-cancel-help">Всё равно отключить</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-cancel" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-title" style="position:fixed;inset:0;z-index:50;background:rgba(17,17,16,.45);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
   <div class="card pad" style="max-width:420px;width:100%;margin-top:60px">
-    <div class="row" style="justify-content:space-between"><h3 id="modal-cancel-title">Отменить подписку?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
+    <div class="row" style="justify-content:space-between"><h3 id="modal-cancel-title">Отключить <span data-site-domain>alfa-school.ru</span>?</h3><button class="btn text sm" data-modal-close="modal-cancel">✕</button></div>
     <!-- Наполнено 10 сентября, переработано в тот же день: первая версия
          читалась «как обычное окно отмены во всех селф-сервисах» — два
          одинаковых серых списка, акценты не попадали в глаз. Теперь
@@ -3442,14 +3457,14 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
       <div class="cnl-stat"><b>1</b><span>обновление при изменении закона</span></div>
       <div class="cnl-stat"><b>5</b><span>документа на сайте</span></div>
     </div>
-    <p class="tiny" style="margin-top:14px">Всё продолжит работать до <b>05.08.2027</b> — до конца оплаченного периода. После этой даты:</p>
+    <p class="tiny" style="margin-top:14px">Отключается только этот сайт — остальные сайты аккаунта продолжат работать, в следующий счёт этот сайт не войдёт. До <b>05.08.2027</b> здесь всё работает как сейчас, оплаченный период уже оплачен. После этой даты:</p>
     <div class="cnl-loss">
       <ul class="loss-list">
         <li class="loss">Виджет исчезнет с <b data-site-domain>alfa-school.ru</b> — cookie-баннер и подвал со ссылками</li>
-                <li class="loss">Документы останутся в текущей версии: следить за изменениями закона и переписывать их мы перестанем</li>
+                <li class="loss">Документы <b data-site-domain>alfa-school.ru</b> останутся в текущей версии: следить за изменениями закона и переписывать их мы перестанем</li>
       </ul>
     </div>
-    <p class="tiny" style="margin-top:14px">Что-то не работает или не устраивает? Часто это решается быстрее отмены — <button type="button" class="btn text sm" style="padding:0" data-go="s-support" data-modal-close="modal-cancel">напишите в поддержку</button>.</p>
+    <p class="tiny" style="margin-top:14px">Что-то не работает или не устраивает? Часто это решается быстрее отключения — <button type="button" class="btn text sm" style="padding:0" data-go="s-support" data-modal-close="modal-cancel">напишите в поддержку</button>.</p>
     <div class="row" style="margin-top:16px">
       <!-- Вес кнопок перевёрнут: безопасный вариант основной, разрушительный
            обведённый. Стандарт для необратимых действий (системные диалоги
@@ -3457,8 +3472,8 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            месте, первой, настоящей кнопкой того же размера, с красной
            обводкой и красным текстом. Тёмный паттерн начинался бы там, где
            она стала бы бледной ссылкой внизу. -->
-      <button class="btn" id="cancel-confirm" style="border-color:var(--danger);color:var(--danger)" data-modal-close="modal-cancel" data-go-modal="modal-cancel-help">Да, отменить</button>
-      <button class="btn solid" data-modal-close="modal-cancel">Оставить подписку</button>
+      <button class="btn" id="cancel-confirm" style="border-color:var(--danger);color:var(--danger)" data-modal-close="modal-cancel" data-go-modal="modal-cancel-help">Да, отключить</button>
+      <button class="btn solid" data-modal-close="modal-cancel">Оставить сайт</button>
     </div>
   </div>
 </div>
@@ -3472,7 +3487,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
     <aside class="side">
       <div class="logo"><svg width="22" height="15" viewBox="0 0 24 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="1.4" fill="#1f1fe6"/><rect x="10" y="4" width="3" height="8" rx="0.6" fill="#1f1fe6"/><g stroke="#1f1fe6" stroke-width="1.6" stroke-linecap="round"><line x1="14" y1="7" x2="20.4" y2="3.4"/><line x1="14" y1="8" x2="22" y2="8"/><line x1="14" y1="9" x2="20.4" y2="12.6"/></g></svg><b>Слеза Белый Сайт</b></div>
       <button type="button" class="backlink" data-go="s-status">← Мои сайты</button>
-      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><button type="button" data-go="s-billing"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></a></div>
+      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></a></div>
       <div class="navlist support" style="margin-top:auto"><button type="button" data-go="s-support"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></button></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
@@ -3618,7 +3633,7 @@ data-site="<span data-site-id>486312</span>" async&gt;&lt;/script&gt;</div>
            назад в Обзор. Настройки НЕ трогаем тем же приёмом — они
            намеренно живут только в acct-menu (уровень аккаунта, не сайта),
            это уже так и задумано. -->
-      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><button type="button" data-go="s-billing"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Подписка</span></button><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
+      <div class="navlist"><button type="button" data-go="s-project-paid"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg><span>Обзор</span></button><button type="button" data-go="s-docs"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>Документы</span></button><button type="button" data-go="s-widget"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 15h18"/></svg><span>Виджет</span></button></div>
       <div class="navlist support" style="margin-top:auto"><a class="on"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2"/><path d="M12 17h.01"/></svg><span>Поддержка</span></a></div>
       <div class="acct" style="margin-top:0">
         <button class="acct-btn" data-acct-toggle><span class="avatar">К</span><span class="who"><span class="name">Кирилл</span><span class="mail">director@alfa-school.ru</span></span></button>
@@ -4460,7 +4475,7 @@ function syncSiteNaming(){
 /* Панель показывается только в кабинете: в воронке своя навигация по
    шагам, на входе и регистрации навигации нет вовсе. */
 var TAB_SCREENS = ['s-project-paid','s-docs','s-billing','s-widget','s-settings','s-support'];
-var TAB_MORE = ['s-settings','s-support'];   // подсвечивают «Ещё»
+var TAB_MORE = ['s-settings','s-support','s-billing'];   // аккаунтные разделы подсвечивают «Ещё»
 function syncTabbar(id){
   var bar = document.getElementById('tabbar');
   var sheet = document.getElementById('more-sheet');
@@ -4989,9 +5004,23 @@ wireEmailGate('send-self-btn', 'install-self-email', 'install-self-email-error',
    гонка, что уже ловили на кнопке «Создать аккаунт»). */
 document.querySelectorAll('[data-social-signup]').forEach(function(b){
   b.addEventListener('click', function(){
+    // Согласий два (решение владельца 18 сентября), и требуются оба:
+    // без согласия на ПДн нельзя обрабатывать данные, без оферты нет
+    // договора. Сообщение об ошибке называет, чего именно не хватает, —
+    // «Без согласия зарегистрироваться нельзя» при двух галочках не
+    // говорит, какую из них человек пропустил.
     var cb = document.getElementById('r-consent');
+    var of = document.getElementById('r-offer');
     var err = document.getElementById('r-consent-error');
-    if (!cb.checked) { err.style.display = 'block'; return; }
+    if (!cb.checked || !of.checked) {
+      err.textContent = (!cb.checked && !of.checked)
+        ? 'Отметьте оба пункта — без согласия на обработку данных и принятия оферты зарегистрировать аккаунт нельзя.'
+        : !cb.checked
+          ? 'Нужно согласие на обработку персональных данных — без него аккаунт не создать.'
+          : 'Нужно принять условия оферты — это договор с сервисом.';
+      err.style.display = 'block';
+      return;
+    }
     err.style.display = 'none';
     // почта уводит на ввод адреса, провайдер — сразу в кабинет; согласие
     // требуется одинаково, поэтому обе кнопки под одним гейтом
@@ -5022,9 +5051,14 @@ if (mailLoginBtn) mailLoginBtn.addEventListener('click', function(){
   });
 });
 
-var consentBox = document.getElementById('r-consent');
-if (consentBox) consentBox.addEventListener('change', function(){
-  if (consentBox.checked) document.getElementById('r-consent-error').style.display = 'none';
+['r-consent', 'r-offer'].forEach(function(id){
+  var box = document.getElementById(id);
+  if (!box) return;
+  box.addEventListener('change', function(){
+    var cb = document.getElementById('r-consent');
+    var of = document.getElementById('r-offer');
+    if (cb.checked && of.checked) document.getElementById('r-consent-error').style.display = 'none';
+  });
 });
 /* Контакты аккаунта: свёрнутая сводка и форма правки — тот же приём, что
    в «Подписке». Сохранение фиксирует данные в account, откуда их берут
@@ -6319,12 +6353,12 @@ function syncCancelled(){
   if (resume) resume.style.display = subCancelled ? '' : 'none';
   var chip = document.getElementById('sub-chip');
   if (chip) {
-    chip.textContent = subCancelled ? 'отменена · доступ до 05.08.2027' : 'оплачено до 05.08.2027';
+    chip.textContent = subCancelled ? 'отключается · работает до 05.08.2027' : 'оплачено до 05.08.2027';
     chip.className = subCancelled ? 'chip amber' : 'chip green';
   }
   var rl = document.getElementById('renew-label'), rv = document.getElementById('renew-value');
-  if (rl) rl.textContent = subCancelled ? 'Отменена' : 'Продление';
-  if (rv) rv.textContent = subCancelled ? 'доступ до 05.08.2027' : '05.08.2027 · 12 000 ₽';
+  if (rl) rl.textContent = subCancelled ? 'Отключение' : 'Продление';
+  if (rv) rv.textContent = subCancelled ? 'работает до 05.08.2027' : '05.08.2027 · 12 000 ₽';
 }
 var cancelFinal = document.getElementById('cancel-final');
 if (cancelFinal) cancelFinal.addEventListener('click', function(){ subCancelled = true; syncCancelled(); });
