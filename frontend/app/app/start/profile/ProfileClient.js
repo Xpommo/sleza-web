@@ -16,6 +16,7 @@ import {
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { validateEmail } from '../../../../lib/validate';
 import { RING, Logo, Progress, Sidebar, Field } from '../_shared/AnketaChrome';
+import { saveAnketa } from '../_shared/anketaState';
 
 const ROLES = ['Директор / собственник', 'Сотрудник', 'Подрядчик'];
 
@@ -100,6 +101,9 @@ export default function ProfileClient() {
     }
 
     if (!ok) return;
+    // Роль нужна на шаге установки: подрядчику незачем предлагать
+    // «поручить другому» — он и есть тот, кому поручают.
+    saveAnketa({ role, personName: name, personPhone: phone, personEmail: email });
     router.push('/app/start/site');
   }
 

@@ -365,7 +365,7 @@ export default function DocumentsClient() {
               </button>
               <button
                 type="button"
-                onClick={() => router.push('/app/start/install')}
+                onClick={() => router.push('/app/start/code')}
                 className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
               >
                 Поставить код на сайт <ArrowRightIcon size={17} />
