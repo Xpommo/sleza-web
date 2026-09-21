@@ -163,6 +163,14 @@ export const BriefcaseIcon = (p) => (
   </Svg>
 );
 
+export const LinkIcon = (p) => (
+  <Svg {...p}><path d="M10.5 13.5a4 4 0 0 0 5.7 0l2.8-2.8a4 4 0 0 0-5.7-5.7l-1.6 1.6" /><path d="M13.5 10.5a4 4 0 0 0-5.7 0l-2.8 2.8a4 4 0 0 0 5.7 5.7l1.6-1.6" /></Svg>
+);
+
+export const CopyIcon = (p) => (
+  <Svg {...p}><rect x="8.5" y="8.5" width="12" height="12" rx="2.2" /><path d="M5.5 15.5A2 2 0 0 1 3.5 13.5v-8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2" /></Svg>
+);
+
 export const SupportIcon = (p) => (
   <Svg {...p}><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z" /><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2" /><path d="M12 17h.01" /></Svg>
 );

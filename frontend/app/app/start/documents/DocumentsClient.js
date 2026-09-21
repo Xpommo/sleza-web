@@ -7,57 +7,13 @@ import {
   ArrowRightIcon,
   BurgerIcon,
   CheckIcon,
-  ChevronDownIcon,
   CloseIcon,
-  DocsIcon,
   ShieldCheckIcon,
 } from '../../../../components/app/AppIcons';
+import { DocRow, DocRowList } from '../../../../components/app/DocRows';
 import { RING, Logo, Progress, Sidebar } from '../_shared/AnketaChrome';
 import { loadAnketa } from '../_shared/anketaState';
-
-const SITE_ID = '486312';
-
-// Пакет фиксирован: пять документов из структуры 1+2+2. Названия — по закону,
-// который документ закрывает, а не по внутреннему имени файла.
-const DOCUMENTS = [
-  {
-    id: '01',
-    title: '149-ФЗ · реквизиты владельца',
-    note: 'Виджет внизу страниц откроет их по данным из анкеты.',
-    preview: 'ООО «Альфа Образование» · ИНН 7701234567 · ОГРН 1157746112233 · 119019, Москва, ул. Воздвиженка, д. 10…',
-  },
-  {
-    id: '02',
-    title: '152-ФЗ · политика обработки cookie',
-    note: 'Подключим cookie-баннер и текст политики.',
-    preview:
-      'Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте {domain}, включая аналитику и работу виджета…',
-  },
-  {
-    id: '03',
-    title: '152-ФЗ · политика обработки персональных данных',
-    note: 'Соберём под вашу сферу и способ сбора контактов.',
-    preview:
-      'Настоящая Политика в отношении обработки персональных данных определяет порядок и условия обработки персональных данных Оператором: ООО «Альфа Образование». Цели обработки: запись на занятия, ответы на обращения…',
-  },
-  {
-    id: '12',
-    title: '152-ФЗ · согласие на обработку персональных данных',
-    note: 'Текст согласия для форм на сайте.',
-    preview:
-      'Настоящим я свободно, своей волей и в своём интересе даю согласие на обработку моих персональных данных Оператору — ООО «Альфа Образование» — в целях записи на занятия, обработки обращений…',
-  },
-  {
-    id: '13',
-    title: '38-ФЗ, ч.1 ст.18 · согласие на получение рекламных сообщений',
-    // Документ в пакете при любом ответе — меняется только объяснение,
-    // зачем он тому, кто сейчас по базе не пишет.
-    note: 'Текст согласия на письма и звонки по базе клиентов.',
-    noteIfNoCalls: 'Входит в пакет — понадобится, как только начнёте писать по базе.',
-    preview:
-      'Настоящим я даю согласие на получение рекламных и информационных сообщений от ООО «Альфа Образование» по телефону, в мессенджерах и на почту…',
-  },
-];
+import { DOCUMENTS, docNote, docUrl } from '../../../../lib/docPackage';
 
 // Пилюли подвала. Cookie и маркировка заперты: согласие на cookie уже дано
 // в баннере, маркировка обязательна по закону — тумблера там быть не может.
@@ -101,65 +57,6 @@ const PILLS = [
     lockNote: 'Обязательно по закону',
   },
 ];
-
-// Список строками, а не плитками: названия документов длинные и читаются
-// сверху вниз одной колонкой, а не прыжками по сетке.
-const DOC_COLS = 'sm:grid-cols-[minmax(0,1fr)_150px_140px]';
-
-function DocumentRow({ doc, domain, noCalls, open, onToggle }) {
-  const note = noCalls && doc.noteIfNoCalls ? doc.noteIfNoCalls : doc.note;
-  const panelId = `doc-preview-${doc.id}`;
-  return (
-    <div className="border-b border-line last:border-0">
-      <div className={`grid gap-3 px-5 py-4 transition-colors hover:bg-warm/60 sm:items-center sm:gap-4 sm:px-6 ${DOC_COLS}`}>
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
-            <DocsIcon size={19} />
-          </span>
-          <div className="min-w-0">
-            {/* Без обрезки: в названии стоит закон, который документ
-                закрывает, — срезать его многоточием нельзя. */}
-            <h3 className="text-sm font-bold leading-5">{doc.title}</h3>
-            <p className="mt-1 text-[12.5px] leading-4 text-ink/50">{note}</p>
-          </div>
-        </div>
-        {/* На узком экране статус и кнопка встают в одну строку под текстом;
-            с sm обёртка исчезает (contents), и оба снова колонки сетки. */}
-        <div className="flex items-center justify-between gap-3 pl-[52px] sm:contents">
-          <span className="w-fit rounded-full bg-ok/10 px-3 py-1.5 text-[11px] font-bold text-ok">Готово</span>
-          <button
-            type="button"
-            onClick={onToggle}
-            aria-expanded={open}
-            aria-controls={panelId}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-semibold text-ink/55 transition-colors hover:text-brand sm:justify-self-end ${RING}`}
-          >
-            Посмотреть
-            <ChevronDownIcon size={15} className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
-      </div>
-      {/* Раскрытие через grid-template-rows: высота текста заранее
-          неизвестна, а анимировать нужно именно её. */}
-      <div
-        id={panelId}
-        aria-hidden={!open}
-        className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
-          open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="mx-5 mb-5 rounded-xl border border-line bg-warm px-4 py-3.5 sm:mx-6">
-            <p className="text-[13px] leading-5 text-ink/70">{doc.preview.replace('{domain}', domain)}</p>
-            <p className="mt-3 font-mono text-[11px] text-ink/45">
-              cdn.sleza.media/{SITE_ID}/{doc.id} — откроется после установки
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function DocumentsClient() {
   const router = useRouter();
@@ -233,26 +130,21 @@ export default function DocumentsClient() {
                   <CheckIcon size={15} /> Всё готово
                 </span>
               </div>
-              <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
-                <div
-                  aria-hidden="true"
-                  className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/45 sm:grid ${DOC_COLS}`}
-                >
-                  <span>Документ</span>
-                  <span>Статус</span>
-                  <span className="text-right">Действие</span>
-                </div>
+              <DocRowList>
                 {DOCUMENTS.map((doc) => (
-                  <DocumentRow
+                  <DocRow
                     key={doc.id}
                     doc={doc}
-                    domain={domain}
-                    noCalls={noCalls}
+                    note={docNote(doc, noCalls)}
+                    status={{ tone: 'ok', label: 'Готово' }}
                     open={openDoc === doc.id}
                     onToggle={() => setOpenDoc(openDoc === doc.id ? null : doc.id)}
-                  />
+                  >
+                    <p className="text-[13px] leading-5 text-ink/70">{doc.preview.replace('{domain}', domain)}</p>
+                    <p className="mt-3 font-mono text-[11px] text-ink/45">{docUrl(doc)} — откроется после установки</p>
+                  </DocRow>
                 ))}
-              </div>
+              </DocRowList>
             </section>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
