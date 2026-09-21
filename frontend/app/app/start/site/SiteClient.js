@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
@@ -13,7 +13,7 @@ import {
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { RING, Logo, Progress, Sidebar, Field, Tile, WhyToggle, SectionHead } from '../_shared/AnketaChrome';
-import { saveAnketa } from '../_shared/anketaState';
+import { loadAnketa, saveAnketa } from '../_shared/anketaState';
 
 // Тот же список и тот же порядок опций, что в анкете (cabinet-mvp.html):
 // «regulated» нигде сейчас не показывается (владелец снял оговорку 8
@@ -102,8 +102,32 @@ export default function SiteClient() {
   const [analyticsWhy, setAnalyticsWhy] = useState(false);
 
   const [features, setFeatures] = useState([]);
+  const [restored, setRestored] = useState(false);
   const [featuresError, setFeaturesError] = useState(null);
   const [featuresWhy, setFeaturesWhy] = useState(false);
+
+  // Возврат на шаг («Назад», F5, «Продолжить анкету» из списка сайтов)
+  // показывает то, что уже ответили: ответы лежат в анкете, и терять их
+  // между экранами нельзя. Читаем после монтирования — страница статическая,
+  // и первая отрисовка должна совпасть с серверной.
+  useEffect(() => {
+    const a = loadAnketa();
+    if (a.domain) setDomain(a.domain);
+    if (a.sphere) setSphere(a.sphere);
+    if (a.sphereOther) setSphereOther(a.sphereOther);
+    if (a.platform) setPlatform(a.platform);
+    if (a.platformOther) setPlatformOther(a.platformOther);
+    if (a.analytics?.length) setAnalytics(a.analytics);
+    if (a.features?.length) setFeatures(a.features);
+    setRestored(true);
+  }, []);
+
+  // Черновик пишется на каждое изменение, а не только по «Далее»: иначе
+  // «Назад» и F5 теряют всё, что набрано на этом шаге. Пишем только после
+  // восстановления — иначе пустые значения первой отрисовки затрут анкету.
+  useEffect(() => {
+    if (restored) saveAnketa({ domain, sphere, sphereOther, platform, platformOther, analytics, features });
+  }, [restored, domain, sphere, sphereOther, platform, platformOther, analytics, features]);
 
   const analyticsExclusive = ANALYTICS.filter((o) => o.exclusive).map((o) => o.value);
   const featuresExclusive = FEATURES.filter((o) => o.exclusive).map((o) => o.value);

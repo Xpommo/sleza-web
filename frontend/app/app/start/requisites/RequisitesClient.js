@@ -95,6 +95,65 @@ export default function RequisitesClient() {
   const [companyPhoneError, setCompanyPhoneError] = useState(null);
   const [postAddress, setPostAddress] = useState('');
   const [pdContact, setPdContact] = useState('');
+  const [restored, setRestored] = useState(false);
+
+  // Возврат на шаг («Назад», F5, «Продолжить анкету» из списка сайтов)
+  // показывает то, что уже ответили: ответы лежат в анкете, и терять их
+  // между экранами нельзя. Читаем после монтирования — страница статическая,
+  // и первая отрисовка должна совпасть с серверной.
+  useEffect(() => {
+    const a = loadAnketa();
+    setRestored(true);
+    if (!a.owner) return;
+    setOwner(a.owner);
+    setInn(a.inn || '');
+    setName(a.companyName || '');
+    setOgrn(a.ogrn || '');
+    setKpp(a.kpp || '');
+    setAddress(a.address || '');
+    setInnFound(Boolean(a.inn && a.companyName));
+    if (a.bank) {
+      setAccount(a.bank.account || '');
+      setBank(a.bank.bank || '');
+      setBik(a.bank.bik || '');
+      setCorr(a.bank.corr || '');
+    }
+    if (a.license) {
+      setLicense(a.license.has ?? null);
+      setLicenseNo(a.license.no || '');
+      setLicenseDate(a.license.date || '');
+      setLicenseOrg(a.license.org || '');
+    }
+    setItAccred(a.itAccred ?? null);
+    setSoftRegistry(a.softRegistry ?? null);
+    if (a.contacts) {
+      setCompanyMail(a.contacts.companyMail || '');
+      setCompanyPhone(a.contacts.companyPhone || '');
+      setPostAddress(a.contacts.postAddress || '');
+      setPdContact(a.contacts.pdContact || '');
+    }
+  }, []);
+
+  function answers() {
+    return {
+      owner, inn, companyName: name, ogrn, kpp, address,
+      bank: { account, bank, bik, corr },
+      license: licenseSphere ? { has: license, no: licenseNo, date: licenseDate, org: licenseOrg } : null,
+      itAccred, softRegistry,
+      contacts: { companyMail, companyPhone, postAddress, pdContact },
+    };
+  }
+
+  // Черновик пишется на каждое изменение, а не только по «Далее»: иначе
+  // «Назад» и F5 теряют всё, что набрано на этом шаге. Пишем только после
+  // восстановления — иначе пустые значения первой отрисовки затрут анкету.
+  useEffect(() => {
+    if (restored) saveAnketa(answers());
+    // answers() читает те же значения, что перечислены здесь
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restored, owner, inn, name, ogrn, kpp, address, account, bank, bik, corr,
+      license, licenseNo, licenseDate, licenseOrg, itAccred, softRegistry,
+      companyMail, companyPhone, postAddress, pdContact]);
   const [pdContactError, setPdContactError] = useState(null);
   const [contactsWhy, setContactsWhy] = useState(false);
 
@@ -204,13 +263,7 @@ export default function RequisitesClient() {
 
     if (!ok) return;
 
-    saveAnketa({
-      owner, inn, companyName: name, ogrn, kpp, address,
-      bank: { account, bank, bik, corr },
-      license: licenseSphere ? { has: license, no: licenseNo, date: licenseDate, org: licenseOrg } : null,
-      itAccred, softRegistry,
-      contacts: { companyMail, companyPhone, postAddress, pdContact },
-    });
+    saveAnketa(answers());
     router.push('/app/start/documents');
   }
 

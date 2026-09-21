@@ -72,6 +72,26 @@ export default function ClientsClient() {
   const [fieldsWhy, setFieldsWhy] = useState(false);
 
   const [calls, setCalls] = useState('Да');
+  const [restored, setRestored] = useState(false);
+
+  // Возврат на шаг («Назад», F5, «Продолжить анкету» из списка сайтов)
+  // показывает то, что уже ответили: ответы лежат в анкете, и терять их
+  // между экранами нельзя. Читаем после монтирования — страница статическая,
+  // и первая отрисовка должна совпасть с серверной.
+  useEffect(() => {
+    const a = loadAnketa();
+    if (a.purposes?.length) setPurposes(a.purposes);
+    if (a.pdFields?.length) setFields(a.pdFields);
+    if (typeof a.callsBase === 'boolean') setCalls(a.callsBase ? 'Да' : 'Нет');
+    setRestored(true);
+  }, []);
+
+  // Черновик пишется на каждое изменение, а не только по «Далее»: иначе
+  // «Назад» и F5 теряют всё, что набрано на этом шаге. Пишем только после
+  // восстановления — иначе пустые значения первой отрисовки затрут анкету.
+  useEffect(() => {
+    if (restored) saveAnketa({ purposes, pdFields: fields, callsBase: calls === 'Да' });
+  }, [restored, purposes, fields, calls]);
   const [callsWhy, setCallsWhy] = useState(false);
   const [noCallsOpen, setNoCallsOpen] = useState(false);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
@@ -16,7 +16,7 @@ import {
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { validateEmail } from '../../../../lib/validate';
 import { RING, Logo, Progress, Sidebar, Field } from '../_shared/AnketaChrome';
-import { saveAnketa } from '../_shared/anketaState';
+import { loadAnketa, saveAnketa } from '../_shared/anketaState';
 
 const ROLES = ['Директор / собственник', 'Сотрудник', 'Подрядчик'];
 
@@ -72,6 +72,27 @@ export default function ProfileClient() {
 
   const [whyOpen, setWhyOpen] = useState(false);
   const [authListOpen, setAuthListOpen] = useState(false);
+  const [restored, setRestored] = useState(false);
+
+  // Возврат на шаг («Назад», F5, «Продолжить анкету» из списка сайтов)
+  // показывает то, что уже ответили: ответы лежат в анкете, и терять их
+  // между экранами нельзя. Читаем после монтирования — страница статическая,
+  // и первая отрисовка должна совпасть с серверной.
+  useEffect(() => {
+    const a = loadAnketa();
+    if (a.role) setRole(a.role);
+    if (a.personName) setName(a.personName);
+    if (a.personPhone) setPhone(a.personPhone);
+    if (a.personEmail) setEmail(a.personEmail);
+    setRestored(true);
+  }, []);
+
+  // Черновик пишется на каждое изменение, а не только по «Далее»: иначе
+  // «Назад» и F5 теряют всё, что набрано на этом шаге. Пишем только после
+  // восстановления — иначе пустые значения первой отрисовки затрут анкету.
+  useEffect(() => {
+    if (restored) saveAnketa({ role, personName: name, personPhone: phone, personEmail: email });
+  }, [restored, role, name, phone, email]);
 
   function pickRole(item) {
     setRole(item);
