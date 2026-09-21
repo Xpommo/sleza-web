@@ -235,7 +235,7 @@ export default function SiteClient() {
                 <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-brand">Шаг 2 из 6</p>
                 <h1 className="text-3xl font-bold tracking-[-0.04em] sm:text-[40px]">О сайте</h1>
                 <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/60 sm:text-[17px]">
-                  Сфера, адрес, платформа, аналитика и формы на сайте. Пять вопросов.
+                  Адрес, сфера, платформа, аналитика и формы на сайте. Пять вопросов.
                 </p>
               </div>
               <div className="hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-xs font-semibold text-ink/55 shadow-sm sm:flex">

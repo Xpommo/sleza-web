@@ -171,10 +171,10 @@ export default function ProfileClient() {
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
-                  {CURRENT_USER.name.slice(0, 1)}
+                  {(name || CURRENT_USER.name).slice(0, 1)}
                 </div>
                 <div>
-                  <p className="font-bold">{CURRENT_USER.name}</p>
+                  <p className="font-bold">{name || CURRENT_USER.name}</p>
                   <p className="text-sm text-ink/55">вход через Telegram</p>
                 </div>
               </div>

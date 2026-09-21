@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CheckIcon, ChevronIcon, MailIcon, ShieldCheckIcon } from '../../../components/app/AppIcons';
+import { CheckIcon, ChevronIcon, MailIcon } from '../../../components/app/AppIcons';
 
 const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
 
@@ -107,7 +107,13 @@ export default function RegisterClient() {
 
   function start() {
     if (!pd || !terms) {
-      setError('Отметьте оба согласия — без них мы не можем завести кабинет.');
+      setError(
+        !pd && !terms
+          ? 'Отметьте оба пункта — без согласия на обработку данных и принятия оферты зарегистрировать аккаунт нельзя.'
+          : !pd
+            ? 'Нужно согласие на обработку персональных данных — без него аккаунт не создать.'
+            : 'Нужно принять условия оферты — это договор с сервисом.',
+      );
       return;
     }
     setError(null);
@@ -121,13 +127,15 @@ export default function RegisterClient() {
         <BrandMark dark />
 
         <div className="relative my-14 max-w-[560px] lg:my-0">
-          <div className="mb-7 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.2em] text-brand-soft">
-            <span className="h-px w-8 bg-brand-soft/60" />
-            Юридическая защита сайта
-          </div>
           <h1 className="text-[38px] font-bold leading-[1.06] tracking-[-0.045em] sm:text-[44px]">
             Документы для сайта — готовим и держим в порядке
           </h1>
+          {/* Утверждение о законодательстве, а не о нашей ответственности:
+              «защита» и обещание исхода проверки здесь не употребляются. */}
+          <p className="mt-5 text-[15px] leading-6 text-white/65">
+            Требования к сайту разбросаны по нескольким федеральным законам, и за каждое есть свой штраф. Собираем их в
+            один пакет документов и один скрипт.
+          </p>
 
           <div className="mt-10 border-t border-white/10">
             {BENEFITS.map(([title, text]) => (
@@ -144,9 +152,6 @@ export default function RegisterClient() {
           </div>
         </div>
 
-        <p className="relative text-[12px] text-white/40">
-          Переписываем документы, когда меняется закон, — следить за изменениями вам не придётся.
-        </p>
       </section>
 
       <section className="flex min-h-screen items-center justify-center px-6 py-12 sm:px-12 lg:px-[6vw]">
@@ -177,9 +182,9 @@ export default function RegisterClient() {
 
           <div className="space-y-3.5">
             <Consent checked={pd} label="Согласие на обработку персональных данных" onToggle={() => { setPd(!pd); setError(null); }}>
-              Даю согласие на обработку персональных данных в соответствии с{' '}
+              Даю согласие на обработку моих персональных данных —{' '}
               <Link href="#" className="font-semibold text-brand hover:underline">
-                политикой обработки персональных данных
+                политика
               </Link>
             </Consent>
             <Consent checked={terms} label="Принятие условий оферты" onToggle={() => { setTerms(!terms); setError(null); }}>
@@ -190,10 +195,6 @@ export default function RegisterClient() {
             </Consent>
           </div>
           {error && <p className="mt-3 text-[12.5px] font-semibold text-danger">{error}</p>}
-
-          <div className="mt-8 flex items-center justify-center gap-2 text-[12px] text-ink/45">
-            <ShieldCheckIcon size={15} className="text-ok" /> Данные не передаём третьим лицам
-          </div>
 
           <p className="mt-6 text-center text-[12.5px] text-ink/45">
             Уже есть аккаунт?{' '}

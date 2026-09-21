@@ -154,8 +154,7 @@ export default function SiteDocumentsClient() {
               </div>
             </div>
             <p className="mt-6 border-t border-line pt-5 text-[13px] leading-5 text-ink/50">
-              Здесь будет видно каждую следующую версию и причину, по которой мы её выпустили. Сверяем закон сами —
-              следить за изменениями вам не придётся.
+              Здесь будет видно каждую следующую версию и причину, по которой мы её выпустили.
             </p>
           </section>
 

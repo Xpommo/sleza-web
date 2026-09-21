@@ -288,7 +288,6 @@ export default function RequisitesClient() {
                 id="h-owner"
                 title="Кто владеет сайтом"
                 required
-                hint="Выберите форму организации"
                 whyOpen={ownerWhy}
                 onWhy={() => setOwnerWhy(!ownerWhy)}
                 why="От этого зависит, какие регистрационные данные спросим дальше — у ООО, ИП и самозанятого они разные."

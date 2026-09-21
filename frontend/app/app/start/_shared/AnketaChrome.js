@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import FlashlightIcon from '../../../../components/FlashlightIcon';
 import { ArrowLeftIcon, CheckIcon, CloseIcon, InfoIcon } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
+import { accountUser } from './anketaState';
 
 // Общий каркас всех шести шагов анкеты «Слеза Белый Сайт». Названия шагов
 // согласованы отдельно: каждое описывает содержимое, не процесс
@@ -84,6 +86,10 @@ export function Progress({ current }) {
 }
 
 export function Sidebar({ open, onClose, current }) {
+  // Тот, кто представился на шаге 1, а не мок аккаунта: иначе в углу анкеты
+  // стоял чужой человек, хотя имя и почту уже назвали.
+  const [user, setUser] = useState(CURRENT_USER);
+  useEffect(() => setUser(accountUser(CURRENT_USER)), [current]);
   return (
     <aside
       className={`${open ? 'left-0' : '-left-full'} fixed inset-y-0 z-30 flex w-[292px] shrink-0 flex-col border-r border-line bg-white px-5 py-7 transition-[left] lg:relative lg:left-0`}
@@ -107,11 +113,11 @@ export function Sidebar({ open, onClose, current }) {
       <div className="mt-auto border-t border-line pt-5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
-            {CURRENT_USER.name.slice(0, 1)}
+            {user.name.slice(0, 1)}
           </div>
           <div>
-            <p className="text-sm font-bold text-ink">{CURRENT_USER.name}</p>
-            <p className="text-xs text-ink/50">{CURRENT_USER.email}</p>
+            <p className="text-sm font-bold text-ink">{user.name}</p>
+            <p className="text-xs text-ink/50">{user.email}</p>
           </div>
         </div>
       </div>

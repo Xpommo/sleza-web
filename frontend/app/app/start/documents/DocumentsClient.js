@@ -63,22 +63,14 @@ export default function DocumentsClient() {
                 </p>
               </div>
               <div className="hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-xs font-semibold text-ink/55 shadow-sm sm:flex">
-                <CheckIcon size={16} className="text-ok" /> Пакет собран
+                <CheckIcon size={16} className="text-ok" /> Пакет документов собран
               </div>
             </div>
 
             <Progress current={4} />
 
             <section className="mb-7">
-              <div className="mb-4 flex items-end justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-bold tracking-[-0.02em]">Пакет документов собран</h2>
-                  <p className="mt-1 text-sm text-ink/55">Пять документов, собранных по вашим ответам</p>
-                </div>
-                <span className="flex shrink-0 items-center gap-1.5 text-xs font-bold text-ok">
-                  <CheckIcon size={15} /> Всё готово
-                </span>
-              </div>
+              <p className="mb-3 text-sm text-ink/55">Нажмите на документ, чтобы прочитать начало.</p>
               <DocRowList>
                 {DOCUMENTS.map((doc) => (
                   <DocRow

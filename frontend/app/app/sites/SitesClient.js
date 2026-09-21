@@ -74,7 +74,6 @@ export default function SitesClient() {
       <section className="flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           <header>
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-brand">Рабочее пространство</p>
             <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Мои сайты</h1>
             <p className="mt-3 text-[15px] leading-6 text-ink/55">
               У каждого сайта свои документы и свой виджет. Счёт — один на все сайты аккаунта.
@@ -85,7 +84,7 @@ export default function SitesClient() {
             <>
               <div className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-ink/70">1 сайт в рабочем пространстве</p>
+                  <p className="text-sm font-semibold text-ink/70">1 сайт</p>
                   <p className="mt-1 text-xs text-ink/45">Документы и настройки доступны внутри карточки</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
