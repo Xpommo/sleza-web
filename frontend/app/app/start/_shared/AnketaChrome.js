@@ -97,7 +97,7 @@ export function Sidebar({ open, onClose, current }) {
       </button>
       <Logo />
       <Link
-        href="/app"
+        href="/app/sites"
         className={`mt-12 flex w-fit items-center gap-2 rounded text-[15px] font-semibold text-ink/55 transition-colors hover:text-ink ${RING}`}
       >
         <ArrowLeftIcon size={17} /> Мои сайты

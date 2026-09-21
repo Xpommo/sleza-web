@@ -83,7 +83,7 @@ export default function LoginClient() {
   const enter = () => {
     setNotice('');
     setLoading(true);
-    setTimeout(() => router.push('/app'), 600);
+    setTimeout(() => router.push('/app/sites'), 600);
   };
 
   const switchMode = (next) => {

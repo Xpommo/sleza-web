@@ -309,7 +309,7 @@ export default function ProfileClient() {
               <div className="mt-7 flex gap-3 border-t border-line pt-5">
                 <button
                   type="button"
-                  onClick={() => router.push('/app')}
+                  onClick={() => router.push('/app/sites')}
                   className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
                 >
                   <ArrowLeftIcon size={16} /> Назад
