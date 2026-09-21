@@ -29,13 +29,13 @@ export default function SitesClient() {
 
   return (
     <main className="min-h-screen bg-warm text-ink lg:flex">
-      <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-6 py-7 lg:min-h-screen lg:w-[270px] lg:border-b-0 lg:border-r lg:px-7 lg:py-8">
+      <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-6 py-7 lg:sticky lg:top-0 lg:h-screen lg:w-[270px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:pb-8 lg:pt-8">
         <div className="flex items-center gap-2.5">
           <TearMark />
           <span className="text-[17px] font-bold tracking-[-0.035em]">Слеза Белый Сайт</span>
         </div>
 
-        <nav aria-label="Основная навигация" className="mt-12 space-y-1">
+        <nav aria-label="Основная навигация" className="mt-10 space-y-1">
           {NAV.map(({ href, label, Icon, active }) => (
             <Link
               key={label}
@@ -50,10 +50,10 @@ export default function SitesClient() {
           ))}
         </nav>
 
-        <div className="mt-auto hidden border-t border-line pt-6 lg:block">
+        <div className="mt-auto hidden shrink-0 border-t border-line pt-5 lg:block">
           <Link
             href="#"
-            className={`mb-7 flex items-center gap-3 px-2 text-sm font-semibold text-ink/55 transition hover:text-ink ${RING}`}
+            className={`mb-5 flex items-center gap-3 px-2 text-sm font-semibold text-ink/55 transition hover:text-ink ${RING}`}
           >
             <SupportIcon size={17} /> Поддержка
           </Link>
@@ -69,17 +69,17 @@ export default function SitesClient() {
         </div>
       </aside>
 
-      <section className="flex-1 px-5 py-9 sm:px-10 sm:py-12 lg:px-16 lg:py-14 xl:px-24">
+      <section className="flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           <header>
             <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-brand">Рабочее пространство</p>
-            <h1 className="text-3xl font-bold tracking-[-0.045em] sm:text-[42px]">Мои сайты</h1>
+            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Мои сайты</h1>
             <p className="mt-3 text-[15px] leading-6 text-ink/55">
               У каждого сайта свои документы, свой виджет и своя подписка.
             </p>
           </header>
 
-          <div className="mt-12 flex min-h-[440px] items-center justify-center rounded-2xl border border-line bg-white p-8 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.3)] sm:p-12">
+          <div className="mt-8 flex min-h-[340px] items-center justify-center rounded-2xl border border-line bg-white p-8 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.3)] sm:p-12">
             <div className="flex max-w-md flex-col items-center text-center">
               <div className="relative mb-7 flex h-20 w-20 items-center justify-center rounded-3xl border border-brand/15 bg-brand/[0.06] text-brand">
                 <ProjectsIcon size={30} />
@@ -87,7 +87,7 @@ export default function SitesClient() {
                   <PlusIcon size={17} />
                 </span>
               </div>
-              <h2 className="text-2xl font-bold tracking-[-0.035em] sm:text-[28px]">Пока нет ни одного сайта</h2>
+              <h2 className="text-[22px] font-bold tracking-[-0.035em] sm:text-[26px]">Пока нет ни одного сайта</h2>
               <p className="mt-4 max-w-sm text-[15px] leading-6 text-ink/55">
                 Добавьте сайт — спросим о нём и о компании, по ответам подготовим документы.
               </p>
