@@ -8,7 +8,7 @@ import {
   ProjectsIcon, SupportIcon, WarnIcon,
 } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
-import { loadAnketa } from '../start/_shared/anketaState';
+import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
@@ -28,7 +28,7 @@ function siteStatus(a, steps) {
   if (!a.installed) {
     return { tone: 'warn', label: 'Скрипт не установлен', action: 'Поставить код на сайт', href: '/app/start/code' };
   }
-  return { tone: 'ok', label: 'Виджет работает', action: 'Открыть сайт', href: '/app/start/documents' };
+  return { tone: 'ok', label: 'Виджет работает', action: 'Открыть сайт', href: '/app/site' };
 }
 
 const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
@@ -55,11 +55,13 @@ export default function SitesClient() {
   const [site, setSite] = useState(null);
   const [steps, setSteps] = useState(0);
   const [view, setView] = useState('cards');
+  const [user, setUser] = useState(CURRENT_USER);
 
   // Карточка появляется, как только анкета начата: сайт уже назван, и
   // прятать его до конца анкеты значит терять начатую работу.
   useEffect(() => {
     const a = loadAnketa();
+    setUser(accountUser(CURRENT_USER));
     if (!a.domain) return;
     setSite({ domain: a.domain, inn: a.inn || '', company: a.companyName || '' });
     setSteps(anketaProgress(a));
@@ -99,11 +101,11 @@ export default function SitesClient() {
           </Link>
           <div className="flex items-center gap-3 px-1">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
-              {CURRENT_USER.name.slice(0, 1)}
+              {user.name.slice(0, 1)}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-bold">{CURRENT_USER.name}</p>
-              <p className="mt-0.5 truncate text-xs text-ink/45">{CURRENT_USER.email}</p>
+              <p className="text-sm font-bold">{user.name}</p>
+              <p className="mt-0.5 truncate text-xs text-ink/45">{user.email}</p>
             </div>
           </div>
         </div>

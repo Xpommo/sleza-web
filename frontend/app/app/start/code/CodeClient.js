@@ -89,8 +89,8 @@ export default function CodeClient() {
   }
 
   function startTrial() {
-    saveAnketa({ installed: true, installMode: effectiveMode });
-    router.push('/app');
+    saveAnketa({ installed: true, installMode: effectiveMode, trialStartedAt: Date.now() });
+    router.push('/app/site');
   }
 
   return (
@@ -288,7 +288,7 @@ export default function CodeClient() {
                 <div className="mt-4 flex justify-center">
                   <button
                     type="button"
-                    onClick={() => router.push('/app')}
+                    onClick={() => router.push('/app/sites')}
                     className={`rounded text-sm font-semibold text-ink/45 transition-colors hover:text-ink ${RING}`}
                   >
                     Поставлю позже →

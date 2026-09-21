@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-25T00:00:00.000Z",
+  "title": "Design System: Слеза Белый Сайт",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#111110", "tonalRamp": ["#272725", "#4a4a45", "#696963", "#888881", "#a6a6a0", "#c1c1bd", "#dcdcda", "#f3f3f2"] },
+      "seal-blue": { "role": "primary", "displayName": "Seal Blue", "canonical": "#1f1fe6", "tonalRamp": ["#080845", "#0e0e80", "#1414b8", "#2323e6", "#5a5aed", "#8c8cf2", "#bfbff8", "#e8e8fc"] },
+      "ledger-green": { "role": "semantic-success", "displayName": "Ledger Green", "canonical": "#1a7a52", "tonalRamp": ["#0d3f2a", "#19764f", "#24a871", "#35d492", "#68dfad", "#96e9c6", "#c4f2df", "#eafbf4"] },
+      "rust-alert": { "role": "semantic-danger", "displayName": "Rust Alert", "canonical": "#d63816", "tonalRamp": ["#451207", "#81220d", "#b93013", "#e84421", "#ee7359", "#f39e8b", "#f8c9be", "#fdece8"] },
+      "amber-caution": { "role": "semantic-warning", "displayName": "Amber Caution", "canonical": "#b87900", "tonalRamp": ["#4c3200", "#8f5e00", "#cc8600", "#ffab0a", "#ffc047", "#ffd380", "#ffe7b8", "#fff6e5"] },
+      "desk": { "role": "neutral-bg", "displayName": "Desk Surface", "canonical": "#f4f1ec", "tonalRamp": ["#30291c", "#5a4c34", "#816d4b", "#a58d64", "#bca98b", "#d0c3ae", "#e5ded2", "#f6f3ef"] },
+      "filed-paper": { "role": "neutral-bg", "displayName": "Filed Paper", "canonical": "#faf8f4", "tonalRamp": ["#352b18", "#62502d", "#8c7340", "#b29457", "#c6af81", "#d7c7a7", "#e9e0ce", "#f7f4ed"] }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "The one large heading per screen (h1) — this system has no larger display tier above it." },
+      "title": { "displayName": "Title", "purpose": "Card and section headers (h2/h3) — distinguished from body by weight, not size." },
+      "body": { "displayName": "Body", "purpose": "Default prose; .lead variant is the same size at 65% ink opacity for intro paragraphs." },
+      "label": { "displayName": "Label", "purpose": "Step indicators and section eyebrows (.micro) — always uppercase JetBrains Mono." }
+    },
+    "shadows": [
+      { "name": "overlay-dropdown", "value": "0 10px 30px rgba(17,17,16,.14)", "purpose": "Account menu popover — floats above the page, never used on an in-flow surface." },
+      { "name": "overlay-sticky-cta", "value": "0 -8px 20px rgba(17,17,16,.08)", "purpose": "Mobile sticky action bar — the only other overlay shadow in the system." },
+      { "name": "focus-ring", "value": "0 0 0 4px rgba(31,31,230,.08)", "purpose": "Shared focus-visible ring on buttons and inputs — the accent's third and last sanctioned appearance." }
+    ],
+    "motion": [
+      { "name": "checklist-pop", "value": "clPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)", "purpose": "Overshoot pop when a checklist item flips from pending to done — the system's one deliberate motion moment." },
+      { "name": "state-transition", "value": "0.2s ease (border-color, background-color, color)", "purpose": "Default transition speed for hover/focus/active state changes across buttons, inputs, and nav." }
+    ],
+    "breakpoints": [
+      { "name": "sidebar-collapse", "value": "820px" },
+      { "name": "mobile", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default call-to-action — ink fill, flips to Seal Blue on hover (the accent's one sanctioned button appearance).",
+      "html": "<button class=\"ds-btn-primary\">Оплатить → в кабинет</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Onest', sans-serif; font-size: 14.5px; font-weight: 700; border: 1.5px solid var(--ink); background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 9px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; } .ds-btn-primary:hover { background: #1f1fe6; border-color: #1f1fe6; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(31,31,230,.08); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Default (unstyled) button variant — white fill, bordered, used for non-primary actions.",
+      "html": "<button class=\"ds-btn-secondary\">Проверить установку</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Onest', sans-serif; font-size: 14.5px; font-weight: 700; border: 1.5px solid var(--crease, #dcd6cc); background: #fff; color: var(--ink); padding: 12px 20px; border-radius: 9px; cursor: pointer; transition: border-color 0.2s; } .ds-btn-secondary:hover { border-color: rgba(17,17,16,.4); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Low-emphasis action — back-links and secondary in-flow actions.",
+      "html": "<button class=\"ds-btn-ghost\">← кабинет</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 6px; font-family: 'Onest', sans-serif; font-size: 14.5px; font-weight: 700; border: 0; background: none; color: rgba(17,17,16,.7); padding: 12px 4px; cursor: pointer; transition: color 0.2s; } .ds-btn-ghost:hover { color: var(--ink); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Standard content container — the brightest layer in the tonal stack, border not shadow.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Пакет документов готов</div><div class=\"ds-card-body\">5 документов под ваш сайт, обновляем сами при смене закона.</div></div>",
+      "css": ".ds-card { background: #fff; border: 1px solid #dcd6cc; border-radius: 12px; padding: 16px 18px; font-family: 'Onest', sans-serif; } .ds-card-title { font-size: 15px; font-weight: 800; letter-spacing: -0.015em; color: #111110; margin-bottom: 6px; } .ds-card-body { font-size: 13px; color: rgba(17,17,16,.6); line-height: 1.5; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard field — Seal Blue border + focus ring on focus, the accent's second sanctioned appearance.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">ИНН</span><input class=\"ds-input\" value=\"7701234567\"></label>",
+      "css": ".ds-field { display: block; font-family: 'Onest', sans-serif; } .ds-field-label { display: block; font-size: 13px; font-weight: 700; color: #111110; margin-bottom: 5px; } .ds-input { width: 100%; border: 1.5px solid #dcd6cc; border-radius: 9px; padding: 11px 13px; background: #fff; font-size: 15px; color: #111110; font-family: 'JetBrains Mono', monospace; box-sizing: border-box; } .ds-input:focus { outline: none; border-color: #1f1fe6; box-shadow: 0 0 0 4px rgba(31,31,230,.08); }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "chip-status",
+      "description": "Small pill status token — semantic tint background, never a solid semantic fill.",
+      "html": "<span class=\"ds-chip ds-chip-green\">актуальна</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; background: #e8e4dd; color: rgba(17,17,16,.6); } .ds-chip-green { background: rgba(26,122,82,.10); color: #1a7a52; } .ds-chip-red { background: rgba(214,56,22,.10); color: #d63816; } .ds-chip-amber { background: rgba(184,121,0,.12); color: #b87900; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "custom",
+      "refersTo": "segmented-control",
+      "description": "Exclusive-choice control — active option gets the same solid-ink treatment as a primary button, deliberately.",
+      "html": "<div class=\"ds-seg\"><button class=\"ds-seg-btn ds-seg-on\">ООО</button><button class=\"ds-seg-btn\">ИП</button><button class=\"ds-seg-btn\">Самозанятый</button></div>",
+      "css": ".ds-seg { display: inline-flex; gap: 3px; border: 1px solid #dcd6cc; background: #fff; border-radius: 10px; padding: 3px; font-family: 'Onest', sans-serif; } .ds-seg-btn { background: none; border: 0; padding: 8px 15px; border-radius: 8px; font-size: 13.5px; font-weight: 700; color: rgba(17,17,16,.6); cursor: pointer; transition: background-color 0.2s, color 0.2s; } .ds-seg-on { background: #111110; color: #fff; }"
+    },
+    {
+      "name": "Checklist Item",
+      "kind": "custom",
+      "refersTo": "checklist-item",
+      "description": "Signature component — animated pending-to-done checkmark; a fourth amber \"never will be done\" state exists to avoid confusion with pending.",
+      "html": "<div class=\"ds-cl-item ds-cl-done\"><span class=\"ds-cl-mark\"></span><span>Реквизиты владельца</span></div><div class=\"ds-cl-item\"><span class=\"ds-cl-mark\"></span><span>Cookie-политика</span></div><div class=\"ds-cl-item ds-cl-na\"><span class=\"ds-cl-mark\"></span><span>Отраслевой блок — не входит</span></div>",
+      "css": ".ds-cl-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #e8e4dd; font-family: 'Onest', sans-serif; font-size: 13.5px; color: rgba(17,17,16,.35); transition: color 0.2s; } .ds-cl-mark { flex: none; width: 19px; height: 19px; border-radius: 999px; border: 1.5px dashed #dcd6cc; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: transparent; } .ds-cl-mark::before { content: '✓'; } .ds-cl-done { color: #111110; } .ds-cl-done .ds-cl-mark { border: none; background: rgba(26,122,82,.10); color: #1a7a52; animation: dsClPop 0.4s cubic-bezier(0.34,1.56,0.64,1); } @keyframes dsClPop { 0% { transform: scale(.3); } 55% { transform: scale(1.2); } 100% { transform: scale(1); } } .ds-cl-na { color: #b87900; } .ds-cl-na .ds-cl-mark { border-style: solid; border-color: rgba(184,121,0,.4); color: #b87900; } .ds-cl-na .ds-cl-mark::before { content: '–'; }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Active state uses the same solid-ink/white-text language as a primary button and a selected segmented control.",
+      "html": "<div class=\"ds-navlist\"><a class=\"ds-nav-on\">▤ Обзор</a><button class=\"ds-nav-item\">▤ Документы</button><button class=\"ds-nav-item\">💳 Подписка</button></div>",
+      "css": ".ds-navlist { display: flex; flex-direction: column; gap: 2px; font-family: 'Onest', sans-serif; } .ds-nav-item, .ds-nav-on { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; background: none; border: 0; text-align: left; text-decoration: none; color: rgba(17,17,16,.68); transition: background-color 0.2s, color 0.2s; } .ds-nav-item:hover { background: #fff; color: #111110; } .ds-nav-on { background: #111110; color: #fff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Notary's Desk",
+    "overview": "The system reads like a well-run notary's desk, not a startup dashboard: warm paper, precise black ink, and exactly one blue — reserved for the seal, not scattered across every button. Density is high and unapologetic (15px base text, 12–15px cards, tight 8–14px internal padding) because the audience is a business owner checking whether their paperwork is in order, not browsing a marketing site. Numbers that must be exact — domains, ИНН, ОГРН, dates, code — always switch to monospace, the same visual cue a stamped document uses to mark the parts that were typed in, not printed. Elevation is almost entirely absent by design: surfaces separate by a hairline border and a tonal step (desk → filed paper → fresh sheet), not by shadow. The two places a real shadow appears — the account dropdown and the mobile sticky action bar — are both transient overlays floating above the page, and nowhere else. Confirmed visual rejection: no gradients, no soft glassy blur, no colored button fills beyond the single blue accent's hover state — this is a compliance product, and the interface should look like it takes the law as seriously as it wants the client to.",
+    "keyCharacteristics": [
+      "Warm, near-white paper canvas; near-black ink text; one rare blue accent",
+      "Flat by default — hairline borders and tonal layering instead of shadows",
+      "Monospace exclusively for domains, registry numbers, dates, codes, and money — never for prose",
+      "High density, generous corner radius (9–12px cards/buttons, full pill for chips/avatars/segmented controls)",
+      "Status communicated by a small closed set of semantic colors (green/red/amber), never by the brand blue"
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "Seal Blue is reserved for the logo mark, hover states, and focus rings only — primary buttons are Ink, not blue. If blue appears on more than one element per screen, that is drift.", "section": "colors" },
+      { "name": "The Exact-Numbers-Go-Mono Rule", "body": "Any domain, ИНН/ОГРН/ОГРНИП, bank detail, date, price, or code snippet renders in JetBrains Mono, full stop — even inline inside an otherwise Onest sentence.", "section": "typography" },
+      { "name": "The Two-Chrome Rule", "body": "A screen belongs to exactly one of the two containers (cabinet sidebar vs. narrow funnel flow), never a hybrid; step-numbering must stay continuous within its own chrome group.", "section": "layout" },
+      { "name": "The Overlay-Only Shadow Rule", "body": "The only two shadows in the system lift something physically above the page (account dropdown, sticky mobile bar) — a card, button, or input never gets a shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do put a domain, registry number, date, price, or code snippet in JetBrains Mono, every time, with no exceptions.",
+      "Do separate surfaces with a border and a tonal step (Desk → Filed Paper → Sheet); reach for a shadow only on something physically floating above the page.",
+      "Do use the same 'solid Ink, flips to white text' selected/active treatment across buttons, segmented controls, and nav.",
+      "Do keep a screen's step counter continuous within its own chrome container; a reset reads as a bug even when the container legitimately changed."
+    ],
+    "donts": [
+      "Don't put Seal Blue on a primary button fill, a background, or anything decorative.",
+      "Don't add a shadow to a card, button, input, or any other in-flow surface.",
+      "Don't invent a fourth semantic color — green/red/amber is the closed set.",
+      "Don't round anything past the pill shape or leave a sharp corner anywhere."
+    ]
+  }
+}

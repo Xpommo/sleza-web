@@ -18,6 +18,16 @@ export function loadAnketa() {
   }
 }
 
+// Имя и почта в углу кабинета — те, что человек назвал на «Ваш профиль».
+// Пока анкета не пройдена, показываем данные аккаунта из мока.
+export function accountUser(fallback) {
+  const a = loadAnketa();
+  return {
+    name: a.personName || fallback.name,
+    email: a.personEmail || fallback.email,
+  };
+}
+
 export function saveAnketa(patch) {
   if (typeof window === 'undefined') return;
   try {

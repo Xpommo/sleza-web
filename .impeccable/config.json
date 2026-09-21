@@ -1,0 +1,989 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/start/profile/ProfileClient.js"
+        ],
+        "createdAt": "2026-09-21T04:55:57.424Z",
+        "reason": "user confirmed: explicit instruction to preserve v0.dev's exact fonts/sizes; DESIGN.md documents the separate design-export/ HTML macet, not this React tree — sibling frontend/app/app/start/anketa/page.js already uses its own arbitrary sizes (text-[26px], text-[12.5px]) outside DESIGN.md's 4-step scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/start/profile/ProfileClient.js"
+        ],
+        "createdAt": "2026-09-21T04:55:57.509Z",
+        "reason": "user confirmed: explicit instruction to preserve v0.dev's exact fonts/sizes; DESIGN.md documents the separate design-export/ HTML macet, not this React tree — sibling frontend/app/app/start/anketa/page.js already uses its own arbitrary sizes (text-[26px], text-[12.5px]) outside DESIGN.md's 4-step scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13.5px",
+        "files": [
+          "frontend/app/app/start/profile/ProfileClient.js"
+        ],
+        "createdAt": "2026-09-21T04:55:57.587Z",
+        "reason": "user confirmed: explicit instruction to preserve v0.dev's exact fonts/sizes; DESIGN.md documents the separate design-export/ HTML macet, not this React tree — sibling frontend/app/app/start/anketa/page.js already uses its own arbitrary sizes (text-[26px], text-[12.5px]) outside DESIGN.md's 4-step scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/start/profile/ProfileClient.js"
+        ],
+        "createdAt": "2026-09-21T04:55:57.666Z",
+        "reason": "user confirmed: explicit instruction to preserve v0.dev's exact fonts/sizes; DESIGN.md documents the separate design-export/ HTML macet, not this React tree — sibling frontend/app/app/start/anketa/page.js already uses its own arbitrary sizes (text-[26px], text-[12.5px]) outside DESIGN.md's 4-step scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/start/profile/ProfileClient.js"
+        ],
+        "createdAt": "2026-09-21T04:55:57.717Z",
+        "reason": "user confirmed: explicit instruction to preserve v0.dev's exact fonts/sizes; DESIGN.md documents the separate design-export/ HTML macet, not this React tree — sibling frontend/app/app/start/anketa/page.js already uses its own arbitrary sizes (text-[26px], text-[12.5px]) outside DESIGN.md's 4-step scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/start/profile/ProfileClient.js"
+        ],
+        "createdAt": "2026-09-21T04:55:57.775Z",
+        "reason": "user confirmed: explicit instruction to preserve v0.dev's exact fonts/sizes; DESIGN.md documents the separate design-export/ HTML macet, not this React tree — sibling frontend/app/app/start/anketa/page.js already uses its own arbitrary sizes (text-[26px], text-[12.5px]) outside DESIGN.md's 4-step scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "17px",
+        "files": [
+          "frontend/app/app/start/profile/ProfileClient.js"
+        ],
+        "createdAt": "2026-09-21T04:55:57.829Z",
+        "reason": "user confirmed: explicit instruction to preserve v0.dev's exact fonts/sizes; DESIGN.md documents the separate design-export/ HTML macet, not this React tree — sibling frontend/app/app/start/anketa/page.js already uses its own arbitrary sizes (text-[26px], text-[12.5px]) outside DESIGN.md's 4-step scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "18px",
+        "files": [
+          "frontend/app/app/start/profile/ProfileClient.js"
+        ],
+        "createdAt": "2026-09-21T04:55:57.901Z",
+        "reason": "user confirmed: explicit instruction to preserve v0.dev's exact fonts/sizes; DESIGN.md documents the separate design-export/ HTML macet, not this React tree — sibling frontend/app/app/start/anketa/page.js already uses its own arbitrary sizes (text-[26px], text-[12.5px]) outside DESIGN.md's 4-step scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "40px",
+        "files": [
+          "frontend/app/app/start/profile/ProfileClient.js"
+        ],
+        "createdAt": "2026-09-21T04:55:57.957Z",
+        "reason": "user confirmed: explicit instruction to preserve v0.dev's exact fonts/sizes; DESIGN.md documents the separate design-export/ HTML macet, not this React tree — sibling frontend/app/app/start/anketa/page.js already uses its own arbitrary sizes (text-[26px], text-[12.5px]) outside DESIGN.md's 4-step scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "18px",
+        "files": [
+          "frontend/app/app/start/_shared/AnketaChrome.js"
+        ],
+        "createdAt": "2026-09-21T05:08:04.284Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js — DESIGN.md documents the separate design-export/ HTML macet, not this shared React chrome"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/start/_shared/AnketaChrome.js"
+        ],
+        "createdAt": "2026-09-21T05:08:04.339Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js — DESIGN.md documents the separate design-export/ HTML macet, not this shared React chrome"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/start/_shared/AnketaChrome.js"
+        ],
+        "createdAt": "2026-09-21T05:08:04.393Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js — DESIGN.md documents the separate design-export/ HTML macet, not this shared React chrome"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/start/_shared/AnketaChrome.js"
+        ],
+        "createdAt": "2026-09-21T05:08:04.442Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js — DESIGN.md documents the separate design-export/ HTML macet, not this shared React chrome"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/start/_shared/AnketaChrome.js"
+        ],
+        "createdAt": "2026-09-21T05:08:04.492Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js — DESIGN.md documents the separate design-export/ HTML macet, not this shared React chrome"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/start/_shared/AnketaChrome.js"
+        ],
+        "createdAt": "2026-09-21T05:08:04.546Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js — DESIGN.md documents the separate design-export/ HTML macet, not this shared React chrome"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "40px",
+        "files": [
+          "frontend/app/app/start/site/SiteClient.js"
+        ],
+        "createdAt": "2026-09-21T05:10:26.259Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js/AnketaChrome.js — DESIGN.md documents the separate design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "17px",
+        "files": [
+          "frontend/app/app/start/site/SiteClient.js"
+        ],
+        "createdAt": "2026-09-21T05:10:26.318Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js/AnketaChrome.js — DESIGN.md documents the separate design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/start/site/SiteClient.js"
+        ],
+        "createdAt": "2026-09-21T05:10:26.366Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js/AnketaChrome.js — DESIGN.md documents the separate design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/start/site/SiteClient.js"
+        ],
+        "createdAt": "2026-09-21T05:10:26.415Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js/AnketaChrome.js — DESIGN.md documents the separate design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/start/site/SiteClient.js"
+        ],
+        "createdAt": "2026-09-21T05:10:26.469Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js/AnketaChrome.js — DESIGN.md documents the separate design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/start/site/SiteClient.js"
+        ],
+        "createdAt": "2026-09-21T05:10:26.523Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js/AnketaChrome.js — DESIGN.md documents the separate design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/start/site/SiteClient.js"
+        ],
+        "createdAt": "2026-09-21T05:10:26.570Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js/AnketaChrome.js — DESIGN.md documents the separate design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "18px",
+        "files": [
+          "frontend/app/app/start/site/SiteClient.js"
+        ],
+        "createdAt": "2026-09-21T05:10:26.620Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts for this anketa flow, same exception as ProfileClient.js/AnketaChrome.js — DESIGN.md documents the separate design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "18px",
+        "files": [
+          "frontend/app/app/start/clients/ClientsClient.js"
+        ],
+        "createdAt": "2026-09-21T06:38:41.301Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/start/clients/ClientsClient.js"
+        ],
+        "createdAt": "2026-09-21T06:38:41.354Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/start/clients/ClientsClient.js"
+        ],
+        "createdAt": "2026-09-21T06:38:41.409Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/start/clients/ClientsClient.js"
+        ],
+        "createdAt": "2026-09-21T06:38:41.461Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/start/clients/ClientsClient.js"
+        ],
+        "createdAt": "2026-09-21T06:38:41.515Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/start/clients/ClientsClient.js"
+        ],
+        "createdAt": "2026-09-21T06:38:41.564Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "40px",
+        "files": [
+          "frontend/app/app/start/clients/ClientsClient.js"
+        ],
+        "createdAt": "2026-09-21T06:40:00.875Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "17px",
+        "files": [
+          "frontend/app/app/start/clients/ClientsClient.js"
+        ],
+        "createdAt": "2026-09-21T06:40:00.933Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "40px",
+        "files": [
+          "frontend/app/app/start/requisites/RequisitesClient.js"
+        ],
+        "createdAt": "2026-09-21T07:08:00.206Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "17px",
+        "files": [
+          "frontend/app/app/start/requisites/RequisitesClient.js"
+        ],
+        "createdAt": "2026-09-21T07:08:00.273Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/start/requisites/RequisitesClient.js"
+        ],
+        "createdAt": "2026-09-21T07:08:00.342Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/start/requisites/RequisitesClient.js"
+        ],
+        "createdAt": "2026-09-21T07:08:00.433Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/start/requisites/RequisitesClient.js"
+        ],
+        "createdAt": "2026-09-21T07:08:00.490Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10px",
+        "files": [
+          "frontend/app/app/start/requisites/RequisitesClient.js"
+        ],
+        "createdAt": "2026-09-21T07:08:00.542Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/start/requisites/RequisitesClient.js"
+        ],
+        "createdAt": "2026-09-21T07:08:00.597Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "18px",
+        "files": [
+          "frontend/app/app/start/requisites/RequisitesClient.js"
+        ],
+        "createdAt": "2026-09-21T07:08:00.645Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/start/requisites/RequisitesClient.js"
+        ],
+        "createdAt": "2026-09-21T07:08:00.700Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "40px",
+        "files": [
+          "frontend/app/app/start/documents/DocumentsClient.js"
+        ],
+        "createdAt": "2026-09-21T07:19:37.307Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "17px",
+        "files": [
+          "frontend/app/app/start/documents/DocumentsClient.js"
+        ],
+        "createdAt": "2026-09-21T07:19:37.389Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/start/documents/DocumentsClient.js"
+        ],
+        "createdAt": "2026-09-21T07:19:37.509Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/start/documents/DocumentsClient.js"
+        ],
+        "createdAt": "2026-09-21T07:19:37.573Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/start/documents/DocumentsClient.js"
+        ],
+        "createdAt": "2026-09-21T07:19:37.636Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/start/documents/DocumentsClient.js"
+        ],
+        "createdAt": "2026-09-21T07:19:37.695Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/start/documents/DocumentsClient.js"
+        ],
+        "createdAt": "2026-09-21T07:19:37.751Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10px",
+        "files": [
+          "frontend/app/app/start/documents/DocumentsClient.js"
+        ],
+        "createdAt": "2026-09-21T07:19:37.823Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "18px",
+        "files": [
+          "frontend/app/app/start/documents/DocumentsClient.js"
+        ],
+        "createdAt": "2026-09-21T07:19:37.875Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12px",
+        "files": [
+          "frontend/app/app/start/documents/DocumentsClient.js"
+        ],
+        "createdAt": "2026-09-21T07:20:54.994Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "40px",
+        "files": [
+          "frontend/app/app/start/install/InstallClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:24.451Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "17px",
+        "files": [
+          "frontend/app/app/start/install/InstallClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:24.507Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/start/install/InstallClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:24.559Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/start/install/InstallClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:24.609Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/start/install/InstallClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:24.662Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/start/install/InstallClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:24.778Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12px",
+        "files": [
+          "frontend/app/app/start/install/InstallClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:24.832Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/start/install/InstallClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:24.886Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10px",
+        "files": [
+          "frontend/app/app/start/install/InstallClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:24.937Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "18px",
+        "files": [
+          "frontend/app/app/start/install/InstallClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:24.992Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "40px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:46.772Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "17px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:46.826Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:46.876Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:46.926Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:46.976Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:47.028Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:47.079Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:47.133Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:47.242Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "18px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-21T11:11:47.295Z",
+        "reason": "user confirmed: preserving v0.dev visual/fonts across the anketa flow"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "44px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:46.812Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "38px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:46.899Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "17px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:46.956Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:47.010Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:47.067Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:47.121Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:47.179Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:47.237Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:47.299Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:47.359Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "18px",
+        "files": [
+          "frontend/app/app/register/RegisterClient.js"
+        ],
+        "createdAt": "2026-09-21T11:21:47.413Z",
+        "reason": "user confirmed: premium registration screen, bespoke type scale"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "42px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:36:10.770Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "28px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:36:10.836Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "17px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:36:10.892Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:36:10.951Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:36:11.018Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:36:11.074Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:36:11.128Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:36:11.184Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:36:11.242Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:36:11.296Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "36px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:41:20.518Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "22px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:41:20.568Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "26px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:41:20.670Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens; DESIGN.md documents the design-export/ HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "20px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:47:16.187Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "19px",
+        "files": [
+          "frontend/app/app/sites/SitesClient.js"
+        ],
+        "createdAt": "2026-09-21T11:47:16.254Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "40px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:05.926Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "36px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:05.994Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "28px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.053Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "24px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.108Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "20px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.172Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "17px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.232Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.287Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.350Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.408Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12.5px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.472Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.535Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.588Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-21T11:53:06.641Z",
+        "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      }
+    ]
+  }
+}
