@@ -113,7 +113,7 @@ function DocumentCard({ doc, domain, noCalls }) {
         </span>
         <span className="rounded-full bg-ok/10 px-2.5 py-1 text-[10px] font-bold text-ok">Готово</span>
       </div>
-      <h3 className="mt-4 text-[15px] font-bold leading-5">{doc.title}</h3>
+      <h3 className="mt-4 min-h-10 text-[15px] font-bold leading-5">{doc.title}</h3>
       <p className="mt-2 min-h-10 text-sm leading-5 text-ink/55">{note}</p>
       <button
         type="button"
@@ -204,7 +204,7 @@ export default function DocumentsClient() {
                   <CheckIcon size={15} /> Всё готово
                 </span>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid items-start gap-4 md:grid-cols-2">
                 {DOCUMENTS.map((doc) => (
                   <DocumentCard key={doc.id} doc={doc} domain={domain} noCalls={noCalls} />
                 ))}
