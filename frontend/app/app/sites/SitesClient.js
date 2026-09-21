@@ -5,30 +5,33 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   BillingIcon, BuildingIcon, ChevronIcon, GridIcon, ListIcon, PlusIcon,
-  ProjectsIcon, SupportIcon, WarnIcon,
+  OkIcon, ProjectsIcon, SupportIcon, WarnIcon,
 } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
+const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
+
+// Прогресс — сколько шагов засчитано по «Далее»; шестой засчитывается
+// установкой кода. Раньше счёт шёл по наличию ответов, и шестым пунктом
+// была сама установка: без кода на сайте 6 из 6 было недостижимо.
 function anketaProgress(a) {
-  const done = [a.role, a.domain, a.purposes?.length, a.owner, a.installed || a.owner, a.installed];
-  return done.filter(Boolean).length;
+  return Math.min(a.stepsDone || 0, 5) + (a.installed ? 1 : 0);
 }
 
 // Статус карточки — то же правило, что в кабинете: пока анкета не пройдена,
 // документов ещё нет; пройдена, но кода на сайте нет — «скрипт не установлен».
-function siteStatus(a, steps) {
-  if (steps < 6 && !a.installed) {
-    return steps < 4
-      ? { tone: 'warn', label: 'Анкета не закончена', action: 'Продолжить анкету', href: '/app/start/profile' }
-      : { tone: 'warn', label: 'Документы не готовы', action: 'Продолжить анкету', href: '/app/start/requisites' };
-  }
-  if (!a.installed) {
-    return { tone: 'warn', label: 'Скрипт не установлен', action: 'Поставить код на сайт', href: '/app/start/code' };
-  }
-  return { tone: 'ok', label: 'Виджет работает', action: 'Открыть сайт', href: '/app/site' };
+function siteStatus(a) {
+  if (a.installed) return { tone: 'ok', label: 'Виджет работает', action: 'Открыть сайт', href: '/app/site' };
+  // Пробный период уже запущен, а код ещё не нашли: проверка идёт до 15
+  // минут, и кабинет сайта уже открыт — туда и ведём, а не обратно в анкету.
+  if (a.trialStartedAt) return { tone: 'warn', label: 'Ждём код на сайте', action: 'Открыть сайт', href: '/app/site' };
+  const done = a.stepsDone || 0;
+  // Пакет собран после «Реквизитов»: дальше не хватает только кода.
+  if (done >= 4) return { tone: 'warn', label: 'Код не установлен', action: 'Поставить код на сайт', href: STEP_URLS[5] };
+  return { tone: 'warn', label: 'Анкета не закончена', action: 'Продолжить анкету', href: STEP_URLS[done] };
 }
 
 const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
@@ -67,7 +70,7 @@ export default function SitesClient() {
     setSteps(anketaProgress(a));
   }, []);
 
-  const status = site ? siteStatus(loadAnketa(), steps) : null;
+  const status = site ? siteStatus(loadAnketa()) : null;
 
   return (
     <main className="min-h-screen bg-warm text-ink lg:flex">
@@ -175,7 +178,7 @@ export default function SitesClient() {
                         status.tone === 'ok' ? 'border-ok/25 bg-ok/10 text-ok' : 'border-warn/30 bg-warn/10 text-warn'
                       }`}
                     >
-                      <WarnIcon size={15} /> {status.label}
+                      {status.tone === 'ok' ? <OkIcon size={15} /> : <WarnIcon size={15} />} {status.label}
                     </div>
 
                     <dl className="mt-6 space-y-3 text-sm">

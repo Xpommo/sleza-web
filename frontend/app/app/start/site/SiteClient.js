@@ -13,7 +13,7 @@ import {
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { RING, Logo, Progress, Sidebar, Field, Tile, WhyToggle, SectionHead } from '../_shared/AnketaChrome';
-import { loadAnketa, saveAnketa } from '../_shared/anketaState';
+import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
 // Тот же список и тот же порядок опций, что в анкете (cabinet-mvp.html):
 // «regulated» нигде сейчас не показывается (владелец снял оговорку 8
@@ -199,9 +199,12 @@ export default function SiteClient() {
     // если сайт вообще не собирает контакты, спрашивать на следующем шаге
     // про цели сбора и звонки по базе нечего, и он пропускается целиком.
     if (features.length === 1 && features[0] === 'none') {
+      // шаг «Данные клиентов» пропущен по ответу — он тоже считается пройденным
+      markStepDone(3);
       router.push('/app/start/documents');
       return;
     }
+    markStepDone(2);
     router.push('/app/start/clients');
   }
 

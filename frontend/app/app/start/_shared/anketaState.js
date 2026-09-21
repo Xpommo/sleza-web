@@ -28,6 +28,13 @@ export function accountUser(fallback) {
   };
 }
 
+// Шаг засчитан, когда по нему нажали «Далее», — не когда в анкете появился
+// какой-то его ответ: черновик пишется на каждое изменение, и по ответам уже
+// не отличить начатый шаг от пройденного.
+export function markStepDone(step) {
+  saveAnketa({ stepsDone: Math.max(loadAnketa().stepsDone || 0, step) });
+}
+
 export function saveAnketa(patch) {
   if (typeof window === 'undefined') return;
   try {

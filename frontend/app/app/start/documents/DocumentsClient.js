@@ -12,7 +12,7 @@ import {
 } from '../../../../components/app/AppIcons';
 import { DocRow, DocRowList } from '../../../../components/app/DocRows';
 import { RING, Logo, Progress, Sidebar } from '../_shared/AnketaChrome';
-import { loadAnketa } from '../_shared/anketaState';
+import { loadAnketa, markStepDone } from '../_shared/anketaState';
 import { DOCUMENTS, docNote, docUrl } from '../../../../lib/docPackage';
 
 // Пилюли подвала. Cookie и маркировка заперты: согласие на cookie уже дано
@@ -301,7 +301,10 @@ export default function DocumentsClient() {
               </button>
               <button
                 type="button"
-                onClick={() => router.push('/app/start/code')}
+                onClick={() => {
+                  markStepDone(5);
+                  router.push('/app/start/code');
+                }}
                 className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
               >
                 Поставить код на сайт <ArrowRightIcon size={17} />

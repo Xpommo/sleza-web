@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ArrowRightIcon, BurgerIcon, CloseIcon, ShieldCheckIcon } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { RING, Logo, Progress, Sidebar, SectionHead, Tile } from '../_shared/AnketaChrome';
-import { loadAnketa, saveAnketa } from '../_shared/anketaState';
+import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
 // Восемь целей на весь продукт: видны только те, что относятся к сфере,
 // выбранной на «О сайте». Ни одна не отмечена по умолчанию — это реальный
@@ -101,6 +101,7 @@ export default function ClientsClient() {
 
   function goNext() {
     saveAnketa({ purposes, pdFields: fields, callsBase: calls === 'Да' });
+    markStepDone(3);
     router.push('/app/start/requisites');
   }
 

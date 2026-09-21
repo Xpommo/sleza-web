@@ -16,7 +16,7 @@ import {
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { RING, Logo, Progress, Sidebar, Field, Segmented, BlockHead, SectionHead, WhyToggle } from '../_shared/AnketaChrome';
-import { loadAnketa, saveAnketa } from '../_shared/anketaState';
+import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
 const OWNERS = ['ООО', 'ИП', 'Самозанятый'];
 
@@ -264,6 +264,7 @@ export default function RequisitesClient() {
     if (!ok) return;
 
     saveAnketa(answers());
+    markStepDone(4);
     router.push('/app/start/documents');
   }
 
