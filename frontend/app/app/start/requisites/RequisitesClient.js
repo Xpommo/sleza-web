@@ -17,6 +17,7 @@ import {
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { RING, Logo, Progress, Sidebar, Field, Segmented, BlockHead, SectionHead, WhyToggle } from '../_shared/AnketaChrome';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
+import { digitsOnly, validateRequisites } from '../_shared/requisitesRules';
 
 const OWNERS = ['ООО', 'ИП', 'Самозанятый'];
 
@@ -39,7 +40,6 @@ const INN_LOOKUP = {
   'Самозанятый': { name: 'Иванова Мария Сергеевна', address: '119019, Москва, ул. Воздвиженка, д. 10' },
 };
 
-const digitsOnly = (v) => String(v || '').replace(/\D/g, '');
 
 export default function RequisitesClient() {
   const router = useRouter();
@@ -210,37 +210,19 @@ export default function RequisitesClient() {
 
     if (!owner) fail(setOwnerError, 'Выберите, кто владеет сайтом — от этого зависит, какие реквизиты спрашивать.');
 
-    if (digitsOnly(inn).length !== (owner ? innLength : 0) || !inn) {
-      fail(setInnError, 'ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.');
-    } else setInnError(null);
-
-    if (!name.trim()) {
-      fail(setNameError, isOoo ? 'Укажите наименование — оно попадёт в документы и в реквизиты на сайте.' : 'Укажите ФИО — оно попадёт в документы и в реквизиты на сайте.');
-    } else setNameError(null);
-
-    if (owner && owner !== 'Самозанятый') {
-      const need = isOoo ? 13 : 15;
-      if (digitsOnly(ogrn).length !== need) {
-        fail(setOgrnError, isOoo ? 'ОГРН — 13 цифр. Проверьте, не пропущена ли часть номера.' : 'ОГРНИП — 15 цифр. Проверьте, не пропущена ли часть номера.');
-      } else setOgrnError(null);
-    }
-
-    if (isOoo) {
-      if (digitsOnly(kpp).length !== 9) fail(setKppError, 'КПП — 9 цифр.');
-      else setKppError(null);
-    }
-
-    if (!address.trim()) fail(setAddressError, 'Укажите адрес — он попадёт в реквизиты на сайте.');
-    else setAddressError(null);
-
-    if (digitsOnly(account).length !== 20) fail(setAccountError, 'Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.');
-    else setAccountError(null);
-    if (!bank.trim()) fail(setBankError, 'Укажите банк — в нём открыт расчётный счёт из поля выше.');
-    else setBankError(null);
-    if (digitsOnly(bik).length !== 9) fail(setBikError, 'БИК — 9 цифр.');
-    else setBikError(null);
-    if (digitsOnly(corr).length !== 20) fail(setCorrError, 'Корреспондентский счёт — 20 цифр. Проверьте, не пропущена ли часть номера.');
-    else setCorrError(null);
+    // Реквизиты проверяются общими правилами — теми же, что у окна
+    // «Реквизиты владельца» в кабинете.
+    const e = validateRequisites({ owner, inn, name, ogrn, kpp, address, account, bank, bik, corr, companyMail, companyPhone });
+    const put = (setter, key) => (e[key] ? fail(setter, e[key]) : setter(null));
+    put(setInnError, 'inn');
+    put(setNameError, 'name');
+    put(setOgrnError, 'ogrn');
+    put(setKppError, 'kpp');
+    put(setAddressError, 'address');
+    put(setAccountError, 'account');
+    put(setBankError, 'bank');
+    put(setBikError, 'bik');
+    put(setCorrError, 'corr');
 
     if (licenseSphere) {
       if (!license) fail(setLicenseError, 'Ответьте про лицензию — без ответа мы не знаем, указывать ли её в документах.');
@@ -253,10 +235,8 @@ export default function RequisitesClient() {
       }
     }
 
-    if (!companyMail.trim()) fail(setCompanyMailError, 'Нужна почта вида name@site.ru — её увидят в реквизитах на сайте.');
-    else setCompanyMailError(null);
-    if (!companyPhone.trim()) fail(setCompanyPhoneError, 'Укажите телефон — он попадёт в реквизиты на сайте.');
-    else setCompanyPhoneError(null);
+    put(setCompanyMailError, 'companyMail');
+    put(setCompanyPhoneError, 'companyPhone');
     if (!pdContact.trim()) {
       fail(setPdContactError, 'Нужна почта или телефон — по этому контакту к вам будут обращаться по вопросам персональных данных.');
     } else setPdContactError(null);

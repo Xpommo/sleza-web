@@ -7,6 +7,7 @@ import { ArrowRightIcon, OkIcon, RefreshIcon, ShieldCheckIcon, WarnIcon } from '
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS } from '../../../lib/docPackage';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
+import RequisitesModal from './_shared/RequisitesModal';
 import { RING, SiteHeader, SiteSidebar } from './_shared/SiteChrome';
 import { PRICE_LABEL, TARIFFS, TRIAL_MS, formatDate, formatLeft, paidPeriod, subState } from './_shared/subscription';
 
@@ -35,6 +36,7 @@ export default function SiteOverviewClient() {
   const [a, setA] = useState(null);
   const [user, setUser] = useState(CURRENT_USER);
   const [now, setNow] = useState(Date.now());
+  const [reqOpen, setReqOpen] = useState(false);
 
   useEffect(() => {
     const saved = loadAnketa();
@@ -114,6 +116,7 @@ export default function SiteOverviewClient() {
     b.invoice && !b.paidAt && [b.invoice.at, `Выставлен счёт № ${b.invoice.no}`, 'bg-warn'],
     state === 'expired' && [a.trialStartedAt + TRIAL_MS, 'Пробный период закончился — виджет снят с сайта', 'bg-danger'],
     a.trialStartedAt && [a.trialStartedAt, a.installed ? 'Скрипт найден на сайте, пробный период запущен' : 'Пробный период запущен, ждём код на сайте', 'bg-brand'],
+    ...(a.docEdits || []).map((e) => [e.at, 'Обновили документ «Реквизиты владельца» — изменились реквизиты', 'bg-brand']),
     !unfinished && [madeAt - 1, 'Документы собраны по ответам анкеты', 'bg-ok'],
   ].filter(Boolean).sort((x, y) => y[0] - x[0]);
 
@@ -127,9 +130,9 @@ export default function SiteOverviewClient() {
             <p className="mt-1 text-[14px] text-ink/50">
               {[a.companyName, a.inn && `ИНН ${a.inn}`].filter(Boolean).join(' · ')}
               {(a.companyName || a.inn) && ' · '}
-              <Link href="/app/start/requisites" className="font-semibold text-brand hover:underline">
+              <button type="button" onClick={() => setReqOpen(true)} className={`rounded font-semibold text-brand hover:underline ${RING}`}>
                 Изменить
-              </Link>
+              </button>
             </p>
           </SiteHeader>
 
@@ -173,7 +176,7 @@ export default function SiteOverviewClient() {
             <h2 className="text-lg font-bold tracking-[-0.02em]">Последние события</h2>
             <div className={`relative mt-6 space-y-6 ${events.length > 1 ? 'before:absolute before:bottom-2 before:left-[7px] before:top-2 before:w-px before:bg-line' : ''}`}>
               {events.map(([when, what, dot]) => (
-                <div key={what} className="relative flex gap-4">
+                <div key={`${when}-${what}`} className="relative flex gap-4">
                   <span className={`z-10 mt-1 h-4 w-4 shrink-0 rounded-full border-4 border-white ${dot}`} />
                   <div>
                     <p className="text-sm font-bold">{sameDay(when)}</p>
@@ -185,6 +188,8 @@ export default function SiteOverviewClient() {
           </section>
         </div>
       </section>
+
+      {reqOpen && <RequisitesModal onClose={() => setReqOpen(false)} onSaved={() => setA(loadAnketa())} />}
     </main>
   );
 }

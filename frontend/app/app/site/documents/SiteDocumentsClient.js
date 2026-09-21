@@ -35,6 +35,7 @@ export default function SiteDocumentsClient() {
       installed: Boolean(a.installed),
       noCalls: a.callsBase === false,
       madeAt: a.trialStartedAt || Date.now(),
+      edits: a.docEdits || [],
     });
   }, [router]);
 
@@ -111,7 +112,10 @@ export default function SiteDocumentsClient() {
                   open={openDoc === doc.id}
                   onToggle={() => setOpenDoc(openDoc === doc.id ? null : doc.id)}
                 >
-                  <p className="text-[13px] font-semibold">Версия 1 · от {made}</p>
+                  <p className="text-[13px] font-semibold">
+                    Версия {1 + site.edits.filter((e) => e.doc === doc.id).length} · от{' '}
+                    {formatDate(site.edits.filter((e) => e.doc === doc.id).at(-1)?.at || site.madeAt)}
+                  </p>
                   <p className="mt-1.5 text-[13px] leading-5 text-ink/60">
                     {live
                       ? 'Действует. Следующая версия появится, только если изменится закон или ваши данные, — мы напишем об этом письмом.'
@@ -128,11 +132,19 @@ export default function SiteDocumentsClient() {
 
           <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
             <p className="text-sm font-semibold text-ink/45">История изменений</p>
-            {/* Соединительной линии нет: запись пока одна, и вести её некуда.
-                Появится вторая версия — появится и линия. */}
-            <div className="mt-6 space-y-6">
+            {/* Линия соединяет записи, только когда их больше одной. */}
+            <div className={`relative mt-6 space-y-6 ${site.edits.length ? 'before:absolute before:bottom-2 before:left-[7px] before:top-2 before:w-px before:bg-line' : ''}`}>
+              {[...site.edits].reverse().map((e) => (
+                <div key={e.at} className="relative flex gap-4">
+                  <span className="z-10 mt-1 h-4 w-4 shrink-0 rounded-full border-4 border-white bg-brand" />
+                  <div>
+                    <p className="text-sm font-bold">{formatDate(e.at)} · «Реквизиты владельца», новая версия</p>
+                    <p className="mt-1 text-sm leading-5 text-ink/55">{e.what} — поправили в кабинете.</p>
+                  </div>
+                </div>
+              ))}
               <div className="relative flex gap-4">
-                <span className="z-10 mt-1 h-4 w-4 shrink-0 rounded-full border-4 border-white bg-brand" />
+                <span className="z-10 mt-1 h-4 w-4 shrink-0 rounded-full border-4 border-white bg-ok" />
                 <div>
                   <p className="text-sm font-bold">{made} · Создана первая версия</p>
                   <p className="mt-1 text-sm leading-5 text-ink/55">
