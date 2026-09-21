@@ -100,7 +100,7 @@ function SidebarChrome({ children, pathname, navOverride, backLink }) {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[248px_1fr]">
       {/* pb с запасом под глобальный CookieBanner — иначе он накрывает блок аккаунта */}
-      <aside className="hidden border-r border-line bg-paper px-4 pb-40 pt-6 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:overflow-y-auto">
+      <aside className="hidden border-r border-line bg-paper px-4 pb-40 pt-6 lg:sticky lg:top-0 lg:flex lg:h-[calc(100vh-var(--cookie-banner-h,0px))] lg:flex-col lg:overflow-y-auto">
         <div className="mb-7"><Logo /></div>
         {backLink && (
           <Link href={backLink.href}

@@ -7,7 +7,7 @@ import { CheckIcon, CopyIcon, MonitorIcon, ShieldCheckIcon, WarnIcon } from '../
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { SITE_ID } from '../../../../lib/docPackage';
 import { accountUser, loadAnketa } from '../../start/_shared/anketaState';
-import { RING, SiteSidebar } from '../_shared/SiteChrome';
+import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
 
 const SNIPPET = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID}" async></script>`;
 
@@ -163,14 +163,12 @@ export default function SiteWidgetClient() {
 
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
-          <header>
-            <p className="mb-3 font-mono text-[10.5px] font-bold uppercase tracking-[0.2em] text-brand">{site.domain}</p>
-            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Виджет</h1>
-            <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/55">
+          <SiteHeader title="Виджет" domain={site.domain} context="cookie-баннер, подвал и маркировка на страницах">
+            <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/55">
               Одна строка кода на сайте показывает cookie-баннер, ставит внизу страниц подвал со ссылками на документы
               и маркирует упоминания из реестров.
             </p>
-          </header>
+          </SiteHeader>
 
           {/* Состояние скрипта — первым: настройки ниже имеют смысл, только
               если код на сайте действительно стоит. */}

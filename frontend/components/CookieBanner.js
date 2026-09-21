@@ -1,16 +1,43 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
+  const ref = useRef(null);
 
   useEffect(() => {
     if (!localStorage.getItem('consent_v1')) {
       setVisible(true);
     }
   }, []);
+
+  // Баннер fixed и ничего не резервировал под собой: закрывал низ страницы
+  // (в кабинете — кнопку «Отменить подписку», её нельзя было нажать) и блок
+  // аккаунта в липких сайдбарах. Пока он виден, отдаём его высоту странице
+  // отступом снизу и CSS-переменной — по ней сайдбары укорачиваются.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!visible || !ref.current) {
+      document.body.style.paddingBottom = '';
+      root.style.removeProperty('--cookie-banner-h');
+      return undefined;
+    }
+    const sync = () => {
+      const h = `${ref.current.offsetHeight}px`;
+      document.body.style.paddingBottom = h;
+      root.style.setProperty('--cookie-banner-h', h);
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(ref.current);
+    return () => {
+      ro.disconnect();
+      document.body.style.paddingBottom = '';
+      root.style.removeProperty('--cookie-banner-h');
+    };
+  }, [visible]);
 
   const accept = () => {
     localStorage.setItem('consent_v1', 'accepted');
@@ -25,7 +52,7 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-line bg-paper shadow-lg">
+    <div ref={ref} className="fixed bottom-0 left-0 right-0 z-50 border-t border-line bg-paper shadow-lg">
       <div className="max-w-3xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
         <p className="text-xs text-ink/60 flex-1 font-mono leading-relaxed">
           Мы используем localStorage только для запоминания вашего выбора. Аналитики и рекламных трекеров нет.{' '}

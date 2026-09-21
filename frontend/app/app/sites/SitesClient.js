@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  BillingIcon, BuildingIcon, ChevronIcon, GridIcon, ListIcon, PlusIcon,
+  BuildingIcon, ChevronIcon, GridIcon, ListIcon, PlusIcon,
   OkIcon, ProjectsIcon, SupportIcon, WarnIcon,
 } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
+import { subState } from '../site/_shared/subscription';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
@@ -24,7 +25,10 @@ function anketaProgress(a) {
 // Статус карточки — то же правило, что в кабинете: пока анкета не пройдена,
 // документов ещё нет; пройдена, но кода на сайте нет — «скрипт не установлен».
 function siteStatus(a) {
-  if (a.installed) return { tone: 'ok', label: 'Виджет работает', action: 'Открыть сайт', href: '/app/site' };
+  const sub = subState(a);
+  if (sub === 'expired') return { tone: 'warn', label: 'Пробный период закончился', action: 'Оплатить', href: '/app/site/billing' };
+  if (sub === 'pending') return { tone: 'warn', label: 'Ждём оплату по счёту', action: 'Открыть сайт', href: '/app/site' };
+  if (a.installed) return { tone: 'ok', label: sub === 'paid' ? 'Оплачено, виджет работает' : 'Виджет работает', action: 'Открыть сайт', href: '/app/site' };
   // Пробный период уже запущен, а код ещё не нашли: проверка идёт до 15
   // минут, и кабинет сайта уже открыт — туда и ведём, а не обратно в анкету.
   if (a.trialStartedAt) return { tone: 'warn', label: 'Ждём код на сайте', action: 'Открыть сайт', href: '/app/site' };
@@ -50,7 +54,6 @@ function TearMark({ size = 28 }) {
 // «Поддержка» — постоянный пункт, а не запрятанный в меню аккаунта.
 const NAV = [
   { href: '/app/sites', label: 'Мои сайты', Icon: ProjectsIcon, active: true },
-  { href: '#', label: 'Подписка', Icon: BillingIcon },
 ];
 
 export default function SitesClient() {
@@ -74,7 +77,7 @@ export default function SitesClient() {
 
   return (
     <main className="min-h-screen bg-warm text-ink lg:flex">
-      <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-6 py-7 lg:sticky lg:top-0 lg:h-screen lg:w-[270px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:pb-8 lg:pt-8">
+      <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-6 py-7 lg:sticky lg:top-0 lg:h-[calc(100vh-var(--cookie-banner-h,0px))] lg:w-[270px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:pb-8 lg:pt-8">
         <div className="flex items-center gap-2.5">
           <TearMark />
           <span className="text-[17px] font-bold tracking-[-0.035em]">Слеза Белый Сайт</span>

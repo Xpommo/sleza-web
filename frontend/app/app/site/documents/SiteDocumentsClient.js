@@ -8,7 +8,7 @@ import { DocRow, DocRowList } from '../../../../components/app/DocRows';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { DOCUMENTS, SITE_ID, docNote, docUrl } from '../../../../lib/docPackage';
 import { accountUser, loadAnketa } from '../../start/_shared/anketaState';
-import { RING, SiteSidebar } from '../_shared/SiteChrome';
+import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
 
 const PACKAGE_URL = `cdn.sleza.media/${SITE_ID}`;
 
@@ -57,15 +57,13 @@ export default function SiteDocumentsClient() {
 
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
-          <header>
-            <p className="mb-3 font-mono text-[10.5px] font-bold uppercase tracking-[0.2em] text-brand">{site.domain}</p>
-            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Документы</h1>
-            <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/55">
+          <SiteHeader title="Документы" domain={site.domain} context="версии и причина изменений">
+            <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/55">
               {live
                 ? 'Открыты по постоянным адресам — ссылки в подвале сайта не ломаются. Когда меняется закон, мы переписываем текст и поднимаем версию.'
                 : 'Собраны по вашим ответам. Откроются по постоянным адресам, как только на сайте появится код.'}
             </p>
-          </header>
+          </SiteHeader>
 
           <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
             <div className="flex items-center gap-3">

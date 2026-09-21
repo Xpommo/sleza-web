@@ -5,7 +5,7 @@
 // в одном месте, иначе пункты в нём разойдутся.
 
 import Link from 'next/link';
-import { ArrowLeftIcon, DocsIcon, MonitorIcon, ProjectsIcon, SupportIcon } from '../../../../components/app/AppIcons';
+import { ArrowLeftIcon, BillingIcon, DocsIcon, MonitorIcon, ProjectsIcon, SupportIcon } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { accountUser } from '../../start/_shared/anketaState';
 
@@ -20,12 +20,12 @@ export function TearMark({ size = 28 }) {
   );
 }
 
-// Разделы сайта, а не аккаунта: подписки здесь нет намеренно — карта и
-// счета общие на все сайты, и три места для одной карты только путают.
-// Внутри сайта о ней достаточно строки состояния.
+// Разделы сайта — в том же порядке, что в утверждённом макете. Подписка
+// здесь, а не на уровне аккаунта: у каждого сайта своя оплата.
 export const SITE_NAV = [
   { label: 'Обзор', Icon: ProjectsIcon, href: '/app/site' },
   { label: 'Документы', Icon: DocsIcon, href: '/app/site/documents' },
+  { label: 'Подписка', Icon: BillingIcon, href: '/app/site/billing' },
   { label: 'Виджет', Icon: MonitorIcon, href: '/app/site/widget' },
 ];
 
@@ -33,7 +33,7 @@ export { accountUser, CURRENT_USER };
 
 export function SiteSidebar({ domain, active, user = CURRENT_USER }) {
   return (
-    <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-6 py-7 lg:sticky lg:top-0 lg:h-screen lg:w-[270px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:pb-8 lg:pt-8">
+    <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-6 py-7 lg:sticky lg:top-0 lg:h-[calc(100vh-var(--cookie-banner-h,0px))] lg:w-[270px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:pb-8 lg:pt-8">
       <div className="flex items-center gap-2.5">
         <TearMark />
         <span className="text-[17px] font-bold tracking-[-0.035em]">Слеза Белый Сайт</span>
@@ -80,5 +80,21 @@ export function SiteSidebar({ domain, active, user = CURRENT_USER }) {
         </div>
       </div>
     </aside>
+  );
+}
+
+// Заголовок раздела сайта — одна схема на все разделы (как в макете): H1 —
+// имя раздела, под ним строка контекста с доменом. Раньше у «Обзора» H1 был
+// домен, а у остальных — имя раздела, и структура менялась от вкладки к вкладке.
+export function SiteHeader({ title, domain, context, children }) {
+  return (
+    <header>
+      <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">{title}</h1>
+      <p className="mt-2 text-[15px] text-ink/55">
+        <span className="font-semibold text-ink/80">{domain}</span>
+        {context && <> · {context}</>}
+      </p>
+      {children}
+    </header>
   );
 }
