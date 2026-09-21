@@ -8,3 +8,5 @@ backend/pdfs/
 backend/leads.jsonl
 backend/test/results/
 .dev-screenshots/
+.playwright-mcp/
+frontend/out/
