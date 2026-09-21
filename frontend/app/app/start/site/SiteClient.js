@@ -82,10 +82,11 @@ export default function SiteClient() {
 
   const [domain, setDomain] = useState('');
   const [domainError, setDomainError] = useState(null);
-  const [domainWhy, setDomainWhy] = useState(false);
 
   const [sphere, setSphere] = useState('');
   const [sphereError, setSphereError] = useState(null);
+  const [sphereOther, setSphereOther] = useState('');
+  const [sphereOtherError, setSphereOtherError] = useState(null);
   const [sphereWhy, setSphereWhy] = useState(false);
 
   // Ничего не выбрано на старте — то же правило, что у роли на шаге 1:
@@ -128,6 +129,12 @@ export default function SiteClient() {
       setDomainError(null);
     }
 
+    if (sphere === 'other' && !sphereOther.trim()) {
+      setSphereOtherError('Напишите, чем вы занимаетесь — от этого зависят оговорки в документах.');
+      ok = false;
+    } else {
+      setSphereOtherError(null);
+    }
     if (!sphere) {
       setSphereError('Выберите сферу деятельности — от неё зависят формулировки в документах и список целей на следующем шаге.');
       ok = false;
@@ -162,7 +169,7 @@ export default function SiteClient() {
 
     if (!ok) return;
 
-    saveAnketa({ domain: dom, sphere, platform, platformOther, analytics, features });
+    saveAnketa({ domain: dom, sphere, sphereOther, platform, platformOther, analytics, features });
 
     // «Формы и сервисы» — единственный вопрос шага, который ветвит путь:
     // если сайт вообще не собирает контакты, спрашивать на следующем шаге
@@ -238,9 +245,14 @@ export default function SiteClient() {
                   }}
                   error={domainError}
                 />
-                <WhyToggle open={domainWhy} onToggle={() => setDomainWhy(!domainWhy)}>
-                  Адрес попадёт в документы и в код, который вы поставите на сайт.
-                </WhyToggle>
+                {/* Подсказка открыта, а не спрятана под «зачем»: ошибиться
+                    здесь дороже всего — адрес уходит и в документы, и в код,
+                    а тестовый поддомен потом придётся менять в обоих. */}
+                <p className="mt-2 text-[13px] leading-5 text-ink/55">
+                  Адрес, по которому сайт открывается у посетителей: он попадёт в документы и в код установки.
+                  Тестовый или технический адрес вроде <span className="font-mono text-[12px]">site.tilda.ws</span> для
+                  этого не подойдёт.
+                </p>
               </div>
 
               {/* Сфера деятельности — сюда, а не в «Данные клиентов»: раньше
@@ -283,6 +295,27 @@ export default function SiteClient() {
                   </span>
                   {sphereError && <span className="mt-1.5 block text-[12.5px] font-semibold text-danger">{sphereError}</span>}
                 </label>
+                <div
+                  aria-hidden={sphere !== 'other'}
+                  className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
+                    sphere === 'other' ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <div className="pt-3">
+                      <Field
+                        label="Чем вы занимаетесь?"
+                        placeholder="Например: питомник растений, автосервис, типография"
+                        value={sphereOther}
+                        onChange={(e) => {
+                          setSphereOther(e.target.value);
+                          setSphereOtherError(null);
+                        }}
+                        error={sphereOtherError}
+                      />
+                    </div>
+                  </div>
+                </div>
                 <WhyToggle open={sphereWhy} onToggle={() => setSphereWhy(!sphereWhy)}>
                   Сфера определит список целей на следующем шаге «Данные клиентов» — у интернет-магазина и у салона
                   он разный. Она же задаёт особые оговорки в документах: например, про обработку данных

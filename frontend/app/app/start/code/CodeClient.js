@@ -66,6 +66,7 @@ export default function CodeClient() {
   const [probes, setProbes] = useState(0);
   const [found, setFound] = useState(false);
   const [failOpen, setFailOpen] = useState(false);
+  const [doneOpen, setDoneOpen] = useState(false);
   const [sent, setSent] = useState(false);
 
   const snippet = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID}" async></script>`;
@@ -89,8 +90,8 @@ export default function CodeClient() {
   }
 
   function startTrial() {
-    saveAnketa({ installed: true, installMode: effectiveMode, trialStartedAt: Date.now() });
-    router.push('/app/site');
+    saveAnketa({ installed: found, installMode: effectiveMode, trialStartedAt: Date.now() });
+    setDoneOpen(true);
   }
 
   return (
@@ -275,15 +276,12 @@ export default function CodeClient() {
                 <button
                   type="button"
                   onClick={startTrial}
-                  disabled={effectiveMode === 'Поставлю сам' && !found}
-                  className={`flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] disabled:cursor-not-allowed disabled:opacity-40 ${RING}`}
+                  className={`flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
                 >
                   Активировать пробный период <ArrowRightIcon size={17} />
                 </button>
                 <p className="mt-3 text-center text-[13px] text-ink/55">
-                  {effectiveMode === 'Поставлю сам' && !found
-                    ? 'Сначала проверьте код на сайте — кнопка проверки выше. Пробный период пойдёт с момента активации.'
-                    : 'Пробный период пойдёт с момента активации, а не с момента установки.'}
+                  Пробный период пойдёт с момента активации, а не с момента установки.
                 </p>
                 <div className="mt-4 flex justify-center">
                   <button
@@ -341,6 +339,34 @@ export default function CodeClient() {
               className={`mt-5 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
             >
               Понятно
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Финал анкеты. Текст зависит от того, нашли ли код: обещать
+          «всё работает» там, где скрипта на странице нет, нельзя — но и
+          держать человека на шаге из-за этого тоже незачем. */}
+      {doneOpen && (
+        <div role="dialog" aria-modal="true" aria-labelledby="done-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4">
+          <div className="mt-16 w-full max-w-[440px] rounded-2xl border border-line bg-white p-6 shadow-sm">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ok/10 text-ok">
+              <CheckIcon size={22} />
+            </span>
+            <h3 id="done-title" className="mt-4 text-[19px] font-bold tracking-[-0.03em]">
+              Пробный период активирован
+            </h3>
+            <p className="mt-3 text-[13.5px] leading-5 text-ink/65">
+              {found
+                ? 'Код на сайте нашли — документы и виджет уже работают. Сутки они бесплатны, дальше понадобится оплата.'
+                : 'Код на сайте мы пока не видим: проверка занимает до 15 минут. Заходить в кабинет можно уже сейчас — как только код появится, документы и виджет включатся сами.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push('/app/site')}
+              className={`mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+            >
+              Перейти в кабинет <ArrowRightIcon size={17} />
             </button>
           </div>
         </div>

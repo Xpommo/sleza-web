@@ -26,7 +26,7 @@ export function TearMark({ size = 28 }) {
 export const SITE_NAV = [
   { label: 'Обзор', Icon: ProjectsIcon, href: '/app/site' },
   { label: 'Документы', Icon: DocsIcon, href: '/app/site/documents' },
-  { label: 'Виджет', Icon: MonitorIcon, href: '/app/start/code' },
+  { label: 'Виджет', Icon: MonitorIcon, href: '/app/site/widget' },
 ];
 
 export { accountUser, CURRENT_USER };

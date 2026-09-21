@@ -57,7 +57,7 @@ export default function SiteOverviewClient() {
     <main className="min-h-screen bg-warm text-ink lg:flex">
       <SiteSidebar domain={site.domain} active="Обзор" user={user} />
 
-      <section className="flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
+      <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           <header>
             <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-brand">Обзор сайта</p>
