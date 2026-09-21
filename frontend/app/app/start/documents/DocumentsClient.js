@@ -13,7 +13,7 @@ import {
 import { DocRow, DocRowList } from '../../../../components/app/DocRows';
 import { RING, Logo, Progress, Sidebar } from '../_shared/AnketaChrome';
 import { loadAnketa, markStepDone } from '../_shared/anketaState';
-import { DOCUMENTS, docNote, docUrl } from '../../../../lib/docPackage';
+import { DOCUMENTS, docNote, docPreview, docUrl } from '../../../../lib/docPackage';
 
 // Пилюли подвала. Cookie и маркировка заперты: согласие на cookie уже дано
 // в баннере, маркировка обязательна по закону — тумблера там быть не может.
@@ -63,6 +63,7 @@ export default function DocumentsClient() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [domain, setDomain] = useState('alfa-school.ru');
   const [noCalls, setNoCalls] = useState(false);
+  const [answers, setAnswers] = useState({});
   // Аккордеон: открыт один документ за раз — иначе список снова разъезжается
   // в полотно, от которого и уходили.
   const [openDoc, setOpenDoc] = useState(null);
@@ -74,6 +75,7 @@ export default function DocumentsClient() {
     const saved = loadAnketa();
     if (saved.domain) setDomain(saved.domain);
     setNoCalls(saved.callsBase === false);
+    setAnswers(saved);
   }, []);
 
   // Реклама не включается, пока не дано согласие на ПДн: рассылать письма
@@ -140,7 +142,7 @@ export default function DocumentsClient() {
                     open={openDoc === doc.id}
                     onToggle={() => setOpenDoc(openDoc === doc.id ? null : doc.id)}
                   >
-                    <p className="text-[13px] leading-5 text-ink/70">{doc.preview.replace('{domain}', domain)}</p>
+                    <p className="text-[13px] leading-5 text-ink/70">{docPreview(doc, { ...answers, domain })}</p>
                     <p className="mt-3 font-mono text-[11px] text-ink/45">{docUrl(doc)} — откроется после установки</p>
                   </DocRow>
                 ))}
