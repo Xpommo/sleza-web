@@ -102,36 +102,62 @@ const PILLS = [
   },
 ];
 
-function DocumentCard({ doc, domain, noCalls }) {
-  const [open, setOpen] = useState(false);
+// Список строками, а не плитками: названия документов длинные и читаются
+// сверху вниз одной колонкой, а не прыжками по сетке.
+const DOC_COLS = 'sm:grid-cols-[minmax(0,1fr)_150px_140px]';
+
+function DocumentRow({ doc, domain, noCalls, open, onToggle }) {
   const note = noCalls && doc.noteIfNoCalls ? doc.noteIfNoCalls : doc.note;
+  const panelId = `doc-preview-${doc.id}`;
   return (
-    <article className="rounded-2xl border border-line bg-white p-5 shadow-sm transition hover:border-brand/30 hover:shadow-md">
-      <div className="flex items-start justify-between">
-        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
-          <DocsIcon size={22} />
-        </span>
-        <span className="rounded-full bg-ok/10 px-2.5 py-1 text-[10px] font-bold text-ok">Готово</span>
-      </div>
-      <h3 className="mt-4 min-h-10 text-[15px] font-bold leading-5">{doc.title}</h3>
-      <p className="mt-2 min-h-10 text-sm leading-5 text-ink/55">{note}</p>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-xs font-bold text-ink/70 transition-colors hover:border-brand hover:text-brand ${RING}`}
-      >
-        Посмотреть <ChevronDownIcon size={14} className={open ? 'rotate-180' : ''} />
-      </button>
-      {open && (
-        <div className="mt-4 rounded-xl bg-warm p-4">
-          <p className="text-[13px] leading-5 text-ink/70">{doc.preview.replace('{domain}', domain)}</p>
-          <p className="mt-3 font-mono text-[11px] text-ink/45">
-            cdn.sleza.media/{SITE_ID}/{doc.id} — откроется после установки
-          </p>
+    <div className="border-b border-line last:border-0">
+      <div className={`grid gap-3 px-5 py-4 transition-colors hover:bg-warm/60 sm:items-center sm:gap-4 sm:px-6 ${DOC_COLS}`}>
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
+            <DocsIcon size={19} />
+          </span>
+          <div className="min-w-0">
+            {/* Без обрезки: в названии стоит закон, который документ
+                закрывает, — срезать его многоточием нельзя. */}
+            <h3 className="text-sm font-bold leading-5">{doc.title}</h3>
+            <p className="mt-1 text-[12.5px] leading-4 text-ink/50">{note}</p>
+          </div>
         </div>
-      )}
-    </article>
+        {/* На узком экране статус и кнопка встают в одну строку под текстом;
+            с sm обёртка исчезает (contents), и оба снова колонки сетки. */}
+        <div className="flex items-center justify-between gap-3 pl-[52px] sm:contents">
+          <span className="w-fit rounded-full bg-ok/10 px-3 py-1.5 text-[11px] font-bold text-ok">Готово</span>
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={open}
+            aria-controls={panelId}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-semibold text-ink/55 transition-colors hover:text-brand sm:justify-self-end ${RING}`}
+          >
+            Посмотреть
+            <ChevronDownIcon size={15} className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+      </div>
+      {/* Раскрытие через grid-template-rows: высота текста заранее
+          неизвестна, а анимировать нужно именно её. */}
+      <div
+        id={panelId}
+        aria-hidden={!open}
+        className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
+          open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="mx-5 mb-5 rounded-xl border border-line bg-warm px-4 py-3.5 sm:mx-6">
+            <p className="text-[13px] leading-5 text-ink/70">{doc.preview.replace('{domain}', domain)}</p>
+            <p className="mt-3 font-mono text-[11px] text-ink/45">
+              cdn.sleza.media/{SITE_ID}/{doc.id} — откроется после установки
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -140,6 +166,9 @@ export default function DocumentsClient() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [domain, setDomain] = useState('alfa-school.ru');
   const [noCalls, setNoCalls] = useState(false);
+  // Аккордеон: открыт один документ за раз — иначе список снова разъезжается
+  // в полотно, от которого и уходили.
+  const [openDoc, setOpenDoc] = useState(null);
   const [openPill, setOpenPill] = useState(null);
   const [pdOn, setPdOn] = useState(false);
   const [marketingOn, setMarketingOn] = useState(false);
@@ -204,9 +233,24 @@ export default function DocumentsClient() {
                   <CheckIcon size={15} /> Всё готово
                 </span>
               </div>
-              <div className="grid items-start gap-4 md:grid-cols-2">
+              <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+                <div
+                  aria-hidden="true"
+                  className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/45 sm:grid ${DOC_COLS}`}
+                >
+                  <span>Документ</span>
+                  <span>Статус</span>
+                  <span className="text-right">Действие</span>
+                </div>
                 {DOCUMENTS.map((doc) => (
-                  <DocumentCard key={doc.id} doc={doc} domain={domain} noCalls={noCalls} />
+                  <DocumentRow
+                    key={doc.id}
+                    doc={doc}
+                    domain={domain}
+                    noCalls={noCalls}
+                    open={openDoc === doc.id}
+                    onToggle={() => setOpenDoc(openDoc === doc.id ? null : doc.id)}
+                  />
                 ))}
               </div>
             </section>
