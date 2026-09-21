@@ -215,7 +215,7 @@ export default function ProfileClient() {
               </div>
             )}
 
-            <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-8">
+            <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               <div>
                 <h2 id="h-role" className="text-xl font-bold tracking-[-0.025em]">
                   Ваша роль <span className="text-brand">*</span>
@@ -305,24 +305,24 @@ export default function ProfileClient() {
                   </div>
                 </div>
               </div>
-
-              <div className="mt-7 flex gap-3 border-t border-line pt-5">
-                <button
-                  type="button"
-                  onClick={() => router.push('/app/sites')}
-                  className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
-                >
-                  <ArrowLeftIcon size={16} /> Назад
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
-                >
-                  Далее <ArrowRightIcon size={16} />
-                </button>
-              </div>
             </section>
+
+            <div className="mt-7 flex gap-3 border-t border-line pt-5">
+              <button
+                type="button"
+                onClick={() => router.push('/app/sites')}
+                className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
+              >
+                <ArrowLeftIcon size={16} /> Назад
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
+              >
+                Далее <ArrowRightIcon size={16} />
+              </button>
+            </div>
           </div>
         </main>
       </div>
