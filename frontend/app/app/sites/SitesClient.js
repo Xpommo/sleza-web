@@ -9,7 +9,8 @@ import {
 } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
-import { subState } from '../site/_shared/subscription';
+import { AccountSidebar } from '../site/_shared/SiteChrome';
+import { paidPeriod, subState } from '../site/_shared/subscription';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
@@ -26,8 +27,11 @@ function anketaProgress(a) {
 // документов ещё нет; пройдена, но кода на сайте нет — «скрипт не установлен».
 function siteStatus(a) {
   const sub = subState(a);
-  if (sub === 'expired') return { tone: 'warn', label: 'Пробный период закончился', action: 'Оплатить', href: '/app/site/billing' };
+  if (sub === 'expired') return { tone: 'warn', label: 'Пробный период закончился', action: 'Оплатить', href: '/app/billing' };
   if (sub === 'pending') return { tone: 'warn', label: 'Ждём оплату по счёту', action: 'Открыть сайт', href: '/app/site' };
+  if (sub === 'paid' && a.billing?.cancelled) {
+    return { tone: 'warn', label: `Отключается · работает до ${paidPeriod(a.billing.paidAt).to}`, action: 'Открыть сайт', href: '/app/site' };
+  }
   if (a.installed) return { tone: 'ok', label: sub === 'paid' ? 'Оплачено, виджет работает' : 'Виджет работает', action: 'Открыть сайт', href: '/app/site' };
   // Пробный период уже запущен, а код ещё не нашли: проверка идёт до 15
   // минут, и кабинет сайта уже открыт — туда и ведём, а не обратно в анкету.
@@ -40,22 +44,10 @@ function siteStatus(a) {
 
 const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
 
-function TearMark({ size = 28 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-brand">
-      <path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z" fill="currentColor" />
-      <path d="M9.4 14.6a2.9 2.9 0 0 0 2.9 2.6" stroke="#fff" strokeOpacity=".55" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 // Сайдбар аккаунта: только разделы уровня аккаунта. Документы и виджет
 // принадлежат конкретному сайту и появляются внутри него, а не здесь.
 // «Поддержка» — постоянный пункт, а не запрятанный в меню аккаунта.
-const NAV = [
-  { href: '/app/sites', label: 'Мои сайты', Icon: ProjectsIcon, active: true },
-];
-
 export default function SitesClient() {
   const router = useRouter();
   const [site, setSite] = useState(null);
@@ -77,45 +69,7 @@ export default function SitesClient() {
 
   return (
     <main className="min-h-screen bg-warm text-ink lg:flex">
-      <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-6 py-7 lg:sticky lg:top-0 lg:h-[calc(100vh-var(--cookie-banner-h,0px))] lg:w-[270px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:pb-8 lg:pt-8">
-        <div className="flex items-center gap-2.5">
-          <TearMark />
-          <span className="text-[17px] font-bold tracking-[-0.035em]">Слеза Белый Сайт</span>
-        </div>
-
-        <nav aria-label="Основная навигация" className="mt-10 space-y-1">
-          {NAV.map(({ href, label, Icon, active }) => (
-            <Link
-              key={label}
-              href={href}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${RING} ${
-                active ? 'bg-brand/[0.08] font-bold text-brand' : 'font-semibold text-ink/55 hover:bg-warm hover:text-ink'
-              }`}
-            >
-              <Icon size={17} />
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="mt-auto hidden shrink-0 border-t border-line pt-5 lg:block">
-          <Link
-            href="#"
-            className={`mb-5 flex items-center gap-3 px-2 text-sm font-semibold text-ink/55 transition hover:text-ink ${RING}`}
-          >
-            <SupportIcon size={17} /> Поддержка
-          </Link>
-          <div className="flex items-center gap-3 px-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
-              {user.name.slice(0, 1)}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold">{user.name}</p>
-              <p className="mt-0.5 truncate text-xs text-ink/45">{user.email}</p>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <AccountSidebar active="Мои сайты" user={user} />
 
       <section className="flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
@@ -123,7 +77,7 @@ export default function SitesClient() {
             <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-brand">Рабочее пространство</p>
             <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Мои сайты</h1>
             <p className="mt-3 text-[15px] leading-6 text-ink/55">
-              У каждого сайта свои документы, свой виджет и своя подписка.
+              У каждого сайта свои документы и свой виджет. Счёт — один на все сайты аккаунта.
             </p>
           </header>
 
@@ -270,7 +224,7 @@ export default function SitesClient() {
           </div>
           )}
           <p className="mt-6 text-center text-xs text-ink/45">
-            {site ? 'Каждый сайт держит свои документы, виджет и подписку отдельно.' : 'Документы и настройки появятся здесь после того, как сайт будет добавлен.'}
+            {site ? 'Отключить можно любой сайт по отдельности — остальные продолжат работать.' : 'Документы и настройки появятся здесь после того, как сайт будет добавлен.'}
           </p>
         </div>
       </section>

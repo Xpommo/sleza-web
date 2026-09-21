@@ -20,18 +20,46 @@ export function TearMark({ size = 28 }) {
   );
 }
 
-// Разделы сайта — в том же порядке, что в утверждённом макете. Подписка
-// здесь, а не на уровне аккаунта: у каждого сайта своя оплата.
+// Разделы сайта. Подписки среди них нет — решение владельца 18 сентября:
+// счёт, тариф, реквизиты плательщика и акты общие на все сайты аккаунта,
+// поэтому «Подписка» живёт в аккаунтном меню, рядом с «Мои сайты». Пункт в
+// меню сайта обещал бы «подписку этого сайта».
 export const SITE_NAV = [
   { label: 'Обзор', Icon: ProjectsIcon, href: '/app/site' },
   { label: 'Документы', Icon: DocsIcon, href: '/app/site/documents' },
-  { label: 'Подписка', Icon: BillingIcon, href: '/app/site/billing' },
   { label: 'Виджет', Icon: MonitorIcon, href: '/app/site/widget' },
+];
+
+export const ACCOUNT_NAV = [
+  { label: 'Мои сайты', Icon: ProjectsIcon, href: '/app/sites' },
+  { label: 'Подписка', Icon: BillingIcon, href: '/app/billing' },
 ];
 
 export { accountUser, CURRENT_USER };
 
-export function SiteSidebar({ domain, active, user = CURRENT_USER }) {
+// Один вид пункта меню на весь кабинет: раньше активный пункт в «Моих
+// сайтах» был синим, а в разделах сайта — чёрным.
+function NavList({ items, active, label }) {
+  return (
+    <nav aria-label={label} className="space-y-1">
+      {items.map(({ label: l, Icon, href }) => (
+        <Link
+          key={l}
+          href={href}
+          aria-current={l === active ? 'page' : undefined}
+          className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${RING} ${
+            l === active ? 'bg-ink font-bold text-white' : 'font-semibold text-ink/55 hover:bg-warm hover:text-ink'
+          }`}
+        >
+          <Icon size={17} />
+          {l}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+function SidebarShell({ user, children, supportActive }) {
   return (
     <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-6 py-7 lg:sticky lg:top-0 lg:h-[calc(100vh-var(--cookie-banner-h,0px))] lg:w-[270px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:pb-8 lg:pt-8">
       <div className="flex items-center gap-2.5">
@@ -39,34 +67,14 @@ export function SiteSidebar({ domain, active, user = CURRENT_USER }) {
         <span className="text-[17px] font-bold tracking-[-0.035em]">Слеза Белый Сайт</span>
       </div>
 
-      <Link
-        href="/app/sites"
-        className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/55 transition hover:text-ink ${RING}`}
-      >
-        <ArrowLeftIcon size={16} /> Мои сайты
-      </Link>
-
-      <div className="mt-7 border-t border-line pt-6">
-        <p className="mb-3 truncate px-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/45">{domain}</p>
-        <nav aria-label="Разделы сайта" className="space-y-1">
-          {SITE_NAV.map(({ label, Icon, href }) => (
-            <Link
-              key={label}
-              href={href}
-              aria-current={label === active ? 'page' : undefined}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${RING} ${
-                label === active ? 'bg-ink font-bold text-white' : 'font-semibold text-ink/55 hover:bg-warm hover:text-ink'
-              }`}
-            >
-              <Icon size={17} />
-              {label}
-            </Link>
-          ))}
-        </nav>
-      </div>
+      {children}
 
       <div className="mt-auto hidden shrink-0 border-t border-line pt-5 lg:block">
-        <Link href="#" className={`mb-5 flex items-center gap-3 px-2 text-sm font-semibold text-ink/55 transition hover:text-ink ${RING}`}>
+        <Link
+          href="/app/support"
+          aria-current={supportActive ? 'page' : undefined}
+          className={`mb-5 flex items-center gap-3 px-2 text-sm font-semibold transition hover:text-ink ${RING} ${supportActive ? 'text-ink' : 'text-ink/55'}`}
+        >
           <SupportIcon size={17} /> Поддержка
         </Link>
         <div className="flex items-center gap-3 px-1">
@@ -80,6 +88,34 @@ export function SiteSidebar({ domain, active, user = CURRENT_USER }) {
         </div>
       </div>
     </aside>
+  );
+}
+
+export function SiteSidebar({ domain, active, user = CURRENT_USER }) {
+  return (
+    <SidebarShell user={user}>
+      <Link
+        href="/app/sites"
+        className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/55 transition hover:text-ink ${RING}`}
+      >
+        <ArrowLeftIcon size={16} /> Мои сайты
+      </Link>
+      <div className="mt-7 border-t border-line pt-6">
+        <p className="mb-3 truncate px-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/45">{domain}</p>
+        <NavList items={SITE_NAV} active={active} label="Разделы сайта" />
+      </div>
+    </SidebarShell>
+  );
+}
+
+// Меню аккаунта — без «← Мои сайты» и без разделов сайта.
+export function AccountSidebar({ active, user = CURRENT_USER, supportActive }) {
+  return (
+    <SidebarShell user={user} supportActive={supportActive}>
+      <div className="mt-10">
+        <NavList items={ACCOUNT_NAV} active={active} label="Основная навигация" />
+      </div>
+    </SidebarShell>
   );
 }
 

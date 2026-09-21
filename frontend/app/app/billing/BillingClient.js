@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRightIcon, CheckIcon, ChevronDownIcon, CloseIcon, CopyIcon } from '../../../../components/app/AppIcons';
-import { CURRENT_USER } from '../../../../lib/appMock';
-import { SITE_ID } from '../../../../lib/docPackage';
-import { Field, Segmented } from '../../start/_shared/AnketaChrome';
-import { accountUser, loadAnketa, saveAnketa } from '../../start/_shared/anketaState';
-import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
-import { PRICE_LABEL, TARIFFS, paidPeriod, subState } from '../_shared/subscription';
+import { ArrowRightIcon, CheckIcon, ChevronDownIcon, CopyIcon } from '../../../components/app/AppIcons';
+import { CURRENT_USER } from '../../../lib/appMock';
+import { SITE_ID } from '../../../lib/docPackage';
+import { Field, Segmented } from '../start/_shared/AnketaChrome';
+import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
+import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
+import { PRICE_LABEL, TARIFFS, paidPeriod, subState } from '../site/_shared/subscription';
 
 const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
 
@@ -51,7 +51,7 @@ function Card({ title, children, tone }) {
 
 const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
 
-export default function SiteBillingClient() {
+export default function BillingClient() {
   const router = useRouter();
   const [a, setA] = useState(null);
   const [user, setUser] = useState(CURRENT_USER);
@@ -76,7 +76,6 @@ export default function SiteBillingClient() {
   const [actsEmail, setActsEmail] = useState('');
   const [actsEditing, setActsEditing] = useState(false);
   const [actsErr, setActsErr] = useState(null);
-  const [cancelStep, setCancelStep] = useState(0);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -168,17 +167,16 @@ export default function SiteBillingClient() {
   }
 
   // Лид зависит от состояния: до оплаты закрывающих документов ещё нет, а
-  // до установки кода не работает ни виджет, ни документы.
+  // до установки кода не работает ни виджет, ни документы. Счёт общий на
+  // аккаунт — это сказано в каждом состоянии (макет, решение 18 сентября).
   const lead = {
-    notstarted: `Подписка начнётся, когда сайт будет подключён.`,
+    notstarted: 'Подписка начнётся, когда будет подключён первый сайт. Счёт и акты — общие на все сайты аккаунта.',
     trial: a.installed
-      ? 'Виджет и документы уже работают — оплата продлевает доступ после пробного периода.'
-      : 'Виджет и документы заработают, как только код появится на сайте. Оплата продлевает доступ после пробного периода.',
-    expired: 'Пробный период закончился — оплата включит виджет и документы снова.',
-    pending: 'Счёт выставлен. Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня.',
-    paid: period && (b.cancelled
-      ? `Подписка отменена. Всё работает до ${period.to}, продление не спишется.`
-      : `Оплачено до ${period.to}. Закрывающие документы — ниже.`),
+      ? <>Виджет и документы уже работают на <b className="text-ink">{a.domain}</b> — оплата продлевает доступ после пробного периода. Счёт один на все сайты аккаунта.</>
+      : <>Виджет и документы заработают на <b className="text-ink">{a.domain}</b>, как только там появится код. Оплата продлевает доступ после пробного периода. Счёт один на все сайты аккаунта.</>,
+    expired: 'Пробный период закончился — оплата включит виджет и документы снова. Счёт один на все сайты аккаунта.',
+    pending: 'Счёт выставлен. Отметим оплату, как только поступят деньги — обычно 1–3 рабочих дня. Счёт один на все сайты аккаунта.',
+    paid: period && `Оплачено до ${period.to}. Тариф, способ оплаты и закрывающие документы — общие для всех сайтов аккаунта. Состояние каждого сайта — в его разделе.`,
   }[state];
 
   const payerNote = [a.inn && `ИНН ${a.inn}`, req.companyMail, req.companyPhone, account && `счёт …${account.slice(-4)}`]
@@ -192,33 +190,72 @@ export default function SiteBillingClient() {
     ? ['Уже работает — пробный период, 24 часа', ['Готовый пакет документов под ваш сайт', 'Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты', 'Документы по постоянным адресам — ссылки не ломаются']]
     : ['Включится с установкой кода — пробный период, 24 часа', ['Готовый пакет документов под ваш сайт', 'Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты', 'Документы по постоянным адресам — ссылки не ломаются']];
   const frames =
-    state === 'expired'
+    state === 'paid'
+      ? [['Что работает по подписке', ['Пакет документов под ваш сайт, собранный по вашим ответам', 'Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты', 'Маркировка упоминаний по реестрам на ваших страницах', 'Переписываем документы при изменении закона и присылаем письмо', 'Проверяем, что виджет и документы на сайте на месте']]]
+      : state === 'expired'
       ? [
           ['Сейчас отключено', ['Виджет снят с сайта — cookie-баннер и подвал не показываются', 'Документы в кабинете открываются только на просмотр']],
           ['Оплата включит снова', ['Виджет и документы заработают как прежде', 'Следим за законом и обновляем документы сами', 'Уведомления, если что-то изменилось']],
         ]
       : [now1, ['Оплата продлевает', ['Доступ не прерывается после пробного периода', 'Следим за законом и обновляем документы сами', 'Уведомления, если что-то изменилось']]];
 
+  const fold = (
+    <>
+      {/* «Что входит» — разворотом внизу: цена уже в строке тарифа,
+          перечень нужен тому, кто сомневается, а не каждому. */}
+      <div className="mt-6 border-t border-line pt-4">
+        <button
+          type="button"
+          onClick={() => setWhatOpen(!whatOpen)}
+          aria-expanded={whatOpen}
+          className={`flex items-center gap-1.5 rounded text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}
+        >
+          Что входит в подписку <ChevronDownIcon size={15} className={`transition-transform ${whatOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {whatOpen && (
+          <div className="mt-4 space-y-4 text-[13px] leading-5">
+            {frames.map(([head, items]) => (
+              <div key={head}>
+                <p className="font-bold">{head}</p>
+                <ul className="mt-1.5 space-y-1 text-ink/60">
+                  {items.map((i) => (
+                    <li key={i}>· {i}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <p className="rounded-xl bg-warm p-4 text-ink/65">
+              <b className="text-ink">Оплата раз в год — но это подписка, не разовая покупка:</b> меняется закон, вместе с
+              ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.
+            </p>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <main className="min-h-screen bg-warm text-ink lg:flex">
-      <SiteSidebar domain={a.domain} active="Подписка" user={user} />
+      <AccountSidebar active="Подписка" user={user} />
 
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-3xl">
-          <SiteHeader title="Подписка" domain={a.domain} context="тариф, способ оплаты и закрывающие документы">
-            <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/65">{lead}</p>
-          </SiteHeader>
+          <header>
+            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Подписка</h1>
+            <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/65">{lead}</p>
+          </header>
 
           {/* Пока анкета не пройдена, платить не за что: документов нет,
               виджет не установлен. Вместо оплаты — путь туда, где это появится. */}
           {state === 'notstarted' && (
-            <Card title="Подключение не закончено" tone="warn">
+            <Card title={(a.stepsDone || 0) >= 4 ? 'Документы собраны, скрипт не установлен' : 'Анкета не закончена'} tone="warn">
               <p className="text-sm leading-6 text-ink/65">
-                Документы собираются по ответам анкеты, а виджет включается установкой скрипта. Подписка начнётся после
-                этого — пробный период даст 24 часа бесплатно.
+                {(a.stepsDone || 0) >= 4
+                  ? 'Пакет готов. Подписка начнётся с пробного периода, когда код встанет на сайт.'
+                  : 'Документы собираем по ответам анкеты.'}
               </p>
               <button type="button" onClick={() => router.push(STEP_URLS[Math.min(a.stepsDone || 0, 5)])} className={`mt-5 ${PRIMARY}`}>
-                Продолжить анкету <ArrowRightIcon size={16} />
+                {(a.stepsDone || 0) >= 4 ? 'Поставить код на сайт' : 'Продолжить анкету'} <ArrowRightIcon size={16} />
               </button>
             </Card>
           )}
@@ -279,7 +316,7 @@ export default function SiteBillingClient() {
 
               {method === 'Картой' && (
                 <div className="border-t border-line pt-5">
-                  <p className="mb-4 text-[13px] text-ink/55">Карта привяжется к сайту {a.domain}.</p>
+                  <p className="mb-4 text-[13px] text-ink/55">Карта привяжется к сайту {a.domain} — он у вас один.</p>
                   <Field
                     label="Номер карты"
                     required
@@ -391,52 +428,24 @@ export default function SiteBillingClient() {
                 </div>
               )}
 
-              {/* «Что входит» — разворотом внизу: цена уже в строке тарифа,
-                  перечень нужен тому, кто сомневается, а не каждому. */}
-              <div className="mt-6 border-t border-line pt-4">
-                <button
-                  type="button"
-                  onClick={() => setWhatOpen(!whatOpen)}
-                  aria-expanded={whatOpen}
-                  className={`flex items-center gap-1.5 rounded text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}
-                >
-                  Что входит в подписку <ChevronDownIcon size={15} className={`transition-transform ${whatOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {whatOpen && (
-                  <div className="mt-4 space-y-4 text-[13px] leading-5">
-                    {frames.map(([head, items]) => (
-                      <div key={head}>
-                        <p className="font-bold">{head}</p>
-                        <ul className="mt-1.5 space-y-1 text-ink/60">
-                          {items.map((i) => (
-                            <li key={i}>· {i}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                    <p className="rounded-xl bg-warm p-4 text-ink/65">
-                      <b className="text-ink">Оплата раз в год — но это подписка, не разовая покупка:</b> меняется закон, вместе с
-                      ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.
-                    </p>
-                  </div>
-                )}
-              </div>
+              {fold}
             </Card>
           )}
 
           {state === 'paid' && (
             <Card title="Оплата">
-              <SummaryRow label="Статус" value={b.cancelled ? 'отменена' : 'оплачено'} />
+              <SummaryRow label="Статус" value="оплачено" />
               <SummaryRow label="Тариф" value={tariff} />
               <SummaryRow
-                label={b.cancelled ? 'Доступ' : 'Продление'}
-                value={b.cancelled ? `до ${period.to}` : `${period.renew} · ${PRICE_LABEL}`}
+                label="Продление"
+                value={b.cancelled ? 'не будет — единственный сайт отключается' : `${period.renew} · ${PRICE_LABEL}`}
               />
               <SummaryRow
                 label="Способ оплаты"
                 value={b.card ? `Карта ···· ${b.card.last4}` : 'По счёту'}
                 note={b.card ? `до ${b.card.exp} · привязана к ${a.domain}` : 'Счёт на почту, оплата переводом'}
               />
+              {fold}
             </Card>
           )}
 
@@ -490,81 +499,9 @@ export default function SiteBillingClient() {
             </Card>
           )}
 
-          {/* Отмена — в самом низу и отдельно: необратимое действие не
-              должно стоять рядом со способом оплаты. И только у того, у кого
-              есть что отменять. */}
-          {state === 'paid' && (
-            <div className="mt-10 border-t border-line pt-6">
-              {b.cancelled ? (
-                <button type="button" onClick={() => saveBilling({ cancelled: false })} className={`rounded text-sm font-semibold text-brand hover:text-ink ${RING}`}>
-                  Возобновить подписку
-                </button>
-              ) : (
-                <button type="button" onClick={() => setCancelStep(1)} className={`rounded text-sm font-semibold text-ink/45 hover:text-danger ${RING}`}>
-                  Отменить подписку
-                </button>
-              )}
-            </div>
-          )}
         </div>
       </section>
 
-      {cancelStep > 0 && (
-        <div role="dialog" aria-modal="true" aria-labelledby="cancel-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4">
-          <div className="mt-16 w-full max-w-[460px] rounded-2xl border border-line bg-white p-6 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <h3 id="cancel-title" className="text-[19px] font-bold tracking-[-0.03em]">
-                {cancelStep === 1 ? 'Может, получится помочь?' : 'Отменить подписку?'}
-              </h3>
-              <button type="button" onClick={() => setCancelStep(0)} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>
-                <CloseIcon size={18} />
-              </button>
-            </div>
-            {cancelStep === 1 ? (
-              <>
-                <p className="mt-3 text-[13.5px] leading-5 text-ink/65">
-                  Если виджет мешает вёрстке, документы не подходят под ваш случай или счёт пришёл не тот — это чинится за
-                  день. Отменить успеете всегда: подписка активна до {period.to}.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <button type="button" onClick={() => setCancelStep(0)} className={PRIMARY}>
-                    Написать в поддержку
-                  </button>
-                  <button type="button" onClick={() => setCancelStep(2)} className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/55 hover:text-ink ${RING}`}>
-                    Всё равно отменить
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="mt-3 text-[13.5px] leading-5 text-ink/65">
-                  Всё продолжит работать до {period.to} — до конца оплаченного периода. После этой даты:
-                </p>
-                <ul className="mt-3 space-y-2 rounded-xl bg-danger/[0.06] p-4 text-[13px] leading-5 text-ink/75">
-                  <li>· Виджет исчезнет с {a.domain} — cookie-баннер и подвал со ссылками</li>
-                  <li>· Пять ссылок на документы перестанут открываться — те, что стоят в подвале и в формах</li>
-                  <li>· Документы останутся в текущей версии: следить за изменениями закона и переписывать их мы перестанем</li>
-                </ul>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <button type="button" onClick={() => setCancelStep(0)} className={PRIMARY}>
-                    Оставить подписку
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      saveBilling({ cancelled: true });
-                      setCancelStep(0);
-                    }}
-                    className={`rounded-xl px-3 py-3 text-sm font-semibold text-danger hover:underline ${RING}`}
-                  >
-                    Отменить подписку
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </main>
   );
 }
