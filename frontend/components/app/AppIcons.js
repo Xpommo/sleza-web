@@ -162,3 +162,7 @@ export const BriefcaseIcon = (p) => (
     <path d="M3 12.5h18" />
   </Svg>
 );
+
+export const SupportIcon = (p) => (
+  <Svg {...p}><path d="M20 12a8 8 0 1 0-3.2 6.4L21 20l-1.2-3.6A7.9 7.9 0 0 0 20 12Z" /><path d="M9.6 9.5a2.5 2.5 0 0 1 4.6 1.3c0 1.7-2.2 2-2.2 3.2" /><path d="M12 17h.01" /></Svg>
+);

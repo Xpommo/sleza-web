@@ -111,7 +111,7 @@ export default function RegisterClient() {
       return;
     }
     setError(null);
-    router.push('/app/start/profile');
+    router.push('/app/sites');
   }
 
   return (
