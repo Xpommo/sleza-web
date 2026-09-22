@@ -50,7 +50,7 @@ function Faq({ q, a, open, onToggle, id }) {
         className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
       >
         <div className="overflow-hidden">
-          <p className="px-5 pb-5 text-[13.5px] leading-6 text-ink/65 sm:px-6">{a}</p>
+          <p className="px-5 pb-5 text-[13px] leading-6 text-ink/65 sm:px-6">{a}</p>
         </div>
       </div>
     </div>
@@ -107,7 +107,7 @@ export default function SupportClient() {
               «вам ответили», сам ответ — в кабинете. */}
           <h2 className="mb-4 mt-9 text-lg font-bold tracking-[-0.02em]">Мои обращения</h2>
           {tickets.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-line-2 px-5 py-6 text-center text-[13.5px] text-ink/50">
+            <p className="rounded-2xl border border-dashed border-line-2 px-5 py-6 text-center text-[13px] text-ink/50">
               Обращений пока нет.
             </p>
           ) : (
@@ -131,7 +131,7 @@ export default function SupportClient() {
             {sent ? (
               <div className="mt-4 flex items-start gap-3 rounded-xl bg-ok/[0.07] p-4">
                 <CheckIcon size={18} className="mt-0.5 shrink-0 text-ok" />
-                <div className="text-[13.5px] leading-5">
+                <div className="text-[13px] leading-5">
                   <p className="font-bold">Обращение отправлено</p>
                   <p className="mt-1 text-ink/60">Заявка №{sent} · уже в «Моих обращениях», ответ появится там же.</p>
                   <button type="button" onClick={() => setSent(null)} className={`mt-3 rounded font-semibold text-brand hover:text-ink ${RING}`}>
@@ -153,7 +153,7 @@ export default function SupportClient() {
                     aria-invalid={error ? 'true' : undefined}
                     className={`w-full resize-y rounded-xl border bg-white px-4 py-3 text-[15px] leading-6 shadow-sm outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10 ${error ? 'border-danger' : 'border-line'}`}
                   />
-                  {error && <span className="mt-1.5 block text-[12.5px] font-semibold text-danger">{error}</span>}
+                  {error && <span className="mt-1.5 block text-[12px] font-semibold text-danger">{error}</span>}
                 </label>
                 <p className="mt-2 text-[13px] leading-5 text-ink/55">
                   Ответ придёт сюда же, в «Мои обращения» — на почту пришлём только уведомление, что вам ответили.

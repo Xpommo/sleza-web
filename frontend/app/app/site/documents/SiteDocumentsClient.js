@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { CheckIcon, CopyIcon, DocsIcon, LinkIcon } from '../../../../components/app/AppIcons';
 import { DocRow, DocRowList } from '../../../../components/app/DocRows';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { DOCUMENTS, SITE_ID, docNote, docUrl } from '../../../../lib/docPackage';
+import { DOCUMENTS, SITE_ID, docOrigin, docUrl } from '../../../../lib/docPackage';
 import { accountUser, loadAnketa } from '../../start/_shared/anketaState';
 import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
 
@@ -33,7 +33,7 @@ export default function SiteDocumentsClient() {
     setSite({
       domain: a.domain,
       installed: Boolean(a.installed),
-      noCalls: a.callsBase === false,
+      answers: a,
       madeAt: a.trialStartedAt || Date.now(),
       edits: a.docEdits || [],
     });
@@ -96,10 +96,9 @@ export default function SiteDocumentsClient() {
 
           <section className="mt-9">
             <div className="mb-5 flex items-end justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-ink/45">Реестр</p>
-                <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em]">Актуальные документы</h2>
-              </div>
+              {/* Заголовок раздела — той же ступени, что на остальных экранах
+                  кабинета (18px): здесь был свой, крупнее, с кикером сверху. */}
+              <h2 className="text-lg font-bold tracking-[-0.02em]">Актуальные документы</h2>
               <span className="shrink-0 text-xs font-semibold text-ink/45">{DOCUMENTS.length} документов</span>
             </div>
             <DocRowList>
@@ -107,7 +106,7 @@ export default function SiteDocumentsClient() {
                 <DocRow
                   key={doc.id}
                   doc={doc}
-                  note={docNote(doc, site.noCalls)}
+                  note={docOrigin(doc, site.answers).line}
                   status={live ? { tone: 'ok', label: 'Опубликован' } : { tone: 'warn', label: 'Ждёт кода' }}
                   open={openDoc === doc.id}
                   onToggle={() => setOpenDoc(openDoc === doc.id ? null : doc.id)}
@@ -131,7 +130,7 @@ export default function SiteDocumentsClient() {
           </section>
 
           <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
-            <p className="text-sm font-semibold text-ink/45">История изменений</p>
+            <h2 className="text-lg font-bold tracking-[-0.02em]">История изменений</h2>
             {/* Линия соединяет записи, только когда их больше одной. */}
             <div className={`relative mt-6 space-y-6 ${site.edits.length ? 'before:absolute before:bottom-2 before:left-[7px] before:top-2 before:w-px before:bg-line' : ''}`}>
               {[...site.edits].reverse().map((e) => (

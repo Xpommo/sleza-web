@@ -2,57 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeftIcon, ArrowRightIcon, BurgerIcon, CloseIcon, ShieldCheckIcon } from '../../../../components/app/AppIcons';
+import { ArrowLeftIcon, ArrowRightIcon, CloseIcon, ShieldCheckIcon } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { RING, Logo, Progress, Sidebar, SectionHead, Tile } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, SectionHead, Tile } from '../_shared/AnketaChrome';
+import { PD_FIELDS, PURPOSES, PURPOSE_MAP } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
-
-// Восемь целей на весь продукт: видны только те, что относятся к сфере,
-// выбранной на «О сайте». Ни одна не отмечена по умолчанию — это реальный
-// выбор, а не декорация: цель обработки уходит в согласие дословно.
-const PURPOSES = [
-  { value: 'booking', label: 'Записать на приём/занятие', hint: 'форма записи, кнопка «Записаться», запись на приём, занятие или демо' },
-  { value: 'order', label: 'Оформить и передать заказ', hint: 'корзина, кнопка «Купить», оформление доставки' },
-  { value: 'property', label: 'Показать объект, записать на просмотр', hint: 'заявка на просмотр, подбор объекта' },
-  { value: 'consult', label: 'Проконсультировать по услуге', hint: 'форма «Задать вопрос», расчёт стоимости, бриф' },
-  { value: 'contract', label: 'Заключить и исполнить договор', hint: 'подписание договора, счета, закрывающие документы' },
-  { value: 'payment', label: 'Принять оплату онлайн', hint: 'оплата картой на сайте, ссылка на оплату' },
-  { value: 'inquiry', label: 'Ответить на обращение', hint: 'форма обратной связи, «Заказать звонок», чат на сайте' },
-  { value: 'promo', label: 'Рассказывать об акциях и новых предложениях', hint: 'рассылка, подписка на новости, письма об акциях' },
-];
-
-// Матрица «сфера → цели» собрана вместе с владельцем: у интернет-магазина и
-// у салона списки разные. «Другое» показывает все восемь — человек, не
-// нашедший свою сферу, должен видеть самый широкий список, а не самый узкий.
-const PURPOSE_MAP = {
-  school: ['booking', 'consult', 'payment', 'inquiry', 'promo'],
-  kids: ['booking', 'consult', 'payment', 'inquiry', 'promo'],
-  bizserv: ['consult', 'contract', 'payment', 'inquiry', 'promo'],
-  homeserv: ['consult', 'contract', 'inquiry', 'promo'],
-  beauty: ['booking', 'inquiry', 'promo'],
-  medicine: ['booking', 'consult', 'inquiry', 'promo'],
-  shop: ['order', 'payment', 'inquiry', 'promo'],
-  food: ['order', 'payment', 'inquiry', 'promo'],
-  realty: ['property', 'consult', 'contract', 'inquiry', 'promo'],
-  finance: ['consult', 'contract', 'inquiry', 'promo'],
-  media: ['consult', 'inquiry', 'promo'],
-  it: ['booking', 'consult', 'contract', 'payment', 'inquiry', 'promo'],
-  manuf: ['booking', 'consult', 'contract', 'inquiry', 'promo'],
-  other: PURPOSES.map((p) => p.value),
-};
-
-const PD_FIELDS = [
-  { value: 'name', label: 'Имя', hint: 'или ФИО, если нужно в договор' },
-  { value: 'phone', label: 'Телефон' },
-  { value: 'email', label: 'Email' },
-  { value: 'messenger', label: 'Мессенджер', hint: 'Telegram, WhatsApp, MAX — напишем в документе те, что отметите' },
-  { value: 'address', label: 'Адрес доставки', hint: 'если возите заказы' },
-  { value: 'birth', label: 'Дата рождения', hint: 'запись на приём, скидки по возрасту' },
-];
 
 export default function ClientsClient() {
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   // Сфера приходит с прошлого шага. Без неё показываем полный набор целей:
   // лишние пункты человек просто не отметит, а пустого экрана не бывает.
@@ -80,7 +37,11 @@ export default function ClientsClient() {
   // и первая отрисовка должна совпасть с серверной.
   useEffect(() => {
     const a = loadAnketa();
-    if (a.purposes?.length) setPurposes(a.purposes);
+    // Цели, которых для текущей сферы нет, снимаются: сферу могли поменять
+    // на прошлом шаге, а невидимая отметка уехала бы в согласие (как в
+    // макете, 17.09 — «цель оставалась отмеченной после смены сферы»).
+    const allowed = PURPOSE_MAP[a.sphere] || PURPOSE_MAP.other;
+    if (a.purposes?.length) setPurposes(a.purposes.filter((v) => allowed.includes(v)));
     if (a.pdFields?.length) setFields(a.pdFields);
     if (typeof a.callsBase === 'boolean') setCalls(a.callsBase ? 'Да' : 'Нет');
     setRestored(true);
@@ -135,54 +96,7 @@ export default function ClientsClient() {
   }
 
   return (
-    <div className="min-h-screen bg-warm text-ink">
-      <div className="flex min-h-screen">
-        <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} current={2} />
-        {menuOpen && (
-          <button
-            aria-label="Закрыть меню"
-            onClick={() => setMenuOpen(false)}
-            className="fixed inset-0 z-20 bg-ink/20 lg:hidden"
-          />
-        )}
-        <main className="min-w-0 flex-1">
-          <div className="mx-auto max-w-[1000px] px-5 py-5 sm:px-8 sm:py-8 lg:px-14 lg:py-10">
-            <div className="mb-8 flex items-center justify-between lg:hidden">
-              <Logo />
-              <button
-                onClick={() => setMenuOpen(true)}
-                className={`rounded-lg border border-line bg-white p-2 ${RING}`}
-                aria-label="Открыть меню"
-              >
-                <BurgerIcon size={20} />
-              </button>
-            </div>
-
-            <div className="mb-8 flex items-end justify-between gap-4">
-              <div>
-                <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-brand">Шаг 3 из 6</p>
-                <h1 className="text-3xl font-bold tracking-[-0.04em] sm:text-[40px]">Данные клиентов</h1>
-                <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/60 sm:text-[17px]">
-                  Как вы работаете с контактами клиентов. От этого зависят согласия и тексты, которые встанут у форм
-                  на сайте.
-                </p>
-              </div>
-              <div className="hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-xs font-semibold text-ink/55 shadow-sm sm:flex">
-                <ShieldCheckIcon size={16} className="text-brand" /> Защищённая форма
-              </div>
-            </div>
-
-            <Progress current={2} />
-
-            <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
-                {CURRENT_USER.name.slice(0, 1)}
-              </div>
-              <div>
-                <p className="font-bold">{CURRENT_USER.name}</p>
-                <p className="text-sm text-ink/55">вход через Telegram</p>
-              </div>
-            </div>
+    <AnketaFrame current={2} title="Данные клиентов" lead={<>Как вы работаете с контактами клиентов. От этого зависят согласия и тексты, которые встанут у форм на сайте.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               <div className="border-b border-line pb-7">
@@ -209,7 +123,7 @@ export default function ClientsClient() {
                     />
                   ))}
                 </div>
-                {purposeError && <p className="mt-3 text-[12.5px] font-semibold text-danger">{purposeError}</p>}
+                {purposeError && <p className="mt-3 text-[12px] font-semibold text-danger">{purposeError}</p>}
               </div>
 
               <div className="border-b border-line py-7">
@@ -237,7 +151,7 @@ export default function ClientsClient() {
                     />
                   ))}
                 </div>
-                {fieldsError && <p className="mt-3 text-[12.5px] font-semibold text-danger">{fieldsError}</p>}
+                {fieldsError && <p className="mt-3 text-[12px] font-semibold text-danger">{fieldsError}</p>}
               </div>
 
               <div className="pt-7">
@@ -281,6 +195,7 @@ export default function ClientsClient() {
                 <ArrowLeftIcon size={17} /> Назад
               </button>
               <button
+                data-funnel-next
                 type="button"
                 onClick={handleNext}
                 className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
@@ -288,9 +203,6 @@ export default function ClientsClient() {
                 Далее <ArrowRightIcon size={17} />
               </button>
             </div>
-          </div>
-        </main>
-      </div>
 
       {noCallsOpen && (
         <div
@@ -330,6 +242,7 @@ export default function ClientsClient() {
                 Вернуться и отметить
               </button>
               <button
+                data-funnel-back
                 type="button"
                 onClick={() => {
                   setNoCallsOpen(false);
@@ -343,6 +256,6 @@ export default function ClientsClient() {
           </div>
         </div>
       )}
-    </div>
+    </AnketaFrame>
   );
 }

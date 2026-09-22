@@ -6,54 +6,13 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   BriefcaseIcon,
-  BurgerIcon,
   ChevronDownIcon,
   GlobeIcon,
-  ShieldCheckIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { RING, Logo, Progress, Sidebar, Field, Tile, WhyToggle, SectionHead } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, Field, Tile, WhyToggle, SectionHead } from '../_shared/AnketaChrome';
+import { ANALYTICS, FEATURES, PLATFORMS, SPHERES } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
-
-// Тот же список и тот же порядок опций, что в анкете (cabinet-mvp.html):
-// «regulated» нигде сейчас не показывается (владелец снял оговорку 8
-// сентября) — поле оставлено, чтобы вернуть предупреждение без повторного
-// разбора, когда до этого дойдёт очередь.
-const SPHERES = [
-  { value: 'school', label: 'Онлайн-школа, курсы, репетиторство' },
-  { value: 'kids', label: 'Детский центр, кружки, секции', regulated: true },
-  { value: 'bizserv', label: 'Услуги для бизнеса (консалтинг, бухгалтерия, юр. услуги)' },
-  { value: 'homeserv', label: 'Бытовые услуги (ремонт, клининг)' },
-  { value: 'beauty', label: 'Красота и здоровье (салон, барбершоп, фитнес)' },
-  { value: 'medicine', label: 'Медицина, клиники', regulated: true },
-  { value: 'shop', label: 'Интернет-магазин' },
-  { value: 'food', label: 'Кафе, ресторан, доставка еды' },
-  { value: 'realty', label: 'Недвижимость' },
-  { value: 'finance', label: 'Финансы, страхование', regulated: true },
-  { value: 'media', label: 'СМИ, онлайн-издание', regulated: true },
-  { value: 'it', label: 'IT, SaaS, разработка' },
-  { value: 'manuf', label: 'Производство' },
-  { value: 'other', label: 'Другое' },
-];
-
-const PLATFORMS = ['Тильда', 'WordPress', 'Битрикс', 'Другое'];
-
-// GA-специфика (отдельное предупреждение о риске) — нерешённый вопрос из
-// разбора: реального документа, который бы называл счётчик, в коде нет, а
-// текущая подсказка это обещает. Оставляю как в макете, не подменяю решение.
-const ANALYTICS = [
-  { value: 'metrika', label: 'Яндекс.Метрика', hint: 'опишем её в политике обработки cookie' },
-  { value: 'ga', label: 'Google Analytics', hint: 'опишем её в политике и предупредим о рисках' },
-  { value: 'none', label: 'Ничего из этого нет', hint: 'счётчиков на сайте не стоит', exclusive: true },
-  { value: 'unknown', label: 'Не знаю', hint: 'в политике опишем аналитические cookie, не называя счётчик', exclusive: true },
-];
-
-const FEATURES = [
-  { value: 'order', label: 'Оплата и оформление заказа на сайте', hint: 'в политику добавим обработку данных заказа и оплаты' },
-  { value: 'cabinet', label: 'Личный кабинет', hint: 'согласие встанет галочкой в форму регистрации' },
-  { value: 'chat', label: 'Чаты, всплывающие формы, обратный звонок', hint: 'текст согласия встанет под кнопкой отправки в каждой форме' },
-  { value: 'none', label: 'Ничего из этого нет', hint: 'согласие в формы не понадобится, политика и cookie-баннер нужны всё равно', exclusive: true },
-];
 
 const DOMAIN_RE = /^(?!-)[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/i;
 
@@ -78,7 +37,6 @@ function toggleOption(prev, value, exclusiveValues) {
 
 export default function SiteClient() {
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const [domain, setDomain] = useState('');
   const [domainError, setDomainError] = useState(null);
@@ -207,53 +165,7 @@ export default function SiteClient() {
   }
 
   return (
-    <div className="min-h-screen bg-warm text-ink">
-      <div className="flex min-h-screen">
-        <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} current={1} />
-        {menuOpen && (
-          <button
-            aria-label="Закрыть меню"
-            onClick={() => setMenuOpen(false)}
-            className="fixed inset-0 z-20 bg-ink/20 lg:hidden"
-          />
-        )}
-        <main className="min-w-0 flex-1">
-          <div className="mx-auto max-w-[1000px] px-5 py-5 sm:px-8 sm:py-8 lg:px-14 lg:py-10">
-            <div className="mb-8 flex items-center justify-between lg:hidden">
-              <Logo />
-              <button
-                onClick={() => setMenuOpen(true)}
-                className={`rounded-lg border border-line bg-white p-2 ${RING}`}
-                aria-label="Открыть меню"
-              >
-                <BurgerIcon size={20} />
-              </button>
-            </div>
-
-            <div className="mb-8 flex items-end justify-between gap-4">
-              <div>
-                <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-brand">Шаг 2 из 6</p>
-                <h1 className="text-3xl font-bold tracking-[-0.04em] sm:text-[40px]">О сайте</h1>
-                <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/60 sm:text-[17px]">
-                  Адрес, сфера, платформа, аналитика и формы на сайте. Пять вопросов.
-                </p>
-              </div>
-              <div className="hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-xs font-semibold text-ink/55 shadow-sm sm:flex">
-                <ShieldCheckIcon size={16} className="text-brand" /> Защищённая форма
-              </div>
-            </div>
-
-            <Progress current={1} />
-
-            <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
-                {CURRENT_USER.name.slice(0, 1)}
-              </div>
-              <div>
-                <p className="font-bold">{CURRENT_USER.name}</p>
-                <p className="text-sm text-ink/55">вход через Telegram</p>
-              </div>
-            </div>
+    <AnketaFrame current={1} title="О сайте" lead={<>Адрес, сфера, платформа, аналитика и формы на сайте. Пять вопросов.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {/* Адрес сайта — первым: это самое «о сайте», что вообще есть. */}
@@ -318,7 +230,7 @@ export default function SiteClient() {
                     <BriefcaseIcon size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" />
                     <ChevronDownIcon size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink/35" />
                   </span>
-                  {sphereError && <span className="mt-1.5 block text-[12.5px] font-semibold text-danger">{sphereError}</span>}
+                  {sphereError && <span className="mt-1.5 block text-[12px] font-semibold text-danger">{sphereError}</span>}
                 </label>
                 <div
                   aria-hidden={sphere !== 'other'}
@@ -362,9 +274,9 @@ export default function SiteClient() {
                   onWhy={() => setPlatformWhy(!platformWhy)}
                   why="Нужна для точной инструкции по установке кода на последнем шаге."
                 />
-                <div className="mt-5 grid gap-3 sm:grid-cols-4" role="group" aria-labelledby="h-platform">
+                <div className="mt-5 grid gap-3 sm:grid-cols-4" role="radiogroup" aria-labelledby="h-platform">
                   {PLATFORMS.map((item) => (
-                    <Tile key={item} title={item} selected={platform === item} onClick={() => pickPlatform(item)} />
+                    <Tile key={item} title={item} radio compact selected={platform === item} onClick={() => pickPlatform(item)} />
                   ))}
                 </div>
                 {platform === 'Другое' && (
@@ -381,7 +293,7 @@ export default function SiteClient() {
                     />
                   </div>
                 )}
-                {platformError && <p className="mt-2 text-[12.5px] font-semibold text-danger">{platformError}</p>}
+                {platformError && <p className="mt-2 text-[12px] font-semibold text-danger">{platformError}</p>}
               </div>
 
               <div className="my-6 h-px bg-line" />
@@ -413,7 +325,7 @@ export default function SiteClient() {
                     />
                   ))}
                 </div>
-                {analyticsError && <p className="mt-2 text-[12.5px] font-semibold text-danger">{analyticsError}</p>}
+                {analyticsError && <p className="mt-2 text-[12px] font-semibold text-danger">{analyticsError}</p>}
               </div>
 
               <div className="my-6 h-px bg-line" />
@@ -444,12 +356,13 @@ export default function SiteClient() {
                     />
                   ))}
                 </div>
-                {featuresError && <p className="mt-2 text-[12.5px] font-semibold text-danger">{featuresError}</p>}
+                {featuresError && <p className="mt-2 text-[12px] font-semibold text-danger">{featuresError}</p>}
               </div>
             </section>
 
             <div className="mt-7 flex gap-3 border-t border-line pt-5">
               <button
+                data-funnel-back
                 type="button"
                 onClick={() => router.push('/app/start/profile')}
                 className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
@@ -457,6 +370,7 @@ export default function SiteClient() {
                 <ArrowLeftIcon size={16} /> Назад
               </button>
               <button
+                data-funnel-next
                 type="button"
                 onClick={handleNext}
                 className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
@@ -464,9 +378,6 @@ export default function SiteClient() {
                 Далее <ArrowRightIcon size={16} />
               </button>
             </div>
-          </div>
-        </main>
-      </div>
-    </div>
+    </AnketaFrame>
   );
 }

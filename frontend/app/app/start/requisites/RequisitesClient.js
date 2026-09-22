@@ -7,7 +7,6 @@ import {
   ArrowRightIcon,
   BankIcon,
   BuildingIcon,
-  BurgerIcon,
   CertificateIcon,
   InfoIcon,
   MailIcon,
@@ -15,9 +14,9 @@ import {
   UserIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { RING, Logo, Progress, Sidebar, Field, Segmented, BlockHead, SectionHead, WhyToggle } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, Field, Segmented, BlockHead, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
-import { digitsOnly, validateRequisites } from '../_shared/requisitesRules';
+import { digitsOnly, ownerLabels, validateRequisites } from '../_shared/requisitesRules';
 
 const OWNERS = ['ООО', 'ИП', 'Самозанятый'];
 
@@ -43,7 +42,6 @@ const INN_LOOKUP = {
 
 export default function RequisitesClient() {
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const [sphere, setSphere] = useState('');
   useEffect(() => setSphere(loadAnketa().sphere || ''), []);
@@ -249,39 +247,7 @@ export default function RequisitesClient() {
   }
 
   return (
-    <div className="min-h-screen bg-warm text-ink">
-      <div className="flex min-h-screen">
-        <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} current={3} />
-        {menuOpen && (
-          <button aria-label="Закрыть меню" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20 bg-ink/20 lg:hidden" />
-        )}
-        <main className="min-w-0 flex-1">
-          <div className="mx-auto max-w-[1000px] px-5 py-5 sm:px-8 sm:py-8 lg:px-14 lg:py-10">
-            <div className="mb-8 flex items-center justify-between lg:hidden">
-              <Logo />
-              <button
-                onClick={() => setMenuOpen(true)}
-                className={`rounded-lg border border-line bg-white p-2 ${RING}`}
-                aria-label="Открыть меню"
-              >
-                <BurgerIcon size={20} />
-              </button>
-            </div>
-
-            <div className="mb-7 flex items-end justify-between gap-4">
-              <div>
-                <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-brand">Шаг 4 из 6</p>
-                <h1 className="text-3xl font-bold tracking-[-0.04em] sm:text-[40px]">Реквизиты</h1>
-                <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/60 sm:text-[17px]">
-                  Данные компании для документов и для счёта. Начните с ИНН — большую часть подставим из реестра.
-                </p>
-              </div>
-              <div className="hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-xs font-semibold text-ink/55 shadow-sm sm:flex">
-                <BankIcon size={16} className="text-brand" /> Защищённая форма
-              </div>
-            </div>
-
-            <Progress current={3} />
+    <AnketaFrame current={3} title="Реквизиты" lead={<>Данные компании для документов и для счёта. Начните с ИНН — большую часть подставим из реестра.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               <SectionHead
@@ -295,7 +261,7 @@ export default function RequisitesClient() {
               <div className="mt-5">
                 <Segmented options={OWNERS} value={owner} onChange={pickOwner} ariaLabelledby="h-owner" />
               </div>
-              {ownerError && <p className="mt-2 text-[12.5px] font-semibold text-danger">{ownerError}</p>}
+              {ownerError && <p className="mt-2 text-[12px] font-semibold text-danger">{ownerError}</p>}
 
               <div className="my-7 h-px bg-line" />
 
@@ -304,6 +270,9 @@ export default function RequisitesClient() {
                 icon={BuildingIcon}
                 title="Данные из реестра"
                 hint="Введите ИНН — остальное подставим. Останется проверить."
+                why="149-ФЗ ст.10 ч.2 обязывает владельца сайта держать в открытом доступе наименование, место нахождения и адрес. Виджет откроет их по ссылке в подвале — их увидит любой посетитель. КПП закон публиковать не требует: он нужен, чтобы бухгалтер контрагента выставил счёт."
+                whyOpen={registryWhy}
+                onWhy={() => setRegistryWhy(!registryWhy)}
               />
               <div className="mt-5 grid gap-5 md:grid-cols-2">
                 <Field
@@ -318,9 +287,9 @@ export default function RequisitesClient() {
                   error={innError}
                 />
                 <Field
-                  label={isOoo ? 'Наименование' : 'ФИО'}
+                  label={ownerLabels(owner).name}
                   required
-                  placeholder={isOoo ? 'ООО «Ромашка»' : 'Иванова Мария Сергеевна'}
+                  placeholder={ownerLabels(owner).namePlaceholder}
                   icon={isOoo ? BuildingIcon : UserIcon}
                   value={name}
                   onChange={(e) => {
@@ -364,9 +333,9 @@ export default function RequisitesClient() {
                       раскрывать незачем: закон принимает адрес для почтовой
                       связи, в том числе абонентский ящик. */}
                   <Field
-                    label={isOoo ? 'Юридический адрес' : 'Адрес для почтовой связи'}
+                    label={ownerLabels(owner).address}
                     required
-                    placeholder={isOoo ? 'Индекс, город, улица, дом' : 'Можно абонентский ящик'}
+                    placeholder={ownerLabels(owner).addressPlaceholder}
                     icon={BuildingIcon}
                     value={address}
                     onChange={(e) => {
@@ -378,16 +347,21 @@ export default function RequisitesClient() {
                 </div>
               </div>
               {innFound && <p className="mt-3 text-[13px] font-semibold text-ok">✓ Нашли по ИНН — проверьте, что всё верно</p>}
-              <WhyToggle open={registryWhy} onToggle={() => setRegistryWhy(!registryWhy)}>
-                149-ФЗ ст.10 ч.2 обязывает владельца сайта держать в открытом доступе наименование, место нахождения и
-                адрес. Виджет откроет их по ссылке в подвале — их увидит любой посетитель. КПП закон публиковать не
-                требует: он нужен, чтобы бухгалтер контрагента выставил счёт.
-              </WhyToggle>
 
               <div className="my-7 h-px bg-line" />
 
-              <div className="rounded-2xl bg-warm p-5 ring-1 ring-line">
-                <BlockHead id="h-bank" icon={BankIcon} title="Банковские реквизиты" tone="plain" hint="Нужны для договоров и оплаты" />
+              {/* Банк — такой же блок, как соседние: серая подложка выделяла его
+                  как особенный, хотя он не важнее реестра и контактов. */}
+              <div>
+                <BlockHead
+                  id="h-bank"
+                  icon={BankIcon}
+                  title="Банковские реквизиты"
+                  hint="Нужны для договоров и оплаты"
+                  why="Банковские реквизиты закон публиковать не требует. Мы спрашиваем их, чтобы бухгалтер контрагента выставил счёт и составил договор, ничего не запрашивая дополнительно."
+                  whyOpen={bankWhy}
+                  onWhy={() => setBankWhy(!bankWhy)}
+                />
                 <div className="mt-5 grid gap-5 md:grid-cols-2">
                   <Field
                     label="Расчётный счёт"
@@ -441,10 +415,6 @@ export default function RequisitesClient() {
                     error={corrError}
                   />
                 </div>
-                <WhyToggle open={bankWhy} onToggle={() => setBankWhy(!bankWhy)}>
-                  Банковские реквизиты закон публиковать не требует. Мы спрашиваем их, чтобы бухгалтер контрагента
-                  выставил счёт и составил договор, ничего не запрашивая дополнительно.
-                </WhyToggle>
               </div>
 
               {/* Блок появляется только там, где есть что спрашивать: лицензия
@@ -457,6 +427,9 @@ export default function RequisitesClient() {
                     icon={CertificateIcon}
                     title="Лицензии и статусы"
                     hint={licenseSphere ? `Вы указали сферу «${licenseSphere}»` : 'Статусы ИТ-компании'}
+                    why={licenseSphere ? "Если деятельность лицензируемая, ЗоЗПП ст.9 ч.2 требует показать посетителю номер лицензии, срок её действия и орган, который её выдал. Выведем эти сведения в подвал сайта рядом с остальными реквизитами. Сам скан лицензии не просим — закон в общем случае его не требует." : null}
+                    whyOpen={licenseWhy}
+                    onWhy={() => setLicenseWhy(!licenseWhy)}
                   />
 
                   {licenseSphere && (
@@ -473,7 +446,7 @@ export default function RequisitesClient() {
                         }}
                         ariaLabelledby="h-license"
                       />
-                      {licenseError && <p className="mt-2 text-[12.5px] font-semibold text-danger">{licenseError}</p>}
+                      {licenseError && <p className="mt-2 text-[12px] font-semibold text-danger">{licenseError}</p>}
 
                       {license === 'Да' && (
                         <div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -519,12 +492,6 @@ export default function RequisitesClient() {
                           Документы соберём, но сведений о лицензии в них не будет.
                         </p>
                       )}
-
-                      <WhyToggle open={licenseWhy} onToggle={() => setLicenseWhy(!licenseWhy)}>
-                        Если деятельность лицензируемая, ЗоЗПП ст.9 ч.2 требует показать посетителю номер лицензии,
-                        срок её действия и орган, который её выдал. Выведем эти сведения в подвал сайта рядом с
-                        остальными реквизитами. Сам скан лицензии не просим — закон в общем случае его не требует.
-                      </WhyToggle>
                     </div>
                   )}
 
@@ -547,7 +514,15 @@ export default function RequisitesClient() {
 
               <div className="my-7 h-px bg-line" />
 
-              <BlockHead id="h-contacts" icon={PhoneIcon} title="Контакты компании" hint="Их увидит любой посетитель сайта" />
+              <BlockHead
+                id="h-contacts"
+                icon={PhoneIcon}
+                title="Контакты компании"
+                hint="Их увидит любой посетитель сайта"
+                why="Это контакты компании, а не ваши личные: их увидит любой посетитель сайта. Адрес электронной почты требует публиковать 149-ФЗ ст.10 ч.2, телефон — нет, он для счёта и договора. Контакт по вопросам персональных данных спрашиваем отдельно: его публикация требуется по 152-ФЗ, а на бухгалтерской почте такие обращения обычно теряются."
+                whyOpen={contactsWhy}
+                onWhy={() => setContactsWhy(!contactsWhy)}
+              />
               <div className="mt-5 grid gap-5 md:grid-cols-2">
                 <Field
                   label="Email компании"
@@ -597,12 +572,6 @@ export default function RequisitesClient() {
                   error={pdContactError}
                 />
               </div>
-              <WhyToggle open={contactsWhy} onToggle={() => setContactsWhy(!contactsWhy)}>
-                Это контакты компании, а не ваши личные: их увидит любой посетитель сайта. Адрес электронной почты
-                требует публиковать 149-ФЗ ст.10 ч.2, телефон — нет, он для счёта и договора. Контакт по вопросам
-                персональных данных спрашиваем отдельно: его публикация требуется по 152-ФЗ, а на бухгалтерской почте
-                такие обращения обычно теряются.
-              </WhyToggle>
             </section>
 
             <div className="mt-7 flex gap-3 border-t border-line pt-5">
@@ -614,6 +583,8 @@ export default function RequisitesClient() {
                 <ArrowLeftIcon size={17} /> Назад
               </button>
               <button
+                data-funnel-next
+                data-funnel-back
                 type="button"
                 onClick={handleNext}
                 className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
@@ -621,9 +592,6 @@ export default function RequisitesClient() {
                 Далее <ArrowRightIcon size={17} />
               </button>
             </div>
-          </div>
-        </main>
-      </div>
-    </div>
+    </AnketaFrame>
   );
 }

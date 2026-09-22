@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CheckIcon, ChevronIcon, MailIcon } from '../../../components/app/AppIcons';
-
-const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
+import { CheckIcon } from '../../../components/app/AppIcons';
+import { AuthButton, BrandMark, MailCodeLogin, MaxIcon, RING, TelegramIcon } from '../../../components/app/AuthBits';
+import { signIn } from '../start/_shared/anketaState';
 
 // Что продукт делает — теми же словами, что и в утверждённом макете.
 // Это не перечень документов: список названий ничего не обещает, а эти
@@ -18,62 +18,6 @@ const BENEFITS = [
   ['Переписываем документы при изменении закона', 'Пришлём письмо, когда обновим.'],
 ];
 
-// Знак — капля: тот же контур, что носит виджет на сайтах клиентов.
-function TearMark({ size = 30, className = '' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
-      <path d="M12 2c4 4.6 7 8.4 7 12.2A7 7 0 1 1 5 14.2C5 10.4 8 6.6 12 2Z" fill="currentColor" />
-      <path d="M9.4 14.6a2.9 2.9 0 0 0 2.9 2.6" stroke="#fff" strokeOpacity=".55" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function BrandMark({ dark = false }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <TearMark size={28} className={dark ? 'text-brand-soft' : 'text-brand'} />
-      <span className={`text-[17px] font-bold tracking-[-0.035em] ${dark ? 'text-white' : 'text-ink'}`}>
-        Слеза Белый Сайт
-      </span>
-    </div>
-  );
-}
-
-function TelegramIcon({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="12" fill="#2AABEE" />
-      <path
-        d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9z"
-        fill="#fff"
-      />
-    </svg>
-  );
-}
-
-function MaxIcon({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="12" fill="#5B57F5" />
-      <path d="M6.4 17V7.4h2.3l3.3 5.2 3.3-5.2h2.3V17h-2.2v-5.8l-2.7 4.2h-1.4l-2.7-4.2V17H6.4z" fill="#fff" />
-    </svg>
-  );
-}
-
-function AuthButton({ icon, children, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`group flex h-[58px] w-full items-center gap-3 rounded-xl border border-line bg-white px-5 text-[15px] font-semibold text-ink shadow-[0_5px_18px_-14px_rgba(17,17,16,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:border-line-2 hover:shadow-[0_14px_28px_-16px_rgba(17,17,16,0.4)] ${RING}`}
-    >
-      {icon}
-      {children}
-      <ChevronIcon size={16} className="ml-auto text-ink/25 transition-transform group-hover:translate-x-0.5" />
-    </button>
-  );
-}
-
 // Два отдельных согласия, а не одно на всё: объединять согласие на
 // обработку данных с принятием оферты нельзя — это та самая связка,
 // которую мы сами называем нарушением ч.1 ст.9 152-ФЗ.
@@ -81,7 +25,7 @@ function AuthButton({ icon, children, onClick }) {
 // внутрь кнопки, иначе клики конфликтуют и согласие не ставится.
 function Consent({ checked, onToggle, label, children }) {
   return (
-    <div className="flex items-start gap-3 text-[12.5px] leading-5 text-ink/60">
+    <div className="flex items-start gap-3 text-[12px] leading-5 text-ink/60">
       <button
         type="button"
         onClick={onToggle}
@@ -104,8 +48,9 @@ export default function RegisterClient() {
   const [pd, setPd] = useState(false);
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState(null);
+  const [mailOpen, setMailOpen] = useState(false);
 
-  function start() {
+  function consentsOk() {
     if (!pd || !terms) {
       setError(
         !pd && !terms
@@ -114,9 +59,15 @@ export default function RegisterClient() {
             ? 'Нужно согласие на обработку персональных данных — без него аккаунт не создать.'
             : 'Нужно принять условия оферты — это договор с сервисом.',
       );
-      return;
+      return false;
     }
     setError(null);
+    return true;
+  }
+
+  function start(via, email) {
+    if (!consentsOk()) return;
+    signIn(via, email);
     router.push('/app/sites');
   }
 
@@ -144,7 +95,7 @@ export default function RegisterClient() {
                   <CheckIcon size={12} />
                 </span>
                 <div>
-                  <p className="text-[14.5px] font-bold">{title}</p>
+                  <p className="text-sm font-bold">{title}</p>
                   <p className="mt-1 text-[13px] leading-5 text-white/55">{text}</p>
                 </div>
               </div>
@@ -167,15 +118,24 @@ export default function RegisterClient() {
           </p>
 
           <div className="mt-8 space-y-3">
-            <AuthButton icon={<TelegramIcon />} onClick={start}>
+            <AuthButton icon={<TelegramIcon />} onClick={() => start('Telegram')}>
               Через Telegram
             </AuthButton>
-            <AuthButton icon={<MaxIcon />} onClick={start}>
+            <AuthButton icon={<MaxIcon />} onClick={() => start('MAX')}>
               Через MAX
             </AuthButton>
-            <AuthButton icon={<MailIcon size={20} className="text-ink/45" />} onClick={start}>
-              Через почту
-            </AuthButton>
+            {/* Почта подтверждается кодом прямо здесь, без отдельного экрана
+                (решение владельца 22.09): код и есть вход, второго
+                подтверждения на шаге «Ваш профиль» нет. Согласия проверяются
+                до отправки письма — без них аккаунт не создать. */}
+            <MailCodeLogin
+              open={mailOpen}
+              onOpen={() => setMailOpen(true)}
+              onClose={() => setMailOpen(false)}
+              gate={consentsOk}
+              submitLabel="Создать аккаунт →"
+              onDone={(email) => start('почта', email)}
+            />
           </div>
 
           <div className="my-8 h-px bg-line" />
@@ -194,9 +154,9 @@ export default function RegisterClient() {
               </Link>
             </Consent>
           </div>
-          {error && <p className="mt-3 text-[12.5px] font-semibold text-danger">{error}</p>}
+          {error && <p className="mt-3 text-[12px] font-semibold text-danger">{error}</p>}
 
-          <p className="mt-6 text-center text-[12.5px] text-ink/45">
+          <p className="mt-6 text-center text-[12px] text-ink/45">
             Уже есть аккаунт?{' '}
             <Link href="/app/login" className="font-semibold text-brand hover:underline">
               Войти

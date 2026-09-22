@@ -5,14 +5,12 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
-  BurgerIcon,
   CheckIcon,
   CloseIcon,
   MailIcon,
   RefreshIcon,
-  ShieldCheckIcon,
 } from '../../../../components/app/AppIcons';
-import { RING, Logo, Progress, Sidebar, Field, Segmented, SectionHead } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, Field, Segmented, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
 
 const SITE_ID = '486312';
@@ -44,13 +42,14 @@ const PLATFORM_STEPS = {
 
 export default function CodeClient() {
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [platform, setPlatform] = useState('');
   const [role, setRole] = useState('');
   const [mailTo, setMailTo] = useState('');
+  const [domain, setDomain] = useState('');
 
   useEffect(() => {
     const a = loadAnketa();
+    setDomain(a.domain || '');
     setPlatform(a.platform || '');
     setRole(a.role || '');
     setMailTo(a.personEmail || '');
@@ -95,40 +94,7 @@ export default function CodeClient() {
   }
 
   return (
-    <div className="min-h-screen bg-warm text-ink">
-      <div className="flex min-h-screen">
-        <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} current={5} />
-        {menuOpen && (
-          <button aria-label="Закрыть меню" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20 bg-ink/20 lg:hidden" />
-        )}
-        <main className="min-w-0 flex-1">
-          <div className="mx-auto max-w-[1000px] px-5 py-5 sm:px-8 sm:py-8 lg:px-14 lg:py-10">
-            <div className="mb-8 flex items-center justify-between lg:hidden">
-              <Logo />
-              <button
-                onClick={() => setMenuOpen(true)}
-                className={`rounded-lg border border-line bg-white p-2 ${RING}`}
-                aria-label="Открыть меню"
-              >
-                <BurgerIcon size={20} />
-              </button>
-            </div>
-
-            <div className="mb-7 flex items-end justify-between gap-4">
-              <div>
-                <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-brand">Шаг 6 из 6</p>
-                <h1 className="text-3xl font-bold tracking-[-0.04em] sm:text-[40px]">Установка</h1>
-                <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/60 sm:text-[17px]">
-                  Осталось добавить на сайт одну строку кода и проверить, что она встала. После этого включим
-                  документы и виджет на 24 часа бесплатно.
-                </p>
-              </div>
-              <div className="hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-xs font-semibold text-ink/55 shadow-sm sm:flex">
-                <ShieldCheckIcon size={16} className="text-brand" /> Почти готово
-              </div>
-            </div>
-
-            <Progress current={5} />
+    <AnketaFrame current={5} title="Установка" nextLabel="Готово" lead={<>Осталось добавить на сайт одну строку кода и проверить, что она встала. После этого включим документы и виджет на 24 часа бесплатно.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {!isContractor && (
@@ -157,7 +123,7 @@ export default function CodeClient() {
                         {copied ? '✓ Скопировано' : 'Скопировать код'}
                       </button>
                     </div>
-                    <pre className="overflow-x-auto rounded-xl bg-ink p-5 font-mono text-[12.5px] leading-6 text-white/85">
+                    <pre className="overflow-x-auto rounded-xl bg-ink p-5 font-mono text-[12px] leading-6 text-white/85">
                       <code>{snippet}</code>
                     </pre>
                   </div>
@@ -274,6 +240,7 @@ export default function CodeClient() {
 
               <div className="mt-8 border-t border-line pt-6">
                 <button
+                data-funnel-next
                   type="button"
                   onClick={startTrial}
                   className={`flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
@@ -304,9 +271,6 @@ export default function CodeClient() {
                 <ArrowLeftIcon size={17} /> Назад
               </button>
             </div>
-          </div>
-        </main>
-      </div>
 
       {failOpen && (
         <div
@@ -318,7 +282,7 @@ export default function CodeClient() {
           <div className="mt-16 w-full max-w-[420px] rounded-2xl border border-line bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <h3 id="fail-title" className="text-[17px] font-bold tracking-[-0.02em]">
-                Пока не видим код на сайте
+                Пока не видим скрипт
               </h3>
               <button
                 type="button"
@@ -329,17 +293,32 @@ export default function CodeClient() {
                 <CloseIcon size={18} />
               </button>
             </div>
+            {/* Текст и два выхода — из живого макета (modal-no-script): тупиковое
+                «Понятно» оставляло человека один на один с проблемой. */}
             <p className="mt-3 text-[13px] leading-5 text-ink/60">
-              Это нормально: страница могла не успеть обновиться в кеше. Проверьте, что изменения опубликованы, и
-              нажмите проверку ещё раз через минуту.
+              Не нашли код на сайте{domain && <> <b className="font-bold text-ink">{domain}</b></>}. Проверьте, что строка
+              вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда страница не успевает
+              обновиться.
             </p>
-            <button
-              type="button"
-              onClick={() => setFailOpen(false)}
-              className={`mt-5 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
-            >
-              Понятно
-            </button>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setFailOpen(false);
+                  checkScript();
+                }}
+                className={`rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+              >
+                Проверить ещё раз
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/app/support')}
+                className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/55 hover:text-ink ${RING}`}
+              >
+                Написать в поддержку
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -353,15 +332,16 @@ export default function CodeClient() {
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ok/10 text-ok">
               <CheckIcon size={22} />
             </span>
-            <h3 id="done-title" className="mt-4 text-[19px] font-bold tracking-[-0.03em]">
+            <h3 id="done-title" className="mt-4 text-lg font-bold tracking-[-0.03em]">
               Пробный период активирован
             </h3>
-            <p className="mt-3 text-[13.5px] leading-5 text-ink/65">
+            <p className="mt-3 text-[13px] leading-5 text-ink/65">
               {found
                 ? 'Код на сайте нашли — документы и виджет уже работают. Первые 24 часа — бесплатно, дальше понадобится оплата.'
                 : 'Код на сайте мы пока не видим: проверка занимает до 15 минут. Заходить в кабинет можно уже сейчас — как только код появится, документы и виджет включатся сами.'}
             </p>
             <button
+                data-funnel-back
               type="button"
               onClick={() => router.push('/app/site')}
               className={`mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
@@ -371,6 +351,6 @@ export default function CodeClient() {
           </div>
         </div>
       )}
-    </div>
+    </AnketaFrame>
   );
 }

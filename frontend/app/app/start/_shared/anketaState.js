@@ -44,3 +44,51 @@ export function saveAnketa(patch) {
     // просто следующий шаг покажет полный набор целей вместо суженного
   }
 }
+
+// Чем человек входит в кабинет. Способ, которым он только что вошёл, сразу
+// считается привязанным — он и есть тот, через который человек уже прошёл
+// (живой макет). Почта привязана всегда: вход по коду из письма есть у
+// любого аккаунта, поэтому в списке мессенджеров её нет. Пока никто не
+// входил (панель «Макет» открыла экран напрямую) — как в макете, Telegram.
+export function loadAuth() {
+  const a = loadAnketa();
+  const via = a.authVia || 'Telegram';
+  return { via, messengers: a.messengers || (via === 'почта' ? {} : { [via]: true }) };
+}
+
+export function signIn(via, email) {
+  const a = loadAnketa();
+  // Первый вход — привязано только то, чем вошли, без макетного Telegram.
+  const messengers = a.authVia ? loadAuth().messengers : {};
+  saveAnketa({
+    authVia: via,
+    messengers: via === 'почта' ? messengers : { ...messengers, [via]: true },
+    // Почта, на которую пришёл код, — это и есть почта аккаунта; уже
+    // названную на шаге «Ваш профиль» вход не перетирает.
+    ...(email && !a.personEmail ? { personEmail: email } : {}),
+  });
+}
+
+export function setMessenger(name, on) {
+  saveAnketa({ messengers: { ...loadAuth().messengers, [name]: on } });
+}
+
+// Куда вернуться из Настроек: в них заходят из любого раздела через меню
+// аккаунта, и жёсткий «← Обзор» уводил не туда (живой макет).
+const RETURN_KEY = 'cabinet_return_v1';
+
+export function rememberReturn(path) {
+  try {
+    window.sessionStorage.setItem(RETURN_KEY, path);
+  } catch {
+    /* без хранилища «Назад» просто ведёт в «Мои сайты» */
+  }
+}
+
+export function returnPath() {
+  try {
+    return window.sessionStorage.getItem(RETURN_KEY) || '/app/sites';
+  } catch {
+    return '/app/sites';
+  }
+}

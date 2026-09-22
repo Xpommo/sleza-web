@@ -77,7 +77,7 @@ export default function RequisitesModal({ onClose, onSaved }) {
       <div className="my-10 w-full max-w-[560px] rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 id="req-title" className="text-[19px] font-bold tracking-[-0.03em]">
+            <h3 id="req-title" className="text-lg font-bold tracking-[-0.03em]">
               Реквизиты владельца
             </h3>
             <p className="mt-2 text-[13px] leading-5 text-ink/55">

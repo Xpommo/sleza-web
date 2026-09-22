@@ -17,6 +17,7 @@ const HOUR = 3600 * 1000;
 const SCREENS = [
   ['Вход', [
     ['Регистрация', '/app/register'],
+    ['Вход', '/app/login'],
     ['Мои сайты', '/app/sites'],
   ]],
   ['Анкета', [
@@ -34,6 +35,7 @@ const SCREENS = [
   ]],
   ['Аккаунт', [
     ['Подписка', '/app/billing'],
+    ['Настройки', '/app/settings'],
     ['Поддержка', '/app/support'],
   ]],
 ];
@@ -139,7 +141,7 @@ export default function MaketBar() {
   const current = pathname?.replace(/\/$/, '') || '';
 
   return (
-    <div className="fixed right-4 z-[60] font-sans" style={{ bottom: 'calc(16px + var(--cookie-banner-h, 0px))' }}>
+    <div className="fixed right-4 z-[60] font-sans" style={{ bottom: 'calc(16px + var(--cookie-banner-h, 0px) + var(--bottombar-h, 0px))' }}>
       {open ? (
         <div className="max-h-[calc(100vh-120px)] w-[300px] overflow-y-auto rounded-2xl border border-ink/10 bg-ink p-4 text-white shadow-2xl">
           <div className="flex items-center justify-between">

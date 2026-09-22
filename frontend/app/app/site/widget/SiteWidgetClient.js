@@ -45,7 +45,7 @@ function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onThe
         </>
       ) : (
         <div className="mt-5 space-y-3">
-          <p className="rounded-xl border border-dashed border-line-2 px-4 py-5 text-center text-[13.5px] text-ink/50">{offNote}</p>
+          <p className="rounded-xl border border-dashed border-line-2 px-4 py-5 text-center text-[13px] text-ink/50">{offNote}</p>
           <p className="flex items-start gap-2 rounded-xl bg-danger/[0.06] px-4 py-3 text-[13px] leading-5 text-ink/75">
             <WarnIcon size={16} className="mt-0.5 shrink-0 text-danger" />
             {offWarning}

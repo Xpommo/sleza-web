@@ -201,7 +201,7 @@ export function FooterPreview({ theme }) {
               </div>
               <h4 className="mt-1 text-[15px] font-bold">{pill.title}</h4>
               <p className="mt-2 text-[13px] leading-5 text-ink/60">{pill.body}</p>
-              {isMarketing && !pdOn && <p className="mt-3 rounded-lg bg-warn/10 px-3 py-2 text-[12.5px] text-ink/70">{pill.hint}</p>}
+              {isMarketing && !pdOn && <p className="mt-3 rounded-lg bg-warn/10 px-3 py-2 text-[12px] text-ink/70">{pill.hint}</p>}
               {pill.toggle && (
                 <div className="mt-3 flex items-center justify-between gap-3 rounded-lg bg-warm px-3 py-2.5">
                   <span className="text-[13px] font-semibold">Моё согласие</span>
@@ -214,12 +214,12 @@ export function FooterPreview({ theme }) {
                 </div>
               )}
               {pill.lockNote && (
-                <p className="mt-3 flex items-center gap-2 rounded-lg bg-warm px-3 py-2.5 text-[12.5px] font-semibold text-ink/60">🔒 {pill.lockNote}</p>
+                <p className="mt-3 flex items-center gap-2 rounded-lg bg-warm px-3 py-2.5 text-[12px] font-semibold text-ink/60">🔒 {pill.lockNote}</p>
               )}
               {pill.links && (
                 <div className="mt-3 flex flex-col gap-1.5">
                   {pill.links.map((l) => (
-                    <span key={l} className="text-[12.5px] font-semibold text-brand">
+                    <span key={l} className="text-[12px] font-semibold text-brand">
                       {l}
                     </span>
                   ))}

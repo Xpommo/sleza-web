@@ -47,6 +47,10 @@ export const OkIcon = (p) => (
   <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M8 12.4l2.6 2.6L16 9.6" /></Svg>
 );
 
+export const ClockIcon = (p) => (
+  <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7.5V12l3 2" /></Svg>
+);
+
 export const TeamIcon = (p) => (
   <Svg {...p}><circle cx="9" cy="8" r="3.4" /><path d="M3 20c0-3.2 2.7-5.4 6-5.4s6 2.2 6 5.4" /><path d="M16 5.4a3.4 3.4 0 0 1 0 6.6M17.5 19.4c0-2 -.7-3.7-1.9-4.9 2.9.2 5.4 2.3 5.4 5.5" /></Svg>
 );

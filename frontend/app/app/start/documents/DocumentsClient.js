@@ -5,20 +5,17 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
-  BurgerIcon,
   CheckIcon,
 } from '../../../../components/app/AppIcons';
 import { DocRow, DocRowList } from '../../../../components/app/DocRows';
 import { CookieBannerPreview, FooterPreview, WIDGET_DEFAULTS, widgetSettings } from '../../../../components/app/WidgetPreviews';
-import { RING, Logo, Progress, Sidebar } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame } from '../_shared/AnketaChrome';
 import { loadAnketa, markStepDone } from '../_shared/anketaState';
-import { DOCUMENTS, docNote, docPreview, docUrl } from '../../../../lib/docPackage';
+import { DOCUMENTS, docOrigin, docPreview, docUrl } from '../../../../lib/docPackage';
 
 export default function DocumentsClient() {
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [domain, setDomain] = useState('alfa-school.ru');
-  const [noCalls, setNoCalls] = useState(false);
   const [answers, setAnswers] = useState({});
   // Аккордеон: открыт один документ за раз — иначе список снова разъезжается
   // в полотно, от которого и уходили.
@@ -28,46 +25,12 @@ export default function DocumentsClient() {
   useEffect(() => {
     const saved = loadAnketa();
     if (saved.domain) setDomain(saved.domain);
-    setNoCalls(saved.callsBase === false);
     setAnswers(saved);
     setWidget(widgetSettings(saved));
   }, []);
 
   return (
-    <div className="min-h-screen bg-warm text-ink">
-      <div className="flex min-h-screen">
-        <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} current={4} />
-        {menuOpen && (
-          <button aria-label="Закрыть меню" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20 bg-ink/20 lg:hidden" />
-        )}
-        <main className="min-w-0 flex-1">
-          <div className="mx-auto max-w-[1000px] px-5 py-5 sm:px-8 sm:py-8 lg:px-14 lg:py-10">
-            <div className="mb-8 flex items-center justify-between lg:hidden">
-              <Logo />
-              <button
-                onClick={() => setMenuOpen(true)}
-                className={`rounded-lg border border-line bg-white p-2 ${RING}`}
-                aria-label="Открыть меню"
-              >
-                <BurgerIcon size={20} />
-              </button>
-            </div>
-
-            <div className="mb-7 flex items-end justify-between gap-4">
-              <div>
-                <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-brand">Шаг 5 из 6</p>
-                <h1 className="text-3xl font-bold tracking-[-0.04em] sm:text-[40px]">Пакет документов</h1>
-                <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/60 sm:text-[17px]">
-                  Собрали пакет под <span className="font-semibold text-ink">{domain}</span>. Откройте любой документ —
-                  покажем начало текста. Полностью он откроется на сайте после установки.
-                </p>
-              </div>
-              <div className="hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-xs font-semibold text-ink/55 shadow-sm sm:flex">
-                <CheckIcon size={16} className="text-ok" /> Пакет документов собран
-              </div>
-            </div>
-
-            <Progress current={4} />
+    <AnketaFrame current={4} title="Пакет документов" lead={<>Собрали пакет под <span className="font-semibold text-ink">{domain}</span>. Откройте любой документ — покажем начало текста. Полностью он откроется на сайте после установки.</>}>
 
             <section className="mb-7">
               <p className="mb-3 text-sm text-ink/55">Нажмите на документ, чтобы прочитать начало.</p>
@@ -76,13 +39,25 @@ export default function DocumentsClient() {
                   <DocRow
                     key={doc.id}
                     doc={doc}
-                    note={docNote(doc, noCalls)}
+                    note={docOrigin(doc, answers).line}
                     status={{ tone: 'ok', label: 'Готово' }}
                     open={openDoc === doc.id}
                     onToggle={() => setOpenDoc(openDoc === doc.id ? null : doc.id)}
                   >
                     <p className="text-[13px] leading-5 text-ink/70">{docPreview(doc, { ...answers, domain })}</p>
                     <p className="mt-3 font-mono text-[11px] text-ink/45">{docUrl(doc)} — откроется после установки</p>
+                    {/* Вторая половина петли: ответ виден в документе, и из
+                        документа можно вернуться ровно к тому ответу. */}
+                    <p className="mt-3 text-[12px] text-ink/55">
+                      {docOrigin(doc, answers).why} ·{' '}
+                      <button
+                        type="button"
+                        onClick={() => router.push(docOrigin(doc, answers).step)}
+                        className={`whitespace-nowrap rounded font-bold text-ink/60 hover:text-ink ${RING}`}
+                      >
+                        Изменить ответ →
+                      </button>
+                    </p>
                   </DocRow>
                 ))}
               </DocRowList>
@@ -133,6 +108,8 @@ export default function DocumentsClient() {
                 <ArrowLeftIcon size={17} /> Назад
               </button>
               <button
+                data-funnel-next
+                data-funnel-back
                 type="button"
                 onClick={() => {
                   markStepDone(5);
@@ -143,9 +120,6 @@ export default function DocumentsClient() {
                 Поставить код на сайт <ArrowRightIcon size={17} />
               </button>
             </div>
-          </div>
-        </main>
-      </div>
-    </div>
+    </AnketaFrame>
   );
 }

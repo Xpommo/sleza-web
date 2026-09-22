@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRightIcon, CloseIcon, OkIcon, RefreshIcon, ShieldCheckIcon, WarnIcon } from '../../../components/app/AppIcons';
+import { ArrowRightIcon, ClockIcon, CloseIcon, OkIcon, RefreshIcon, WarnIcon } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS } from '../../../lib/docPackage';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
@@ -77,7 +77,7 @@ export default function SiteOverviewClient() {
       : { tone: 'muted', Icon: WarnIcon, title: 'Документы собраны, скрипт не установлен', text: <>Пакет готов. Виджет включится, когда код встанет на сайт.</>, cta: ['Поставить код на сайт', '/app/start/code'] };
   } else if (state === 'trial') {
     banner = {
-      tone: 'warn', Icon: ShieldCheckIcon, title: `Пробный период — осталось ${formatLeft(a.trialStartedAt + TRIAL_MS - now)}`,
+      tone: 'warn', Icon: ClockIcon, title: `Пробный период — осталось ${formatLeft(a.trialStartedAt + TRIAL_MS - now)}`,
       text: a.installed
         ? <>Документы и виджет уже работают на {domain}. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва, и мы напомним письмом заранее.</>
         : <>Код на {domain} пока не нашли — проверка занимает до 15 минут. Как только он появится, документы и виджет заработают. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва.</>,
@@ -103,7 +103,7 @@ export default function SiteOverviewClient() {
     notstarted: [['Статус', 'не оплачено'], ['Тариф', tariff]],
     trial: [['Статус', 'пробный период'], ['Тариф', tariff]],
     expired: [['Статус', 'пробный период закончился'], ['Виджет', 'отключён']],
-    pending: [['Статус', 'ожидает оплаты'], ['Счёт', 'выставлен · обычно 1–3 рабочих дня']],
+    pending: [['Статус', 'счёт выставлен'], ['Счёт', 'выставлен · обычно 1–3 рабочих дня']],
     paid: period && (b.cancelled
       ? [['Статус', `отключается · работает до ${period.to}`], ['Отключение', `работает до ${period.to}`]]
       : [['Статус', `оплачено до ${period.to}`], ['Продление', `${period.renew} · ${PRICE_LABEL}`]]),
@@ -224,7 +224,7 @@ export default function SiteOverviewClient() {
         <div role="dialog" aria-modal="true" aria-labelledby="off-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4">
           <div className="mt-16 w-full max-w-[460px] rounded-2xl border border-line bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between gap-3">
-              <h3 id="off-title" className="text-[19px] font-bold tracking-[-0.03em]">
+              <h3 id="off-title" className="text-lg font-bold tracking-[-0.03em]">
                 {offStep === 1 ? 'Может, получится помочь?' : `Отключить ${a.domain}?`}
               </h3>
               <button type="button" onClick={() => setOffStep(0)} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>
@@ -235,7 +235,7 @@ export default function SiteOverviewClient() {
                 названа: затруднённый отказ — то, на что мы указываем клиентам. */}
             {offStep === 1 ? (
               <>
-                <p className="mt-3 text-[13.5px] leading-5 text-ink/65">
+                <p className="mt-3 text-[13px] leading-5 text-ink/65">
                   Если виджет мешает вёрстке, документы не подходят под ваш случай или счёт пришёл не тот — это чинится за
                   день. Отключить успеете всегда: сайт работает до {period.to}.
                 </p>
@@ -250,7 +250,7 @@ export default function SiteOverviewClient() {
               </>
             ) : (
               <>
-                <p className="mt-3 text-[13.5px] leading-5 text-ink/65">
+                <p className="mt-3 text-[13px] leading-5 text-ink/65">
                   Отключается только этот сайт — остальные сайты аккаунта продолжат работать, в следующий счёт этот сайт не
                   войдёт. До {period.to} здесь всё работает как сейчас, оплаченный период уже оплачен. После этой даты:
                 </p>

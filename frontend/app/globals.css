@@ -111,3 +111,13 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Кабинет: нижняя панель на телефоне (таббар сайта или панель анкеты).
+   Отступ снизу — чтобы последний блок страницы не уезжал под неё; панель
+   макета поднимается над ней. */
+@media (max-width: 1023px) {
+  body.has-bottombar {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    --bottombar-h: 72px;
+  }
+}

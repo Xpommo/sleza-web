@@ -1,17 +1,21 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
   const ref = useRef(null);
+  // Кабинет «Слеза Белый Сайт» (/app/*) — другой продукт: баннер сканера
+  // со ссылкой на его политику там выглядел как вход в чужой сервис.
+  const inCabinet = usePathname()?.startsWith('/app');
 
   useEffect(() => {
-    if (!localStorage.getItem('consent_v1')) {
+    if (!inCabinet && !localStorage.getItem('consent_v1')) {
       setVisible(true);
     }
-  }, []);
+  }, [inCabinet]);
 
   // Баннер fixed и ничего не резервировал под собой: закрывал низ страницы
   // (в кабинете — кнопку «Отменить подписку», её нельзя было нажать) и блок

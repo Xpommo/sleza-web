@@ -8,6 +8,7 @@ import { Field, Segmented } from '../start/_shared/AnketaChrome';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { SITE_ID, operatorName } from '../../../lib/docPackage';
 import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
+import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
 import { PRICE_LABEL, TARIFFS, paidPeriod, subState } from '../site/_shared/subscription';
 
 const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
@@ -38,7 +39,7 @@ function SummaryCard({ label, value, note, onEdit, editing, caption, children })
         </div>
         {editing && children && <div className="mt-5 border-t border-line pt-5">{children}</div>}
       </div>
-      {caption && <p className="mt-2 px-1 text-[12.5px] text-ink/45">{caption}</p>}
+      {caption && <p className="mt-2 px-1 text-[12px] text-ink/45">{caption}</p>}
     </div>
   );
 }
@@ -78,8 +79,10 @@ export default function BillingClient() {
 
   const [payerOpen, setPayerOpen] = useState(false);
   const [payerMode, setPayerMode] = useState('Как в анкете');
-  const [payer, setPayer] = useState({ name: '', inn: '', email: '' });
-  const [payerErr, setPayerErr] = useState({});
+  // Отдельный плательщик — сохраняется в подписке, чтобы пережить F5 и не
+  // вводиться заново к следующему счёту. null — ещё не заполнен.
+  const [otherPayer, setOtherPayer] = useState(null);
+  const [payerModal, setPayerModal] = useState(false);
 
   const [whatOpen, setWhatOpen] = useState(false);
   const [actsEmail, setActsEmail] = useState('');
@@ -99,6 +102,10 @@ export default function BillingClient() {
     if (b.tariff) setTariffPick(b.tariff);
     if (b.method) setMethod(b.method);
     if (b.actsEmail) setActsEmail(b.actsEmail);
+    if (b.payerOther) setOtherPayer(b.payerOther);
+    // Выбор плательщика после F5 — тот, на кого выставлен счёт; без счёта —
+    // отдельные реквизиты, если их уже заполняли.
+    if (b.invoice ? b.invoice.payer : b.payerOther) setPayerMode('Другие реквизиты');
     const id = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(id);
   }, [router]);
@@ -146,16 +153,19 @@ export default function BillingClient() {
   function issueInvoice() {
     let p = null;
     if (payerMode === 'Другие реквизиты') {
-      const errs = {};
-      if (!payer.name.trim()) errs.name = 'Укажите, кто оплачивает счёт.';
-      if (!/^\d{10}(\d{2})?$/.test(payer.inn)) errs.inn = 'ИНН — 10 или 12 цифр.';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payer.email)) errs.email = 'Нужна почта вида name@site.ru — на неё придёт счёт.';
-      setPayerErr(errs);
-      if (Object.keys(errs).length) return;
-      p = payer;
+      // Без реквизитов плательщика счёт не выставить — сразу открываем окно.
+      if (!otherPayer) {
+        setPayerOpen(true);
+        setPayerModal(true);
+        return;
+      }
+      p = otherPayer;
     }
     const year = new Date().getFullYear();
-    saveBilling({ method: 'По счёту', invoice: { no: `${year}-0142`, at: Date.now(), payer: p } });
+    // Переформированный счёт — новый документ с новым номером: старый уже
+    // могли переслать бухгалтеру, два разных счёта под одним номером нельзя.
+    const no = b.invoice ? `${year}-${String(Number(b.invoice.no.split('-')[1]) + 1).padStart(4, '0')}` : `${year}-0142`;
+    saveBilling({ method: 'По счёту', invoice: { no, at: Date.now(), payer: p } });
     setPayerOpen(false);
   }
 
@@ -192,6 +202,8 @@ export default function BillingClient() {
     .filter(Boolean)
     .join(' · ');
   const invoiceOverdue = b.invoice && now - b.invoice.at > 3 * 24 * 3600 * 1000;
+  const currentPayer = payerMode === 'Как в анкете' ? null : otherPayer;
+  const payerChanged = b.invoice && JSON.stringify(b.invoice.payer || null) !== JSON.stringify(currentPayer);
 
   // «Что входит»: рамка своя у каждого состояния — один список на три
   // разные ситуации врал в двух из них.
@@ -304,9 +316,9 @@ export default function BillingClient() {
                       </button>
                     ))}
                   </div>
-                  <p className="mt-3 text-[12.5px] text-ink/50">Состав тарифов ещё утверждается — цена пока одна.</p>
+                  <p className="mt-3 text-[12px] text-ink/50">Состав тарифов ещё утверждается — цена пока одна.</p>
                   <div className="mt-4 flex gap-3">
-                    <button type="button" onClick={pickTariff} className={`rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-white ${RING}`}>
+                    <button type="button" onClick={pickTariff} className={`rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`}>
                       Выбрать этот тариф
                     </button>
                     <button type="button" onClick={() => setTariffOpen(false)} className={`rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/55 hover:text-ink ${RING}`}>
@@ -363,16 +375,18 @@ export default function BillingClient() {
                     <button type="button" onClick={payByCard} className={`mt-6 ${PRIMARY_WIDE}`}>
                       Оплатить {PRICE_LABEL}
                     </button>
-                    <p className="mt-3 text-center text-[12.5px] text-ink/50">Отвязать карту можно здесь же в любой момент.</p>
+                    <p className="mt-3 text-center text-[12px] text-ink/50">Отвязать карту можно здесь же в любой момент.</p>
                   </div>
                 )}
 
-                {method === 'По счёту' && !b.invoice && (
+                {/* Плательщик виден и после выставления счёта (живой макет):
+                    иначе не понять, на кого выставлен счёт, и не поменять это. */}
+                {method === 'По счёту' && (
                   <SummaryCard
                     label="Плательщик"
-                    value={payerMode === 'Как в анкете' ? operatorName(a) : payer.name || 'Другие реквизиты'}
-                    note={payerMode === 'Как в анкете' ? payerNote : payer.inn && `ИНН ${payer.inn} · ${payer.email}`}
-                    caption={payerMode === 'Как в анкете' ? 'Реквизиты плательщика · из анкеты' : 'Реквизиты плательщика · другие'}
+                    value={payerMode === 'Как в анкете' ? operatorName(a) : otherPayer?.name || 'Реквизиты не заполнены'}
+                    note={payerMode === 'Как в анкете' ? payerNote : otherPayer ? payerSummary(otherPayer) : 'Без них счёт не выставить'}
+                    caption={payerMode === 'Как в анкете' ? 'Реквизиты плательщика · из анкеты' : 'Реквизиты плательщика · отдельные'}
                     onEdit={() => setPayerOpen(!payerOpen)}
                     editing={payerOpen}
                   >
@@ -384,13 +398,13 @@ export default function BillingClient() {
                           : 'Нужно, когда счёт оплачивает другая компания — не та, чьи реквизиты стоят в подвале сайта.'}
                       </p>
                       {payerMode === 'Другие реквизиты' && (
-                        <div className="space-y-4">
-                          <Field label="Наименование плательщика" required placeholder="ООО «Ромашка»" value={payer.name} onChange={(e) => setPayer({ ...payer, name: e.target.value })} error={payerErr.name} />
-                          <div className="grid gap-4 sm:grid-cols-2">
-                            <Field label="ИНН" required inputMode="numeric" placeholder="10 или 12 цифр" value={payer.inn} onChange={(e) => setPayer({ ...payer, inn: e.target.value.replace(/\D/g, '').slice(0, 12) })} error={payerErr.inn} />
-                            <Field label="Email для счёта" required type="email" placeholder="buh@romashka.ru" value={payer.email} onChange={(e) => setPayer({ ...payer, email: e.target.value })} error={payerErr.email} />
-                          </div>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setPayerModal(true)}
+                          className={`rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:bg-warm hover:text-ink ${RING}`}
+                        >
+                          {otherPayer ? 'Изменить' : 'Заполнить'}
+                        </button>
                       )}
                     </div>
                   </SummaryCard>
@@ -401,8 +415,9 @@ export default function BillingClient() {
                     <p className="text-[15px] font-bold">
                       Счёт № {b.invoice.no} · {PRICE_LABEL}
                     </p>
+                    <p className="mt-0.5 text-[13px] text-ink/55">Выставлен на {b.invoice.payer?.name || operatorName(a)}</p>
                     <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                      <div className="flex h-12 min-w-0 flex-1 items-center rounded-xl border border-line bg-warm px-4 font-mono text-[12.5px] text-ink/70">
+                      <div className="flex h-12 min-w-0 flex-1 items-center rounded-xl border border-line bg-warm px-4 font-mono text-[12px] text-ink/70">
                         <span className="truncate">
                           cdn.sleza.media/{SITE_ID}/invoice-{b.invoice.no}.pdf
                         </span>
@@ -436,6 +451,13 @@ export default function BillingClient() {
               {method === 'По счёту' && !b.invoice && (
                 <button type="button" onClick={issueInvoice} className={`mt-6 ${PRIMARY_WIDE}`}>
                   Выставить счёт на {PRICE_LABEL}
+                </button>
+              )}
+              {/* Счёт уже выставлен, а плательщика сменили — кнопка появляется
+                  только тогда: переформировать тот же счёт незачем. */}
+              {method === 'По счёту' && b.invoice && payerChanged && (
+                <button type="button" onClick={issueInvoice} className={`mt-6 ${PRIMARY_WIDE}`}>
+                  Сформировать счёт заново — на {payerMode === 'Как в анкете' ? operatorName(a) : otherPayer?.name || 'другие реквизиты'}
                 </button>
               )}
 
@@ -487,7 +509,7 @@ export default function BillingClient() {
                     Обычно это бухгалтерия. Если оставить пустым, будем присылать на почту аккаунта
                     {a.personEmail ? ` — ${a.personEmail}` : ''}. Необязательно.
                   </p>
-                  <button type="button" onClick={saveActs} className={`mt-4 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-white ${RING}`}>
+                  <button type="button" onClick={saveActs} className={`mt-4 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`}>
                     Сохранить
                   </button>
                 </div>
@@ -518,6 +540,18 @@ export default function BillingClient() {
         </div>
       </section>
 
+      {payerModal && (
+        <InvoicePayerModal
+          initial={otherPayer}
+          onClose={() => setPayerModal(false)}
+          onSave={(p) => {
+            setOtherPayer(p);
+            saveBilling({ payerOther: p });
+            setPayerModal(false);
+            setPayerOpen(false);
+          }}
+        />
+      )}
     </main>
   );
 }

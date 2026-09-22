@@ -41,7 +41,7 @@ export function DocRow({ doc, note, status, action = 'Посмотреть', ope
             {/* Без обрезки: в названии стоит закон, который документ
                 закрывает, — срезать его многоточием нельзя. */}
             <h3 className="text-sm font-bold leading-5">{doc.title}</h3>
-            <p className="mt-1 text-[12.5px] leading-4 text-ink/50">{note}</p>
+            <p className="mt-1 text-[12px] leading-4 text-ink/50">{note}</p>
           </div>
         </div>
         {/* На узком экране статус и кнопка встают в одну строку под текстом;
