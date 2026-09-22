@@ -88,9 +88,12 @@ export default function RegisterClient() {
             один пакет документов и один скрипт.
           </p>
 
-          <div className="mt-10 border-t border-white/10">
+          {/* Без линий между пунктами: это один перечень, а линейки дробили
+              его на пять плашек (п.12 ревью Ивана — «три полоски»). Пункты
+              разделяет воздух: внутри пункта тесно, между пунктами свободно. */}
+          <ul className="mt-10 space-y-6">
             {BENEFITS.map(([title, text]) => (
-              <div key={title} className="flex gap-4 border-b border-white/10 py-4">
+              <li key={title} className="flex gap-4">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-soft/20 text-brand-soft">
                   <CheckIcon size={12} />
                 </span>
@@ -98,9 +101,9 @@ export default function RegisterClient() {
                   <p className="text-sm font-bold">{title}</p>
                   <p className="mt-1 text-[13px] leading-5 text-white/55">{text}</p>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
 
       </section>
