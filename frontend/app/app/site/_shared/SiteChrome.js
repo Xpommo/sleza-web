@@ -52,7 +52,7 @@ function NavList({ items, active, label }) {
           href={href}
           aria-current={l === active ? 'page' : undefined}
           className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${RING} ${
-            l === active ? 'bg-ink font-bold text-white' : 'font-semibold text-ink/55 hover:bg-warm hover:text-ink'
+            l === active ? 'bg-ink font-bold text-white' : 'font-semibold text-ink/60 hover:bg-warm hover:text-ink'
           }`}
         >
           <Icon size={17} />
@@ -148,7 +148,7 @@ export function AccountMenu({ user, compact = false }) {
           <>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-bold text-ink">{user.name}</span>
-              <span className="mt-0.5 block truncate text-xs text-ink/45">{user.email}</span>
+              <span className="mt-0.5 block truncate text-xs text-ink/60">{user.email}</span>
             </span>
             <ChevronDownIcon size={15} className={`shrink-0 text-ink/35 transition-transform ${open ? '' : 'rotate-180'}`} />
           </>
@@ -170,7 +170,7 @@ export function AccountMenu({ user, compact = false }) {
           {compact && (
             <div className="border-b border-line px-2.5 pb-2 pt-1">
               <p className="truncate text-[13px] font-bold">{user.name}</p>
-              <p className="truncate text-[12px] text-ink/45">{user.email}</p>
+              <p className="truncate text-[12px] text-ink/60">{user.email}</p>
             </div>
           )}
           <div className={compact ? 'pt-1' : ''}>
@@ -198,7 +198,7 @@ export function SiteTabbar({ active }) {
   const [more, setMore] = useState(false);
   useBottomBar();
   useEscape(more, () => setMore(false));
-  const tab = (on) => `flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold transition ${RING} ${on ? 'text-ink' : 'text-ink/45'}`;
+  const tab = (on) => `flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold transition ${RING} ${on ? 'text-ink' : 'text-ink/60'}`;
   return (
     <>
       {more && <div className="fixed inset-0 z-40 bg-ink/20 lg:hidden" aria-hidden="true" onClick={() => setMore(false)} />}
@@ -211,7 +211,9 @@ export function SiteTabbar({ active }) {
         aria-label="Разделы сайта"
         className="fixed inset-x-0 bottom-0 z-50 flex border-t border-line bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       >
-        {SITE_NAV.map(({ label, Icon, href }) => (
+        {/* Порядок — по частоте справа налево, под большой палец правши:
+            «Обзор» ближе всего, «Документы» в центре (решение макета). */}
+        {TAB_ORDER.map((i) => SITE_NAV[i]).map(({ label, Icon, href }) => (
           <Link key={href} href={href} aria-current={label === active ? 'page' : undefined} className={tab(label === active)}>
             <span className={`flex h-8 w-12 items-center justify-center rounded-full ${label === active ? 'bg-ink text-white' : ''}`}>
               <Icon size={18} />
@@ -229,6 +231,8 @@ export function SiteTabbar({ active }) {
     </>
   );
 }
+
+const TAB_ORDER = [2, 1, 0];
 
 function MoreIcon() {
   return (
@@ -263,7 +267,7 @@ export function SidebarShell({ user, children, supportActive, bottomBar }) {
         <Link
           href="/app/support"
           aria-current={supportActive ? 'page' : undefined}
-          className={`mb-5 flex items-center gap-3 px-2 text-sm font-semibold transition hover:text-ink ${RING} ${supportActive ? 'text-ink' : 'text-ink/55'}`}
+          className={`mb-5 flex items-center gap-3 px-2 text-sm font-semibold transition hover:text-ink ${RING} ${supportActive ? 'text-ink' : 'text-ink/60'}`}
         >
           <SupportIcon size={17} /> Поддержка
         </Link>
@@ -279,12 +283,12 @@ export function SiteSidebar({ domain, active, user = CURRENT_USER }) {
     <SidebarShell user={user} bottomBar={<SiteTabbar active={active} />}>
       <Link
         href="/app/sites"
-        className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/55 transition hover:text-ink ${RING}`}
+        className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
       >
         <ArrowLeftIcon size={16} /> Мои сайты
       </Link>
       <div className="mt-7 border-t border-line pt-6">
-        <p className="mb-3 truncate px-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/45">{domain}</p>
+        <p className="mb-3 truncate px-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/60">{domain}</p>
         <NavList items={SITE_NAV} active={active} label="Разделы сайта" />
       </div>
     </SidebarShell>
@@ -322,7 +326,7 @@ export function SettingsSidebar({ user = CURRENT_USER }) {
       <button
         type="button"
         onClick={() => router.push(returnPath())}
-        className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/55 transition hover:text-ink ${RING}`}
+        className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
       >
         <ArrowLeftIcon size={16} /> Назад
       </button>
@@ -340,7 +344,7 @@ export function SiteHeader({ title, domain, context, children }) {
   return (
     <header>
       <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">{title}</h1>
-      <p className="mt-2 text-[15px] text-ink/55">
+      <p className="mt-2 text-[15px] text-ink/60">
         <span className="font-semibold text-ink/80">{domain}</span>
         {context && <> · {context}</>}
       </p>

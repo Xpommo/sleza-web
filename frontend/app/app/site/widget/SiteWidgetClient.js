@@ -25,7 +25,7 @@ function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onThe
           <h2 id={themeId} className="text-lg font-bold tracking-[-0.02em]">
             {title}
           </h2>
-          <p className={`mt-1 flex items-center gap-1.5 text-[13px] font-semibold ${on ? 'text-ok' : 'text-ink/45'}`}>
+          <p className={`mt-1 flex items-center gap-1.5 text-[13px] font-semibold ${on ? 'text-ok' : 'text-ink/60'}`}>
             {on ? <CheckIcon size={14} /> : null}
             {on ? 'Показывается посетителям' : 'Выключен'}
           </p>
@@ -36,7 +36,7 @@ function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onThe
       {on ? (
         <>
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <span id={`${themeId}-label`} className="text-[13px] font-semibold text-ink/55">
+            <span id={`${themeId}-label`} className="text-[13px] font-semibold text-ink/60">
               Тема
             </span>
             <ThemeSwitch value={theme} onChange={onTheme} labelledby={`${themeId}-label`} />
@@ -45,7 +45,7 @@ function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onThe
         </>
       ) : (
         <div className="mt-5 space-y-3">
-          <p className="rounded-xl border border-dashed border-line-2 px-4 py-5 text-center text-[13px] text-ink/50">{offNote}</p>
+          <p className="rounded-xl border border-dashed border-line-2 px-4 py-5 text-center text-[13px] text-ink/60">{offNote}</p>
           <p className="flex items-start gap-2 rounded-xl bg-danger/[0.06] px-4 py-3 text-[13px] leading-5 text-ink/75">
             <WarnIcon size={16} className="mt-0.5 shrink-0 text-danger" />
             {offWarning}
@@ -146,7 +146,7 @@ export default function SiteWidgetClient() {
 
           {/* Не «что видел посетитель» — у баннера нет интерактивного
               действия, — а «что опубликовано и когда». */}
-          <p className="mt-6 text-[13px] leading-5 text-ink/55">
+          <p className="mt-6 text-[13px] leading-5 text-ink/60">
             Публикуем и датируем сами — если понадобится доказать, что было опубликовано и когда, ответ уже в системе, не в голове.
           </p>
 

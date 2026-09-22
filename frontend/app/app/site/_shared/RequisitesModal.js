@@ -80,7 +80,7 @@ export default function RequisitesModal({ onClose, onSaved }) {
             <h3 id="req-title" className="text-lg font-bold tracking-[-0.03em]">
               Реквизиты владельца
             </h3>
-            <p className="mt-2 text-[13px] leading-5 text-ink/55">
+            <p className="mt-2 text-[13px] leading-5 text-ink/60">
               Попадают в документ «Реквизиты владельца» и в подвал сайта. Реквизиты для счёта — отдельные, они в
               «Подписке».
             </p>
@@ -122,7 +122,7 @@ export default function RequisitesModal({ onClose, onSaved }) {
           >
             Сохранить
           </button>
-          <button type="button" onClick={onClose} className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/55 hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}>
             Отмена
           </button>
         </div>

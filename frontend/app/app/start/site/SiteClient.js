@@ -185,7 +185,7 @@ export default function SiteClient() {
                 {/* Подсказка открыта, а не спрятана под «зачем»: ошибиться
                     здесь дороже всего — адрес уходит и в документы, и в код,
                     а тестовый поддомен потом придётся менять в обоих. */}
-                <p className="mt-2 text-[13px] leading-5 text-ink/55">
+                <p className="mt-2 text-[13px] leading-5 text-ink/60">
                   Адрес, по которому сайт открывается у посетителей: он попадёт в документы и в код установки.
                   Тестовый или технический адрес вроде <span className="font-mono text-[12px]">site.tilda.ws</span> для
                   этого не подойдёт.
@@ -203,7 +203,7 @@ export default function SiteClient() {
                   <span className="mb-1 flex items-center gap-1 text-[13px] font-bold text-ink-2">
                     Сфера деятельности <span className="text-brand">*</span>
                   </span>
-                  <span className="mb-2 block text-[13px] text-ink/55">
+                  <span className="mb-2 block text-[13px] text-ink/60">
                     Под неё подберём список целей на следующем шаге и оговорки в документах.
                   </span>
                   <span className="relative block">
@@ -360,7 +360,9 @@ export default function SiteClient() {
               </div>
             </section>
 
-            <div className="mt-7 flex gap-3 border-t border-line pt-5">
+            {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,
+                человек видел одни и те же кнопки дважды (правка владельца). */}
+            <div className="mt-7 hidden gap-3 border-t border-line pt-5 lg:flex">
               <button
                 data-funnel-back
                 type="button"

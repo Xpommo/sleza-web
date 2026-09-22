@@ -113,12 +113,12 @@ export function Sidebar({ current, bottomBar }) {
     <SidebarShell user={user} bottomBar={bottomBar}>
       <Link
         href="/app/sites"
-        className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/55 transition hover:text-ink ${RING}`}
+        className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
       >
         <ArrowLeftIcon size={16} /> Мои сайты
       </Link>
       <div className="mt-7 border-t border-line pt-6">
-        <p className="mb-1 px-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/45">Подключение сайта</p>
+        <p className="mb-1 px-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/60">Подключение сайта</p>
         <StepList current={current} />
       </div>
     </SidebarShell>
@@ -141,7 +141,7 @@ function FunnelBar({ current, nextLabel }) {
       {sheet && <div className="fixed inset-0 z-40 bg-ink/20 lg:hidden" aria-hidden="true" onClick={() => setSheet(false)} />}
       {sheet && (
         <div className="fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-white p-4 shadow-xl lg:hidden">
-          <p className="px-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/45">Шаги анкеты</p>
+          <p className="px-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/60">Шаги анкеты</p>
           <div className="-mt-2">
             <StepList current={current} onPick={() => setSheet(false)} />
           </div>
@@ -159,13 +159,20 @@ function FunnelBar({ current, nextLabel }) {
           <div className="h-full bg-brand transition-all" style={{ width: `${((current + (done > current ? 1 : 0)) / STEPS.length) * 100}%` }} />
         </div>
         <div className="flex items-stretch px-2">
-          <button type="button" onClick={() => press('[data-funnel-back]')} className={`${side} text-ink/55`}>
+          <button type="button" onClick={() => press('[data-funnel-back]')} className={`${side} text-ink/60`}>
             <ArrowLeftIcon size={18} />
             Назад
           </button>
           <button type="button" onClick={() => setSheet(!sheet)} aria-expanded={sheet} className={`${side} text-ink/70`}>
-            <span className="flex h-8 min-w-[48px] items-center justify-center rounded-full bg-ink px-3 text-[13px] font-bold text-white">
-              {current + 1} из {STEPS.length}
+            {/* Без цифры: номер шага уже стоит над заголовком экрана, здесь его
+                заменяет полоса прогресса — дублировать незачем (правка владельца). */}
+            <span className="flex h-8 w-12 items-center justify-center rounded-full bg-ink text-white">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                <path d="M9 6h11M9 12h11M9 18h11" />
+                <circle cx="4.5" cy="6" r="1" fill="currentColor" />
+                <circle cx="4.5" cy="12" r="1" fill="currentColor" />
+                <circle cx="4.5" cy="18" r="1" fill="currentColor" />
+              </svg>
             </span>
             Шаги
           </button>
@@ -290,7 +297,7 @@ export function BlockHead({ id, icon: Icon, title, hint, why, whyOpen, onWhy }) 
             <h2 id={id} className="text-lg font-bold tracking-tight">
               {title}
             </h2>
-            {hint && <p className="mt-1 text-sm text-ink/55">{hint}</p>}
+            {hint && <p className="mt-1 text-sm text-ink/60">{hint}</p>}
           </div>
         </div>
         {why && <WhyButton open={whyOpen} onClick={onWhy} />}
@@ -345,7 +352,7 @@ export function Tile({ title, description, selected, onClick, compact = false, r
       </span>
       <span>
         <span className="block text-sm font-bold text-ink">{title}</span>
-        {description && <span className="mt-1 block text-xs leading-4 text-ink/50">{description}</span>}
+        {description && <span className="mt-1 block text-xs leading-4 text-ink/60">{description}</span>}
       </span>
     </button>
   );
@@ -374,7 +381,7 @@ export function SectionHead({ id, title, required, hint, whyOpen, onWhy, why }) 
             {title}
             {required && <span className="whitespace-nowrap text-brand"> *</span>}
           </h2>
-          {hint && <p className="mt-1 text-sm text-ink/55">{hint}</p>}
+          {hint && <p className="mt-1 text-sm text-ink/60">{hint}</p>}
         </div>
         {why && <WhyButton open={whyOpen} onClick={onWhy} />}
       </div>

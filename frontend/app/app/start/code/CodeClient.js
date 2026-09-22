@@ -81,11 +81,19 @@ export default function CodeClient() {
   // находит код (он мог не успеть попасть в кеш — это нормально, а не ошибка
   // человека), вторая находит. Неудача показывается попапом, а не блоком в
   // потоке: шаг и так длинный, а ответ на нажатие должен попасться на глаза.
+  // «Проверяем…» на время проверки: без него кнопка неотличима от
+  // сломанной (макет, 9.09).
+  const [checking, setChecking] = useState(false);
   function checkScript() {
-    const next = probes + 1;
-    setProbes(next);
-    if (next >= 2) setFound(true);
-    else setFailOpen(true);
+    if (checking) return;
+    setChecking(true);
+    setTimeout(() => {
+      setChecking(false);
+      const next = probes + 1;
+      setProbes(next);
+      if (next >= 2) setFound(true);
+      else setFailOpen(true);
+    }, 1200);
   }
 
   function startTrial() {
@@ -113,7 +121,7 @@ export default function CodeClient() {
                     <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <h3 className="text-[15px] font-bold">Скопируйте код</h3>
-                        <p className="mt-1 text-sm text-ink/55">Одна строка — ставится один раз и работает на всех страницах.</p>
+                        <p className="mt-1 text-sm text-ink/60">Одна строка — ставится один раз и работает на всех страницах.</p>
                       </div>
                       <button
                         type="button"
@@ -132,7 +140,7 @@ export default function CodeClient() {
                     <h3 className="text-[15px] font-bold">
                       Вставьте на сайт{platform ? ` — ${platform}` : ''}
                     </h3>
-                    <p className="mt-1 text-sm text-ink/55">
+                    <p className="mt-1 text-sm text-ink/60">
                       {platform
                         ? 'Инструкция под платформу, которую вы назвали на шаге «О сайте».'
                         : 'Платформа не указана — общая инструкция.'}
@@ -149,9 +157,12 @@ export default function CodeClient() {
                     </ul>
                   </div>
 
-                  <div className="rounded-xl border border-line bg-warm p-4">
+                  {/* Только на телефоне: лезть в админку сайта с телефона
+                      нереалистично, честный сценарий — переслать себе и доделать
+                      с компьютера. На компьютере человек и так за ним (макет). */}
+                  <div className="rounded-xl border border-line bg-warm p-4 lg:hidden">
                     <h3 className="text-[15px] font-bold">Отправьте себе на почту</h3>
-                    <p className="mt-1 text-sm text-ink/55">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
+                    <p className="mt-1 text-sm text-ink/60">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                       <Field
                         label="Почта"
@@ -178,15 +189,17 @@ export default function CodeClient() {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <h3 className="text-[15px] font-bold">Проверьте, что код заработал</h3>
-                        <p className="mt-1 text-sm text-ink/55">Откроем ваш сайт и поищем строку кода на странице.</p>
+                        <p className="mt-1 text-sm text-ink/60">Откроем ваш сайт и поищем строку кода на странице.</p>
                       </div>
                       {!found && (
                         <button
                           type="button"
                           onClick={checkScript}
-                          className={`flex shrink-0 items-center gap-2 rounded-lg bg-white px-3.5 py-2.5 text-xs font-bold text-brand shadow-sm ring-1 ring-line transition hover:ring-brand ${RING}`}
+                          disabled={checking}
+                          aria-busy={checking}
+                          className={`flex shrink-0 items-center gap-2 rounded-lg bg-white px-3.5 py-2.5 text-xs font-bold text-brand shadow-sm ring-1 ring-line transition hover:ring-brand disabled:cursor-wait disabled:text-ink/60 ${RING}`}
                         >
-                          <RefreshIcon size={14} /> Проверить скрипт на сайте
+                          <RefreshIcon size={14} className={checking ? 'animate-spin' : ''} /> {checking ? 'Проверяем…' : 'Проверить скрипт на сайте'}
                         </button>
                       )}
                     </div>
@@ -206,7 +219,7 @@ export default function CodeClient() {
                     </span>
                     <div>
                       <h3 className="text-[15px] font-bold">Отправьте инструкцию ответственному</h3>
-                      <p className="mt-1 text-sm text-ink/55">Ему уйдёт код и пошаговая инструкция под вашу платформу.</p>
+                      <p className="mt-1 text-sm text-ink/60">Ему уйдёт код и пошаговая инструкция под вашу платформу.</p>
                     </div>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -229,7 +242,7 @@ export default function CodeClient() {
                       {sent ? '✓ Отправили' : 'Отправить инструкцию'}
                     </button>
                   </div>
-                  <p className="mt-4 text-[13px] leading-5 text-ink/55">
+                  <p className="mt-4 text-[13px] leading-5 text-ink/60">
                     Разбираться самим не обязательно — перешлите тому, кто ведёт сайт: разработчику, агентству или
                     веб-мастеру. Как только код появится на сайте, мы увидим это сами и напишем вам. Вернётесь в
                     кабинет по ссылке из письма и запустите пробный период — отсчёт начнётся с вашего нажатия, а не с
@@ -247,14 +260,14 @@ export default function CodeClient() {
                 >
                   Активировать пробный период <ArrowRightIcon size={17} />
                 </button>
-                <p className="mt-3 text-center text-[13px] text-ink/55">
+                <p className="mt-3 text-center text-[13px] text-ink/60">
                   Пробный период пойдёт с момента активации, а не с момента установки.
                 </p>
                 <div className="mt-4 flex justify-center">
                   <button
                     type="button"
                     onClick={() => router.push('/app/sites')}
-                    className={`rounded text-sm font-semibold text-ink/45 transition-colors hover:text-ink ${RING}`}
+                    className={`rounded text-sm font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}
                   >
                     Поставлю позже →
                   </button>
@@ -262,7 +275,9 @@ export default function CodeClient() {
               </div>
             </section>
 
-            <div className="mt-7 flex gap-3 border-t border-line pt-5">
+            {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,
+                человек видел одни и те же кнопки дважды (правка владельца). */}
+            <div className="mt-7 hidden gap-3 border-t border-line pt-5 lg:flex">
               <button
                 type="button"
                 onClick={() => router.push('/app/start/documents')}
@@ -314,7 +329,7 @@ export default function CodeClient() {
               <button
                 type="button"
                 onClick={() => router.push('/app/support')}
-                className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/55 hover:text-ink ${RING}`}
+                className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}
               >
                 Написать в поддержку
               </button>

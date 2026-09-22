@@ -112,7 +112,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
 
   if (!open) {
     return (
-      <AuthButton icon={<MailIcon size={20} className="text-ink/45" />} onClick={onOpen}>
+      <AuthButton icon={<MailIcon size={20} className="text-ink/60" />} onClick={onOpen}>
         Через почту
       </AuthButton>
     );
@@ -152,7 +152,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
   return (
     <div className={`p-5 ${BUTTON_BOX}`}>
       <div className="flex items-center gap-3 text-[15px] font-semibold text-ink">
-        <MailIcon size={20} className="text-ink/45" />
+        <MailIcon size={20} className="text-ink/60" />
         Через почту
         <button
           type="button"
@@ -177,7 +177,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
           }}
           noValidate
         >
-          <p className="mb-4 text-[13px] leading-5 text-ink/55">Пришлём код для входа — пароль не нужен.</p>
+          <p className="mb-4 text-[13px] leading-5 text-ink/60">Пришлём код для входа — пароль не нужен.</p>
           <Input
             id="mail-login-email"
             label="Почта"
@@ -209,7 +209,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
           }}
           noValidate
         >
-          <p className="mb-4 text-[13px] leading-5 text-ink/55">
+          <p className="mb-4 text-[13px] leading-5 text-ink/60">
             Отправили код на <b className="break-all font-bold text-ink">{email.trim()}</b>. Код действует 30 минут.
           </p>
           <Input
@@ -234,7 +234,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
           >
             {submitLabel}
           </button>
-          <p className="mt-4 text-[12px] text-ink/50">
+          <p className="mt-4 text-[12px] text-ink/60">
             Не пришло письмо?{' '}
             <button type="button" onClick={resend} className={`rounded font-bold text-ink/60 hover:text-ink ${RING}`}>
               {resent ? 'Отправили ещё раз' : 'Отправить снова'}

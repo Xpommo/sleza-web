@@ -94,7 +94,7 @@ export default function SettingsClient() {
                     название одного поля разъезжается между экранами. */}
                 <div>
                   <Field label="Телефон на случай, если письма не дойдут" inputMode="tel" placeholder="+7 (___) ___-__-__" {...bind('phone')} />
-                  <p className="mt-2 text-[12px] text-ink/50">Необязательно — позвоним, только если письма перестанут доходить.</p>
+                  <p className="mt-2 text-[12px] text-ink/60">Необязательно — позвоним, только если письма перестанут доходить.</p>
                 </div>
                 <div className="flex flex-wrap gap-3 pt-1">
                   <button
@@ -104,7 +104,7 @@ export default function SettingsClient() {
                   >
                     Сохранить
                   </button>
-                  <button type="button" onClick={() => setEditing(false)} className={`rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/55 hover:text-ink ${RING}`}>
+                  <button type="button" onClick={() => setEditing(false)} className={`rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}>
                     Отмена
                   </button>
                 </div>
@@ -114,7 +114,7 @@ export default function SettingsClient() {
                 <div className="min-w-0">
                   <p className="text-[15px] font-bold">{user.name}</p>
                   <p className="mt-1 break-all font-mono text-[13px] text-ink/60">{user.email}</p>
-                  <p className="mt-0.5 text-[13px] text-ink/55">{phone || 'Телефон не указан'}</p>
+                  <p className="mt-0.5 text-[13px] text-ink/60">{phone || 'Телефон не указан'}</p>
                 </div>
                 <button type="button" onClick={openForm} className={BTN_SECONDARY}>
                   Изменить
@@ -130,12 +130,12 @@ export default function SettingsClient() {
           <Card>
             <p className="text-[15px] font-bold">По коду из письма</p>
             <p className="mt-1 break-all font-mono text-[13px] text-ink/60">{user.email}</p>
-            <p className="mt-0.5 text-[13px] text-ink/55">Пароль не нужен — присылаем код на эту почту</p>
+            <p className="mt-0.5 text-[13px] text-ink/60">Пароль не нужен — присылаем код на эту почту</p>
 
             <div className="my-5 h-px bg-line" />
 
             <h3 className="text-[15px] font-bold">Мессенджеры</h3>
-            <p className="mt-1 text-[13px] leading-5 text-ink/55">
+            <p className="mt-1 text-[13px] leading-5 text-ink/60">
               Вход в один тап и уведомления туда же — о продлении, оплате и статусе виджета. Можно подключить несколько, здесь
               же и отвязать.
             </p>

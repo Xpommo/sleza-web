@@ -96,7 +96,7 @@ export default function SitesClient() {
         <div className="mx-auto max-w-5xl">
           <header>
             <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Мои сайты</h1>
-            <p className="mt-3 text-[15px] leading-6 text-ink/55">
+            <p className="mt-3 text-[15px] leading-6 text-ink/60">
               У каждого сайта свои документы и свой виджет. Счёт — один на все сайты аккаунта.
             </p>
           </header>
@@ -106,7 +106,7 @@ export default function SitesClient() {
               <div className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold text-ink/70">1 сайт</p>
-                  <p className="mt-1 text-xs text-ink/45">Документы и настройки доступны внутри карточки</p>
+                  <p className="mt-1 text-xs text-ink/60">Документы и настройки доступны внутри карточки</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <button
@@ -124,7 +124,7 @@ export default function SitesClient() {
                         onClick={() => setView(id)}
                         aria-pressed={view === id}
                         className={`flex h-8 items-center gap-2 rounded-md px-3 text-xs transition ${RING} ${
-                          view === id ? 'bg-ink font-bold text-white' : 'font-semibold text-ink/45 hover:text-ink'
+                          view === id ? 'bg-ink font-bold text-white' : 'font-semibold text-ink/60 hover:text-ink'
                         }`}
                       >
                         <Icon size={14} /> {label}
@@ -153,12 +153,12 @@ export default function SitesClient() {
                     <div className={`mt-6 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold ${TONE[status.tone][0]}`}>
                       <StatusIcon size={15} /> {status.label}
                     </div>
-                    <p className="mt-2 px-1 text-[12px] text-ink/50">{status.meta}</p>
+                    <p className="mt-2 px-1 text-[12px] text-ink/60">{status.meta}</p>
 
                     <dl className="mt-6 space-y-3 text-sm">
                       {site.inn && (
                         <div className="flex items-center justify-between">
-                          <dt className="text-ink/45">ИНН</dt>
+                          <dt className="text-ink/60">ИНН</dt>
                           <dd className="font-mono font-semibold text-ink/75">{site.inn}</dd>
                         </div>
                       )}
@@ -166,7 +166,7 @@ export default function SitesClient() {
                           сайта «6 из 6» ничего не сообщает. */}
                       {!finished && (
                         <div className="flex items-center justify-between">
-                          <dt className="text-ink/45">Прогресс анкеты</dt>
+                          <dt className="text-ink/60">Прогресс анкеты</dt>
                           <dd className="font-semibold text-ink/75">{steps} из 6</dd>
                         </div>
                       )}
@@ -189,7 +189,7 @@ export default function SitesClient() {
               ) : (
                 <div className="mt-6 overflow-hidden rounded-2xl border border-line bg-white">
                   <table className="w-full text-left text-sm">
-                    <thead className="border-b border-line text-xs text-ink/45">
+                    <thead className="border-b border-line text-xs text-ink/60">
                       <tr>
                         <th className="px-5 py-3 font-semibold">Сайт</th>
                         <th className="px-5 py-3 font-semibold">Состояние</th>
@@ -201,11 +201,11 @@ export default function SitesClient() {
                       <tr>
                         <td className="px-5 py-4">
                           <p className="font-bold">{site.domain}</p>
-                          {site.company && <p className="mt-0.5 text-xs text-ink/50">{site.company}</p>}
+                          {site.company && <p className="mt-0.5 text-xs text-ink/60">{site.company}</p>}
                         </td>
                         <td className="px-5 py-4">
                           <p className="font-semibold text-ink/80">{status.label}</p>
-                          <p className="mt-0.5 text-xs text-ink/50">{status.meta}</p>
+                          <p className="mt-0.5 text-xs text-ink/60">{status.meta}</p>
                         </td>
                         <td className="px-5 py-4 text-ink/70">{finished ? 'пройдена' : `${steps} из 6`}</td>
                         <td className="px-5 py-4 text-right">
@@ -233,7 +233,7 @@ export default function SitesClient() {
                 </span>
               </div>
               <h2 className="text-[22px] font-bold tracking-[-0.035em] sm:text-[26px]">Пока нет ни одного сайта</h2>
-              <p className="mt-4 max-w-sm text-[15px] leading-6 text-ink/55">
+              <p className="mt-4 max-w-sm text-[15px] leading-6 text-ink/60">
                 Добавьте сайт — спросим о нём и о компании, по ответам подготовим документы.
               </p>
               {/* Одна форма главного действия на экране: раньше «Добавить
@@ -249,7 +249,7 @@ export default function SitesClient() {
             </div>
           </div>
           )}
-          <p className="mt-6 text-center text-xs text-ink/45">
+          <p className="mt-6 text-center text-xs text-ink/60">
             {site ? 'Отключить можно любой сайт по отдельности — остальные продолжат работать.' : 'Документы и настройки появятся здесь после того, как сайт будет добавлен.'}
           </p>
         </div>

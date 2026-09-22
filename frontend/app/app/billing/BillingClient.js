@@ -22,9 +22,9 @@ function SummaryCard({ label, value, note, onEdit, editing, caption, children })
       <div className="rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:px-6">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-[12px] font-semibold text-ink/45">{label}</p>
+            <p className="text-[12px] font-semibold text-ink/60">{label}</p>
             <p className="mt-1 text-[15px] font-bold">{value}</p>
-            {note && <p className="mt-0.5 text-[13px] text-ink/55">{note}</p>}
+            {note && <p className="mt-0.5 text-[13px] text-ink/60">{note}</p>}
           </div>
           {onEdit && (
             <button
@@ -39,7 +39,7 @@ function SummaryCard({ label, value, note, onEdit, editing, caption, children })
         </div>
         {editing && children && <div className="mt-5 border-t border-line pt-5">{children}</div>}
       </div>
-      {caption && <p className="mt-2 px-1 text-[12px] text-ink/45">{caption}</p>}
+      {caption && <p className="mt-2 px-1 text-[12px] text-ink/60">{caption}</p>}
     </div>
   );
 }
@@ -316,12 +316,12 @@ export default function BillingClient() {
                       </button>
                     ))}
                   </div>
-                  <p className="mt-3 text-[12px] text-ink/50">Состав тарифов ещё утверждается — цена пока одна.</p>
+                  <p className="mt-3 text-[12px] text-ink/60">Состав тарифов ещё утверждается — цена пока одна.</p>
                   <div className="mt-4 flex gap-3">
                     <button type="button" onClick={pickTariff} className={`rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`}>
                       Выбрать этот тариф
                     </button>
-                    <button type="button" onClick={() => setTariffOpen(false)} className={`rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/55 hover:text-ink ${RING}`}>
+                    <button type="button" onClick={() => setTariffOpen(false)} className={`rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}>
                       Отмена
                     </button>
                   </div>
@@ -339,7 +339,7 @@ export default function BillingClient() {
 
                 {method === 'Картой' && (
                   <div className="rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:p-6">
-                    <p className="mb-4 text-[13px] text-ink/55">Карта привяжется к сайту {a.domain} — он у вас один.</p>
+                    <p className="mb-4 text-[13px] text-ink/60">Карта привяжется к сайту {a.domain} — он у вас один.</p>
                     <Field
                       label="Номер карты"
                       required
@@ -375,7 +375,7 @@ export default function BillingClient() {
                     <button type="button" onClick={payByCard} className={`mt-6 ${PRIMARY_WIDE}`}>
                       Оплатить {PRICE_LABEL}
                     </button>
-                    <p className="mt-3 text-center text-[12px] text-ink/50">Отвязать карту можно здесь же в любой момент.</p>
+                    <p className="mt-3 text-center text-[12px] text-ink/60">Отвязать карту можно здесь же в любой момент.</p>
                   </div>
                 )}
 
@@ -392,7 +392,7 @@ export default function BillingClient() {
                   >
                     <div className="space-y-4">
                       <Segmented options={['Как в анкете', 'Другие реквизиты']} value={payerMode} onChange={setPayerMode} />
-                      <p className="text-[13px] leading-5 text-ink/55">
+                      <p className="text-[13px] leading-5 text-ink/60">
                         {payerMode === 'Как в анкете'
                           ? 'Возьмём данные компании с шага «Реквизиты». В подвал сайта они и так идут — здесь они нужны только для счёта.'
                           : 'Нужно, когда счёт оплачивает другая компания — не та, чьи реквизиты стоят в подвале сайта.'}
@@ -415,7 +415,7 @@ export default function BillingClient() {
                     <p className="text-[15px] font-bold">
                       Счёт № {b.invoice.no} · {PRICE_LABEL}
                     </p>
-                    <p className="mt-0.5 text-[13px] text-ink/55">Выставлен на {b.invoice.payer?.name || operatorName(a)}</p>
+                    <p className="mt-0.5 text-[13px] text-ink/60">Выставлен на {b.invoice.payer?.name || operatorName(a)}</p>
                     <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                       <div className="flex h-12 min-w-0 flex-1 items-center rounded-xl border border-line bg-warm px-4 font-mono text-[12px] text-ink/70">
                         <span className="truncate">
@@ -431,7 +431,7 @@ export default function BillingClient() {
                         {copied ? 'Скопировано' : 'Скопировать ссылку'}
                       </button>
                     </div>
-                    <p className="mt-3 text-[13px] leading-5 text-ink/55">
+                    <p className="mt-3 text-[13px] leading-5 text-ink/60">
                       Ссылка работает, пока счёт не оплачен — по ней счёт можно открыть, скачать и переслать бухгалтеру. Копия
                       ушла на почту для актов.
                     </p>
@@ -505,7 +505,7 @@ export default function BillingClient() {
                     }}
                     error={actsErr}
                   />
-                  <p className="mt-2 text-[13px] text-ink/55">
+                  <p className="mt-2 text-[13px] text-ink/60">
                     Обычно это бухгалтерия. Если оставить пустым, будем присылать на почту аккаунта
                     {a.personEmail ? ` — ${a.personEmail}` : ''}. Необязательно.
                   </p>
@@ -522,11 +522,11 @@ export default function BillingClient() {
           {state === 'paid' && (
             <section className="mt-10">
               <h2 className="text-lg font-bold tracking-[-0.02em]">Акты</h2>
-              <p className="mb-4 mt-1 text-[13px] text-ink/55">Закрывающие документы для бухгалтерии — один акт за оплаченный год.</p>
+              <p className="mb-4 mt-1 text-[13px] text-ink/60">Закрывающие документы для бухгалтерии — один акт за оплаченный год.</p>
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:px-6">
                 <div>
                   <p className="text-sm font-bold">Акт за {period.years}</p>
-                  <p className="mt-0.5 text-[13px] text-ink/55">
+                  <p className="mt-0.5 text-[13px] text-ink/60">
                     {period.from} – {period.to} · {PRICE_LABEL}
                   </p>
                 </div>

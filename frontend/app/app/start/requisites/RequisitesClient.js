@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
@@ -17,6 +17,7 @@ import { CURRENT_USER } from '../../../../lib/appMock';
 import { RING, AnketaFrame, Field, Segmented, BlockHead, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 import { digitsOnly, ownerLabels, validateRequisites } from '../_shared/requisitesRules';
+import { EMAIL_RE } from '../../../../lib/validate';
 
 const OWNERS = ['ООО', 'ИП', 'Самозанятый'];
 
@@ -174,6 +175,7 @@ export default function RequisitesClient() {
     setAddressError(null);
   }
 
+  const lastFill = useRef({});
   function onInnChange(e) {
     const value = digitsOnly(e.target.value).slice(0, 12);
     setInn(value);
@@ -184,10 +186,17 @@ export default function RequisitesClient() {
     }
     const found = INN_LOOKUP[owner] || {};
     setInnFound(true);
-    setName(found.name || '');
-    setOgrn(found.ogrn || '');
-    setKpp(found.kpp || '');
-    setAddress(found.address || '');
+    // Заполняем пустые поля и те, что подставили сами в прошлый раз; то,
+    // что человек поправил руками, не трогаем (решение макета 8.09).
+    const last = lastFill.current;
+    const put = (cur, key, set) => {
+      if (!cur || cur === last[key]) set(found[key] || '');
+    };
+    put(name, 'name', setName);
+    put(ogrn, 'ogrn', setOgrn);
+    put(kpp, 'kpp', setKpp);
+    put(address, 'address', setAddress);
+    lastFill.current = found;
     clearRegistryErrors();
   }
 
@@ -366,7 +375,8 @@ export default function RequisitesClient() {
                   <Field
                     label="Расчётный счёт"
                     required
-                    placeholder="40702810..."
+                    /* У самозанятого счёт обычно личный (40817…), а не расчётный. */
+                    placeholder={owner === 'Самозанятый' ? '40817810...' : '40702810...'}
                     icon={BankIcon}
                     inputMode="numeric"
                     value={account}
@@ -535,6 +545,9 @@ export default function RequisitesClient() {
                     setCompanyMail(e.target.value);
                     setCompanyMailError(null);
                   }}
+                  onBlur={() => {
+                    if (companyMail.trim() && !EMAIL_RE.test(companyMail.trim())) setCompanyMailError('Нужна почта вида name@site.ru — её увидят в реквизитах на сайте.');
+                  }}
                   error={companyMailError}
                 />
                 <Field
@@ -550,13 +563,17 @@ export default function RequisitesClient() {
                   }}
                   error={companyPhoneError}
                 />
-                <Field
-                  label="Адрес для переписки"
-                  placeholder="Если отличается от юридического"
-                  icon={BuildingIcon}
-                  value={postAddress}
-                  onChange={(e) => setPostAddress(e.target.value)}
-                />
+                {/* Только у ООО: у ИП и самозанятого основной адрес и так
+                    почтовый — второе такое же поле было бы дублем (макет, 9.09). */}
+                {(!owner || owner === 'ООО') && (
+                  <Field
+                    label="Адрес для переписки"
+                    placeholder="Если отличается от юридического"
+                    icon={BuildingIcon}
+                    value={postAddress}
+                    onChange={(e) => setPostAddress(e.target.value)}
+                  />
+                )}
                 {/* Отдельно от бухгалтерской почты намеренно: на общий ящик
                     такие обращения обычно не доходят до того, кто отвечает. */}
                 <Field
@@ -574,7 +591,9 @@ export default function RequisitesClient() {
               </div>
             </section>
 
-            <div className="mt-7 flex gap-3 border-t border-line pt-5">
+            {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,
+                человек видел одни и те же кнопки дважды (правка владельца). */}
+            <div className="mt-7 hidden gap-3 border-t border-line pt-5 lg:flex">
               <button
                 type="button"
                 onClick={() => router.push('/app/start/clients')}

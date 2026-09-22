@@ -17,7 +17,7 @@ export function DocRowList({ children }) {
     <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
       <div
         aria-hidden="true"
-        className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/45 sm:grid ${COLS}`}
+        className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/60 sm:grid ${COLS}`}
       >
         <span>Документ</span>
         <span>Статус</span>
@@ -41,7 +41,7 @@ export function DocRow({ doc, note, status, action = 'Посмотреть', ope
             {/* Без обрезки: в названии стоит закон, который документ
                 закрывает, — срезать его многоточием нельзя. */}
             <h3 className="text-sm font-bold leading-5">{doc.title}</h3>
-            <p className="mt-1 text-[12px] leading-4 text-ink/50">{note}</p>
+            <p className="mt-1 text-[12px] leading-4 text-ink/60">{note}</p>
           </div>
         </div>
         {/* На узком экране статус и кнопка встают в одну строку под текстом;
@@ -59,7 +59,7 @@ export function DocRow({ doc, note, status, action = 'Посмотреть', ope
             onClick={onToggle}
             aria-expanded={open}
             aria-controls={panelId}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-semibold text-ink/55 transition-colors hover:text-brand sm:justify-self-end ${RING}`}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-semibold text-ink/60 transition-colors hover:text-brand sm:justify-self-end ${RING}`}
           >
             {action}
             <ChevronDownIcon size={15} className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />

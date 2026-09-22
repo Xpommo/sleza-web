@@ -107,7 +107,7 @@ export default function SupportClient() {
               «вам ответили», сам ответ — в кабинете. */}
           <h2 className="mb-4 mt-9 text-lg font-bold tracking-[-0.02em]">Мои обращения</h2>
           {tickets.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-line-2 px-5 py-6 text-center text-[13px] text-ink/50">
+            <p className="rounded-2xl border border-dashed border-line-2 px-5 py-6 text-center text-[13px] text-ink/60">
               Обращений пока нет.
             </p>
           ) : (
@@ -115,7 +115,7 @@ export default function SupportClient() {
               {tickets.map((t) => (
                 <article key={t.no} className="rounded-2xl border border-line bg-white p-5 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-[13px] font-semibold text-ink/50">
+                    <p className="text-[13px] font-semibold text-ink/60">
                       Заявка №{t.no} · {new Date(t.at).toLocaleDateString('ru-RU')}
                     </p>
                     <span className="rounded-full bg-warn/10 px-3 py-1 text-[11px] font-bold text-warn">{t.status}</span>
@@ -155,7 +155,7 @@ export default function SupportClient() {
                   />
                   {error && <span className="mt-1.5 block text-[12px] font-semibold text-danger">{error}</span>}
                 </label>
-                <p className="mt-2 text-[13px] leading-5 text-ink/55">
+                <p className="mt-2 text-[13px] leading-5 text-ink/60">
                   Ответ придёт сюда же, в «Мои обращения» — на почту пришлём только уведомление, что вам ответили.
                 </p>
                 <button

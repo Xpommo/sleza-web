@@ -116,10 +116,17 @@ export default function RegisterClient() {
 
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-brand">Добро пожаловать</p>
           <h2 className="text-[38px] font-bold tracking-[-0.045em] text-ink">Регистрация</h2>
-          <p className="mt-3 text-[15px] leading-6 text-ink/55">
+          <p className="mt-3 text-[15px] leading-6 text-ink/60">
             Заведём кабинет — дальше вопросы о сайте и компании, и документы под ваш сайт будут готовы.
           </p>
 
+          {/* Ошибка — над кнопками входа, хотя галочки под ними (правка
+              владельца 8.09): человек жмёт кнопку и смотрит на неё, а не вниз. */}
+          {error && (
+            <p role="alert" className="mt-6 rounded-xl bg-danger/[0.07] px-4 py-3 text-[13px] font-semibold leading-5 text-danger">
+              {error}
+            </p>
+          )}
           <div className="mt-8 space-y-3">
             <AuthButton icon={<TelegramIcon />} onClick={() => start('Telegram')}>
               Через Telegram
@@ -157,9 +164,8 @@ export default function RegisterClient() {
               </Link>
             </Consent>
           </div>
-          {error && <p className="mt-3 text-[12px] font-semibold text-danger">{error}</p>}
 
-          <p className="mt-6 text-center text-[12px] text-ink/45">
+          <p className="mt-6 text-center text-[12px] text-ink/60">
             Уже есть аккаунт?{' '}
             <Link href="/app/login" className="font-semibold text-brand hover:underline">
               Войти

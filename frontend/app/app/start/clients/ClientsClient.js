@@ -176,7 +176,7 @@ export default function ClientsClient() {
                       onClick={() => setCalls(item)}
                       aria-pressed={calls === item}
                       className={`min-w-24 rounded-lg px-7 py-2.5 text-sm font-bold transition-all ${RING} ${
-                        calls === item ? 'bg-brand text-white shadow-sm' : 'text-ink/55 hover:text-ink'
+                        calls === item ? 'bg-brand text-white shadow-sm' : 'text-ink/80 hover:text-ink'
                       }`}
                     >
                       {item}
@@ -186,7 +186,9 @@ export default function ClientsClient() {
               </div>
             </section>
 
-            <div className="mt-7 flex gap-3 border-t border-line pt-5">
+            {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,
+                человек видел одни и те же кнопки дважды (правка владельца). */}
+            <div className="mt-7 hidden gap-3 border-t border-line pt-5 lg:flex">
               <button
                 type="button"
                 onClick={() => router.push('/app/start/site')}
@@ -248,7 +250,7 @@ export default function ClientsClient() {
                   setNoCallsOpen(false);
                   goNext();
                 }}
-                className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/55 transition-colors hover:text-ink ${RING}`}
+                className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}
               >
                 Понятно, дальше
               </button>

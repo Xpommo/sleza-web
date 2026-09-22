@@ -8,6 +8,8 @@ import { DocRow, DocRowList } from '../../../../components/app/DocRows';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { DOCUMENTS, SITE_ID, docOrigin, docUrl } from '../../../../lib/docPackage';
 import { accountUser, loadAnketa } from '../../start/_shared/anketaState';
+import RequisitesModal from '../_shared/RequisitesModal';
+import { subState } from '../_shared/subscription';
 import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
 
 const PACKAGE_URL = `cdn.sleza.media/${SITE_ID}`;
@@ -22,6 +24,8 @@ export default function SiteDocumentsClient() {
   const [user, setUser] = useState(CURRENT_USER);
   const [openDoc, setOpenDoc] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [copiedDoc, setCopiedDoc] = useState(null);
+  const [reqOpen, setReqOpen] = useState(false);
 
   useEffect(() => {
     const a = loadAnketa();
@@ -34,6 +38,7 @@ export default function SiteDocumentsClient() {
       domain: a.domain,
       installed: Boolean(a.installed),
       answers: a,
+      expired: subState(a) === 'expired',
       madeAt: a.trialStartedAt || Date.now(),
       edits: a.docEdits || [],
     });
@@ -45,6 +50,16 @@ export default function SiteDocumentsClient() {
   // Обещать обратное нельзя — это единственная разница между экранами.
   const live = site.installed;
   const made = formatDate(site.madeAt);
+
+  // После пробного периода без оплаты документы остаются видимыми (просмотр
+  // честный, не шантаж), а копирование ссылок гаснет (макет, HANDOFF 6.15 п.8).
+  const canCopy = live && !site.expired;
+
+  function copyDoc(doc) {
+    navigator.clipboard?.writeText(`https://${docUrl(doc)}`).catch(() => {});
+    setCopiedDoc(doc.id);
+    setTimeout(() => setCopiedDoc(null), 2000);
+  }
 
   function copyLink() {
     navigator.clipboard?.writeText(`https://${PACKAGE_URL}`).catch(() => {});
@@ -59,7 +74,7 @@ export default function SiteDocumentsClient() {
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           <SiteHeader title="Документы" domain={site.domain} context="версии и причина изменений">
-            <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/55">
+            <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/60">
               {live
                 ? 'Открыты по постоянным адресам — ссылки в подвале сайта не ломаются. Когда меняется закон, мы переписываем текст и поднимаем версию.'
                 : 'Собраны по вашим ответам. Откроются по постоянным адресам, как только на сайте появится код.'}
@@ -73,7 +88,7 @@ export default function SiteDocumentsClient() {
               </span>
               <div>
                 <h2 className="text-lg font-bold tracking-[-0.02em]">Все документы сайта</h2>
-                <p className="mt-1 text-sm text-ink/55">
+                <p className="mt-1 text-sm text-ink/60">
                   {live ? 'Один адрес на весь пакет — его же открывает подвал' : 'Адрес закрепим за сайтом — он не изменится'}
                 </p>
               </div>
@@ -86,7 +101,8 @@ export default function SiteDocumentsClient() {
               <button
                 type="button"
                 onClick={copyLink}
-                className={`inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold transition hover:border-brand hover:text-brand ${RING}`}
+                disabled={!canCopy}
+                className={`inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold transition hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50 ${RING}`}
               >
                 {copied ? <CheckIcon size={16} className="text-ok" /> : <CopyIcon size={16} />}
                 {copied ? 'Скопировано' : 'Скопировать ссылку'}
@@ -99,7 +115,7 @@ export default function SiteDocumentsClient() {
               {/* Заголовок раздела — той же ступени, что на остальных экранах
                   кабинета (18px): здесь был свой, крупнее, с кикером сверху. */}
               <h2 className="text-lg font-bold tracking-[-0.02em]">Актуальные документы</h2>
-              <span className="shrink-0 text-xs font-semibold text-ink/45">{DOCUMENTS.length} документов</span>
+              <span className="shrink-0 text-xs font-semibold text-ink/60">{DOCUMENTS.length} документов</span>
             </div>
             <DocRowList>
               {DOCUMENTS.map((doc) => (
@@ -120,10 +136,40 @@ export default function SiteDocumentsClient() {
                       ? 'Действует. Следующая версия появится, только если изменится закон или ваши данные, — мы напишем об этом письмом.'
                       : 'Текст готов и ждёт установки кода: до неё адрес не открывается.'}
                   </p>
-                  <p className="mt-3 font-mono text-[11px] text-ink/45">
+                  <p className="mt-3 font-mono text-[11px] text-ink/60">
                     {docUrl(doc)}
                     {!live && ' — откроется после установки'}
                   </p>
+                  {/* Копировать можно и весь раздел, и каждый документ отдельно
+                      (решение 9.09). «Изменить» — только у реквизитов: остальные
+                      четыре собираем сами из ответов анкеты, а реквизиты клиент
+                      правит напрямую. Правка реквизитов не гаснет вместе с
+                      копированием — свои данные поправить можно всегда. */}
+                  {(live || doc.id === '01') && (
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      {live && (
+                        <button
+                          type="button"
+                          onClick={() => copyDoc(doc)}
+                          disabled={!canCopy}
+                          className={`inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50 ${RING}`}
+                        >
+                          {copiedDoc === doc.id ? <CheckIcon size={15} className="text-ok" /> : <CopyIcon size={15} />}
+                          {copiedDoc === doc.id ? 'Скопировано' : 'Скопировать ссылку'}
+                        </button>
+                      )}
+                      {doc.id === '01' && (
+                        <button
+                          type="button"
+                          onClick={() => setReqOpen(true)}
+                          className={`inline-flex items-center rounded-lg border border-line bg-white px-3 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:text-ink ${RING}`}
+                        >
+                          Изменить реквизиты
+                        </button>
+                      )}
+                      {live && site.expired && <span className="text-[12px] text-ink/60">Копирование вернётся после оплаты</span>}
+                    </div>
+                  )}
                 </DocRow>
               ))}
             </DocRowList>
@@ -138,7 +184,7 @@ export default function SiteDocumentsClient() {
                   <span className="z-10 mt-1 h-4 w-4 shrink-0 rounded-full border-4 border-white bg-brand" />
                   <div>
                     <p className="text-sm font-bold">{formatDate(e.at)} · «Реквизиты владельца», новая версия</p>
-                    <p className="mt-1 text-sm leading-5 text-ink/55">{e.what} — поправили в кабинете.</p>
+                    <p className="mt-1 text-sm leading-5 text-ink/60">{e.what} — поправили в кабинете.</p>
                   </div>
                 </div>
               ))}
@@ -146,13 +192,13 @@ export default function SiteDocumentsClient() {
                 <span className="z-10 mt-1 h-4 w-4 shrink-0 rounded-full border-4 border-white bg-ok" />
                 <div>
                   <p className="text-sm font-bold">{made} · Создана первая версия</p>
-                  <p className="mt-1 text-sm leading-5 text-ink/55">
+                  <p className="mt-1 text-sm leading-5 text-ink/60">
                     Реквизиты владельца, политики и согласия собраны по вашим ответам в анкете.
                   </p>
                 </div>
               </div>
             </div>
-            <p className="mt-6 border-t border-line pt-5 text-[13px] leading-5 text-ink/50">
+            <p className="mt-6 border-t border-line pt-5 text-[13px] leading-5 text-ink/60">
               Здесь будет видно каждую следующую версию и причину, по которой мы её выпустили.
             </p>
           </section>
@@ -170,6 +216,15 @@ export default function SiteDocumentsClient() {
           )}
         </div>
       </section>
+      {reqOpen && (
+        <RequisitesModal
+          onClose={() => setReqOpen(false)}
+          onSaved={() => {
+            const a = loadAnketa();
+            setSite((v) => ({ ...v, answers: a, edits: a.docEdits || [] }));
+          }}
+        />
+      )}
     </main>
   );
 }

@@ -139,7 +139,7 @@ export default function ProfileClient() {
                 </div>
                 <div>
                   <p className="font-bold">{name || CURRENT_USER.name}</p>
-                  <p className="text-sm text-ink/55">{auth.via === 'почта' ? 'вход по коду из письма' : `вход через ${auth.via}`}</p>
+                  <p className="text-sm text-ink/60">{auth.via === 'почта' ? 'вход по коду из письма' : `вход через ${auth.via}`}</p>
                 </div>
               </div>
               <button
@@ -156,7 +156,7 @@ export default function ProfileClient() {
 
             {authListOpen && (
               <div className="mb-6 rounded-2xl border border-line bg-white p-5 shadow-sm">
-                <p className="text-[13px] leading-5 text-ink/55">
+                <p className="text-[13px] leading-5 text-ink/60">
                   Вход в один тап и уведомления в мессенджер, а не только на почту. Отвязать можно в Настройках.
                 </p>
                 <div className="mt-4 divide-y divide-line">
@@ -262,6 +262,11 @@ export default function ProfileClient() {
                         setEmail(e.target.value);
                         setEmailError(null);
                       }}
+                      /* Неверный формат подсвечиваем сразу при выходе из поля
+                         (правка владельца 7.09); пустое — только на «Далее». */
+                      onBlur={() => {
+                        if (email.trim() && validateEmail(email)) setEmailError('Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.');
+                      }}
                       error={emailError}
                     />
 
@@ -270,7 +275,9 @@ export default function ProfileClient() {
               </div>
             </section>
 
-            <div className="mt-7 flex gap-3 border-t border-line pt-5">
+            {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,
+                человек видел одни и те же кнопки дважды (правка владельца). */}
+            <div className="mt-7 hidden gap-3 border-t border-line pt-5 lg:flex">
               <button
                 data-funnel-back
                 type="button"

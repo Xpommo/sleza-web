@@ -19,7 +19,7 @@ function Rows({ rows }) {
     <dl className="mt-5 space-y-3 text-sm">
       {rows.map(([k, v]) => (
         <div key={k} className="flex justify-between gap-4">
-          <dt className="text-ink/50">{k}</dt>
+          <dt className="text-ink/60">{k}</dt>
           <dd className="text-right font-semibold text-ink/80">{v}</dd>
         </div>
       ))}
@@ -134,7 +134,7 @@ export default function SiteOverviewClient() {
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           <SiteHeader title="Обзор" domain={a.domain} context="что сейчас с сайтом и что делать дальше">
-            <p className="mt-1 text-[14px] text-ink/50">
+            <p className="mt-1 text-[14px] text-ink/60">
               {[a.companyName, a.inn && `ИНН ${a.inn}`].filter(Boolean).join(' · ')}
               {(a.companyName || a.inn) && ' · '}
               <button type="button" onClick={() => setReqOpen(true)} className={`rounded font-semibold text-brand hover:underline ${RING}`}>
@@ -163,7 +163,7 @@ export default function SiteOverviewClient() {
               <Rows rows={subRows} />
               {/* Счёт общий на все сайты аккаунта — сказано там, где человек
                   смотрит на деньги конкретного сайта (решение 18 сентября). */}
-              <p className="mt-4 text-[13px] text-ink/55">Счёт, тариф и акты — общие для всех сайтов аккаунта.</p>
+              <p className="mt-4 text-[13px] text-ink/60">Счёт, тариф и акты — общие для всех сайтов аккаунта.</p>
               <div className="mt-5 border-t border-line pt-5">
                 <Link href="/app/billing" className="text-sm font-semibold text-brand hover:underline">
                   Открыть подписку аккаунта →
@@ -183,7 +183,7 @@ export default function SiteOverviewClient() {
                       </button>
                     </>
                   ) : (
-                    <button type="button" onClick={() => setOffStep(1)} className={`rounded font-semibold text-ink/45 hover:text-danger ${RING}`}>
+                    <button type="button" onClick={() => setOffStep(1)} className={`rounded font-semibold text-ink/60 hover:text-danger ${RING}`}>
                       Отключить этот сайт
                     </button>
                   )}
@@ -210,7 +210,7 @@ export default function SiteOverviewClient() {
                   <span className={`z-10 mt-1 h-4 w-4 shrink-0 rounded-full border-4 border-white ${dot}`} />
                   <div>
                     <p className="text-sm font-bold">{sameDay(when)}</p>
-                    <p className="mt-1 text-sm text-ink/55">{what}</p>
+                    <p className="mt-1 text-sm text-ink/60">{what}</p>
                   </div>
                 </div>
               ))}
@@ -243,7 +243,7 @@ export default function SiteOverviewClient() {
                   <button type="button" onClick={() => router.push('/app/support')} className={BTN}>
                     Написать в поддержку
                   </button>
-                  <button type="button" onClick={() => setOffStep(2)} className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/55 hover:text-ink ${RING}`}>
+                  <button type="button" onClick={() => setOffStep(2)} className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}>
                     Всё равно отключить
                   </button>
                 </div>
@@ -261,7 +261,7 @@ export default function SiteOverviewClient() {
                   <li>· Виджет исчезнет с {a.domain} — cookie-баннер и подвал со ссылками</li>
                   <li>· Документы {a.domain} останутся в текущей версии: следить за изменениями закона и переписывать их мы перестанем</li>
                 </ul>
-                <p className="mt-3 text-[13px] text-ink/55">
+                <p className="mt-3 text-[13px] text-ink/60">
                   Что-то не работает или не устраивает? Часто это решается быстрее отключения —{' '}
                   <Link href="/app/support" className="font-semibold text-brand hover:underline">напишите в поддержку</Link>.
                 </p>

@@ -31,7 +31,7 @@ export default function LoginClient() {
         </div>
 
         <h1 className="text-[34px] font-bold tracking-[-0.045em] text-ink sm:text-[38px]">Вход в кабинет</h1>
-        <p className="mt-3 text-[15px] leading-6 text-ink/55">Выберите, чем удобнее войти — пароль не нужен.</p>
+        <p className="mt-3 text-[15px] leading-6 text-ink/60">Выберите, чем удобнее войти — пароль не нужен.</p>
 
         <div className="mt-8 space-y-3">
           <AuthButton icon={<TelegramIcon />} onClick={() => enter('Telegram')}>
@@ -49,7 +49,7 @@ export default function LoginClient() {
           />
         </div>
 
-        <p className="mt-8 text-center text-[12px] text-ink/45">
+        <p className="mt-8 text-center text-[12px] text-ink/60">
           Нет аккаунта?{' '}
           <Link href="/app/register" className="font-semibold text-brand hover:underline">
             Создать

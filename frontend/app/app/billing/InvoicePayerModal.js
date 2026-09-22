@@ -83,7 +83,7 @@ export default function InvoicePayerModal({ initial, onClose, onSave }) {
           >
             Сохранить
           </button>
-          <button type="button" onClick={onClose} className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/55 hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}>
             Отмена
           </button>
         </div>

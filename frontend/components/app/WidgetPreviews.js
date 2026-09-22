@@ -25,7 +25,7 @@ const isDark = (theme) => theme !== 'Светлая';
 
 export function ThemeNote({ theme }) {
   if (theme !== 'Авто') return null;
-  return <p className="mt-3 text-[12px] text-ink/50">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>;
+  return <p className="mt-3 text-[12px] text-ink/60">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>;
 }
 
 export function ThemeSwitch({ value, onChange, labelledby }) {
@@ -38,7 +38,7 @@ export function ThemeSwitch({ value, onChange, labelledby }) {
           onClick={() => onChange(t)}
           aria-pressed={value === t}
           className={`w-[86px] rounded-lg py-2 text-[13px] font-semibold transition ${RING} ${
-            value === t ? 'bg-white text-ink shadow-sm' : 'text-ink/50 hover:text-ink/75'
+            value === t ? 'bg-white text-ink shadow-sm' : 'text-ink/70 hover:text-ink'
           }`}
         >
           {t}
@@ -194,7 +194,7 @@ export function FooterPreview({ theme }) {
           return (
             <div key={pill.id} className="mt-3 rounded-xl border border-line bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
-                <p className="font-mono text-[10.5px] uppercase tracking-[0.09em] text-ink/50">{pill.meta}</p>
+                <p className="font-mono text-[10.5px] uppercase tracking-[0.09em] text-ink/60">{pill.meta}</p>
                 <button type="button" onClick={() => setOpen(null)} className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`} aria-label="Закрыть">
                   <CloseIcon size={16} />
                 </button>
