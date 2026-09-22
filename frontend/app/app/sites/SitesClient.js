@@ -157,7 +157,7 @@ export default function SitesClient() {
 
                     <dl className="mt-6 space-y-3 text-sm">
                       {site.inn && (
-                        <div className="flex items-center justify-between border-b border-line pb-3">
+                        <div className="flex items-center justify-between">
                           <dt className="text-ink/45">ИНН</dt>
                           <dd className="font-mono font-semibold text-ink/75">{site.inn}</dd>
                         </div>
