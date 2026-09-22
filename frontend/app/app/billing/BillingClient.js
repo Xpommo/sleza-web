@@ -4,34 +4,41 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, CheckIcon, ChevronDownIcon, CopyIcon } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
-import { SITE_ID } from '../../../lib/docPackage';
 import { Field, Segmented } from '../start/_shared/AnketaChrome';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
+import { SITE_ID, operatorName } from '../../../lib/docPackage';
 import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
 import { PRICE_LABEL, TARIFFS, paidPeriod, subState } from '../site/_shared/subscription';
 
 const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
 
 // Строка-сводка «решённого» с «Изменить» — тот же приём, что во всём
-// кабинете: рабочее раскрыто, решённое свёрнуто в одну строку.
-function SummaryRow({ label, value, note, onEdit, editing }) {
+// кабинете: рабочее раскрыто, решённое свёрнуто. Каждая сводка — своя
+// карточка, а панель изменения раскрывается внутри неё, под строкой.
+function SummaryCard({ label, value, note, onEdit, editing, caption, children }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-t border-line py-4 first:border-t-0 first:pt-0">
-      <div className="min-w-0">
-        <p className="text-[12px] font-semibold text-ink/45">{label}</p>
-        <p className="mt-1 text-[15px] font-bold">{value}</p>
-        {note && <p className="mt-0.5 text-[13px] text-ink/55">{note}</p>}
+    <div>
+      <div className="rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:px-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[12px] font-semibold text-ink/45">{label}</p>
+            <p className="mt-1 text-[15px] font-bold">{value}</p>
+            {note && <p className="mt-0.5 text-[13px] text-ink/55">{note}</p>}
+          </div>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-expanded={editing}
+              className={`shrink-0 rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:bg-warm hover:text-ink ${RING}`}
+            >
+              {editing ? 'Свернуть' : 'Изменить'}
+            </button>
+          )}
+        </div>
+        {editing && children && <div className="mt-5 border-t border-line pt-5">{children}</div>}
       </div>
-      {onEdit && (
-        <button
-          type="button"
-          onClick={onEdit}
-          aria-expanded={editing}
-          className={`shrink-0 rounded text-sm font-semibold text-brand transition hover:text-ink ${RING}`}
-        >
-          {editing ? 'Свернуть' : 'Изменить'}
-        </button>
-      )}
+      {caption && <p className="mt-2 px-1 text-[12.5px] text-ink/45">{caption}</p>}
     </div>
   );
 }
@@ -50,6 +57,8 @@ function Card({ title, children, tone }) {
 }
 
 const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
+// Главное действие экрана — крупнее остальных кнопок и во всю ширину.
+const PRIMARY_WIDE = `flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-brand px-6 text-[15px] font-bold text-white shadow-sm transition hover:-translate-y-px hover:bg-[#1a1acc] hover:shadow-md active:translate-y-0 ${RING}`;
 
 export default function BillingClient() {
   const router = useRouter();
@@ -199,21 +208,27 @@ export default function BillingClient() {
         ]
       : [now1, ['Оплата продлевает', ['Доступ не прерывается после пробного периода', 'Следим за законом и обновляем документы сами', 'Уведомления, если что-то изменилось']]];
 
+  // «Что входит» — разворотом внизу: цена уже в строке тарифа, перечень
+  // нужен тому, кто сомневается, а не каждому.
   const fold = (
-    <>
-      {/* «Что входит» — разворотом внизу: цена уже в строке тарифа,
-          перечень нужен тому, кто сомневается, а не каждому. */}
-      <div className="mt-6 border-t border-line pt-4">
-        <button
-          type="button"
-          onClick={() => setWhatOpen(!whatOpen)}
-          aria-expanded={whatOpen}
-          className={`flex items-center gap-1.5 rounded text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}
-        >
-          Что входит в подписку <ChevronDownIcon size={15} className={`transition-transform ${whatOpen ? 'rotate-180' : ''}`} />
-        </button>
-        {whatOpen && (
-          <div className="mt-4 space-y-4 text-[13px] leading-5">
+    <div className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(17,17,16,0.04)]">
+      <button
+        type="button"
+        onClick={() => setWhatOpen(!whatOpen)}
+        aria-expanded={whatOpen}
+        aria-controls="what-included"
+        className={`flex w-full items-center justify-between gap-3 rounded-2xl px-5 py-4 text-left text-sm font-bold sm:px-6 ${RING}`}
+      >
+        Что входит в подписку
+        <ChevronDownIcon size={16} className={`shrink-0 text-ink/40 transition-transform duration-300 ${whatOpen ? 'rotate-180' : ''}`} />
+      </button>
+      <div
+        id="what-included"
+        aria-hidden={!whatOpen}
+        className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${whatOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+      >
+        <div className="overflow-hidden">
+          <div className="space-y-4 px-5 pb-5 text-[13px] leading-5 sm:px-6">
             {frames.map(([head, items]) => (
               <div key={head}>
                 <p className="font-bold">{head}</p>
@@ -229,9 +244,9 @@ export default function BillingClient() {
               ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.
             </p>
           </div>
-        )}
+        </div>
       </div>
-    </>
+    </div>
   );
 
   return (
@@ -261,18 +276,18 @@ export default function BillingClient() {
           )}
 
           {(state === 'trial' || state === 'expired' || state === 'pending') && (
-            <Card title="Оплата">
-              <SummaryRow
-                label="Тариф"
-                value={`${tariff} · ${PRICE_LABEL}/год`}
-                onEdit={() => setTariffOpen(!tariffOpen)}
-                editing={tariffOpen}
-              />
-              {/* Тариф не применяется по клику: случайное нажатие по соседней
-                  кнопке меняло бы оплачиваемый тариф. Сначала выбор, потом
-                  подтверждение. */}
-              {tariffOpen && (
-                <div className="mb-4 rounded-xl bg-warm p-4">
+            <section className="mt-8">
+              <h2 className="mb-4 text-lg font-bold tracking-[-0.02em]">Оплата</h2>
+              <div className="space-y-3">
+                <SummaryCard
+                  label="Тариф"
+                  value={`${tariff} · ${PRICE_LABEL}/год`}
+                  onEdit={() => setTariffOpen(!tariffOpen)}
+                  editing={tariffOpen}
+                >
+                  {/* Тариф не применяется по клику: случайное нажатие по соседней
+                      кнопке меняло бы оплачиваемый тариф. Сначала выбор, потом
+                      подтверждение. */}
                   <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Тариф">
                     {TARIFFS.map((t) => (
                       <button
@@ -298,75 +313,70 @@ export default function BillingClient() {
                       Отмена
                     </button>
                   </div>
-                </div>
-              )}
+                </SummaryCard>
 
-              <SummaryRow
-                label="Способ оплаты"
-                value={method}
-                note={method === 'По счёту' ? 'Счёт на почту, оплата переводом' : 'Спишем сразу после привязки карты'}
-                onEdit={() => setMethodOpen(!methodOpen)}
-                editing={methodOpen}
-              />
-              {methodOpen && (
-                <div className="mb-4">
+                <SummaryCard
+                  label="Способ оплаты"
+                  value={method}
+                  note={method === 'По счёту' ? 'Счёт на почту, оплата переводом' : 'Спишем сразу после привязки карты'}
+                  onEdit={() => setMethodOpen(!methodOpen)}
+                  editing={methodOpen}
+                >
                   <Segmented options={['Картой', 'По счёту']} value={method} onChange={pickMethod} />
-                </div>
-              )}
+                </SummaryCard>
 
-              {method === 'Картой' && (
-                <div className="border-t border-line pt-5">
-                  <p className="mb-4 text-[13px] text-ink/55">Карта привяжется к сайту {a.domain} — он у вас один.</p>
-                  <Field
-                    label="Номер карты"
-                    required
-                    inputMode="numeric"
-                    placeholder="0000 0000 0000 0000"
-                    value={cardNo}
-                    onChange={(e) => setCardNo(e.target.value.replace(/[^\d ]/g, '').slice(0, 19))}
-                    error={cardErr.no}
-                  />
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                {method === 'Картой' && (
+                  <div className="rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:p-6">
+                    <p className="mb-4 text-[13px] text-ink/55">Карта привяжется к сайту {a.domain} — он у вас один.</p>
                     <Field
-                      label="Срок действия"
+                      label="Номер карты"
                       required
                       inputMode="numeric"
-                      placeholder="ММ/ГГ"
-                      value={cardExp}
-                      onChange={(e) => {
-                        const d = e.target.value.replace(/\D/g, '').slice(0, 4);
-                        setCardExp(d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d);
-                      }}
-                      error={cardErr.exp}
+                      placeholder="0000 0000 0000 0000"
+                      value={cardNo}
+                      onChange={(e) => setCardNo(e.target.value.replace(/[^\d ]/g, '').slice(0, 19))}
+                      error={cardErr.no}
                     />
-                    <Field
-                      label="CVC"
-                      required
-                      inputMode="numeric"
-                      placeholder="000"
-                      value={cardCvc}
-                      onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                      error={cardErr.cvc}
-                    />
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                      <Field
+                        label="Срок действия"
+                        required
+                        inputMode="numeric"
+                        placeholder="ММ/ГГ"
+                        value={cardExp}
+                        onChange={(e) => {
+                          const d = e.target.value.replace(/\D/g, '').slice(0, 4);
+                          setCardExp(d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d);
+                        }}
+                        error={cardErr.exp}
+                      />
+                      <Field
+                        label="CVC"
+                        required
+                        inputMode="numeric"
+                        placeholder="000"
+                        value={cardCvc}
+                        onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                        error={cardErr.cvc}
+                      />
+                    </div>
+                    <button type="button" onClick={payByCard} className={`mt-6 ${PRIMARY_WIDE}`}>
+                      Оплатить {PRICE_LABEL}
+                    </button>
+                    <p className="mt-3 text-center text-[12.5px] text-ink/50">Отвязать карту можно здесь же в любой момент.</p>
                   </div>
-                  <button type="button" onClick={payByCard} className={`mt-6 w-full ${PRIMARY}`}>
-                    Оплатить {PRICE_LABEL}
-                  </button>
-                  <p className="mt-3 text-center text-[12.5px] text-ink/50">Отвязать карту можно здесь же в любой момент.</p>
-                </div>
-              )}
+                )}
 
-              {method === 'По счёту' && !b.invoice && (
-                <>
-                  <SummaryRow
-                    label="Реквизиты плательщика · из анкеты"
-                    value={payerMode === 'Как в анкете' ? a.companyName || 'Реквизиты не заполнены' : payer.name || 'Другие реквизиты'}
+                {method === 'По счёту' && !b.invoice && (
+                  <SummaryCard
+                    label="Плательщик"
+                    value={payerMode === 'Как в анкете' ? operatorName(a) : payer.name || 'Другие реквизиты'}
                     note={payerMode === 'Как в анкете' ? payerNote : payer.inn && `ИНН ${payer.inn} · ${payer.email}`}
+                    caption={payerMode === 'Как в анкете' ? 'Реквизиты плательщика · из анкеты' : 'Реквизиты плательщика · другие'}
                     onEdit={() => setPayerOpen(!payerOpen)}
                     editing={payerOpen}
-                  />
-                  {payerOpen && (
-                    <div className="mb-4 space-y-4">
+                  >
+                    <div className="space-y-4">
                       <Segmented options={['Как в анкете', 'Другие реквизиты']} value={payerMode} onChange={setPayerMode} />
                       <p className="text-[13px] leading-5 text-ink/55">
                         {payerMode === 'Как в анкете'
@@ -383,84 +393,89 @@ export default function BillingClient() {
                         </div>
                       )}
                     </div>
-                  )}
-                  <button type="button" onClick={issueInvoice} className={`mt-2 w-full ${PRIMARY}`}>
-                    Выставить счёт на {PRICE_LABEL}
-                  </button>
-                </>
-              )}
+                  </SummaryCard>
+                )}
 
-              {/* Выставленный счёт — результат, который можно переслать
-                  бухгалтеру, а не мигнувшее «✓». */}
-              {b.invoice && method === 'По счёту' && (
-                <div className="border-t border-line pt-5">
-                  <p className="text-[15px] font-bold">
-                    Счёт № {b.invoice.no} · {PRICE_LABEL}
-                  </p>
-                  <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                    <div className="flex h-12 min-w-0 flex-1 items-center rounded-xl border border-line bg-warm px-4 font-mono text-[12.5px] text-ink/70">
-                      <span className="truncate">
-                        cdn.sleza.media/{SITE_ID}/invoice-{b.invoice.no}.pdf
-                      </span>
+                {b.invoice && method === 'По счёту' && (
+                  <div className="rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:px-6">
+                    <p className="text-[15px] font-bold">
+                      Счёт № {b.invoice.no} · {PRICE_LABEL}
+                    </p>
+                    <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                      <div className="flex h-12 min-w-0 flex-1 items-center rounded-xl border border-line bg-warm px-4 font-mono text-[12.5px] text-ink/70">
+                        <span className="truncate">
+                          cdn.sleza.media/{SITE_ID}/invoice-{b.invoice.no}.pdf
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={copyInvoice}
+                        className={`inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold transition hover:border-brand hover:text-brand ${RING}`}
+                      >
+                        {copied ? <CheckIcon size={16} className="text-ok" /> : <CopyIcon size={16} />}
+                        {copied ? 'Скопировано' : 'Скопировать ссылку'}
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={copyInvoice}
-                      className={`inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold transition hover:border-brand hover:text-brand ${RING}`}
-                    >
-                      {copied ? <CheckIcon size={16} className="text-ok" /> : <CopyIcon size={16} />}
-                      {copied ? 'Скопировано' : 'Скопировать ссылку'}
+                    <p className="mt-3 text-[13px] leading-5 text-ink/55">
+                      Ссылка работает, пока счёт не оплачен — по ней счёт можно открыть, скачать и переслать бухгалтеру. Копия
+                      ушла на почту для актов.
+                    </p>
+                    {invoiceOverdue && (
+                      <div className="mt-4 rounded-xl bg-warn/10 p-4 text-[13px] leading-5 text-ink/70">
+                        <p className="font-bold">Счёт выставлен больше 3 дней назад и всё ещё не оплачен.</p>
+                        <p className="mt-1">Если перевод завис в банке — напишите в поддержку, поможем разобраться. Можно и оплатить другим способом.</p>
+                      </div>
+                    )}
+                    <button type="button" onClick={() => pickMethod('Картой')} className={`mt-4 rounded text-sm font-semibold text-brand hover:text-ink ${RING}`}>
+                      Оплатить картой вместо счёта →
                     </button>
                   </div>
-                  <p className="mt-3 text-[13px] leading-5 text-ink/55">
-                    Ссылка работает, пока счёт не оплачен — по ней счёт можно открыть, скачать и переслать бухгалтеру. Копия
-                    ушла на почту для актов.
-                  </p>
-                  {invoiceOverdue && (
-                    <div className="mt-4 rounded-xl bg-warn/10 p-4 text-[13px] leading-5 text-ink/70">
-                      <p className="font-bold">Счёт выставлен больше 3 дней назад и всё ещё не оплачен.</p>
-                      <p className="mt-1">Если перевод завис в банке — напишите в поддержку, поможем разобраться. Можно и оплатить другим способом.</p>
-                    </div>
-                  )}
-                  <button type="button" onClick={() => pickMethod('Картой')} className={`mt-4 rounded text-sm font-semibold text-brand hover:text-ink ${RING}`}>
-                    Оплатить картой вместо счёта →
-                  </button>
-                </div>
+                )}
+              </div>
+
+              {method === 'По счёту' && !b.invoice && (
+                <button type="button" onClick={issueInvoice} className={`mt-6 ${PRIMARY_WIDE}`}>
+                  Выставить счёт на {PRICE_LABEL}
+                </button>
               )}
 
-              {fold}
-            </Card>
+              <div className="mt-6">{fold}</div>
+            </section>
           )}
 
           {state === 'paid' && (
-            <Card title="Оплата">
-              <SummaryRow label="Статус" value="оплачено" />
-              <SummaryRow label="Тариф" value={tariff} />
-              <SummaryRow
-                label="Продление"
-                value={b.cancelled ? 'не будет — единственный сайт отключается' : `${period.renew} · ${PRICE_LABEL}`}
-              />
-              <SummaryRow
-                label="Способ оплаты"
-                value={b.card ? `Карта ···· ${b.card.last4}` : 'По счёту'}
-                note={b.card ? `до ${b.card.exp} · привязана к ${a.domain}` : 'Счёт на почту, оплата переводом'}
-              />
-              {fold}
-            </Card>
+            <section className="mt-8">
+              <h2 className="mb-4 text-lg font-bold tracking-[-0.02em]">Оплата</h2>
+              <div className="space-y-3">
+                <SummaryCard label="Статус" value="оплачено" />
+                <SummaryCard label="Тариф" value={tariff} />
+                <SummaryCard
+                  label="Продление"
+                  value={b.cancelled ? 'не будет — единственный сайт отключается' : `${period.renew} · ${PRICE_LABEL}`}
+                />
+                <SummaryCard
+                  label="Способ оплаты"
+                  value={b.card ? `Карта ···· ${b.card.last4}` : 'По счёту'}
+                  note={b.card ? `до ${b.card.exp} · привязана к ${a.domain}` : 'Счёт на почту, оплата переводом'}
+                />
+                {fold}
+              </div>
+            </section>
           )}
 
           {/* Почта для актов — отдельным разделом: бухгалтерский адрес
               относится к оплате, а не к настройкам аккаунта. */}
           {state !== 'notstarted' && (
-            <Card title="Куда присылать акты">
+            <section className="mt-10">
+              <h2 className="mb-4 text-lg font-bold tracking-[-0.02em]">Куда присылать акты</h2>
               {actsEmail && !actsEditing ? (
-                <SummaryRow label="Сюда придут чеки и акты" value={actsEmail} onEdit={() => setActsEditing(true)} editing={false} />
+                <SummaryCard label="Сюда придут чеки и акты" value={actsEmail} onEdit={() => setActsEditing(true)} editing={false} />
               ) : (
-                <>
+                <div className="rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:p-6">
                   <Field
                     label="Почта"
                     type="email"
-                    placeholder="buh@stroy-dom.ru"
+                    placeholder={`buh@${a.domain}`}
                     value={actsEmail}
                     onChange={(e) => {
                       setActsEmail(e.target.value);
@@ -475,17 +490,18 @@ export default function BillingClient() {
                   <button type="button" onClick={saveActs} className={`mt-4 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-white ${RING}`}>
                     Сохранить
                   </button>
-                </>
+                </div>
               )}
-            </Card>
+            </section>
           )}
 
           {/* Акт появляется только после оплаты: он закрывает оплаченный
               период, а не пробный и не выставленный счёт. */}
           {state === 'paid' && (
-            <Card title="Акты">
-              <p className="-mt-3 mb-4 text-[13px] text-ink/55">Закрывающие документы для бухгалтерии — один акт за оплаченный год.</p>
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line px-4 py-3">
+            <section className="mt-10">
+              <h2 className="text-lg font-bold tracking-[-0.02em]">Акты</h2>
+              <p className="mb-4 mt-1 text-[13px] text-ink/55">Закрывающие документы для бухгалтерии — один акт за оплаченный год.</p>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:px-6">
                 <div>
                   <p className="text-sm font-bold">Акт за {period.years}</p>
                   <p className="mt-0.5 text-[13px] text-ink/55">
@@ -496,7 +512,7 @@ export default function BillingClient() {
                   готов · отправлен на {actsEmail || a.personEmail || 'почту аккаунта'}
                 </span>
               </div>
-            </Card>
+            </section>
           )}
 
         </div>
