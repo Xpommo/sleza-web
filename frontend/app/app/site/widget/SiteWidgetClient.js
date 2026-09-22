@@ -9,6 +9,7 @@ import { CURRENT_USER } from '../../../../lib/appMock';
 import { SITE_ID } from '../../../../lib/docPackage';
 import { accountUser, loadAnketa, saveAnketa } from '../../start/_shared/anketaState';
 import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
+import { subState } from '../_shared/subscription';
 
 const SNIPPET = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID}" async></script>`;
 
@@ -17,7 +18,7 @@ const SNIPPET = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID
 // (152-ФЗ ст.18.1 ч.2), баннер — разовый запрос согласия на cookie.
 // Выключают их по отдельности, когда у клиента уже стоит свой баннер
 // или свой подвал на конструкторе.
-function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onTheme, children }) {
+function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onTheme, notLive, children }) {
   return (
     <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -25,9 +26,12 @@ function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onThe
           <h2 id={themeId} className="text-lg font-bold tracking-[-0.02em]">
             {title}
           </h2>
-          <p className={`mt-1 flex items-center gap-1.5 text-[13px] font-semibold ${on ? 'text-ok' : 'text-ink/60'}`}>
-            {on ? <CheckIcon size={14} /> : null}
-            {on ? 'Показывается посетителям' : 'Выключен'}
+          {/* «Показывается» — только когда это правда: код на сайте и доступ
+              не отключён. Иначе вверху экрана «посетители не видят», а тут
+              зелёная галочка — одно и то же состояние двумя ответами. */}
+          <p className={`mt-1 flex items-center gap-1.5 text-[13px] font-semibold ${on && !notLive ? 'text-ok' : 'text-ink/60'}`}>
+            {on && !notLive ? <CheckIcon size={14} /> : null}
+            {!on ? 'Выключен' : notLive || 'Показывается посетителям'}
           </p>
         </div>
         <Switch checked={on} onChange={onToggle} label={`${title}: показывать посетителям`} />
@@ -71,7 +75,7 @@ export default function SiteWidgetClient() {
       return;
     }
     setUser(accountUser(CURRENT_USER));
-    setSite({ domain: a.domain, installed: Boolean(a.installed) });
+    setSite({ domain: a.domain, installed: Boolean(a.installed), expired: subState(a) === 'expired' });
     setW(widgetSettings(a));
   }, [router]);
 
@@ -90,6 +94,7 @@ export default function SiteWidgetClient() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  const notLive = !site.installed ? 'Появится на сайте, когда встанет код' : site.expired ? 'Снят с сайта — пробный период закончился' : null;
   return (
     <main className="min-h-screen bg-warm text-ink lg:flex">
       <SiteSidebar domain={site.domain} active="Виджет" user={user} />
@@ -97,7 +102,7 @@ export default function SiteWidgetClient() {
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           <SiteHeader title="Виджет" domain={site.domain} context="что видят посетители сайта">
-            {site.installed && <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/65">Проверили сегодня — вот что видят посетители {site.domain}.</p>}
+            {site.installed && !site.expired && <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/65">Проверили сегодня — вот что видят посетители {site.domain}.</p>}
           </SiteHeader>
 
           {!site.installed && (
@@ -125,6 +130,7 @@ export default function SiteWidgetClient() {
             onToggle={(v) => update({ bannerOn: v })}
             theme={w.bannerTheme}
             onTheme={(t) => update({ bannerTheme: t })}
+            notLive={notLive}
             offNote="Баннер выключен — посетители его не видят."
             offWarning="Посетители не увидят запрос согласия перед использованием cookie."
           >
@@ -138,6 +144,7 @@ export default function SiteWidgetClient() {
             onToggle={(v) => update({ footerOn: v })}
             theme={w.footerTheme}
             onTheme={(t) => update({ footerTheme: t })}
+            notLive={notLive}
             offNote="Подвал сайта выключен — ссылки на документы и реквизиты не показываются."
             offWarning="Ссылки на документы и реквизиты компании перестанут быть постоянно доступны посетителям. 152-ФЗ ст.18.1 ч.2 требует, чтобы политика обработки персональных данных была опубликована и открывалась без ограничений."
           >

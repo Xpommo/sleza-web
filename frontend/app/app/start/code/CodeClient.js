@@ -199,7 +199,7 @@ export default function CodeClient() {
                           aria-busy={checking}
                           className={`flex shrink-0 items-center gap-2 rounded-lg bg-white px-3.5 py-2.5 text-xs font-bold text-brand shadow-sm ring-1 ring-line transition hover:ring-brand disabled:cursor-wait disabled:text-ink/60 ${RING}`}
                         >
-                          <RefreshIcon size={14} className={checking ? 'animate-spin' : ''} /> {checking ? 'Проверяем…' : 'Проверить скрипт на сайте'}
+                          <RefreshIcon size={14} className={checking ? 'animate-spin' : ''} /> {checking ? 'Проверяем…' : 'Проверить код на сайте'}
                         </button>
                       )}
                     </div>
@@ -261,7 +261,7 @@ export default function CodeClient() {
                   Активировать пробный период <ArrowRightIcon size={17} />
                 </button>
                 <p className="mt-3 text-center text-[13px] text-ink/60">
-                  Пробный период пойдёт с момента активации, а не с момента установки.
+                  {found ? 'Пробный период пойдёт с момента активации.' : 'Сначала проверьте код на сайте — кнопка проверки выше. Пробный период пойдёт с момента активации.'}
                 </p>
                 <div className="mt-4 flex justify-center">
                   <button
@@ -297,7 +297,7 @@ export default function CodeClient() {
           <div className="mt-16 w-full max-w-[420px] rounded-2xl border border-line bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <h3 id="fail-title" className="text-[17px] font-bold tracking-[-0.02em]">
-                Пока не видим скрипт
+                Пока не видим код
               </h3>
               <button
                 type="button"

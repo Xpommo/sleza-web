@@ -275,7 +275,7 @@ export default function BillingClient() {
           {/* Пока анкета не пройдена, платить не за что: документов нет,
               виджет не установлен. Вместо оплаты — путь туда, где это появится. */}
           {state === 'notstarted' && (
-            <Card title={(a.stepsDone || 0) >= 4 ? 'Документы собраны, скрипт не установлен' : 'Анкета не закончена'} tone="warn">
+            <Card title={(a.stepsDone || 0) >= 4 ? 'Документы собраны, код не установлен' : 'Анкета не закончена'} tone="warn">
               <p className="text-sm leading-6 text-ink/65">
                 {(a.stepsDone || 0) >= 4
                   ? 'Пакет готов. Подписка начнётся с пробного периода, когда код встанет на сайт.'
@@ -339,7 +339,7 @@ export default function BillingClient() {
 
                 {method === 'Картой' && (
                   <div className="rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:p-6">
-                    <p className="mb-4 text-[13px] text-ink/60">Карта привяжется к сайту {a.domain} — он у вас один.</p>
+                    <p className="mb-4 text-[13px] text-ink/60">Карта привяжется к аккаунту — счёт один на все сайты, с неё и будем списывать.</p>
                     <Field
                       label="Номер карты"
                       required
@@ -478,7 +478,7 @@ export default function BillingClient() {
                 <SummaryCard
                   label="Способ оплаты"
                   value={b.card ? `Карта ···· ${b.card.last4}` : 'По счёту'}
-                  note={b.card ? `до ${b.card.exp} · привязана к ${a.domain}` : 'Счёт на почту, оплата переводом'}
+                  note={b.card ? `до ${b.card.exp} · привязана к аккаунту` : 'Счёт на почту, оплата переводом'}
                 />
                 {fold}
               </div>

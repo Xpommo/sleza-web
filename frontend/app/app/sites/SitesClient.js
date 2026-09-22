@@ -51,7 +51,7 @@ function siteStatus(a, now = Date.now()) {
   // Пакет собран после «Реквизитов»: дальше не хватает только кода.
   // Анкета пройдена, код отложен: документы собраны — те же слова, что в
   // «Обзоре» (FIXLOG: одно состояние не должно называться по-разному).
-  if (done >= 4) return { tone: 'warn', label: 'Документы собраны', meta: 'скрипт не установлен', action: 'Поставить код на сайт', href: STEP_URLS[5] };
+  if (done >= 4) return { tone: 'warn', label: 'Документы собраны', meta: 'код не установлен', action: 'Поставить код на сайт', href: STEP_URLS[5] };
   return { tone: 'warn', label: 'Документы не готовы', meta: 'анкета не закончена', action: 'Продолжить анкету', href: STEP_URLS[done] };
 }
 
@@ -106,7 +106,7 @@ export default function SitesClient() {
               <div className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold text-ink/70">1 сайт</p>
-                  <p className="mt-1 text-xs text-ink/60">Документы и настройки доступны внутри карточки</p>
+                  <p className="mt-1 text-xs text-ink/60">Документы и виджет — внутри карточки сайта</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <button
@@ -250,7 +250,7 @@ export default function SitesClient() {
           </div>
           )}
           <p className="mt-6 text-center text-xs text-ink/60">
-            {site ? 'Отключить можно любой сайт по отдельности — остальные продолжат работать.' : 'Документы и настройки появятся здесь после того, как сайт будет добавлен.'}
+            {site ? (finished ? 'Отключить можно любой сайт по отдельности — остальные продолжат работать.' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
           </p>
         </div>
       </section>

@@ -33,7 +33,6 @@ export default function DocumentsClient() {
     <AnketaFrame current={4} title="Пакет документов" lead={<>Собрали пакет под <span className="font-semibold text-ink">{domain}</span>. Откройте любой документ — покажем начало текста. Полностью он откроется на сайте после установки.</>}>
 
             <section className="mb-7">
-              <p className="mb-3 text-sm text-ink/60">Нажмите на документ, чтобы прочитать начало.</p>
               <DocRowList>
                 {DOCUMENTS.map((doc) => (
                   <DocRow

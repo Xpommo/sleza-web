@@ -74,7 +74,7 @@ export default function SiteOverviewClient() {
   if (state === 'notstarted') {
     banner = unfinished
       ? { tone: 'warn', Icon: WarnIcon, title: 'Анкета не закончена', text: <>Документы собираются по ответам анкеты — ответьте на оставшиеся вопросы, и пакет будет готов.</>, cta: ['Продолжить анкету', STEP_URLS[a.stepsDone || 0]] }
-      : { tone: 'muted', Icon: WarnIcon, title: 'Документы собраны, скрипт не установлен', text: <>Пакет готов. Виджет включится, когда код встанет на сайт.</>, cta: ['Поставить код на сайт', '/app/start/code'] };
+      : { tone: 'muted', Icon: WarnIcon, title: 'Документы собраны, код не установлен', text: <>Пакет готов. Виджет включится, когда код встанет на сайт.</>, cta: ['Поставить код на сайт', '/app/start/code'] };
   } else if (state === 'trial') {
     banner = {
       tone: 'warn', Icon: ClockIcon, title: `Пробный период — осталось ${formatLeft(a.trialStartedAt + TRIAL_MS - now)}`,
@@ -100,10 +100,10 @@ export default function SiteOverviewClient() {
   }[banner.tone];
 
   const subRows = {
-    notstarted: [['Статус', 'не оплачено'], ['Тариф', tariff]],
+    notstarted: [['Статус', 'ещё не начата'], ['Тариф', tariff]],
     trial: [['Статус', 'пробный период'], ['Тариф', tariff]],
     expired: [['Статус', 'пробный период закончился'], ['Виджет', 'отключён']],
-    pending: [['Статус', 'счёт выставлен'], ['Счёт', 'выставлен · обычно 1–3 рабочих дня']],
+    pending: [['Статус', 'счёт выставлен'], ['Счёт', `№ ${b.invoice?.no} · обычно 1–3 рабочих дня`]],
     paid: period && (b.cancelled
       ? [['Статус', `отключается · работает до ${period.to}`], ['Отключение', `работает до ${period.to}`]]
       : [['Статус', `оплачено до ${period.to}`], ['Продление', `${period.renew} · ${PRICE_LABEL}`]]),
@@ -122,7 +122,7 @@ export default function SiteOverviewClient() {
     b.cancelled && b.paidAt && [b.cancelledAt || now, `Сайт отключается — работает до ${period.to}`, 'bg-warn'],
     b.invoice && !b.paidAt && [b.invoice.at, `Выставлен счёт № ${b.invoice.no}`, 'bg-warn'],
     state === 'expired' && [a.trialStartedAt + TRIAL_MS, 'Пробный период закончился — виджет снят с сайта', 'bg-danger'],
-    a.trialStartedAt && [a.trialStartedAt, a.installed ? 'Скрипт найден на сайте, пробный период запущен' : 'Пробный период запущен, ждём код на сайте', 'bg-brand'],
+    a.trialStartedAt && [a.trialStartedAt, a.installed ? 'Код найден на сайте, пробный период запущен' : 'Пробный период запущен, ждём код на сайте', 'bg-brand'],
     ...(a.docEdits || []).map((e) => [e.at, 'Обновили документ «Реквизиты владельца» — изменились реквизиты', 'bg-brand']),
     !unfinished && [madeAt - 1, 'Документы собраны по ответам анкеты', 'bg-ok'],
   ].filter(Boolean).sort((x, y) => y[0] - x[0]);
@@ -252,7 +252,7 @@ export default function SiteOverviewClient() {
               <>
                 <p className="mt-3 text-[13px] leading-5 text-ink/65">
                   Отключается только этот сайт — остальные сайты аккаунта продолжат работать, в следующий счёт этот сайт не
-                  войдёт. До {period.to} здесь всё работает как сейчас, оплаченный период уже оплачен. После этой даты:
+                  войдёт. До {period.to} всё работает как сейчас — этот период уже оплачен. После этой даты:
                 </p>
                 {/* Страница уже опубликованной политики остаётся доступной по
                     ссылке всегда — иначе бывший клиент становится нарушителем
@@ -261,10 +261,8 @@ export default function SiteOverviewClient() {
                   <li>· Виджет исчезнет с {a.domain} — cookie-баннер и подвал со ссылками</li>
                   <li>· Документы {a.domain} останутся в текущей версии: следить за изменениями закона и переписывать их мы перестанем</li>
                 </ul>
-                <p className="mt-3 text-[13px] text-ink/60">
-                  Что-то не работает или не устраивает? Часто это решается быстрее отключения —{' '}
-                  <Link href="/app/support" className="font-semibold text-brand hover:underline">напишите в поддержку</Link>.
-                </p>
+                {/* Помощь предлагаем один раз — на первом шаге; второй раз
+                    здесь делал бы отказ тяжелее подключения (решение 10.09). */}
                 <div className="mt-6 flex flex-wrap gap-3">
                   <button
                     type="button"
