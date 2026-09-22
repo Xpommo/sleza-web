@@ -28,31 +28,29 @@ export function Logo() {
 
 export const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((x) => `/app/start/${x}`);
 
-// current — индекс активного шага. Пройденные — зелёная галочка, активный —
-// кольцо, остальные — предстоящие. «Пройден» и «открыт сейчас» намеренно
-// разные состояния: активному шагу рано носить галочку, он ещё не заполнен.
+// Шаги открываются по мере прохождения — как степпер живого макета
+// (решение 7 сентября): видны только те, до которых человек дошёл.
+// Пройденный (с него ушли вперёд) — галочка; самый дальний открытый —
+// без галочки, но кликабельный: он открыт, не сделан; будущих не видно.
+// «Пройден» и «открыт сейчас» — разные состояния: активному шагу рано
+// носить галочку, он ещё не заполнен.
 export function StepList({ current, onPick }) {
+  const [reached, setReached] = useState(current);
+  useEffect(() => setReached(Math.max(current, Math.min(loadAnketa().stepsDone || 0, STEPS.length - 1))), [current]);
   return (
     <div className="relative mt-4 pl-8">
       <div className="absolute left-[11px] top-0 h-full w-px bg-line" />
-      {STEPS.map((step, i) => {
-        const done = i < current;
+      {STEPS.slice(0, reached + 1).map((step, i) => {
         const active = i === current;
+        const done = i < reached && !active;
         return (
-          // Пройденный шаг — ссылка: вернуться и поправить ответ. Будущий —
-          // нет: перепрыгнуть через незаполненную анкету нельзя (макет).
           <Link
             key={step}
             href={STEP_URLS[i]}
-            onClick={(e) => {
-              if (!done) e.preventDefault();
-              else onPick?.();
-            }}
-            aria-disabled={!done && !active}
+            onClick={() => onPick?.()}
             aria-current={active ? 'step' : undefined}
-            tabIndex={done ? undefined : -1}
             className={`relative flex items-center gap-3 rounded-lg py-3 text-[14px] ${RING} ${
-              active ? 'font-bold text-ink' : done ? 'font-bold text-ink/60 hover:text-ink' : 'pointer-events-none font-medium text-ink/35'
+              active ? 'font-bold text-ink' : `font-bold text-ink/60 hover:text-ink`
             }`}
           >
             {done ? (
@@ -64,7 +62,11 @@ export function StepList({ current, onPick }) {
                 <span className="h-2 w-2 rounded-full bg-brand" />
               </span>
             ) : (
-              <span className="z-10 h-2.5 w-2.5 rounded-full border-2 border-line-2 bg-white" />
+              /* Маркер в той же ширине 20px, что галочка и кольцо: иначе название
+                 шага съезжало влево относительно соседних. */
+              <span className="z-10 flex h-5 w-5 items-center justify-center">
+                <span className="h-2.5 w-2.5 rounded-full border-2 border-line-2 bg-white ring-4 ring-white" />
+              </span>
             )}
             {step}
           </Link>
