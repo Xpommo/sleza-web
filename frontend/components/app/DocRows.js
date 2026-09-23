@@ -11,16 +11,19 @@ import { ChevronDownIcon, DocsIcon } from './AppIcons';
 
 const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
 const COLS = 'sm:grid-cols-[minmax(0,1fr)_150px_140px]';
+// Без колонки статуса — где он у всех одинаковый и ничего не сообщает (шаг 5:
+// «Готово» у всех пяти документов).
+const COLS_NO_STATUS = 'sm:grid-cols-[minmax(0,1fr)_140px]';
 
-export function DocRowList({ children, actionsLabel = 'Действие' }) {
+export function DocRowList({ children, actionsLabel = 'Действие', withStatus = true }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
       <div
         aria-hidden="true"
-        className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/60 sm:grid ${COLS}`}
+        className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/60 sm:grid ${withStatus ? COLS : COLS_NO_STATUS}`}
       >
         <span>Документ</span>
-        <span>Статус</span>
+        {withStatus && <span>Статус</span>}
         <span className="text-right">{actionsLabel}</span>
       </div>
       {children}
@@ -35,7 +38,7 @@ export function DocRow({ doc, note, status, meta, action = 'Посмотреть
   const panelId = `doc-panel-${doc.id}`;
   return (
     <div className="border-b border-line last:border-0">
-      <div className={`grid gap-3 px-5 py-4 transition-colors hover:bg-warm/60 sm:items-center sm:gap-4 sm:px-6 ${COLS}`}>
+      <div className={`grid gap-3 px-5 py-4 transition-colors hover:bg-warm/60 sm:items-center sm:gap-4 sm:px-6 ${status ? COLS : COLS_NO_STATUS}`}>
         <div className="flex min-w-0 items-start gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
             <DocsIcon size={19} />
@@ -52,7 +55,8 @@ export function DocRow({ doc, note, status, meta, action = 'Посмотреть
         </div>
         {/* На узком экране статус и кнопка встают в одну строку под текстом;
             с sm обёртка исчезает (contents), и оба снова колонки сетки. */}
-        <div className="flex items-center justify-between gap-3 pl-[52px] sm:contents">
+        <div className={`flex items-center gap-3 pl-[52px] sm:contents ${status ? 'justify-between' : 'justify-end'}`}>
+          {status && (
           <span className="flex flex-col gap-1">
             <span
               className={`w-fit rounded-full px-3 py-1.5 text-[11px] font-bold ${
@@ -63,6 +67,7 @@ export function DocRow({ doc, note, status, meta, action = 'Посмотреть
             </span>
             {meta && <span className="pl-1 text-[11px] text-ink/60">{meta}</span>}
           </span>
+          )}
           {actions ? (
             <div className="flex items-center gap-1 sm:justify-self-end">{actions}</div>
           ) : (

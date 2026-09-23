@@ -69,7 +69,7 @@ export function Switch({ checked, onChange, label, disabled }) {
 // Баннер информационный: кнопки «Отклонить» в нём нет намеренно —
 // 152-ФЗ не требует отказа для простого уведомления, и обещать управление,
 // которого нет, нельзя. Текст — дословно реальный виджет.
-export function CookieBannerPreview({ theme }) {
+export function CookieBannerPreview({ theme, note = true }) {
   const dark = isDark(theme);
   return (
     <div className="rounded-xl border border-line-2 bg-paper p-4">
@@ -94,7 +94,7 @@ export function CookieBannerPreview({ theme }) {
         </span>
       </div>
       <p className="mt-2 text-right font-mono text-[10px] uppercase tracking-[0.08em] text-ink/40">обязательное согласие · Слеза</p>
-      <ThemeNote theme={theme} />
+      {note && <ThemeNote theme={theme} />}
     </div>
   );
 }
@@ -145,7 +145,7 @@ const PILLS = [
 // Подвал — живой: пилюли открывают то же, что увидит посетитель.
 // Реклама не включается без согласия на ПДн: рассылать письма человеку,
 // который не разрешил обрабатывать свои данные, нельзя.
-export function FooterPreview({ theme }) {
+export function FooterPreview({ theme, note = true }) {
   const dark = isDark(theme);
   const [open, setOpen] = useState(null);
   const [pdOn, setPdOn] = useState(false);
@@ -228,7 +228,7 @@ export function FooterPreview({ theme }) {
             </div>
           );
         })}
-      <ThemeNote theme={theme} />
+      {note && <ThemeNote theme={theme} />}
     </div>
   );
 }

@@ -161,7 +161,7 @@ export default function SiteClient() {
     }
 
     if (features.length === 0) {
-      setFeaturesError('Отметьте, что есть на сайте, или «Ничего из этого нет» — от этого зависит, куда встанет согласие.');
+      setFeaturesError('Отметьте, что есть на сайте, или «Ничего из этого нет» — от этого зависит согласие на обработку данных.');
       ok = false;
     } else {
       setFeaturesError(null);
@@ -378,7 +378,7 @@ export default function SiteClient() {
                   required
                   whyOpen={featuresWhy}
                   onWhy={() => setFeaturesWhy(!featuresWhy)}
-                  why="Нужно для документа «Согласие на обработку персональных данных» — от ответа зависит, где на сайте оно встанет."
+                  why="Нужно для документа «Согласие на обработку персональных данных» — оно требуется там, где сайт собирает контакты."
                 />
                 <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-features">
                   {FEATURES.map((o) => (

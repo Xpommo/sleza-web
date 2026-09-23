@@ -70,6 +70,27 @@ function FoundCard({ note, title, lines, onEdit }) {
   );
 }
 
+// Та же карточка, раскрытая для правки: жёлтая обводка вместо зелёной —
+// данные меняются и ещё не подтверждены; внизу настоящая кнопка «Готово»
+// (владелец 23.09: слово «Готово» под полями было не видно).
+function EditCard({ note, onDone, children }) {
+  return (
+    <div className="mt-4 rounded-xl border border-warn/40 bg-warn/[0.06] p-4 sm:p-5">
+      <p className="text-[12px] font-semibold text-warn">{note}</p>
+      <div className="mt-3 grid gap-5 md:grid-cols-2">{children}</div>
+      {onDone && (
+        <button
+          type="button"
+          onClick={onDone}
+          className={`mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+        >
+          <CheckIcon size={15} /> Готово
+        </button>
+      )}
+    </div>
+  );
+}
+
 const LINK_BTN = `mt-3 rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`;
 
 // Демо-подстановка по ИНН: реестр в этом дереве не запрашивается (бэкенда
@@ -429,8 +450,7 @@ export default function RequisitesClient() {
                   onEdit={() => setRegEdit(true)}
                 />
               ) : regEdit ? (
-                <>
-                <div className="mt-5 grid gap-5 md:grid-cols-2">
+                <EditCard note="Редактирование" onDone={inn.length === innLength ? doneRegistry : null}>
                 <Field
                   label={ownerLabels(owner).name}
                   required
@@ -490,13 +510,7 @@ export default function RequisitesClient() {
                     error={addressError}
                   />
                 </div>
-                </div>
-                {inn.length === innLength && (
-                  <button type="button" onClick={doneRegistry} className={LINK_BTN}>
-                    Готово
-                  </button>
-                )}
-                </>
+                </EditCard>
               ) : (
                 owner && (
                   <button type="button" onClick={() => setRegEdit(true)} className={LINK_BTN}>
@@ -554,11 +568,10 @@ export default function RequisitesClient() {
                   />
                 ) : (
                   bankEdit && (
-                    <>
-                      {bik.length === 9 && !BIK_LOOKUP[bik] && !bank && (
-                        <p className="mt-3 text-[13px] text-ink/60">Не нашли банк по БИК — заполните вручную.</p>
-                      )}
-                      <div className="mt-5 grid gap-5 md:grid-cols-2">
+                    <EditCard
+                      note={bik.length === 9 && !BIK_LOOKUP[bik] && !bank ? 'Не нашли банк по БИК — заполните вручную' : 'Редактирование'}
+                      onDone={bik.length === 9 ? doneBank : null}
+                    >
                         <Field
                           label="Банк"
                           required
@@ -584,13 +597,7 @@ export default function RequisitesClient() {
                           }}
                           error={corrError}
                         />
-                      </div>
-                      {bik.length === 9 && (
-                        <button type="button" onClick={doneBank} className={LINK_BTN}>
-                          Готово
-                        </button>
-                      )}
-                    </>
+                    </EditCard>
                   )
                 )}
               </div>

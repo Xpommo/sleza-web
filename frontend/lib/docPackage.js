@@ -5,7 +5,7 @@
 // Пакет фиксирован: пять документов из структуры 1+2+2. Название — то, как
 // человек думает о документе («согласие на рассылки»), закон — мелкой
 // справкой рядом (решение 23.09: раньше строка начиналась с «38-ФЗ, ч.1 ст.18 · …»).
-import { ANALYTICS, FEATURES, PROMO_PURPOSE, PURPOSES, SPHERES } from './anketaOptions';
+import { ANALYTICS, PD_FIELDS, PROMO_PURPOSE, PURPOSES } from './anketaOptions';
 
 export const SITE_ID = '486312';
 
@@ -40,7 +40,7 @@ export const DOCUMENTS = [
   {
     id: '13',
     title: 'Согласие на получение рекламных сообщений',
-    law: '38-ФЗ, ч.1 ст.18',
+    law: '38-ФЗ',
     preview: (v) => `Настоящим я даю согласие на получение рекламных и информационных сообщений от ${v.operator} ${v.channels}…`,
   },
 ];
@@ -83,26 +83,39 @@ export function sitePurposes(a) {
 // Каналы в согласии на рекламу — из того, что сайт собирает: писать клиенту
 // можно только туда, куда он оставил контакт. Раньше каналы были одни на всех.
 const CHANNEL_TEXT = { phone: 'по телефону (звонки и SMS)', messenger: 'в мессенджерах', email: 'на почту' };
-export function adChannels(a) {
-  return ['phone', 'messenger', 'email'].filter((f) => (a.pdFields || []).includes(f)).map((f) => CHANNEL_TEXT[f]);
+// Короткие названия — для строки под документом, не для текста документа.
+const CHANNEL_SHORT = { phone: 'телефон (звонки и SMS)', messenger: 'мессенджеры', email: 'почта' };
+export function adChannels(a, short = false) {
+  const names = short ? CHANNEL_SHORT : CHANNEL_TEXT;
+  return ['phone', 'messenger', 'email'].filter((f) => (a.pdFields || []).includes(f)).map((f) => names[f]);
 }
 function andList(items) {
   return items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} и ${items[items.length - 1]}`;
 }
 
+// То, что взято из ответов, в превью выделено (шаг 5): человек видит свои
+// данные внутри юридического текста — это и показывает, что документ собран
+// под него, а не шаблон. Маркеры разбирает MarkedText на шаге 5; заглушки
+// («по ответам шага…») не выделяются — это не ответ.
+export const MARK = /\u0001([^\u0002]*)\u0002/;
+const mark = (v) => (v ? `\u0001${v}\u0002` : v);
+
 // Превью собирается из ответов анкеты — раньше в нём стояли данные чужой
 // компании из макета, и человек видел в своём документе чужого оператора.
 export function docPreview(doc, a) {
   const ogrnLabel = a.owner === 'ИП' ? 'ОГРНИП' : 'ОГРН';
+  const purposes = sitePurposes(a).map((x) => PURPOSE_TEXT[x]).filter(Boolean).join(', ');
+  const fields = (a.pdFields || []).map((x) => FIELD_TEXT[x]).filter(Boolean).join(', ');
+  const channels = andList(adChannels(a));
   return doc.preview({
-    domain: a.domain || 'вашем сайте',
-    operator: operatorName(a),
-    inn: a.inn,
-    ogrn: a.ogrn && a.owner !== 'Самозанятый' ? `${ogrnLabel} ${a.ogrn}` : '',
-    address: a.address,
-    purposes: sitePurposes(a).map((x) => PURPOSE_TEXT[x]).filter(Boolean).join(', ') || 'по ответам шага «Данные клиентов»',
-    fields: (a.pdFields || []).map((x) => FIELD_TEXT[x]).filter(Boolean).join(', ') || 'состав — по ответам анкеты',
-    channels: andList(adChannels(a)) || 'по телефону, в мессенджерах и на почту',
+    domain: a.domain ? mark(a.domain) : 'вашем сайте',
+    operator: a.companyName ? mark(operatorName(a)) : operatorName(a),
+    inn: mark(a.inn),
+    ogrn: a.ogrn && a.owner !== 'Самозанятый' ? `${ogrnLabel} ${mark(a.ogrn)}` : '',
+    address: mark(a.address),
+    purposes: purposes ? mark(purposes) : 'по ответам шага «Данные клиентов»',
+    fields: fields ? mark(fields) : 'состав — по ответам анкеты',
+    channels: channels ? mark(channels) : 'по телефону, в мессенджерах и на почту',
   });
 }
 
@@ -121,7 +134,7 @@ export function docOrigin(doc, a) {
   switch (doc.id) {
     case '01':
       return {
-        line: `Владелец сайта из ваших ответов: ${operatorName(a)}${a.inn ? `, ИНН ${a.inn}` : ''}.`,
+        line: `Владелец: ${operatorName(a)}${a.inn ? `, ИНН ${a.inn}` : ''}.`,
         why: 'Собрано по ответам «Владелец сайта» и «Данные из реестра»',
         step: '/app/start/requisites',
       };
@@ -131,47 +144,47 @@ export function docOrigin(doc, a) {
       if (analytics.includes('other') && a.analyticsOther?.trim()) n.push(a.analyticsOther.trim());
       return {
         line: n.length
-          ? `Вы отметили: ${n.join(', ')} — ${n.length > 1 ? 'они названы' : 'она названа'} в политике как источник cookie.`
+          ? `Названы счётчики: ${n.join(', ')}.`
           : analytics.includes('none')
-            ? 'Вы ответили, что счётчиков нет, — политика описывает только технические cookie.'
+            ? 'Счётчиков нет — описаны только технические cookie.'
             : 'Счётчики — по ответу «Счётчики на сайте».',
         why: 'Собрано по ответу «Счётчики на сайте»',
         step: '/app/start/site',
       };
     }
     case '03': {
-      const sphere = label(SPHERES, a.sphere);
       const purposes = sitePurposes(a).map((v) => label([...PURPOSES, PROMO_PURPOSE], v)).filter(Boolean).map(lower);
       return {
-        line: `${sphere ? `Сфера «${sphere}»` : 'Сфера — по ответу «Сфера деятельности»'}, цели: ${purposes.join(', ') || 'по ответу «Цели сбора контактов»'}.`,
+        line: purposes.length ? `Названы цели: ${purposes.join(', ')}.` : 'Цели — по ответу «Цели сбора контактов».',
         why: 'Собрано по ответам «Сфера деятельности» и «Цели сбора контактов»',
         step: '/app/start/clients',
       };
     }
     case '12': {
-      const n = named(features, FEATURES).map(lower);
+      // Согласие собираем мы, а подключает его к формам сайта сам клиент —
+      // обещать «встанет туда, где собираете контакты» нельзя (владелец 23.09).
+      const f = (a.pdFields || []).map((v) => label(PD_FIELDS, v)).filter(Boolean).map(lower);
+      const noForms = features.length > 0 && features.every((v) => v === 'none');
       return {
-        line: n.length
-          ? `Встанет туда, где собираете контакты: ${n.join(', ')}.`
-          : features.includes('none')
-            ? 'Форм на сайте вы не отметили — согласие лежит в пакете и понадобится, как только форма появится.'
-            : 'Места для согласия — по ответу «Формы и сервисы на сайте».',
-        why: 'Собрано по ответу «Формы и сервисы на сайте»',
-        step: '/app/start/site',
+        line: noForms
+          ? 'Форм на сайте нет — согласие понадобится, когда форма появится.'
+          : `${f.length ? `Названы данные: ${f.join(', ')}. ` : ''}Ссылку на согласие добавьте в формы сайта.`,
+        why: 'Собрано по ответам «Какие данные собираете» и «Цели сбора контактов»',
+        step: '/app/start/clients',
       };
     }
     default: {
       // Документ в пакете при любом ответе; каналы — из собранных контактов.
-      const ch = adChannels(a);
+      const ch = adChannels(a, true);
       return {
         line:
           a.callsBase === false
-            ? 'Вы ответили, что об акциях не рассказываете, — документ всё равно в пакете, понадобится, когда начнёте.'
+            ? 'Об акциях вы не рассказываете — документ пригодится, когда начнёте.'
             : a.callsBase
               ? ch.length
-                ? `Вы рассказываете клиентам об акциях — в согласии названы каналы по вашим формам: ${andList(ch)}.`
-                : 'Вы рассказываете клиентам об акциях, но телефона, почты и мессенджера в формах нет — каналы названы все.'
-              : 'Входит в пакет — понадобится, как только начнёте рассказывать клиентам об акциях.',
+                ? `Названы каналы: ${andList(ch)}.`
+                : 'Названы все каналы — телефона, почты и мессенджера в формах нет.'
+              : 'Понадобится, когда начнёте рассказывать клиентам об акциях.',
         why: 'Собрано по ответам «Какие данные собираете» и «Рассказываете клиентам об акциях и новинках?»',
         step: '/app/start/clients',
       };
