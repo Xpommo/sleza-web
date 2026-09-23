@@ -278,7 +278,6 @@ export default function RequisitesClient() {
                 id="h-registry"
                 icon={BuildingIcon}
                 title="Данные из реестра"
-                hint="Введите ИНН — остальное подставим. Останется проверить."
                 why="149-ФЗ ст.10 ч.2 обязывает владельца сайта держать в открытом доступе наименование, место нахождения и адрес. Виджет откроет их по ссылке в подвале — их увидит любой посетитель. КПП закон публиковать не требует: он нужен, чтобы бухгалтер контрагента выставил счёт."
                 whyOpen={registryWhy}
                 onWhy={() => setRegistryWhy(!registryWhy)}
@@ -366,7 +365,6 @@ export default function RequisitesClient() {
                   id="h-bank"
                   icon={BankIcon}
                   title="Банковские реквизиты"
-                  hint="Встанут в «Реквизиты» в подвале сайта — для договоров и оплаты"
                   why="Закон публиковать банковские реквизиты не требует, но в «Реквизитах» в подвале они нужны вашим контрагентам: бухгалтер выставит счёт и составит договор, ничего не запрашивая дополнительно."
                   whyOpen={bankWhy}
                   onWhy={() => setBankWhy(!bankWhy)}
@@ -436,7 +434,6 @@ export default function RequisitesClient() {
                     id="h-license"
                     icon={CertificateIcon}
                     title="Лицензии и статусы"
-                    hint={licenseSphere ? `Вы указали сферу «${licenseSphere}»` : 'Статусы ИТ-компании'}
                     why={licenseSphere ? "Если деятельность лицензируемая, ЗоЗПП ст.9 ч.2 требует показать посетителю номер лицензии, срок её действия и орган, который её выдал. Выведем эти сведения в подвал сайта рядом с остальными реквизитами. Сам скан лицензии не просим — закон в общем случае его не требует." : null}
                     whyOpen={licenseWhy}
                     onWhy={() => setLicenseWhy(!licenseWhy)}
@@ -445,7 +442,9 @@ export default function RequisitesClient() {
                   {licenseSphere && (
                     <div className="mt-5">
                       <p className="mb-3 text-sm font-bold text-ink-2">
-                        Есть лицензия на этот вид деятельности? <span className="text-brand">*</span>
+                        {/* Сфера — в самом вопросе: строка «Вы указали сферу…» под
+                            заголовком снята, и «этот вид деятельности» повис бы. */}
+                        Есть лицензия для сферы «{licenseSphere}»? <span className="text-brand">*</span>
                       </p>
                       <Segmented
                         options={['Да', 'Нет', 'В процессе']}
@@ -528,7 +527,6 @@ export default function RequisitesClient() {
                 id="h-contacts"
                 icon={PhoneIcon}
                 title="Контакты компании"
-                hint="Их увидит любой посетитель сайта"
                 why="Это контакты компании, а не ваши личные. Адрес электронной почты требует публиковать 149-ФЗ ст.10 ч.2, телефон — нет, он для счёта и договора. Контакт по вопросам персональных данных спрашиваем отдельно: его публикация требуется по 152-ФЗ, а на бухгалтерской почте такие обращения обычно теряются."
                 whyOpen={contactsWhy}
                 onWhy={() => setContactsWhy(!contactsWhy)}

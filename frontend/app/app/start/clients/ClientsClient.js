@@ -104,12 +104,11 @@ export default function ClientsClient() {
                   id="h-purpose"
                   title="Цели сбора контактов"
                   required
-                  hint="Отметьте всё, что подходит."
                   whyOpen={purposeWhy}
                   onWhy={() => setPurposeWhy(!purposeWhy)}
                   why="Цель обработки — обязательная часть согласия: использовать данные для цели, которая в нём не названа, нельзя. Поэтому отмеченное определяет, что будет написано в согласии и в тексте у формы на сайте."
                 />
-                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="group" aria-labelledby="h-purpose">
+                <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-purpose">
                   {visiblePurposes.map((p) => (
                     <Tile
                       key={p.value}
@@ -131,12 +130,11 @@ export default function ClientsClient() {
                   id="h-fields"
                   title="Какие данные собираете"
                   required
-                  hint="Что посетитель вводит в формы на сайте."
                   whyOpen={fieldsWhy}
                   onWhy={() => setFieldsWhy(!fieldsWhy)}
                   why="Состав данных — вторая обязательная часть и политики, и согласия, наравне с целью. Перечислять его нужно точно: если в документе написан Telegram, а вы пишете в WhatsApp, документ неточен."
                 />
-                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="group" aria-labelledby="h-fields">
+                <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-fields">
                   {PD_FIELDS.map((f) => (
                     <Tile
                       key={f.value}
@@ -157,9 +155,8 @@ export default function ClientsClient() {
               <div className="pt-7">
                 <SectionHead
                   id="h-calls"
-                  title="Звонки и письма по базе клиентов"
+                  title="Пишете или звоните клиентам из своей базы?"
                   required
-                  hint="Ответьте, обращаетесь ли вы к клиентам из своей базы — звонком, в мессенджере или письмом."
                   whyOpen={callsWhy}
                   onWhy={() => setCallsWhy(!callsWhy)}
                   why="Ответ определяет, какие каналы будут названы в согласии на рекламные сообщения. Сам документ входит в пакет в любом случае: рассылка по своей базе без такого согласия незаконна — так требует 38-ФЗ ч.1 ст.18."

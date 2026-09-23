@@ -181,7 +181,7 @@ export default function SiteClient() {
   }
 
   return (
-    <AnketaFrame current={1} title="О сайте" lead={<>Адрес, сфера, платформа, аналитика и формы на сайте. Пять вопросов.</>}>
+    <AnketaFrame current={1} title="О сайте" lead={<>Адрес, сфера, платформа, счётчики и формы на сайте. Пять вопросов.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {/* Адрес и сфера — такими же вопросами с заголовком, как остальные
@@ -294,7 +294,9 @@ export default function SiteClient() {
                   onWhy={() => setPlatformWhy(!platformWhy)}
                   why="Нужна для точной инструкции по установке кода на последнем шаге."
                 />
-                <div className="mt-5 grid gap-3 sm:grid-cols-4" role="radiogroup" aria-labelledby="h-platform">
+                {/* Два столбца, как у всех карточек анкеты (владелец 23.09): в
+                    четыре в ряд края не совпадали со счётчиками и формами ниже. */}
+                <div className="mt-5 grid gap-3 sm:grid-cols-2" role="radiogroup" aria-labelledby="h-platform">
                   {PLATFORMS.map((item) => (
                     <Tile key={item} title={item} radio compact selected={platform === item} onClick={() => pickPlatform(item)} />
                   ))}
@@ -325,9 +327,8 @@ export default function SiteClient() {
               <div className="mb-8">
                 <SectionHead
                   id="h-analytics"
-                  title="Аналитика на сайте"
+                  title="Счётчики на сайте"
                   required
-                  hint="Какие счётчики посетителей стоят на сайте?"
                   whyOpen={analyticsWhy}
                   onWhy={() => setAnalyticsWhy(!analyticsWhy)}
                   why="Нужно для документа «Политика обработки cookie» — в нём назовём счётчики, которые стоят на сайте."
@@ -373,7 +374,6 @@ export default function SiteClient() {
                   id="h-features"
                   title="Формы и сервисы на сайте"
                   required
-                  hint="Что посетитель может сделать на сайте."
                   whyOpen={featuresWhy}
                   onWhy={() => setFeaturesWhy(!featuresWhy)}
                   why="Нужно для документа «Согласие на обработку персональных данных» — от ответа зависит, где на сайте оно встанет."

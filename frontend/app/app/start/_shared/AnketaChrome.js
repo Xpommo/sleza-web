@@ -333,7 +333,10 @@ export function Segmented({ options, value, onChange, ariaLabelledby }) {
 // как у SectionHead — «Зачем это нужно» справа, объяснение под шапкой.
 // Раньше у блоков «Реквизитов» разворот стоял внизу, под полями, а у
 // вопросов шагов 2–3 — в шапке: один элемент в двух местах.
-export function BlockHead({ id, icon: Icon, title, hint, why, whyOpen, onWhy }) {
+// Без строки-пояснения под заголовком — ни здесь, ни в SectionHead (владелец
+// 23.09): она стояла у одних вопросов и не стояла у других, и шаг читался
+// рваным. Заголовок понятен сам, объяснение — только в «Зачем это нужно».
+export function BlockHead({ id, icon: Icon, title, why, whyOpen, onWhy }) {
   return (
     <div>
       <div className="flex items-start justify-between gap-4">
@@ -345,7 +348,6 @@ export function BlockHead({ id, icon: Icon, title, hint, why, whyOpen, onWhy }) 
             <h2 id={id} className="text-lg font-bold tracking-tight">
               {title}
             </h2>
-            {hint && <p className="mt-1 text-sm text-ink/60">{hint}</p>}
           </div>
         </div>
         {why && <WhyButton open={whyOpen} onClick={onWhy} />}
@@ -409,7 +411,7 @@ export function Tile({ title, description, selected, onClick, compact = false, r
 // Шапка вопроса: заголовок и подпись слева, «Зачем это нужно» справа.
 // Объяснение раскрывается под шапкой — кнопка отвечает на вопрос, который
 // человек задаёт именно здесь, а не уводит его в конец карточки.
-export function SectionHead({ id, title, required, hint, whyOpen, onWhy, why }) {
+export function SectionHead({ id, title, required, whyOpen, onWhy, why }) {
   return (
     <div>
       <div className="flex items-start justify-between gap-4">
@@ -418,7 +420,6 @@ export function SectionHead({ id, title, required, hint, whyOpen, onWhy, why }) 
             {title}
             {required && <span className="whitespace-nowrap text-brand"> *</span>}
           </h2>
-          {hint && <p className="mt-1 text-sm text-ink/60">{hint}</p>}
         </div>
         {why && <WhyButton open={whyOpen} onClick={onWhy} />}
       </div>
