@@ -35,8 +35,8 @@ const PRICE_TEXT = formatRub(PRICE);
 
 function Panel({ title, aside, children }) {
   return (
-    <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
-      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+    <section className="mt-5 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-bold tracking-[-0.02em]">{title}</h2>
         {aside && <span className="text-[13px] text-ink/60">{aside}</span>}
       </div>
@@ -91,6 +91,7 @@ const TONE = {
 };
 
 const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
+const PRIMARY_XS = `inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-[13px] font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
 const PRIMARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
 const BTN_OUTLINE = `rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
 const BTN_TEXT = `rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
@@ -126,50 +127,55 @@ function siteLine(site) {
 function SiteRow({ site, open, onOpen, onAuto, onGo, children }) {
   const live = site.kind !== 'not-ready';
   const unpaid = site.kind === 'trial' || site.kind === 'expired' || site.kind === 'pending';
+  // Две строки вместо четырёх (владелец 23.09 — «блоки большие»): домен с
+  // компанией и плашкой, ниже — что с подпиской и действия справа. У агента
+  // с десятками сайтов список иначе превращается в ленту.
   return (
-    <div id={`site-${site.key}`} className="border-t border-line py-5 first:border-t-0 first:pt-3">
-      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-        <div className="min-w-0">
-          <p className="text-[15px] font-bold">{site.domain}</p>
-          {site.company && <p className="mt-0.5 text-[12px] text-ink/60">{site.company}</p>}
-          <p className="mt-2 text-[13px] text-ink/75">{siteLine(site)}</p>
+    <div id={`site-${site.key}`} className="border-t border-line py-4 first:border-t-0 first:pt-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <p className="min-w-0 text-[15px] font-bold">
+          {site.domain}
+          {site.company && <span className="ml-2 text-[12px] font-normal text-ink/60">{site.company}</span>}
+        </p>
+        <span className={`w-fit shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${TONE[site.tone]}`}>{site.label}</span>
+      </div>
+      <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+        <p className="min-w-0 text-[13px] leading-5 text-ink/70">{siteLine(site)}</p>
+        <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2">
+          {unpaid && open !== 'renew' && (
+            <button type="button" onClick={() => onOpen('renew')} className={PRIMARY_XS}>
+              Оплатить год
+            </button>
+          )}
+          {!unpaid && live && open !== 'renew' && (
+            <button type="button" onClick={() => onOpen('renew')} className={LINK}>
+              Продлить на год
+            </button>
+          )}
+          {open === 'renew' && (
+            <button type="button" onClick={() => onOpen('renew')} className={LINK}>
+              Свернуть
+            </button>
+          )}
+          {site.kind === 'not-ready' && (
+            <button type="button" onClick={onGo} className={PRIMARY_XS}>
+              {site.label === 'код не установлен' ? 'Поставить код' : 'Продолжить анкету'}
+            </button>
+          )}
+          {live && (
+            <button type="button" onClick={() => onOpen('tariff')} aria-expanded={open === 'tariff'} className={LINK}>
+              {open === 'tariff' ? 'Свернуть' : 'Сменить тариф'}
+            </button>
+          )}
+          {live && (
+            <label className="flex items-center gap-2 text-[13px] font-semibold text-ink/70">
+              <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />
+              Автопродление
+            </label>
+          )}
         </div>
-        <span className={`w-fit shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold ${TONE[site.tone]}`}>{site.label}</span>
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
-        {unpaid && open !== 'renew' && (
-          <button type="button" onClick={() => onOpen('renew')} className={PRIMARY_SM}>
-            Оплатить год — {PRICE_TEXT}
-          </button>
-        )}
-        {!unpaid && live && open !== 'renew' && (
-          <button type="button" onClick={() => onOpen('renew')} className={LINK}>
-            Продлить ещё на год
-          </button>
-        )}
-        {open === 'renew' && (
-          <button type="button" onClick={() => onOpen('renew')} className={LINK}>
-            Свернуть
-          </button>
-        )}
-        {site.kind === 'not-ready' && (
-          <button type="button" onClick={onGo} className={PRIMARY_SM}>
-            {site.label === 'код не установлен' ? 'Поставить код' : 'Продолжить анкету'}
-          </button>
-        )}
-        {live && (
-          <button type="button" onClick={() => onOpen('tariff')} aria-expanded={open === 'tariff'} className={LINK}>
-            {open === 'tariff' ? 'Свернуть' : 'Сменить тариф'}
-          </button>
-        )}
-        {live && (
-          <label className="flex items-center gap-2.5 text-[13px] font-semibold text-ink/70 sm:ml-auto">
-            <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />
-            Автопродление
-          </label>
-        )}
-      </div>
-      {open && children && <div className="mt-4 rounded-xl border border-line bg-warm/60 p-4 sm:p-5">{children}</div>}
+      {open && children && <div className="mt-3 rounded-xl border border-line bg-warm/60 p-4 sm:p-5">{children}</div>}
     </div>
   );
 }
@@ -217,6 +223,7 @@ export default function BillingClient() {
   const [actsEditing, setActsEditing] = useState(false);
   const [actsErr, setActsErr] = useState(null);
   const [copied, setCopied] = useState(null);
+  const [opsAll, setOpsAll] = useState(false);
 
   useEffect(() => {
     const saved = loadAnketa();
@@ -784,12 +791,12 @@ export default function BillingClient() {
           ) : (
             <>
               {/* Баланс — первым: из него оплачивается год каждого сайта. */}
-              <section id="balance" className="mt-6 scroll-mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+              <section id="balance" className="mt-6 scroll-mt-6 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <p className="text-[13px] font-semibold text-ink/60">Баланс</p>
                     <p className="mt-1 text-[28px] font-bold leading-none tracking-[-0.03em]">{formatRub(balance)}</p>
-                    <p className="mt-3 text-[13px] leading-5 text-ink/60">
+                    <p className="mt-2 text-[13px] leading-5 text-ink/60">
                       {renewal
                         ? `Ближайшее списание — ${renewal.date} · ${renewal.site.domain} · ${PRICE_TEXT}${balance < PRICE ? ' — на балансе не хватает' : ''}`
                         : 'С баланса оплачивается год каждого сайта — в его дату продления.'}
@@ -959,23 +966,48 @@ export default function BillingClient() {
                       </button>
                     </div>
                   </Row>
-                  {[...ops].reverse().map((op) => (
-                    <Row
-                      key={`${op.at}-${op.kind}-${op.site || ''}`}
-                      label={`${op.kind === 'topup' ? 'Пополнение' : 'Оплата года'} · ${formatDate(op.at)}`}
-                      value={`${op.kind === 'topup' ? '+' : '−'}${formatRub(op.amount)}`}
-                      note={op.kind === 'topup' ? (op.method === 'Картой' ? 'картой' : 'по счёту') : op.site}
-                    />
-                  ))}
-                  {paidSites.map((s) => (
-                    <Row
-                      key={s.key}
-                      label={`Акт · ${s.domain}`}
-                      value={`${s.period.from} – ${s.period.to}`}
-                      note={`${PRICE_TEXT} · отправлен на ${b.actsEmail || 'почту для документов'}`}
-                      actions={<IconAction label="Открыть акт" icon={ExternalIcon} href={`https://cdn.sleza.media/${SITE_ID}/act-${s.key}-${s.period.years}.pdf`} />}
-                    />
-                  ))}
+                  {/* История и акты — однострочными списками: у агента операций
+                      и актов десятки, строка «подпись — значение — пояснение»
+                      на каждую растягивала блок (владелец 23.09). */}
+                  {ops.length > 0 && (
+                    <div className="border-t border-line py-4">
+                      <p className="mb-1 text-[13px] text-ink/60">История</p>
+                      <ul className="divide-y divide-line">
+                        {(opsAll ? [...ops].reverse() : [...ops].reverse().slice(0, 4)).map((op) => (
+                          <li key={`${op.at}-${op.kind}-${op.site || ''}`} className="flex items-baseline gap-3 py-2 text-[13px]">
+                            <span className="w-20 shrink-0 text-ink/55">{formatDate(op.at)}</span>
+                            <span className="min-w-0 flex-1 truncate text-ink/80">
+                              {op.kind === 'topup' ? `Пополнение ${op.method === 'Картой' ? 'картой' : 'по счёту'}` : `Оплата года · ${op.site}`}
+                            </span>
+                            <span className={`shrink-0 font-semibold ${op.kind === 'topup' ? 'text-ok' : 'text-ink'}`}>
+                              {op.kind === 'topup' ? '+' : '−'}
+                              {formatRub(op.amount)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      {ops.length > 4 && (
+                        <button type="button" onClick={() => setOpsAll(!opsAll)} className={`mt-1 ${LINK}`}>
+                          {opsAll ? 'Свернуть' : `Вся история — ${ops.length}`}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {paidSites.length > 0 && (
+                    <div className="border-t border-line pt-4">
+                      <p className="mb-1 text-[13px] text-ink/60">Акты</p>
+                      <ul className="divide-y divide-line">
+                        {paidSites.map((s) => (
+                          <li key={s.key} className="flex items-center gap-3 py-1.5 text-[13px]">
+                            <span className="min-w-0 flex-1 truncate text-ink/80">
+                              {s.domain} · {s.period.from} – {s.period.to}
+                            </span>
+                            <IconAction label={`Открыть акт ${s.domain}`} icon={ExternalIcon} href={`https://cdn.sleza.media/${SITE_ID}/act-${s.key}-${s.period.years}.pdf`} />
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </Panel>
               )}
 
