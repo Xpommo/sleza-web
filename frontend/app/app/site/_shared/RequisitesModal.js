@@ -10,7 +10,8 @@
 import { useState } from 'react';
 import { CloseIcon } from '../../../../components/app/AppIcons';
 import { Field } from '../../start/_shared/AnketaChrome';
-import { loadAnketa, saveAnketa } from '../../start/_shared/anketaState';
+import { loadAnketa } from '../../start/_shared/anketaState';
+import { saveSiteFields, siteAnketa } from './sites';
 import { digitsOnly, ownerLabels, validateRequisites } from '../../start/_shared/requisitesRules';
 import { RING } from './SiteChrome';
 
@@ -34,7 +35,7 @@ function fromAnketa(a) {
 }
 
 export default function RequisitesModal({ onClose, onSaved }) {
-  const [initial] = useState(() => fromAnketa(loadAnketa()));
+  const [initial] = useState(() => fromAnketa(siteAnketa(loadAnketa())));
   const [v, setV] = useState(initial);
   const [err, setErr] = useState({});
   const L = ownerLabels(v.owner);
@@ -54,8 +55,10 @@ export default function RequisitesModal({ onClose, onSaved }) {
     if (Object.keys(e).length) return;
     const changed = KEYS.some((k) => v[k] !== initial[k]);
     if (changed) {
-      const a = loadAnketa();
-      saveAnketa({
+      // Реквизиты открытого сайта: у демо-сайта — в его строку, не в анкету
+      // основного (sites.js).
+      const a = siteAnketa(loadAnketa());
+      saveSiteFields({
         inn: v.inn,
         companyName: v.name,
         ogrn: v.ogrn,

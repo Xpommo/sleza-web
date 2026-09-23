@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, ClockIcon, OkIcon, RefreshIcon, WarnIcon } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS } from '../../../lib/docPackage';
-import { accountSites } from './_shared/sites';
+import { accountSites, siteAnketa } from './_shared/sites';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { RING, SiteHeader, SiteSidebar } from './_shared/SiteChrome';
 import { PRICE_LABEL, TARIFFS, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEnds } from './_shared/subscription';
@@ -38,7 +38,7 @@ export default function SiteOverviewClient() {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
-    const saved = loadAnketa();
+    const saved = siteAnketa(loadAnketa());
     if (!saved.domain) {
       router.replace('/app/sites');
       return;
@@ -55,7 +55,7 @@ export default function SiteOverviewClient() {
 
   function setBilling(patch) {
     saveAnketa({ billing: { ...loadAnketa().billing, ...patch } });
-    setA(loadAnketa());
+    setA(siteAnketa(loadAnketa()));
   }
 
   const b = a.billing || {};
@@ -128,7 +128,7 @@ export default function SiteOverviewClient() {
   // действительно произошло, — без придуманных сверок и переходов.
   const events = [
     b.paidAt && [b.paidAt, `Подписка оплачена — до ${period.to}`, 'bg-ok'],
-    b.cancelled && b.paidAt && [b.cancelledAt || now, `Сайт отключается — работает до ${period.to}`, 'bg-warn'],
+    b.cancelled && b.paidAt && [b.cancelledAt || now, `Сайт выключен из подписки — работает до ${period.to}`, 'bg-warn'],
     b.invoice && !b.paidAt && [b.invoice.at, `Выставлен счёт № ${b.invoice.no}`, 'bg-warn'],
     state === 'expired' && [a.trialStartedAt + TRIAL_MS, 'Пробный период закончился — виджет снят с сайта', 'bg-danger'],
     a.trialStartedAt && [a.trialStartedAt, a.installed ? 'Код найден на сайте, пробный период запущен' : 'Пробный период запущен, ждём код на сайте', 'bg-brand'],

@@ -11,7 +11,7 @@ import { CURRENT_USER } from '../../../lib/appMock';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
 import { paidPeriod, subState, trialEnds } from '../site/_shared/subscription';
-import { accountSites, cardStatus } from '../site/_shared/sites';
+import { MAIN, accountSites, cardStatus, setCurrentSite } from '../site/_shared/sites';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
@@ -88,9 +88,8 @@ export default function SitesClient() {
   }, []);
 
   const status = site ? siteStatus(loadAnketa()) : null;
-  // Демо-сайты пресета «Несколько сайтов»: в прототипе открывается только
-  // сайт из анкеты, поэтому их карточка ведёт туда, где ими управляют, —
-  // в «Подписку», а не в пустой кабинет.
+  // Демо-сайты пресета «Несколько сайтов» открываются в свой кабинет, как
+  // основной: у всех карточек одно действие — «Открыть сайт».
   const all = site ? accountSites(loadAnketa()) : [];
   const demo = all.filter((x) => x.demo);
   const mainTariff = all[0]?.tariff;
@@ -193,7 +192,10 @@ export default function SitesClient() {
 
                     <button
                       type="button"
-                      onClick={() => router.push(status.href)}
+                      onClick={() => {
+                        setCurrentSite(MAIN);
+                        router.push(status.href);
+                      }}
                       className={`mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`}
                     >
                       {status.action} <ChevronIcon size={16} />
@@ -217,10 +219,13 @@ export default function SitesClient() {
                         <p className="mt-2 px-1 text-[12px] text-ink/60">{st.meta}</p>
                         <button
                           type="button"
-                          onClick={() => router.push('/app/billing')}
-                          className={`mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-white text-sm font-bold transition hover:border-line-2 ${RING}`}
+                          onClick={() => {
+                            setCurrentSite(d.key);
+                            router.push('/app/site');
+                          }}
+                          className={`mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`}
                         >
-                          Тариф и отключение <ChevronIcon size={16} />
+                          Открыть сайт <ChevronIcon size={16} />
                         </button>
                       </article>
                     );
@@ -251,7 +256,10 @@ export default function SitesClient() {
                         <td className="px-5 py-4 text-right">
                           <button
                             type="button"
-                            onClick={() => router.push(status.href)}
+                            onClick={() => {
+                        setCurrentSite(MAIN);
+                        router.push(status.href);
+                      }}
                             className={`rounded-lg border border-line px-3 py-2 text-xs font-bold transition hover:border-brand hover:text-brand ${RING}`}
                           >
                             {status.action} →
@@ -272,10 +280,13 @@ export default function SitesClient() {
                           <td className="px-5 py-4 text-right">
                             <button
                               type="button"
-                              onClick={() => router.push('/app/billing')}
+                              onClick={() => {
+                                setCurrentSite(d.key);
+                                router.push('/app/site');
+                              }}
                               className={`rounded-lg border border-line px-3 py-2 text-xs font-bold transition hover:border-brand hover:text-brand ${RING}`}
                             >
-                              Тариф и отключение →
+                              Открыть сайт →
                             </button>
                           </td>
                         </tr>

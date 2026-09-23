@@ -13,6 +13,7 @@ import { usePathname, useRouter } from 'next/navigation';
 const KEY = 'anketa_v1';
 const UI_KEY = 'maket_bar_v1';
 const HOUR = 3600 * 1000;
+const DAY = 24 * HOUR;
 
 const SCREENS = [
   ['Вход', [
@@ -68,11 +69,13 @@ const PRESETS = [
   ['Счёт выставлен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 5 * HOUR, billing: { method: 'По счёту', invoice: { no: `${new Date().getFullYear()}-0142`, at: Date.now() - HOUR, payer: null } } }), '/app/billing'],
   ['Счёт висит больше 3 дней', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 5 * 24 * HOUR, billing: { method: 'По счёту', invoice: { no: `${new Date().getFullYear()}-0142`, at: Date.now() - 4 * 24 * HOUR, payer: null } } }), '/app/billing'],
   ['Оплачено', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, actsEmail: 'buh@alfa-school.ru' } }), '/app/site'],
-  // Несколько сайтов — как у агента или партнёра: тариф и отключение у
-  // каждого свои, счёт один (решение 23.09). Два сайта — демо-строки.
-  ['Несколько сайтов (агент)', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, siteTariff: 'Тариф Х', billing: { ...CARD, paidAt: Date.now() - HOUR, paidAmount: 36000, actsEmail: 'buh@alfa-school.ru' }, extraSites: [
-    { key: 'beta', domain: 'beta-kids.ru', company: 'ИП Иванова М. С.', tariff: 'Тариф У', cancelled: false },
-    { key: 'gamma', domain: 'gamma-shop.ru', company: 'ООО «Гамма»', tariff: 'Тариф Х', cancelled: true },
+  // Несколько сайтов — как у агента или партнёра (решения 23.09): у каждого
+  // сайта свой тариф и своя дата продления, сайт, добавленный посреди года,
+  // платит за свой год отдельно. Три сайта — демо-строки.
+  ['Несколько сайтов (агент)', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, siteTariff: 'Тариф Х', billing: { ...CARD, paidAt: Date.now() - HOUR, actsEmail: 'buh@alfa-school.ru', invoiceSeq: 150 }, extraSites: [
+    { key: 'beta', domain: 'beta-kids.ru', company: 'ИП Иванова М. С.', tariff: 'Тариф У', trialStartedAt: Date.now() - 200 * DAY, paidAt: Date.now() - 195 * DAY, cancelled: false },
+    { key: 'gamma', domain: 'gamma-shop.ru', company: 'ООО «Гамма»', tariff: 'Тариф Х', trialStartedAt: Date.now() - 120 * DAY, paidAt: Date.now() - 115 * DAY, cancelled: true },
+    { key: 'delta', domain: 'delta-clinic.ru', company: 'ООО «Дельта»', tariff: 'Тариф Z', trialStartedAt: Date.now() - DAY, cancelled: false },
   ] }), '/app/billing'],
   ['Оплачено, сайт отключается', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, cancelled: true, cancelledAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
 ];
@@ -117,6 +120,8 @@ export default function MaketBar() {
     const [, make, to] = PRESETS[i];
     try {
       sessionStorage.setItem(KEY, JSON.stringify(make()));
+      // Открытый сайт — снова основной: пресет задаёт состояние заново.
+      sessionStorage.removeItem('current_site_v1');
       localStorage.setItem('consent_v1', 'accepted');
     } catch {
       /* без хранилища пресеты не работают — прототип тоже */

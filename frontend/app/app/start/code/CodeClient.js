@@ -13,6 +13,7 @@ import {
 import { RING, AnketaFrame, Field, Segmented, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
 import { TRIAL_DAYS, trialEnds } from '../../site/_shared/subscription';
+import { MAIN, setCurrentSite } from '../../site/_shared/sites';
 
 const SITE_ID = '486312';
 
@@ -275,7 +276,10 @@ export default function CodeClient() {
                   <button
                     data-funnel-next
                     type="button"
-                    onClick={() => router.push('/app/site')}
+                    onClick={() => {
+                      setCurrentSite(MAIN);
+                      router.push('/app/site');
+                    }}
                     className={`flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
                   >
                     Перейти в кабинет <ArrowRightIcon size={17} />

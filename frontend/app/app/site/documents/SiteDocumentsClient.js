@@ -9,6 +9,7 @@ import { CURRENT_USER } from '../../../../lib/appMock';
 import { DOCUMENTS, SITE_ID, docOrigin, docUrl } from '../../../../lib/docPackage';
 import { accountUser, loadAnketa } from '../../start/_shared/anketaState';
 import RequisitesModal from '../_shared/RequisitesModal';
+import { siteAnketa } from '../_shared/sites';
 import { subState } from '../_shared/subscription';
 import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
 
@@ -27,7 +28,7 @@ export default function SiteDocumentsClient() {
   const [reqOpen, setReqOpen] = useState(false);
 
   useEffect(() => {
-    const a = loadAnketa();
+    const a = siteAnketa(loadAnketa());
     if (!a.domain) {
       router.replace('/app/sites');
       return;
@@ -205,7 +206,7 @@ export default function SiteDocumentsClient() {
         <RequisitesModal
           onClose={() => setReqOpen(false)}
           onSaved={() => {
-            const a = loadAnketa();
+            const a = siteAnketa(loadAnketa());
             setSite((v) => ({ ...v, answers: a, edits: a.docEdits || [] }));
           }}
         />
