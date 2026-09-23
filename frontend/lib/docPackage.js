@@ -122,7 +122,7 @@ export function docOrigin(doc, a) {
     case '01':
       return {
         line: `Владелец сайта из ваших ответов: ${operatorName(a)}${a.inn ? `, ИНН ${a.inn}` : ''}.`,
-        why: 'Собрано по ответам «Кто владеет сайтом» и «Данные из реестра»',
+        why: 'Собрано по ответам «Владелец сайта» и «Данные из реестра»',
         step: '/app/start/requisites',
       };
     case '02': {
