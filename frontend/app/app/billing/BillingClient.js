@@ -10,7 +10,9 @@ import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaStat
 import { SITE_ID, operatorName } from '../../../lib/docPackage';
 import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
 import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
-import { PRICE_LABEL, TARIFFS, TRIAL_DAYS, paidPeriod, subState, trialEnds } from '../site/_shared/subscription';
+import SiteOffModal from './SiteOffModal';
+import { accountSites, billableTotal, formatRub, setSiteCancelled, setSiteTariff } from '../site/_shared/sites';
+import { PRICE, PRICE_LABEL, TARIFFS, TRIAL_DAYS, paidPeriod, subState, trialEnds } from '../site/_shared/subscription';
 
 const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
 
@@ -57,6 +59,64 @@ function Row({ label, value, note, action, onAction, open, actions, children }) 
   );
 }
 
+function plural(n, one, few, many) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
+
+const TONE = {
+  ok: 'bg-ok/10 text-ok',
+  info: 'bg-brand/[0.07] text-brand',
+  warn: 'bg-warn/10 text-warn',
+  muted: 'bg-warm text-ink/60',
+};
+
+// Строка сайта: домен и компания, тариф, состояние и действия. Действия
+// словами, а не спрятаны в «⋯»: назначение элемента должно читаться без
+// клика (правило ревью Ивана).
+function SiteRow({ site, paid, renew, tariffOpen, onTariff, onOff, onResume, children }) {
+  const active = !site.cancelled && site.kind !== 'not-ready';
+  return (
+    <div className="border-t border-line py-4 first:border-t-0">
+      <div className="grid gap-x-4 gap-y-2 sm:grid-cols-[minmax(0,1fr)_120px_190px_220px] sm:items-center">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold">{site.domain}</p>
+          {site.company && <p className="mt-0.5 truncate text-[12px] text-ink/60">{site.company}</p>}
+        </div>
+        <div>
+          <p className="text-sm font-semibold">{site.tariff}</p>
+          <p className="mt-0.5 text-[12px] text-ink/60">
+            {site.nextTariff ? `с ${renew} — ${site.nextTariff}` : active ? `${formatRub(site.price)} в год` : '—'}
+          </p>
+        </div>
+        <span className={`w-fit rounded-full px-3 py-1.5 text-[11px] font-bold ${TONE[site.tone]}`}>{site.label}</span>
+        <div className="flex flex-wrap gap-1 sm:justify-end">
+          {active && (
+            <>
+              <button type="button" onClick={onTariff} aria-expanded={tariffOpen} className={SITE_ACT}>
+                {tariffOpen ? 'Свернуть' : 'Изменить тариф'}
+              </button>
+              <button type="button" onClick={onOff} className={`${SITE_ACT} hover:text-danger`}>
+                Отключить
+              </button>
+            </>
+          )}
+          {site.cancelled && (
+            <button type="button" onClick={onResume} className={`${SITE_ACT} text-brand`}>
+              Вернуть в подписку
+            </button>
+          )}
+        </div>
+      </div>
+      {tariffOpen && <div className="mt-4">{children}</div>}
+    </div>
+  );
+}
+
+const SITE_ACT = `rounded-lg px-2 py-1 text-[13px] font-semibold text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`;
 const BTN_OUTLINE = `rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
 const BTN_TEXT = `rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
 
@@ -83,8 +143,10 @@ export default function BillingClient() {
   const [user, setUser] = useState(CURRENT_USER);
   const [now, setNow] = useState(Date.now());
 
-  const [tariffOpen, setTariffOpen] = useState(false);
+  // Строка сайта, у которой открыт выбор тарифа, и выбранный в нём тариф.
+  const [tariffOpen, setTariffOpen] = useState(null);
   const [tariffPick, setTariffPick] = useState(TARIFFS[0]);
+  const [off, setOff] = useState(null); // { site, step }
   const [methodOpen, setMethodOpen] = useState(false);
   const [method, setMethod] = useState('По счёту');
 
@@ -115,7 +177,6 @@ export default function BillingClient() {
     setA(saved);
     setUser(accountUser(CURRENT_USER));
     const b = saved.billing || {};
-    if (b.tariff) setTariffPick(b.tariff);
     if (b.method) setMethod(b.method);
     if (b.actsEmail) setActsEmail(b.actsEmail);
     if (b.payerOther) setOtherPayer(b.payerOther);
@@ -134,15 +195,28 @@ export default function BillingClient() {
   const period = b.paidAt ? paidPeriod(b.paidAt) : null;
   const req = a.contacts || {};
   const account = a.bank?.account || '';
+  const sites = accountSites(a, now);
+  const total = billableTotal(sites);
+  const TOTAL_LABEL = formatRub(total.amount);
 
   function saveBilling(patch) {
     saveAnketa({ billing: { ...loadAnketa().billing, ...patch } });
     setA(loadAnketa());
   }
 
-  function pickTariff() {
-    saveBilling({ tariff: tariffPick });
-    setTariffOpen(false);
+  function pickTariff(site) {
+    setSiteTariff(site.key, tariffPick, state === 'paid');
+    setA(loadAnketa());
+    setTariffOpen(null);
+  }
+
+  function openTariff(site) {
+    if (tariffOpen === site.key) {
+      setTariffOpen(null);
+      return;
+    }
+    setTariffPick(site.nextTariff || site.tariff);
+    setTariffOpen(site.key);
   }
 
   function pickMethod(m) {
@@ -160,7 +234,7 @@ export default function BillingClient() {
     if (!/^\d{3}$/.test(cardCvc)) errs.cvc = 'CVC — 3 цифры на обороте карты.';
     setCardErr(errs);
     if (Object.keys(errs).length) return;
-    saveBilling({ method: 'Картой', card: { last4: digits.slice(-4), exp: `${mm}/${yy}` }, paidAt: Date.now(), invoice: null, cancelled: false });
+    saveBilling({ method: 'Картой', card: { last4: digits.slice(-4), exp: `${mm}/${yy}` }, paidAt: Date.now(), paidAmount: total.amount, invoice: null });
     setCardNo('');
     setCardExp('');
     setCardCvc('');
@@ -181,7 +255,7 @@ export default function BillingClient() {
     // Переформированный счёт — новый документ с новым номером: старый уже
     // могли переслать бухгалтеру, два разных счёта под одним номером нельзя.
     const no = b.invoice ? `${year}-${String(Number(b.invoice.no.split('-')[1]) + 1).padStart(4, '0')}` : `${year}-0142`;
-    saveBilling({ method: 'По счёту', invoice: { no, at: Date.now(), payer: p } });
+    saveBilling({ method: 'По счёту', invoice: { no, at: Date.now(), payer: p, amount: total.amount } });
     setPayerOpen(false);
   }
 
@@ -209,7 +283,7 @@ export default function BillingClient() {
     trial: `Пробный период — до ${a.trialStartedAt ? trialEnds(a) : ''}. Оплата продлевает доступ без перерыва.`,
     expired: 'Пробный период закончился — оплата включит виджет и документы снова.',
     pending: 'Счёт выставлен — отметим оплату, как только поступят деньги, обычно 1–3 рабочих дня.',
-    paid: period && (b.cancelled ? `Оплачено до ${period.to}, продления не будет.` : `Оплачено до ${period.to}.`),
+    paid: period && (total.count === 0 ? `Оплачено до ${period.to}, продления не будет — все сайты отключаются.` : `Оплачено до ${period.to}.`),
   }[state];
 
   const payerNote = [a.inn && `ИНН ${a.inn}`, req.companyMail, req.companyPhone, account && `счёт …${account.slice(-4)}`]
@@ -217,7 +291,10 @@ export default function BillingClient() {
     .join(' · ');
   const invoiceOverdue = b.invoice && now - b.invoice.at > 3 * 24 * 3600 * 1000;
   const currentPayer = payerMode === 'Как в анкете' ? null : otherPayer;
-  const payerChanged = b.invoice && JSON.stringify(b.invoice.payer || null) !== JSON.stringify(currentPayer);
+  // Счёт переформировывают, если сменился плательщик или сумма: отключили
+  // сайт — в выставленном счёте он всё ещё есть.
+  const invoiceAmount = b.invoice ? b.invoice.amount ?? total.amount : 0;
+  const payerChanged = b.invoice && (JSON.stringify(b.invoice.payer || null) !== JSON.stringify(currentPayer) || invoiceAmount !== total.amount);
 
   // «Что входит»: рамка своя у каждого состояния — один список на три
   // разные ситуации врал в двух из них.
@@ -280,7 +357,7 @@ export default function BillingClient() {
       <AccountSidebar active="Подписка" user={user} />
 
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-4xl">
           <header>
             <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Подписка</h1>
             <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/65">{lead}</p>
@@ -301,53 +378,80 @@ export default function BillingClient() {
             </Card>
           )}
 
+          {/* Сайты в подписке — первым: за что платим и что с каждым сайтом.
+              Тариф и отключение — у каждого сайта свои, управляют ими здесь
+              (решение владельца 23.09); счёт при этом один. */}
+          {state !== 'notstarted' && (
+            <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+              <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-lg font-bold tracking-[-0.02em]">Сайты в подписке</h2>
+                <span className="text-[13px] text-ink/60">
+                  {sites.length} {plural(sites.length, 'сайт', 'сайта', 'сайтов')}
+                </span>
+              </div>
+              <div>
+              {sites.map((site) => (
+                <SiteRow
+                  key={site.key}
+                  site={site}
+                  paid={state === 'paid'}
+                  renew={period?.renew}
+                  tariffOpen={tariffOpen === site.key}
+                  onTariff={() => openTariff(site)}
+                  onOff={() => setOff({ site, step: 1 })}
+                  onResume={() => {
+                    setSiteCancelled(site.key, false);
+                    setA(loadAnketa());
+                  }}
+                >
+                  {/* Тариф не применяется по клику: случайное нажатие по
+                      соседней кнопке меняло бы оплачиваемый тариф. */}
+                  <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={`Тариф ${site.domain}`}>
+                    {TARIFFS.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        role="radio"
+                        aria-checked={tariffPick === t}
+                        onClick={() => setTariffPick(t)}
+                        className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition ${RING} ${
+                          tariffPick === t ? 'border-brand bg-white ring-2 ring-brand/10' : 'border-line bg-white hover:border-line-2'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-[12px] text-ink/60">
+                    {state === 'paid'
+                      ? `Новый тариф начнёт действовать с продления ${period.renew} — текущий год уже оплачен.`
+                      : 'Состав тарифов ещё утверждается — цена пока одна.'}
+                  </p>
+                  <div className="mt-4 flex gap-3">
+                    <button type="button" onClick={() => pickTariff(site)} className={BTN_OUTLINE}>
+                      Выбрать этот тариф
+                    </button>
+                    <button type="button" onClick={() => setTariffOpen(null)} className={BTN_TEXT}>
+                      Отмена
+                    </button>
+                  </div>
+                </SiteRow>
+              ))}
+              </div>
+              <div className="mt-1 flex items-baseline justify-between gap-4 border-t border-line pt-4">
+                <span className="text-[13px] text-ink/60">
+                  {state === 'paid' ? `Следующий счёт, с ${period.renew}` : 'К оплате за год'}
+                  {total.count < sites.length && ` · ${total.count} из ${sites.length} ${plural(sites.length, 'сайта', 'сайтов', 'сайтов')}`}
+                </span>
+                <span className="text-[15px] font-bold">{TOTAL_LABEL}</span>
+              </div>
+            </section>
+          )}
+
           {state !== 'notstarted' && (
             <Panel title="Оплата">
-              <Row
-                label="Тариф"
-                value={tariff}
-                note={`${PRICE_LABEL} в год`}
-                action={state === 'paid' ? null : 'Изменить'}
-                open={tariffOpen}
-                onAction={() => setTariffOpen(!tariffOpen)}
-              >
-                {/* Тариф не применяется по клику: случайное нажатие по соседней
-                    кнопке меняло бы оплачиваемый тариф. Сначала выбор, потом
-                    подтверждение. */}
-                <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Тариф">
-                  {TARIFFS.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      role="radio"
-                      aria-checked={tariffPick === t}
-                      onClick={() => setTariffPick(t)}
-                      className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition ${RING} ${
-                        tariffPick === t ? 'border-brand bg-white ring-2 ring-brand/10' : 'border-line bg-white hover:border-line-2'
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-3 text-[12px] text-ink/60">Состав тарифов ещё утверждается — цена пока одна.</p>
-                <div className="mt-4 flex gap-3">
-                  <button type="button" onClick={pickTariff} className={BTN_OUTLINE}>
-                    Выбрать этот тариф
-                  </button>
-                  <button type="button" onClick={() => setTariffOpen(false)} className={BTN_TEXT}>
-                    Отмена
-                  </button>
-                </div>
-              </Row>
-
               {state === 'paid' ? (
                 <>
-                  <Row
-                    label={b.cancelled ? 'Работает до' : 'Продление'}
-                    value={b.cancelled ? period.to : `${period.renew} · ${PRICE_LABEL}`}
-                    note={b.cancelled ? 'сайт отключается, в следующий счёт не войдёт' : null}
-                  />
                   <Row
                     label="Способ оплаты"
                     value={b.card ? `Карта ···· ${b.card.last4}` : 'По счёту'}
@@ -407,7 +511,7 @@ export default function BillingClient() {
                   {b.invoice && method === 'По счёту' && (
                     <Row
                       label="Счёт"
-                      value={`№ ${b.invoice.no} · ${PRICE_LABEL}`}
+                      value={`№ ${b.invoice.no} · ${formatRub(invoiceAmount)}`}
                       note={`на ${b.invoice.payer?.name || operatorName(a)} · ссылка работает, пока счёт не оплачен`}
                       actions={
                         <>
@@ -470,13 +574,15 @@ export default function BillingClient() {
 
                   {/* Одно главное действие на состояние — внизу карточки. */}
                   <div className="mt-6">
-                    {method === 'Картой' ? (
+                    {total.count === 0 ? (
+                      <p className="text-[13px] text-ink/60">Все сайты отключены — платить не за что. Верните сайт в подписку, чтобы выставить счёт.</p>
+                    ) : method === 'Картой' ? (
                       <button type="button" onClick={payByCard} className={PRIMARY_WIDE}>
-                        Оплатить {PRICE_LABEL}
+                        Оплатить {TOTAL_LABEL}
                       </button>
                     ) : !b.invoice ? (
                       <button type="button" onClick={issueInvoice} className={PRIMARY_WIDE}>
-                        Выставить счёт на {PRICE_LABEL}
+                        Выставить счёт на {TOTAL_LABEL}
                       </button>
                     ) : payerChanged ? (
                       /* Счёт уже выставлен, а плательщика сменили — только тогда:
@@ -533,7 +639,7 @@ export default function BillingClient() {
                 <Row
                   label={`Акт за ${period.years}`}
                   value={`${period.from} – ${period.to}`}
-                  note={`${PRICE_LABEL} · отправлен на ${b.actsEmail || a.personEmail || 'почту аккаунта'}`}
+                  note={`${formatRub(b.paidAmount || PRICE)} · отправлен на ${b.actsEmail || a.personEmail || 'почту аккаунта'}`}
                   actions={<IconAction label="Открыть акт" icon={ExternalIcon} href={`https://cdn.sleza.media/${SITE_ID}/act-${period.years}.pdf`} />}
                 />
               )}
@@ -545,6 +651,20 @@ export default function BillingClient() {
         </div>
       </section>
 
+      {off && (
+        <SiteOffModal
+          site={off.site}
+          step={off.step}
+          paidUntil={period?.to}
+          onStep={(n) => setOff({ ...off, step: n })}
+          onClose={() => setOff(null)}
+          onConfirm={() => {
+            setSiteCancelled(off.site.key, true);
+            setA(loadAnketa());
+            setOff(null);
+          }}
+        />
+      )}
       {payerModal && (
         <InvoicePayerModal
           initial={otherPayer}

@@ -68,6 +68,12 @@ const PRESETS = [
   ['Счёт выставлен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 5 * HOUR, billing: { method: 'По счёту', invoice: { no: `${new Date().getFullYear()}-0142`, at: Date.now() - HOUR, payer: null } } }), '/app/billing'],
   ['Счёт висит больше 3 дней', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 5 * 24 * HOUR, billing: { method: 'По счёту', invoice: { no: `${new Date().getFullYear()}-0142`, at: Date.now() - 4 * 24 * HOUR, payer: null } } }), '/app/billing'],
   ['Оплачено', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, actsEmail: 'buh@alfa-school.ru' } }), '/app/site'],
+  // Несколько сайтов — как у агента или партнёра: тариф и отключение у
+  // каждого свои, счёт один (решение 23.09). Два сайта — демо-строки.
+  ['Несколько сайтов (агент)', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, siteTariff: 'Тариф Х', billing: { ...CARD, paidAt: Date.now() - HOUR, paidAmount: 36000, actsEmail: 'buh@alfa-school.ru' }, extraSites: [
+    { key: 'beta', domain: 'beta-kids.ru', company: 'ИП Иванова М. С.', tariff: 'Тариф У', cancelled: false },
+    { key: 'gamma', domain: 'gamma-shop.ru', company: 'ООО «Гамма»', tariff: 'Тариф Х', cancelled: true },
+  ] }), '/app/billing'],
   ['Оплачено, сайт отключается', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, cancelled: true, cancelledAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
 ];
 

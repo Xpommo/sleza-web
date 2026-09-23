@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRightIcon, ClockIcon, CloseIcon, OkIcon, RefreshIcon, WarnIcon } from '../../../components/app/AppIcons';
+import { ArrowRightIcon, ClockIcon, OkIcon, RefreshIcon, WarnIcon } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS } from '../../../lib/docPackage';
+import { accountSites } from './_shared/sites';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { RING, SiteHeader, SiteSidebar } from './_shared/SiteChrome';
 import { PRICE_LABEL, TARIFFS, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEnds } from './_shared/subscription';
@@ -35,7 +36,6 @@ export default function SiteOverviewClient() {
   const [a, setA] = useState(null);
   const [user, setUser] = useState(CURRENT_USER);
   const [now, setNow] = useState(Date.now());
-  const [offStep, setOffStep] = useState(0);
 
   useEffect(() => {
     const saved = loadAnketa();
@@ -60,7 +60,8 @@ export default function SiteOverviewClient() {
 
   const b = a.billing || {};
   const state = subState(a, now);
-  const tariff = b.tariff || TARIFFS[0];
+  const mainSite = accountSites(a, now)[0];
+  const tariff = mainSite.tariff;
   const period = b.paidAt ? paidPeriod(b.paidAt) : null;
   const unfinished = (a.stepsDone || 0) < 4;
   const domain = <span className="font-semibold text-ink">{a.domain}</span>;
@@ -69,7 +70,13 @@ export default function SiteOverviewClient() {
   // из утверждённого макета; честные к состоянию: «уже работают» — только
   // когда код на сайте действительно найден.
   let banner;
-  if (state === 'notstarted') {
+  // Сайт отключают в «Подписке» — здесь об этом говорит баннер, и путь назад
+  // ведёт туда же.
+  if (b.cancelled) {
+    banner = state === 'paid'
+      ? { tone: 'warn', Icon: WarnIcon, title: `Сайт отключается — работает до ${period.to}`, text: <>До этой даты всё работает как сейчас, в следующий счёт {domain} не войдёт.</>, cta: ['Вернуть в подписку', '/app/billing'] }
+      : { tone: 'muted', Icon: WarnIcon, title: 'Сайт отключён', text: <>Виджет снят с {domain}, в счёт сайт не входит. Опубликованные документы остаются доступны по ссылке.</>, cta: ['Вернуть в подписку', '/app/billing'] };
+  } else if (state === 'notstarted') {
     banner = unfinished
       ? { tone: 'warn', Icon: WarnIcon, title: 'Анкета не закончена', text: <>Документы собираются по ответам анкеты — ответьте на оставшиеся вопросы, и пакет будет готов.</>, cta: ['Продолжить анкету', STEP_URLS[a.stepsDone || 0]] }
       : { tone: 'muted', Icon: WarnIcon, title: 'Документы собраны, код не установлен', text: <>Пакет готов. Как только код встанет на сайт, включим документы и виджет — {TRIAL_DAYS} дней бесплатно.</>, cta: ['Поставить код на сайт', '/app/start/code'] };
@@ -167,29 +174,11 @@ export default function SiteOverviewClient() {
               <p className="mt-4 text-[13px] text-ink/60">Счёт, тариф и акты — общие для всех сайтов аккаунта.</p>
               <div className="mt-5 border-t border-line pt-5">
                 <Link href="/app/billing" className="text-sm font-semibold text-brand hover:underline">
-                  Открыть подписку аккаунта →
+                  Тариф и отключение — в подписке →
                 </Link>
               </div>
-              {/* Отключают один сайт, а не подписку: остальные сайты работают,
-                  в следующий счёт этот не войдёт. Только у оплаченного. */}
-              {state === 'paid' && (
-                <div className="mt-4 text-[13px]">
-                  {b.cancelled ? (
-                    <>
-                      <p className="text-ink/60">
-                        Сайт отключается. Виджет и документы работают до {period.to}, в следующий счёт этот сайт не войдёт.
-                      </p>
-                      <button type="button" onClick={() => setBilling({ cancelled: false })} className={`mt-2 rounded font-semibold text-brand hover:text-ink ${RING}`}>
-                        Вернуть сайт в подписку
-                      </button>
-                    </>
-                  ) : (
-                    <button type="button" onClick={() => setOffStep(1)} className={`rounded font-semibold text-ink/60 hover:text-danger ${RING}`}>
-                      Отключить этот сайт
-                    </button>
-                  )}
-                </div>
-              )}
+              {/* Отключают и меняют тариф сайта в «Подписке», в его строке —
+                  одно место на все сайты аккаунта (решение владельца 23.09). */}
             </article>
 
             <article className="rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
@@ -221,69 +210,6 @@ export default function SiteOverviewClient() {
       </section>
 
 
-      {offStep > 0 && (
-        <div role="dialog" aria-modal="true" aria-labelledby="off-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4">
-          <div className="mt-16 w-full max-w-[460px] rounded-2xl border border-line bg-white p-6 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <h3 id="off-title" className="text-lg font-bold tracking-[-0.03em]">
-                {offStep === 1 ? 'Может, получится помочь?' : `Отключить ${a.domain}?`}
-              </h3>
-              <button type="button" onClick={() => setOffStep(0)} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>
-                <CloseIcon size={18} />
-              </button>
-            </div>
-            {/* Шаг помощи ровно один, и кнопка отключения на нём честно
-                названа: затруднённый отказ — то, на что мы указываем клиентам. */}
-            {offStep === 1 ? (
-              <>
-                <p className="mt-3 text-[13px] leading-5 text-ink/65">
-                  Если виджет мешает вёрстке, документы не подходят под ваш случай или счёт пришёл не тот — это чинится за
-                  день. Отключить успеете всегда: сайт работает до {period.to}.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <button type="button" onClick={() => router.push('/app/support')} className={BTN}>
-                    Написать в поддержку
-                  </button>
-                  <button type="button" onClick={() => setOffStep(2)} className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}>
-                    Всё равно отключить
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="mt-3 text-[13px] leading-5 text-ink/65">
-                  Отключается только этот сайт — остальные сайты аккаунта продолжат работать, в следующий счёт этот сайт не
-                  войдёт. До {period.to} всё работает как сейчас — этот период уже оплачен. После этой даты:
-                </p>
-                {/* Страница уже опубликованной политики остаётся доступной по
-                    ссылке всегда — иначе бывший клиент становится нарушителем
-                    из-за нерабочей ссылки на нашей стороне (решение 24.08). */}
-                <ul className="mt-3 space-y-2 rounded-xl bg-danger/[0.06] p-4 text-[13px] leading-5 text-ink/75">
-                  <li>· Виджет исчезнет с {a.domain} — cookie-баннер и подвал со ссылками</li>
-                  <li>· Документы {a.domain} останутся в текущей версии: следить за изменениями закона и переписывать их мы перестанем</li>
-                </ul>
-                {/* Помощь предлагаем один раз — на первом шаге; второй раз
-                    здесь делал бы отказ тяжелее подключения (решение 10.09). */}
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBilling({ cancelled: true, cancelledAt: Date.now() });
-                      setOffStep(0);
-                    }}
-                    className={`rounded-xl border border-danger/30 px-5 py-3 text-sm font-bold text-danger hover:bg-danger/[0.05] ${RING}`}
-                  >
-                    Да, отключить
-                  </button>
-                  <button type="button" onClick={() => setOffStep(0)} className={BTN}>
-                    Оставить сайт
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </main>
   );
 }

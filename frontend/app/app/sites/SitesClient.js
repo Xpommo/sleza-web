@@ -11,6 +11,7 @@ import { CURRENT_USER } from '../../../lib/appMock';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
 import { paidPeriod, subState, trialEnds } from '../site/_shared/subscription';
+import { accountSites, cardStatus } from '../site/_shared/sites';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
@@ -32,6 +33,8 @@ function anketaProgress(a) {
 function siteStatus(a, now = Date.now()) {
   const sub = subState(a, now);
   const open = { action: 'Открыть сайт', href: '/app/site' };
+  // Отключают сайт в «Подписке» — туда и ведёт карточка (решение 23.09).
+  if (a.billing?.cancelled && sub !== 'paid') return { tone: 'warn', label: 'Сайт отключён', meta: 'в счёт не входит', action: 'Вернуть в подписку', href: '/app/billing' };
   if (sub === 'expired') return { tone: 'warn', label: 'Пробный период закончился', meta: 'виджет отключён', action: 'Оплатить', href: '/app/billing' };
   if (sub === 'pending') return { tone: 'info', label: 'Счёт выставлен', meta: 'оплата обычно проходит за 1–3 рабочих дня', ...open };
   if (sub === 'paid') {
@@ -85,6 +88,12 @@ export default function SitesClient() {
   }, []);
 
   const status = site ? siteStatus(loadAnketa()) : null;
+  // Демо-сайты пресета «Несколько сайтов»: в прототипе открывается только
+  // сайт из анкеты, поэтому их карточка ведёт туда, где ими управляют, —
+  // в «Подписку», а не в пустой кабинет.
+  const all = site ? accountSites(loadAnketa()) : [];
+  const demo = all.filter((x) => x.demo);
+  const mainTariff = all[0]?.tariff;
   const StatusIcon = status ? TONE[status.tone][1] : null;
   const finished = steps >= 6 || Boolean(site && loadAnketa().trialStartedAt);
 
@@ -105,7 +114,9 @@ export default function SitesClient() {
             <>
               <div className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-ink/70">1 сайт</p>
+                  <p className="text-sm font-semibold text-ink/70">
+                    {1 + demo.length} {1 + demo.length === 1 ? 'сайт' : 'сайта'}
+                  </p>
                   <p className="mt-1 text-xs text-ink/60">Документы и виджет — внутри карточки сайта</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
@@ -153,7 +164,10 @@ export default function SitesClient() {
                     <div className={`mt-6 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold ${TONE[status.tone][0]}`}>
                       <StatusIcon size={15} /> {status.label}
                     </div>
-                    <p className="mt-2 px-1 text-[12px] text-ink/60">{status.meta}</p>
+                    <p className="mt-2 px-1 text-[12px] text-ink/60">
+                      {status.meta}
+                      {finished && mainTariff && ` · ${mainTariff}`}
+                    </p>
 
                     <dl className="mt-6 space-y-3 text-sm">
                       {site.inn && (
@@ -185,6 +199,32 @@ export default function SitesClient() {
                       {status.action} <ChevronIcon size={16} />
                     </button>
                   </article>
+                  {demo.map((d) => {
+                    const st = cardStatus(d);
+                    const [cls, Icon] = TONE[st.tone];
+                    return (
+                      <article key={d.key} className="rounded-2xl border border-line bg-white p-6 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.35)] sm:p-7">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/[0.08] text-brand">
+                            <BuildingIcon size={18} />
+                          </span>
+                          <h2 className="truncate text-[20px] font-bold tracking-[-0.03em]">{d.domain}</h2>
+                        </div>
+                        {d.company && <p className="mt-4 text-sm font-medium text-ink/70">{d.company}</p>}
+                        <div className={`mt-6 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold ${cls}`}>
+                          <Icon size={15} /> {st.label}
+                        </div>
+                        <p className="mt-2 px-1 text-[12px] text-ink/60">{st.meta}</p>
+                        <button
+                          type="button"
+                          onClick={() => router.push('/app/billing')}
+                          className={`mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-white text-sm font-bold transition hover:border-line-2 ${RING}`}
+                        >
+                          Тариф и отключение <ChevronIcon size={16} />
+                        </button>
+                      </article>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="mt-6 overflow-hidden rounded-2xl border border-line bg-white">
@@ -218,6 +258,28 @@ export default function SitesClient() {
                           </button>
                         </td>
                       </tr>
+                      {demo.map((d) => (
+                        <tr key={d.key} className="border-t border-line">
+                          <td className="px-5 py-4">
+                            <p className="font-bold">{d.domain}</p>
+                            {d.company && <p className="mt-0.5 text-xs text-ink/60">{d.company}</p>}
+                          </td>
+                          <td className="px-5 py-4">
+                            <p className="font-semibold text-ink/80">{cardStatus(d).label}</p>
+                            <p className="mt-0.5 text-xs text-ink/60">{cardStatus(d).meta}</p>
+                          </td>
+                          <td className="px-5 py-4 text-ink/70">пройдена</td>
+                          <td className="px-5 py-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => router.push('/app/billing')}
+                              className={`rounded-lg border border-line px-3 py-2 text-xs font-bold transition hover:border-brand hover:text-brand ${RING}`}
+                            >
+                              Тариф и отключение →
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -250,7 +312,7 @@ export default function SitesClient() {
           </div>
           )}
           <p className="mt-6 text-center text-xs text-ink/60">
-            {site ? (finished ? 'Отключить можно любой сайт по отдельности — остальные продолжат работать.' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
+            {site ? (finished ? 'Отключить можно любой сайт по отдельности, в «Подписке» — остальные продолжат работать.' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
           </p>
         </div>
       </section>
