@@ -1091,6 +1091,15 @@
         ],
         "createdAt": "2026-09-23T10:30:19.909Z",
         "reason": "established cabinet type scale: same sizes in this file at git HEAD and in sibling cabinet files already ignored"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "14px",
+        "files": [
+          "frontend/app/app/billing/BillingClient.js"
+        ],
+        "createdAt": "2026-09-23T11:13:38.312Z",
+        "reason": "established cabinet type scale: 14px already excepted in sibling cabinet files (SitesClient, SiteOverviewClient, anketa steps)"
       }
     ]
   }
