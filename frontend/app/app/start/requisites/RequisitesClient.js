@@ -51,7 +51,6 @@ export default function RequisitesClient() {
   // вообще спрашивать, решать это за клиента нельзя.
   const [owner, setOwner] = useState(null);
   const [ownerError, setOwnerError] = useState(null);
-  const [ownerWhy, setOwnerWhy] = useState(false);
 
   const [inn, setInn] = useState('');
   const [innError, setInnError] = useState(null);
@@ -158,7 +157,9 @@ export default function RequisitesClient() {
 
   const isOoo = owner === 'ООО';
   const innLength = isOoo ? 10 : 12;
-  const licenseSphere = LICENSE_SPHERES[sphere];
+  // Лицензию получают только организации и ИП (99-ФЗ ст.3); самозанятый —
+  // физлицо без ОГРНИП, лицензии у него быть не может, и вопрос не задаём.
+  const licenseSphere = owner === 'Самозанятый' ? null : LICENSE_SPHERES[sphere];
   const showIt = isOoo && sphere === 'it';
   const showLicenseBlock = Boolean(licenseSphere) || showIt;
 
@@ -259,14 +260,10 @@ export default function RequisitesClient() {
     <AnketaFrame current={3} title="Реквизиты" lead={<>Данные компании — встанут в документы и в «Реквизиты» в подвале сайта.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
-              <SectionHead
-                id="h-owner"
-                title="Кто владеет сайтом"
-                required
-                whyOpen={ownerWhy}
-                onWhy={() => setOwnerWhy(!ownerWhy)}
-                why="От этого зависит, какие регистрационные данные спросим дальше — у ООО, ИП и самозанятого они разные."
-              />
+              {/* «Кто владеет сайтом» подрядчик читал как вопрос о себе и отвечал
+                  формой своей компании (владелец 23.09). Варианты — в самом
+                  вопросе; «Зачем» не нужен: из вопроса понятно, что выбираешь. */}
+              <SectionHead id="h-owner" title="Владелец сайта — ООО, ИП или самозанятый?" required />
               <div className="mt-5">
                 <Segmented options={OWNERS} value={owner} onChange={pickOwner} ariaLabelledby="h-owner" />
               </div>
@@ -278,7 +275,7 @@ export default function RequisitesClient() {
                 id="h-registry"
                 icon={BuildingIcon}
                 title="Данные из реестра"
-                why="149-ФЗ ст.10 ч.2 обязывает владельца сайта держать в открытом доступе наименование, место нахождения и адрес. Виджет откроет их по ссылке в подвале — их увидит любой посетитель. КПП закон публиковать не требует: он нужен, чтобы бухгалтер контрагента выставил счёт."
+                why="Покажем их в подвале сайта — по ним любой контрагент подготовит договор или счёт без лишних запросов."
                 whyOpen={registryWhy}
                 onWhy={() => setRegistryWhy(!registryWhy)}
               />
@@ -365,7 +362,7 @@ export default function RequisitesClient() {
                   id="h-bank"
                   icon={BankIcon}
                   title="Банковские реквизиты"
-                  why="Закон публиковать банковские реквизиты не требует, но в «Реквизитах» в подвале они нужны вашим контрагентам: бухгалтер выставит счёт и составит договор, ничего не запрашивая дополнительно."
+                  why="Покажем их в подвале рядом с реквизитами — клиенты и партнёры оплатят счёт, не запрашивая данные отдельно."
                   whyOpen={bankWhy}
                   onWhy={() => setBankWhy(!bankWhy)}
                 />
@@ -434,7 +431,7 @@ export default function RequisitesClient() {
                     id="h-license"
                     icon={CertificateIcon}
                     title="Лицензии и статусы"
-                    why={licenseSphere ? "Если деятельность лицензируемая, ЗоЗПП ст.9 ч.2 требует показать посетителю номер лицензии, срок её действия и орган, который её выдал. Выведем эти сведения в подвал сайта рядом с остальными реквизитами. Сам скан лицензии не просим — закон в общем случае его не требует." : null}
+                    why={licenseSphere ? 'Для вашей сферы на сайте нужно указать номер лицензии, срок её действия и кто её выдал — выведем это в подвал рядом с реквизитами.' : null}
                     whyOpen={licenseWhy}
                     onWhy={() => setLicenseWhy(!licenseWhy)}
                   />
@@ -526,14 +523,14 @@ export default function RequisitesClient() {
               <BlockHead
                 id="h-contacts"
                 icon={PhoneIcon}
-                title="Контакты компании"
-                why="Это контакты компании, а не ваши личные. Адрес электронной почты требует публиковать 149-ФЗ ст.10 ч.2, телефон — нет, он для счёта и договора. Контакт по вопросам персональных данных спрашиваем отдельно: его публикация требуется по 152-ФЗ, а на бухгалтерской почте такие обращения обычно теряются."
+                title="Контакты для посетителей сайта"
+                why="Покажем их в подвале сайта: по ним с компанией свяжутся посетители и партнёры."
                 whyOpen={contactsWhy}
                 onWhy={() => setContactsWhy(!contactsWhy)}
               />
               <div className="mt-5 grid gap-5 md:grid-cols-2">
                 <Field
-                  label="Email компании"
+                  label="Почта компании"
                   required
                   placeholder="info@alfa-school.ru"
                   icon={MailIcon}
@@ -549,6 +546,7 @@ export default function RequisitesClient() {
                   error={companyMailError}
                 />
                 <PhoneField
+                  label="Телефон компании"
                   required
                   icon={PhoneIcon}
                   value={companyPhone}
@@ -562,7 +560,7 @@ export default function RequisitesClient() {
                     почтовый — второе такое же поле было бы дублем (макет, 9.09). */}
                 {(!owner || owner === 'ООО') && (
                   <Field
-                    label="Адрес для переписки"
+                    label="Адрес для писем"
                     placeholder="Если отличается от юридического"
                     icon={BuildingIcon}
                     value={postAddress}
@@ -572,9 +570,9 @@ export default function RequisitesClient() {
                 {/* Отдельно от бухгалтерской почты намеренно: на общий ящик
                     такие обращения обычно не доходят до того, кто отвечает. */}
                 <Field
-                  label="Куда писать по вопросам персональных данных"
+                  label="Контакт для вопросов о персональных данных"
                   required
-                  placeholder="Почта или телефон, куда придёт обращение"
+                  placeholder="Почта или телефон"
                   icon={InfoIcon}
                   value={pdContact}
                   onChange={(e) => {
@@ -590,6 +588,7 @@ export default function RequisitesClient() {
                 человек видел одни и те же кнопки дважды (правка владельца). */}
             <div className="mt-7 hidden gap-3 border-t border-line pt-5 lg:flex">
               <button
+                data-funnel-back
                 type="button"
                 onClick={() => router.push('/app/start/clients')}
                 className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
@@ -598,7 +597,6 @@ export default function RequisitesClient() {
               </button>
               <button
                 data-funnel-next
-                data-funnel-back
                 type="button"
                 onClick={handleNext}
                 className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}

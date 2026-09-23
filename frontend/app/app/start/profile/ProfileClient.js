@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
-  CheckIcon,
   ChevronDownIcon,
   UserIcon,
   PhoneIcon,
@@ -13,7 +12,7 @@ import {
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { formatPhone, phoneIncomplete, validateEmail } from '../../../../lib/validate';
-import { RING, AnketaFrame, Field, PhoneField, SectionHead } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, Field, PhoneField, SectionHead, Tile } from '../_shared/AnketaChrome';
 import { loadAnketa, loadAuth, markStepDone, saveAnketa, setMessenger, userLabel } from '../_shared/anketaState';
 
 const ROLES = ['Директор / собственник', 'Сотрудник', 'Подрядчик'];
@@ -205,28 +204,11 @@ export default function ProfileClient() {
                 <h2 id="h-role" className="text-xl font-bold tracking-[-0.025em]">
                   Ваша роль в компании <span className="text-brand">*</span>
                 </h2>
-                <div className="mt-4 grid gap-2 sm:grid-cols-3" role="group" aria-labelledby="h-role">
+                {/* Те же карточки, что у вопросов шагов 2–3: своя кнопка с
+                    круглой отметкой выбивалась из анкеты (владелец 23.09). */}
+                <div className="mt-5 grid gap-3 sm:grid-cols-3" role="radiogroup" aria-labelledby="h-role">
                   {ROLES.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => pickRole(item)}
-                      aria-pressed={role === item}
-                      className={`rounded-xl border px-4 py-3.5 text-left text-sm font-bold transition-all ${RING} ${
-                        role === item
-                          ? 'border-brand bg-brand/[0.06] text-brand ring-2 ring-brand/10'
-                          : 'border-line text-ink/70 hover:border-line-2 hover:bg-warm'
-                      }`}
-                    >
-                      <span
-                        className={`mr-2 inline-flex h-4 w-4 align-[-3px] items-center justify-center rounded-full border ${
-                          role === item ? 'border-brand bg-brand' : 'border-line-2'
-                        }`}
-                      >
-                        {role === item && <CheckIcon size={10} className="text-white" />}
-                      </span>
-                      {item}
-                    </button>
+                    <Tile key={item} title={item} radio compact selected={role === item} onClick={() => pickRole(item)} />
                   ))}
                 </div>
                 {roleError && <p className="mt-2 text-[12px] font-semibold text-danger">{roleError}</p>}
