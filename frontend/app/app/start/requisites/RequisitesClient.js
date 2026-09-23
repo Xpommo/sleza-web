@@ -265,6 +265,25 @@ export default function RequisitesClient() {
     setRegEdit(false);
   }
 
+  // «Готово» у раскрытых полей: правки остаются, поля сворачиваются обратно в
+  // карточку (владелец 23.09). С ошибкой не сворачиваем — карточка спрятала бы
+  // неверные данные.
+  function doneFields(keys) {
+    const e = validateRequisites({ owner, inn, name, ogrn, kpp, address, account, bank, bik, corr, companyMail, companyPhone });
+    let bad = false;
+    keys.forEach(([key, set]) => {
+      set(e[key] || null);
+      if (e[key]) bad = true;
+    });
+    return !bad;
+  }
+  function doneRegistry() {
+    if (doneFields([['inn', setInnError], ['name', setNameError], ['ogrn', setOgrnError], ['kpp', setKppError], ['address', setAddressError]])) setRegEdit(false);
+  }
+  function doneBank() {
+    if (doneFields([['bik', setBikError], ['bank', setBankError], ['corr', setCorrError]])) setBankEdit(false);
+  }
+
   const lastBank = useRef({});
   function onBikChange(e) {
     const value = digitsOnly(e.target.value).slice(0, 9);
@@ -272,11 +291,16 @@ export default function RequisitesClient() {
     setBikError(null);
     if (value.length !== 9) return;
     const found = BIK_LOOKUP[value];
+    const last = lastBank.current;
     if (!found) {
+      // Подставленное по прошлому БИК к новому не относится — стираем; то,
+      // что человек ввёл руками, не трогаем.
+      if (bank && bank === last.bank) setBank('');
+      if (corr && corr === last.corr) setCorr('');
+      lastBank.current = {};
       setBankEdit(true);
       return;
     }
-    const last = lastBank.current;
     if (!bank || bank === last.bank) setBank(found.bank);
     if (!corr || corr === last.corr) setCorr(found.corr);
     lastBank.current = found;
@@ -396,7 +420,7 @@ export default function RequisitesClient() {
                   номером висела бы чужая компания. */}
               {!regEdit && inn.length === innLength && name && address ? (
                 <FoundCard
-                  note="Нашли по ИНН — проверьте"
+                  note={name === lastFill.current.name && address === lastFill.current.address ? 'Нашли по ИНН — проверьте' : 'Проверьте, что всё верно'}
                   title={name}
                   lines={[
                     [owner !== 'Самозанятый' && ogrn && `${isOoo ? 'ОГРН' : 'ОГРНИП'} ${ogrn}`, isOoo && kpp && `КПП ${kpp}`].filter(Boolean).join(' · '),
@@ -405,6 +429,7 @@ export default function RequisitesClient() {
                   onEdit={() => setRegEdit(true)}
                 />
               ) : regEdit ? (
+                <>
                 <div className="mt-5 grid gap-5 md:grid-cols-2">
                 <Field
                   label={ownerLabels(owner).name}
@@ -466,6 +491,12 @@ export default function RequisitesClient() {
                   />
                 </div>
                 </div>
+                {inn.length === innLength && (
+                  <button type="button" onClick={doneRegistry} className={LINK_BTN}>
+                    Готово
+                  </button>
+                )}
+                </>
               ) : (
                 owner && (
                   <button type="button" onClick={() => setRegEdit(true)} className={LINK_BTN}>
@@ -515,7 +546,12 @@ export default function RequisitesClient() {
                   />
                 </div>
                 {!bankEdit && bik.length === 9 && bank && corr ? (
-                  <FoundCard note="Нашли по БИК — проверьте" title={bank} lines={[`Корреспондентский счёт ${corr}`]} onEdit={() => setBankEdit(true)} />
+                  <FoundCard
+                    note={bank === lastBank.current.bank && corr === lastBank.current.corr ? 'Нашли по БИК — проверьте' : 'Проверьте, что всё верно'}
+                    title={bank}
+                    lines={[`Корреспондентский счёт ${corr}`]}
+                    onEdit={() => setBankEdit(true)}
+                  />
                 ) : (
                   bankEdit && (
                     <>
@@ -549,6 +585,11 @@ export default function RequisitesClient() {
                           error={corrError}
                         />
                       </div>
+                      {bik.length === 9 && (
+                        <button type="button" onClick={doneBank} className={LINK_BTN}>
+                          Готово
+                        </button>
+                      )}
                     </>
                   )
                 )}
