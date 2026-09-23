@@ -105,10 +105,18 @@ function SiteRow({ site, open, onOpen, onOff, onResume, onGo, children }) {
           <p className="truncate text-sm font-bold">{site.domain}</p>
           {site.company && <p className="mt-0.5 truncate text-[12px] text-ink/60">{site.company}</p>}
         </div>
+        {/* В пробный период тариф — «Пробный период», выбранный тариф —
+            второй строкой: он начнётся после (владелец 23.09). */}
         <div>
-          <p className="text-sm font-semibold">{site.tariff}</p>
+          <p className="text-sm font-semibold">{site.kind === 'trial' ? 'Пробный период' : site.tariff}</p>
           <p className="mt-0.5 text-[12px] text-ink/60">
-            {site.nextTariff && site.period ? `с ${site.period.renew} — ${site.nextTariff}` : live ? `${PRICE_TEXT} в год` : '—'}
+            {site.kind === 'trial'
+              ? `дальше ${site.tariff} · ${PRICE_TEXT} в год`
+              : site.nextTariff && site.period
+                ? `с ${site.period.renew} — ${site.nextTariff}`
+                : live
+                  ? `${PRICE_TEXT} в год`
+                  : '—'}
           </p>
         </div>
         <span className={`w-fit rounded-full px-3 py-1.5 text-[11px] font-bold ${TONE[site.tone]}`}>{site.label}</span>

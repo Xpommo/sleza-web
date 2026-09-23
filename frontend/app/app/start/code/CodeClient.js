@@ -379,8 +379,19 @@ export default function CodeClient() {
                           Когда код появится на сайте, мы увидим это сами — пробный период на {TRIAL_DAYS} дней начнётся
                           автоматически.
                         </p>
+                        {/* Скопировали — ссылка перед глазами, её можно выделить
+                            или скопировать снова; «Отправить ещё раз» после
+                            копирования звучало бессмысленно (владелец 23.09). */}
+                        {shared.kind === 'copy' && (
+                          <p className="mt-2 flex items-center gap-2">
+                            <span className="min-w-0 break-all font-mono text-[12px] text-ink/70">{INSTRUCTION_URL}</span>
+                            <button type="button" onClick={shareCopy} aria-label="Скопировать ссылку" title="Скопировать ссылку" className={`shrink-0 rounded p-1 text-ink/50 hover:text-brand ${RING}`}>
+                              <CopyIcon size={15} />
+                            </button>
+                          </p>
+                        )}
                         <button type="button" onClick={() => setShared(null)} className={`mt-2 rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`}>
-                          Отправить ещё раз
+                          Выбрать другой способ
                         </button>
                       </div>
                     </div>

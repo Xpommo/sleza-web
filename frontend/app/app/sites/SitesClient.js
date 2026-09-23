@@ -126,7 +126,7 @@ function SiteCard({ site, onOpen }) {
       </div>
       <p className="mt-2 px-1 text-[12px] text-ink/60">
         {site.demo ? site.demoMeta : site.status.meta}
-        {!site.demo && site.finished && site.tariff && ` · ${site.tariff}`}
+        {!site.demo && site.finished && site.tariff && site.kind !== 'trial' && ` · ${site.tariff}`}
       </p>
 
       {!site.demo && (

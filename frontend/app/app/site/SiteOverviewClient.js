@@ -127,9 +127,13 @@ export default function SiteOverviewClient() {
   // повторялся тут строкой «Статус» и ещё раз в событиях. В карточке —
   // факты подписки: тариф, цена, продление, номер счёта.
   const priceRow = ['Цена', `${PRICE_LABEL} в год`];
+  // В пробный период тариф — «Пробный период», а выбранный тариф — строкой
+  // «Дальше»: что начнётся после и сколько стоит (владелец 23.09 — название
+  // тарифа во время бесплатных дней читалось как уже оплаченный тариф).
+  const afterRow = ['Дальше', `${tariff} · ${PRICE_LABEL} в год`];
   const subRows = {
-    notstarted: [['Тариф', tariff], priceRow],
-    trial: [['Тариф', tariff], priceRow],
+    notstarted: [['Тариф', `Пробный период — ${TRIAL_DAYS} дней`], afterRow],
+    trial: [['Тариф', `Пробный период до ${trialEnds(a)}`], afterRow],
     expired: [['Тариф', tariff], priceRow],
     pending: [['Тариф', tariff], ['Счёт', `№ ${b.invoice?.no} · обычно 1–3 рабочих дня`]],
     paid: period && (b.cancelled

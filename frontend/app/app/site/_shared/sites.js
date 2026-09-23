@@ -111,7 +111,7 @@ function describe(a, s, now) {
   if (state === 'paid') return { kind: 'paid', label: `оплачено до ${period.to}`, tone: 'ok', period };
   if (state === 'pending') return { kind: 'pending', label: 'ждёт оплаты по счёту', tone: 'info', period };
   if (state === 'expired') return { kind: 'expired', label: 'пробный период закончился', tone: 'warn', period };
-  return { kind: 'trial', label: `пробный до ${trialEnds(v)}`, tone: 'info', period };
+  return { kind: 'trial', label: `бесплатно до ${trialEnds(v)}`, tone: 'info', period };
 }
 
 export function accountSites(a, now = Date.now()) {
@@ -321,7 +321,9 @@ const CARD = {
 };
 export function cardStatus(site) {
   const meta = site.kind === 'off-soon' ? site.label.replace('отключается · до', 'работает до') : site.label;
-  return { label: CARD[site.kind], meta: `${meta} · ${site.tariff}`, tone: site.tone === 'muted' ? 'warn' : site.tone };
+  // В пробный период тариф ещё не действует — рядом с «Пробный период» его
+  // название путало.
+  return { label: CARD[site.kind], meta: site.kind === 'trial' ? meta : `${meta} · ${site.tariff}`, tone: site.tone === 'muted' ? 'warn' : site.tone };
 }
 
 export function formatRub(n) {
