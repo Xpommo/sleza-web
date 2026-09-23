@@ -22,6 +22,10 @@ export function normalizePhone(raw) {
   if (!digits) return '';
   if (digits.startsWith('8')) digits = '7' + digits.slice(1);
   else if (!digits.startsWith('7')) digits = '7' + digits;   // ввод начали с национальной цифры
+  // +7 уже стоит в поле, а человек по привычке набирает «8 916…» или
+  // вставляет «+7 916…»: вторая 8/7 перед 9 — это его собственный код страны,
+  // а не часть номера (кодов +7 (89…) и +7 (79…) не бывает).
+  if (/^7[78]9/.test(digits)) digits = '7' + digits.slice(2);
   return digits.slice(0, 11);
 }
 
@@ -36,6 +40,12 @@ export function formatPhone(raw) {
   if (rest.length > 6) out += `-${rest.slice(6, 8)}`;
   if (rest.length > 8) out += `-${rest.slice(8, 10)}`;
   return out;
+}
+
+// Для необязательного телефона: пусто — можно, начатый номер — только целиком.
+export function phoneIncomplete(raw) {
+  const d = normalizePhone(raw);
+  return d.length > 1 && d.length < 11 ? 'Номер неполный — после +7 нужно 10 цифр.' : null;
 }
 
 export function validatePhone(raw) {

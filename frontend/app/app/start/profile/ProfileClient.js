@@ -12,8 +12,8 @@ import {
   MailIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { validateEmail } from '../../../../lib/validate';
-import { RING, AnketaFrame, Field, SectionHead } from '../_shared/AnketaChrome';
+import { formatPhone, phoneIncomplete, validateEmail } from '../../../../lib/validate';
+import { RING, AnketaFrame, Field, PhoneField, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, loadAuth, markStepDone, saveAnketa, setMessenger, userLabel } from '../_shared/anketaState';
 
 const ROLES = ['Директор / собственник', 'Сотрудник', 'Подрядчик'];
@@ -58,6 +58,7 @@ export default function ProfileClient() {
   // Телефон — необязательный и без проверки формата: в утверждённой анкете
   // у него нет ни маски, ни ошибки, это запасной канал, а не гейт.
   const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState(null);
 
   // Почта проверяется только на формат. Подтверждение кодом снято решением
   // владельца: письма сюда идут формальные (обновление документов, изменение
@@ -79,7 +80,7 @@ export default function ProfileClient() {
     const a = loadAnketa();
     if (a.role) setRole(a.role);
     if (a.personName) setName(a.personName);
-    if (a.personPhone) setPhone(a.personPhone);
+    if (a.personPhone) setPhone(formatPhone(a.personPhone));
     if (a.personEmail) setEmail(a.personEmail);
     setAuth(loadAuth());
     setRestored(true);
@@ -117,6 +118,11 @@ export default function ProfileClient() {
     } else {
       setNameError(null);
     }
+
+    // Телефон необязателен, но начатый номер — только целиком.
+    const phoneErr = phoneIncomplete(phone);
+    setPhoneError(phoneErr);
+    if (phoneErr) ok = false;
 
     if (validateEmail(email)) {
       setEmailError('Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.');
@@ -244,13 +250,15 @@ export default function ProfileClient() {
                     }}
                     error={nameError}
                   />
-                  <Field
+                  <PhoneField
                     label="Телефон на случай, если письма не дойдут"
-                    placeholder="+7 (___) ___-__-__"
                     icon={PhoneIcon}
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    inputMode="tel"
+                    onValue={(v) => {
+                      setPhone(v);
+                      setPhoneError(null);
+                    }}
+                    error={phoneError}
                   />
 
                   <div className="sm:col-span-2">

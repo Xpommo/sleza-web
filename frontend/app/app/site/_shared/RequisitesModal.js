@@ -9,7 +9,7 @@
 
 import { useState } from 'react';
 import { CloseIcon } from '../../../../components/app/AppIcons';
-import { Field } from '../../start/_shared/AnketaChrome';
+import { Field, PhoneField } from '../../start/_shared/AnketaChrome';
 import { loadAnketa } from '../../start/_shared/anketaState';
 import { saveSiteFields, siteAnketa } from './sites';
 import { digitsOnly, ownerLabels, validateRequisites } from '../../start/_shared/requisitesRules';
@@ -107,7 +107,15 @@ export default function RequisitesModal({ onClose, onSaved }) {
           <Field label={L.address} required placeholder={L.addressPlaceholder} {...bind('address')} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Email компании" required type="email" placeholder="info@site.ru" {...bind('companyMail')} />
-            <Field label="Телефон" required inputMode="tel" placeholder="+7 (___) ___-__-__" {...bind('companyPhone')} />
+            <PhoneField
+              required
+              value={v.companyPhone}
+              onValue={(p) => {
+                setV((x) => ({ ...x, companyPhone: p }));
+                setErr((x) => ({ ...x, companyPhone: null }));
+              }}
+              error={err.companyPhone}
+            />
           </div>
           <Field label="Расчётный счёт" required inputMode="numeric" placeholder="40702810..." {...bind('account', { digits: 20 })} />
           <div className="grid gap-4 sm:grid-cols-2">

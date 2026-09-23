@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { CloseIcon } from '../../../components/app/AppIcons';
 import { MESSENGER_ICONS } from '../../../components/app/AuthBits';
 import { CURRENT_USER } from '../../../lib/appMock';
-import { EMAIL_RE } from '../../../lib/validate';
-import { Field } from '../start/_shared/AnketaChrome';
+import { EMAIL_RE, formatPhone, phoneIncomplete } from '../../../lib/validate';
+import { Field, PhoneField } from '../start/_shared/AnketaChrome';
 import { accountUser, loadAnketa, loadAuth, saveAnketa, setMessenger } from '../start/_shared/anketaState';
 import { RING, SettingsSidebar } from '../site/_shared/SiteChrome';
 
@@ -32,7 +32,7 @@ export default function SettingsClient() {
   // человек и одни контакты, а не вторая копия.
   function sync() {
     setUser(accountUser(CURRENT_USER));
-    setPhone(loadAnketa().personPhone || '');
+    setPhone(formatPhone(loadAnketa().personPhone || ''));
     setMessengers(loadAuth().messengers);
   }
   useEffect(sync, []);
@@ -47,6 +47,7 @@ export default function SettingsClient() {
     const e = {};
     if (!form.name.trim()) e.name = 'Укажите имя — так будем обращаться в письмах.';
     if (!EMAIL_RE.test(form.email.trim())) e.email = 'Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.';
+    if (phoneIncomplete(form.phone)) e.phone = phoneIncomplete(form.phone);
     setErr(e);
     if (Object.keys(e).length) return;
     saveAnketa({ personName: form.name.trim(), personEmail: form.email.trim(), personPhone: form.phone.trim() });
@@ -93,7 +94,15 @@ export default function SettingsClient() {
                 {/* Формулировка та же, что на шаге «Ваш профиль», — иначе
                     название одного поля разъезжается между экранами. */}
                 <div>
-                  <Field label="Телефон на случай, если письма не дойдут" inputMode="tel" placeholder="+7 (___) ___-__-__" {...bind('phone')} />
+                  <PhoneField
+                    label="Телефон на случай, если письма не дойдут"
+                    value={form.phone}
+                    onValue={(p) => {
+                      setForm((f) => ({ ...f, phone: p }));
+                      setErr((x) => ({ ...x, phone: null }));
+                    }}
+                    error={err.phone}
+                  />
                   <p className="mt-2 text-[12px] text-ink/60">Необязательно — позвоним, только если письма перестанут доходить.</p>
                 </div>
                 <div className="flex flex-wrap gap-3 pt-1">

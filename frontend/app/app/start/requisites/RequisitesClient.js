@@ -14,10 +14,10 @@ import {
   UserIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { RING, AnketaFrame, Field, Segmented, BlockHead, SectionHead } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, Field, PhoneField, Segmented, BlockHead, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 import { digitsOnly, ownerLabels, validateRequisites } from '../_shared/requisitesRules';
-import { EMAIL_RE } from '../../../../lib/validate';
+import { EMAIL_RE, formatPhone } from '../../../../lib/validate';
 
 const OWNERS = ['ООО', 'ИП', 'Самозанятый'];
 
@@ -127,7 +127,7 @@ export default function RequisitesClient() {
     setSoftRegistry(a.softRegistry ?? null);
     if (a.contacts) {
       setCompanyMail(a.contacts.companyMail || '');
-      setCompanyPhone(a.contacts.companyPhone || '');
+      setCompanyPhone(formatPhone(a.contacts.companyPhone || ''));
       setPostAddress(a.contacts.postAddress || '');
       setPdContact(a.contacts.pdContact || '');
     }
@@ -550,15 +550,12 @@ export default function RequisitesClient() {
                   }}
                   error={companyMailError}
                 />
-                <Field
-                  label="Телефон"
+                <PhoneField
                   required
-                  placeholder="+7 (___) ___-__-__"
                   icon={PhoneIcon}
-                  inputMode="tel"
                   value={companyPhone}
-                  onChange={(e) => {
-                    setCompanyPhone(e.target.value);
+                  onValue={(v) => {
+                    setCompanyPhone(v);
                     setCompanyPhoneError(null);
                   }}
                   error={companyPhoneError}

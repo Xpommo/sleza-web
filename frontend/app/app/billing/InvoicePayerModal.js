@@ -7,8 +7,9 @@
 
 import { useState } from 'react';
 import { CloseIcon } from '../../../components/app/AppIcons';
-import { Field } from '../start/_shared/AnketaChrome';
+import { Field, PhoneField } from '../start/_shared/AnketaChrome';
 import { RING } from '../site/_shared/SiteChrome';
+import { phoneIncomplete } from '../../../lib/validate';
 
 export const EMPTY_PAYER = { name: '', inn: '', ogrn: '', email: '', phone: '', account: '', bank: '', bik: '', corr: '' };
 
@@ -19,6 +20,7 @@ function validate(v) {
   if (!v.name.trim()) e.name = 'Укажите, кто оплачивает счёт.';
   if (!/^\d{10}(\d{2})?$/.test(v.inn)) e.inn = 'ИНН — 10 или 12 цифр.';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) e.email = 'Нужна почта вида name@site.ru — на неё придёт счёт.';
+  if (phoneIncomplete(v.phone)) e.phone = phoneIncomplete(v.phone);
   return e;
 }
 
@@ -66,7 +68,14 @@ export default function InvoicePayerModal({ initial, onClose, onSave }) {
           </div>
           <div className="h-px bg-line" />
           <Field label="Email для счёта" required type="email" placeholder="buh@romashka.ru" {...bind('email')} />
-          <Field label="Телефон" inputMode="tel" placeholder="+7 (___) ___-__-__" {...bind('phone')} />
+          <PhoneField
+            value={v.phone}
+            onValue={(p) => {
+              setV((x) => ({ ...x, phone: p }));
+              setErr((x) => ({ ...x, phone: null }));
+            }}
+            error={err.phone}
+          />
           <Field label="Расчётный счёт" inputMode="numeric" placeholder="40702810..." {...bind('account', 20)} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Банк" placeholder="ПАО «Сбербанк»" {...bind('bank')} />

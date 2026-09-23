@@ -1,4 +1,4 @@
-import { EMAIL_RE } from '../../../../lib/validate';
+import { EMAIL_RE, normalizePhone } from '../../../../lib/validate';
 // Реквизиты владельца: подписи полей и правила проверки. Одни на шаг 4
 // анкеты и на окно «Реквизиты владельца» в кабинете — иначе правка в
 // кабинете пропустит то, что анкета не пустила бы.
@@ -44,6 +44,8 @@ export function validateRequisites(v) {
   if (digitsOnly(v.bik).length !== 9) e.bik = 'БИК — 9 цифр.';
   if (digitsOnly(v.corr).length !== 20) e.corr = 'Корреспондентский счёт — 20 цифр. Проверьте, не пропущена ли часть номера.';
   if (!EMAIL_RE.test(String(v.companyMail || '').trim())) e.companyMail = 'Нужна почта вида name@site.ru — её увидят в реквизитах на сайте.';
-  if (!String(v.companyPhone || '').trim()) e.companyPhone = 'Укажите телефон — он попадёт в реквизиты на сайте.';
+  const phone = normalizePhone(v.companyPhone);
+  if (phone.length <= 1) e.companyPhone = 'Укажите телефон — он попадёт в реквизиты на сайте.';
+  else if (phone.length < 11) e.companyPhone = 'Номер неполный — после +7 нужно 10 цифр.';
   return e;
 }

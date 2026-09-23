@@ -43,7 +43,7 @@ const SCREENS = [
 
 // Ответы — те, что дала бы демо-автоподстановка по ИНН на шаге 4, чтобы
 // экраны не спорили друг с другом.
-const PERSON = { role: 'Директор / собственник', personName: 'Кирилл', personPhone: '+7 999 123-45-67', personEmail: 'director@alfa-school.ru' };
+const PERSON = { role: 'Директор / собственник', personName: 'Кирилл', personPhone: '+7 (999) 123-45-67', personEmail: 'director@alfa-school.ru' };
 const SITE = { domain: 'alfa-school.ru', sphere: 'school', sphereOther: '', platform: 'Тильда', platformOther: '', analytics: ['metrika'], features: ['chat'] };
 const CLIENTS = { purposes: ['booking', 'inquiry'], pdFields: ['name', 'phone', 'email'], callsBase: true };
 const REQ = {

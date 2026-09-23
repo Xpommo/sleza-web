@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, InfoIcon } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
+import { formatPhone, normalizePhone } from '../../../../lib/validate';
 import { accountUser, loadAnketa } from './anketaState';
 import { SidebarShell, TearMark, useBottomBar } from '../../site/_shared/SiteChrome';
 
@@ -219,17 +220,21 @@ export function AnketaFrame({ current, title, lead, nextLabel = 'Далее', ch
 export function Field({ label, required, placeholder, icon: Icon, badge, className = '', error, inputRef, ...rest }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-2 flex items-center justify-between gap-3 text-[13px] font-bold text-ink-2">
-        <span>
-          {label}
-          {required && <span className="text-brand"> *</span>}
-        </span>
-        {badge && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/[0.08] px-2.5 py-1 text-[10px] font-bold text-brand">
-            {badge}
+      {/* Без подписи — когда вопрос назван заголовком блока (SectionHead), а
+          поле связано с ним через aria-labelledby. */}
+      {(label || badge) && (
+        <span className="mb-2 flex items-center justify-between gap-3 text-[13px] font-bold text-ink-2">
+          <span>
+            {label}
+            {required && <span className="text-brand"> *</span>}
           </span>
-        )}
-      </span>
+          {badge && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/[0.08] px-2.5 py-1 text-[10px] font-bold text-brand">
+              {badge}
+            </span>
+          )}
+        </span>
+      )}
       <span className="relative block">
         {Icon && <Icon size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" />}
         <input
@@ -244,6 +249,49 @@ export function Field({ label, required, placeholder, icon: Icon, badge, classNa
       </span>
       {error && <span className="mt-1.5 block text-[12px] font-semibold text-danger">{error}</span>}
     </label>
+  );
+}
+
+// Телефон — одна маска на весь кабинет (правка владельца 23.09): +7 встаёт
+// сам, как в образце, номер оформляется по нему же и обрывается на 11 цифрах
+// — считать цифры не нужно. «8 916…» по привычке тоже даёт верный номер.
+// Пустое поле остаётся пустым: одинокое «+7» при уходе из поля стирается.
+export function PhoneField({ value, onValue, label = 'Телефон', ...rest }) {
+  return (
+    <Field
+      label={label}
+      placeholder="+7 (___) ___-__-__"
+      inputMode="tel"
+      autoComplete="tel"
+      {...rest}
+      value={value}
+      onFocus={(e) => {
+        if (value) return;
+        const el = e.target;
+        onValue('+7 ');
+        // курсор — за «+7 », иначе клик в начало поля ставил цифры перед кодом;
+        // только пока ничего не набрано, чтобы не сдвинуть уже введённое
+        requestAnimationFrame(() => {
+          if (el.value === '+7 ') el.setSelectionRange(3, 3);
+        });
+      }}
+      onChange={(e) => {
+        const raw = e.target.value;
+        const d = raw.replace(/\D/g, '');
+        if (!d) return onValue('');
+        // В поле был только «+7»: что бы ни набрали и где бы ни стоял курсор
+        // (клик в начало поля оставлял его перед «+7»), это начало номера,
+        // а семёрка — наш код страны. Иначе «9» перед «+7» давала +7 (97…).
+        if (normalizePhone(value) === '7') {
+          const k = d.indexOf('7');
+          return onValue(formatPhone(`+7 ${k >= 0 ? d.slice(0, k) + d.slice(k + 1) : d}`));
+        }
+        onValue(formatPhone(raw));
+      }}
+      onBlur={() => {
+        if (normalizePhone(value).length <= 1) onValue('');
+      }}
+    />
   );
 }
 
@@ -355,17 +403,6 @@ export function Tile({ title, description, selected, onClick, compact = false, r
         {description && <span className="mt-1 block text-xs leading-4 text-ink/60">{description}</span>}
       </span>
     </button>
-  );
-}
-
-// Разворот под полем — для вопросов, у которых нет собственной шапки-секции
-// (адрес, сфера): там заголовок принадлежит самому полю.
-export function WhyToggle({ open, onToggle, children }) {
-  return (
-    <div className="mt-3">
-      <WhyButton open={open} onClick={onToggle} />
-      {open && <WhyPanel>{children}</WhyPanel>}
-    </div>
   );
 }
 

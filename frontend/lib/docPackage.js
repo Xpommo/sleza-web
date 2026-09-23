@@ -100,7 +100,7 @@ const lower = (x) => x.charAt(0).toLowerCase() + x.slice(1);
 export function docOrigin(doc, a) {
   const analytics = a.analytics || [];
   const features = a.features || [];
-  const named = (vals, list) => vals.filter((v) => v !== 'none' && v !== 'unknown').map((v) => label(list, v)).filter(Boolean);
+  const named = (vals, list) => vals.filter((v) => v !== 'none').map((v) => label(list, v)).filter(Boolean);
   switch (doc.id) {
     case '01':
       return {
@@ -113,11 +113,9 @@ export function docOrigin(doc, a) {
       return {
         line: n.length
           ? `Вы отметили: ${n.join(', ')} — ${n.length > 1 ? 'они названы' : 'она названа'} в политике как источник cookie.`
-          : analytics.includes('unknown')
-            ? 'Вы ответили, что не знаете, какие счётчики стоят, — политика описывает аналитические cookie, не называя счётчик.'
-            : analytics.includes('none')
-              ? 'Вы ответили, что счётчиков нет, — политика описывает только технические cookie.'
-              : 'Счётчики — по ответу «Аналитика на сайте».',
+          : analytics.includes('none')
+            ? 'Вы ответили, что счётчиков нет, — политика описывает только технические cookie.'
+            : 'Счётчики — по ответу «Аналитика на сайте».',
         why: 'Собрано по ответу «Аналитика на сайте»',
         step: '/app/start/site',
       };

@@ -10,22 +10,26 @@ import {
   GlobeIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { RING, AnketaFrame, Field, Tile, WhyToggle, SectionHead } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, Field, Tile, SectionHead } from '../_shared/AnketaChrome';
 import { ANALYTICS, FEATURES, PLATFORMS, SPHERES } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
-const DOMAIN_RE = /^(?!-)[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/i;
+// Кириллица — ради доменов .рф и кириллических имён на других зонах.
+const DOMAIN_RE = /^(?!-)[a-z0-9а-яё-]+(\.[a-z0-9а-яё-]+)*\.([a-zа-яё]{2,}|xn--[a-z0-9-]+)$/i;
 
+// Адрес принимаем в любом виде, в каком его копируют из браузера: с https://
+// и без, с www, со страницей или меткой после домена — берём сам домен.
 function normalizeDomain(v) {
   return String(v || '')
     .trim()
-    .replace(/^https?:\/\//i, '')
+    .replace(/^[a-z]+:\/\//i, '')
     .replace(/^www\./i, '')
-    .replace(/\/.*$/, '')
+    .replace(/[/?#:].*$/, '')
+    .replace(/\.$/, '')
     .toLowerCase();
 }
 
-// Общая логика мульти-выбора с «исключающими» пунктами (Ничего/Не знаю):
+// Общая логика мульти-выбора с «исключающим» пунктом («Ничего из этого нет»):
 // обычный пункт снимает исключающие, исключающий очищает всё остальное.
 function toggleOption(prev, value, exclusiveValues) {
   if (exclusiveValues.includes(value)) {
@@ -40,6 +44,7 @@ export default function SiteClient() {
 
   const [domain, setDomain] = useState('');
   const [domainError, setDomainError] = useState(null);
+  const [domainWhy, setDomainWhy] = useState(false);
 
   const [sphere, setSphere] = useState('');
   const [sphereError, setSphereError] = useState(null);
@@ -75,7 +80,9 @@ export default function SiteClient() {
     if (a.sphereOther) setSphereOther(a.sphereOther);
     if (a.platform) setPlatform(a.platform);
     if (a.platformOther) setPlatformOther(a.platformOther);
-    if (a.analytics?.length) setAnalytics(a.analytics);
+    // «Не знаю» снят 23.09 — старый ответ не должен молча считаться выбором.
+    const known = (a.analytics || []).filter((v) => ANALYTICS.some((o) => o.value === v));
+    if (known.length) setAnalytics(known);
     if (a.features?.length) setFeatures(a.features);
     setRestored(true);
   }, []);
@@ -104,7 +111,7 @@ export default function SiteClient() {
 
     const dom = normalizeDomain(domain);
     if (!DOMAIN_RE.test(dom)) {
-      setDomainError('Похоже, это не адрес сайта. Нужен домен вида alfa-school.ru — без http:// и без продолжения после косой черты.');
+      setDomainError('Похоже, это не адрес сайта — нужен вида alfa-school.ru.');
       ok = false;
     } else {
       setDomain(dom);
@@ -136,7 +143,7 @@ export default function SiteClient() {
     }
 
     if (analytics.length === 0) {
-      setAnalyticsError('Отметьте счётчики, «Ничего из этого нет» или «Не знаю» — от этого зависит текст политики обработки cookie.');
+      setAnalyticsError('Отметьте счётчики или «Ничего из этого нет» — от этого зависит политика обработки cookie.');
       ok = false;
     } else {
       setAnalyticsError(null);
@@ -168,69 +175,79 @@ export default function SiteClient() {
     <AnketaFrame current={1} title="О сайте" lead={<>Адрес, сфера, платформа, аналитика и формы на сайте. Пять вопросов.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
-              {/* Адрес сайта — первым: это самое «о сайте», что вообще есть. */}
+              {/* Адрес и сфера — такими же вопросами с заголовком, как остальные
+                  блоки шага (правка владельца 23.09): раньше они были подписями
+                  полей, и самый важный вопрос выглядел мельче прочих. */}
               <div className="mb-8">
-                <Field
-                  label="Адрес сайта"
+                <SectionHead
+                  id="h-domain"
+                  title="Адрес сайта"
                   required
+                  whyOpen={domainWhy}
+                  onWhy={() => setDomainWhy(!domainWhy)}
+                  why="Адрес попадёт в документы и в код установки."
+                />
+                <Field
+                  className="mt-5"
+                  aria-labelledby="h-domain"
                   placeholder="alfa-school.ru"
                   icon={GlobeIcon}
+                  inputMode="url"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   value={domain}
                   onChange={(e) => {
                     setDomain(e.target.value);
                     setDomainError(null);
                   }}
+                  onBlur={() => {
+                    // Показываем, какой адрес возьмём: https://www.… → домен.
+                    const dom = normalizeDomain(domain);
+                    if (DOMAIN_RE.test(dom)) setDomain(dom);
+                  }}
                   error={domainError}
                 />
-                {/* Подсказка открыта, а не спрятана под «зачем»: ошибиться
-                    здесь дороже всего — адрес уходит и в документы, и в код,
-                    а тестовый поддомен потом придётся менять в обоих. */}
-                <p className="mt-2 text-[13px] leading-5 text-ink/60">
-                  Адрес, по которому сайт открывается у посетителей: он попадёт в документы и в код установки.
-                  Тестовый или технический адрес вроде <span className="font-mono text-[12px]">site.tilda.ws</span> для
-                  этого не подойдёт.
-                </p>
               </div>
 
-              {/* Сфера деятельности — сюда, а не в «Данные клиентов»: раньше
-                  жила там ради соседства с целями сбора, но тот шаг
-                  пропускается целиком, если на сайте нет форм — сферу в этом
-                  случае никогда бы не спросили, а она задаёт не только цели,
-                  но и оговорки в документах независимо от того, есть форма
-                  или нет. */}
+              <div className="my-6 h-px bg-line" />
+
+              {/* Сфера деятельности — сюда, а не в «Данные клиентов»: она задаёт
+                  не только цели, но и оговорки в документах, есть форма или нет. */}
               <div className="mb-8">
-                <label className="block">
-                  <span className="mb-2 flex items-center gap-1 text-[13px] font-bold text-ink-2">
-                    Сфера деятельности <span className="text-brand">*</span>
-                  </span>
-                  {/* Без подписи под полем: то же самое, только подробнее, говорит
-                      «Зачем это нужно» ниже — две версии одного объяснения. */}
-                  <span className="relative block">
-                    <select
-                      value={sphere}
-                      onChange={(e) => {
-                        setSphere(e.target.value);
-                        setSphereError(null);
-                      }}
-                      aria-invalid={sphereError ? 'true' : undefined}
-                      className={`h-[52px] w-full appearance-none rounded-xl border bg-white px-11 text-[15px] font-medium text-ink shadow-sm outline-none transition-all hover:border-line-2 focus:border-brand focus:ring-4 focus:ring-brand/10 ${
-                        sphereError ? 'border-danger' : 'border-line'
-                      }`}
-                    >
-                      <option value="" disabled>
-                        Выберите сферу деятельности
+                <SectionHead
+                  id="h-sphere"
+                  title="Сфера деятельности"
+                  required
+                  whyOpen={sphereWhy}
+                  onWhy={() => setSphereWhy(!sphereWhy)}
+                  why="Сфера определит список целей на следующем шаге — у каждой сферы они свои."
+                />
+                <span className="relative mt-5 block">
+                  <select
+                    aria-labelledby="h-sphere"
+                    value={sphere}
+                    onChange={(e) => {
+                      setSphere(e.target.value);
+                      setSphereError(null);
+                    }}
+                    aria-invalid={sphereError ? 'true' : undefined}
+                    className={`h-[52px] w-full appearance-none rounded-xl border bg-white px-11 text-[15px] font-medium text-ink shadow-sm outline-none transition-all hover:border-line-2 focus:border-brand focus:ring-4 focus:ring-brand/10 ${
+                      sphereError ? 'border-danger' : 'border-line'
+                    }`}
+                  >
+                    <option value="" disabled>
+                      Выберите сферу деятельности
+                    </option>
+                    {SPHERES.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
                       </option>
-                      {SPHERES.map((s) => (
-                        <option key={s.value} value={s.value}>
-                          {s.label}
-                        </option>
-                      ))}
-                    </select>
-                    <BriefcaseIcon size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" />
-                    <ChevronDownIcon size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink/35" />
-                  </span>
-                  {sphereError && <span className="mt-1.5 block text-[12px] font-semibold text-danger">{sphereError}</span>}
-                </label>
+                    ))}
+                  </select>
+                  <BriefcaseIcon size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" />
+                  <ChevronDownIcon size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink/35" />
+                </span>
+                {sphereError && <p className="mt-1.5 text-[12px] font-semibold text-danger">{sphereError}</p>}
                 <div
                   aria-hidden={sphere !== 'other'}
                   className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
@@ -252,11 +269,6 @@ export default function SiteClient() {
                     </div>
                   </div>
                 </div>
-                <WhyToggle open={sphereWhy} onToggle={() => setSphereWhy(!sphereWhy)}>
-                  Сфера определит список целей на следующем шаге «Данные клиентов» — у интернет-магазина и у салона
-                  он разный. Она же задаёт особые оговорки в документах: например, про обработку данных
-                  несовершеннолетних, если вы работаете с детьми.
-                </WhyToggle>
               </div>
 
               <div className="my-6 h-px bg-line" />
@@ -298,24 +310,25 @@ export default function SiteClient() {
               <div className="my-6 h-px bg-line" />
 
               {/* Аналитика — можно отметить несколько счётчиков сразу (сайт
-                  часто ставит и Метрику, и GA), «Ничего»/«Не знаю» —
-                  исключающие. */}
+                  часто ставит и Метрику, и GA), «Ничего из этого нет» —
+                  исключающий. «Не знаю» снят (владелец 23.09): вопрос — есть
+                  счётчики или нет, посмотреть это можно самому. */}
               <div className="mb-8">
                 <SectionHead
                   id="h-analytics"
                   title="Аналитика на сайте"
                   required
-                  hint="Счётчики посетителей. Если не знаете, что установлено — так и отметьте."
+                  hint="Какие счётчики посетителей стоят на сайте?"
                   whyOpen={analyticsWhy}
                   onWhy={() => setAnalyticsWhy(!analyticsWhy)}
-                  why="Политика обработки cookie должна описывать то, что на сайте происходит на самом деле: какие счётчики считают посетителей. Отдельно про Google Analytics — он отправляет данные посетителей на зарубежные серверы, и по 152-ФЗ это отдельный риск, о котором стоит поговорить."
+                  why="Нужно для документа «Политика обработки cookie» — в нём назовём счётчики, которые стоят на сайте."
                 />
                 <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-analytics">
                   {ANALYTICS.map((o) => (
                     <Tile
                       key={o.value}
                       title={o.label}
-                      description={o.hint}
+                      compact
                       selected={analytics.includes(o.value)}
                       onClick={() => {
                         setAnalytics((prev) => toggleOption(prev, o.value, analyticsExclusive));
@@ -339,14 +352,14 @@ export default function SiteClient() {
                   hint="Что посетитель может сделать на сайте."
                   whyOpen={featuresWhy}
                   onWhy={() => setFeaturesWhy(!featuresWhy)}
-                  why="Формы, чаты и заказы собирают персональные данные — отмеченное попадёт в политику обработки персональных данных и определит, где на сайте встанет текст согласия — галочкой в форме регистрации, строкой под кнопкой отправки или нигде, если сайт контакты не собирает."
+                  why="Нужно для документа «Согласие на обработку персональных данных» — от ответа зависит, где на сайте оно встанет."
                 />
                 <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-features">
                   {FEATURES.map((o) => (
                     <Tile
                       key={o.value}
                       title={o.label}
-                      description={o.hint}
+                      compact
                       selected={features.includes(o.value)}
                       onClick={() => {
                         setFeatures((prev) => toggleOption(prev, o.value, featuresExclusive));
