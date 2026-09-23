@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeftIcon, ArrowRightIcon, CloseIcon, ShieldCheckIcon } from '../../../../components/app/AppIcons';
-import { CURRENT_USER } from '../../../../lib/appMock';
+import { ArrowLeftIcon, ArrowRightIcon } from '../../../../components/app/AppIcons';
 import { RING, AnketaFrame, SectionHead, Tile } from '../_shared/AnketaChrome';
 import { PD_FIELDS, PURPOSES, PURPOSE_MAP } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
+// Порядок вопросов (владелец 23.09): что собираете → зачем → рассказываете
+// ли об акциях. Каждый следующий опирается на предыдущий: из собранных
+// контактов берутся каналы для согласия на рекламу, а «Да» на последний
+// вопрос добавляет цель «информирование об акциях» в согласие и политику.
 export default function ClientsClient() {
   const router = useRouter();
 
@@ -28,7 +31,11 @@ export default function ClientsClient() {
   const [fieldsError, setFieldsError] = useState(null);
   const [fieldsWhy, setFieldsWhy] = useState(false);
 
-  const [calls, setCalls] = useState('Да');
+  // Без ответа по умолчанию — как у роли, сферы и платформы: отвечает
+  // человек, а не мы. Раньше стояло «Да», а «Нет» встречало окно-уговор.
+  const [promo, setPromo] = useState(null);
+  const [promoError, setPromoError] = useState(null);
+  const [promoWhy, setPromoWhy] = useState(false);
   const [restored, setRestored] = useState(false);
 
   // Возврат на шаг («Назад», F5, «Продолжить анкету» из списка сайтов)
@@ -43,31 +50,32 @@ export default function ClientsClient() {
     const allowed = PURPOSE_MAP[a.sphere] || PURPOSE_MAP.other;
     if (a.purposes?.length) setPurposes(a.purposes.filter((v) => allowed.includes(v)));
     if (a.pdFields?.length) setFields(a.pdFields);
-    if (typeof a.callsBase === 'boolean') setCalls(a.callsBase ? 'Да' : 'Нет');
+    if (typeof a.callsBase === 'boolean') setPromo(a.callsBase ? 'Да' : 'Нет');
     setRestored(true);
   }, []);
+
+  const answers = () => ({ purposes, pdFields: fields, callsBase: promo === null ? undefined : promo === 'Да' });
 
   // Черновик пишется на каждое изменение, а не только по «Далее»: иначе
   // «Назад» и F5 теряют всё, что набрано на этом шаге. Пишем только после
   // восстановления — иначе пустые значения первой отрисовки затрут анкету.
   useEffect(() => {
-    if (restored) saveAnketa({ purposes, pdFields: fields, callsBase: calls === 'Да' });
-  }, [restored, purposes, fields, calls]);
-  const [callsWhy, setCallsWhy] = useState(false);
-  const [noCallsOpen, setNoCallsOpen] = useState(false);
+    if (restored) saveAnketa(answers());
+  }, [restored, purposes, fields, promo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggle(list, setList, value) {
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
   }
 
-  function goNext() {
-    saveAnketa({ purposes, pdFields: fields, callsBase: calls === 'Да' });
-    markStepDone(3);
-    router.push('/app/start/requisites');
-  }
-
   function handleNext() {
     let ok = true;
+
+    if (fields.length === 0) {
+      setFieldsError('Отметьте хотя бы одно — без состава данных политику и согласие составить нельзя.');
+      ok = false;
+    } else {
+      setFieldsError(null);
+    }
 
     // Проверяем только видимые цели: набор зависит от сферы.
     if (purposes.length === 0) {
@@ -77,22 +85,17 @@ export default function ClientsClient() {
       setPurposeError(null);
     }
 
-    if (fields.length === 0) {
-      setFieldsError('Отметьте хотя бы одно — без состава данных политику и согласие составить нельзя.');
+    if (!promo) {
+      setPromoError('Ответьте «Да» или «Нет» — от этого зависит согласие на рекламу.');
       ok = false;
     } else {
-      setFieldsError(null);
+      setPromoError(null);
     }
 
     if (!ok) return;
-
-    // Ответ «Нет» — не запрет, а повод предупредить один раз: документ в
-    // пакете есть, и если однажды напишут по базе, согласие уже будет.
-    if (calls === 'Нет') {
-      setNoCallsOpen(true);
-      return;
-    }
-    goNext();
+    saveAnketa(answers());
+    markStepDone(3);
+    router.push('/app/start/requisites');
   }
 
   return (
@@ -101,46 +104,19 @@ export default function ClientsClient() {
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               <div className="border-b border-line pb-7">
                 <SectionHead
-                  id="h-purpose"
-                  title="Цели сбора контактов"
-                  required
-                  whyOpen={purposeWhy}
-                  onWhy={() => setPurposeWhy(!purposeWhy)}
-                  why="Цель обработки — обязательная часть согласия: использовать данные для цели, которая в нём не названа, нельзя. Поэтому отмеченное определяет, что будет написано в согласии и в тексте у формы на сайте."
-                />
-                <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-purpose">
-                  {visiblePurposes.map((p) => (
-                    <Tile
-                      key={p.value}
-                      title={p.label}
-                      description={p.hint}
-                      selected={purposes.includes(p.value)}
-                      onClick={() => {
-                        toggle(purposes, setPurposes, p.value);
-                        setPurposeError(null);
-                      }}
-                    />
-                  ))}
-                </div>
-                {purposeError && <p className="mt-3 text-[12px] font-semibold text-danger">{purposeError}</p>}
-              </div>
-
-              <div className="border-b border-line py-7">
-                <SectionHead
                   id="h-fields"
                   title="Какие данные собираете"
                   required
                   whyOpen={fieldsWhy}
                   onWhy={() => setFieldsWhy(!fieldsWhy)}
-                  why="Состав данных — вторая обязательная часть и политики, и согласия, наравне с целью. Перечислять его нужно точно: если в документе написан Telegram, а вы пишете в WhatsApp, документ неточен."
+                  why="Состав данных — обязательная часть политики и согласия, поэтому перечисляем его точно."
                 />
                 <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-fields">
                   {PD_FIELDS.map((f) => (
                     <Tile
                       key={f.value}
                       title={f.label}
-                      description={f.hint}
-                      compact={!f.hint}
+                      compact
                       selected={fields.includes(f.value)}
                       onClick={() => {
                         toggle(fields, setFields, f.value);
@@ -152,34 +128,67 @@ export default function ClientsClient() {
                 {fieldsError && <p className="mt-3 text-[12px] font-semibold text-danger">{fieldsError}</p>}
               </div>
 
+              <div className="border-b border-line py-7">
+                <SectionHead
+                  id="h-purpose"
+                  title="Цели сбора контактов"
+                  required
+                  whyOpen={purposeWhy}
+                  onWhy={() => setPurposeWhy(!purposeWhy)}
+                  why="Цель обработки — обязательная часть согласия: отмеченное впишем в согласие и в политику."
+                />
+                <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-purpose">
+                  {visiblePurposes.map((p) => (
+                    <Tile
+                      key={p.value}
+                      title={p.label}
+                      compact
+                      selected={purposes.includes(p.value)}
+                      onClick={() => {
+                        toggle(purposes, setPurposes, p.value);
+                        setPurposeError(null);
+                      }}
+                    />
+                  ))}
+                </div>
+                {purposeError && <p className="mt-3 text-[12px] font-semibold text-danger">{purposeError}</p>}
+              </div>
+
               <div className="pt-7">
                 <SectionHead
-                  id="h-calls"
-                  title="Пишете или звоните клиентам из своей базы?"
+                  id="h-promo"
+                  title="Рассказываете клиентам об акциях и новинках?"
                   required
-                  whyOpen={callsWhy}
-                  onWhy={() => setCallsWhy(!callsWhy)}
-                  why="Ответ определяет, какие каналы будут названы в согласии на рекламные сообщения. Сам документ входит в пакет в любом случае: рассылка по своей базе без такого согласия незаконна — так требует 38-ФЗ ч.1 ст.18."
+                  whyOpen={promoWhy}
+                  onWhy={() => setPromoWhy(!promoWhy)}
+                  why="Нужно для «Согласия на получение рекламных сообщений» — назовём в нём каналы, которыми пишете."
                 />
-                <div
-                  className="mt-5 inline-flex rounded-xl border border-line bg-warm p-1"
-                  role="group"
-                  aria-labelledby="h-calls"
-                >
+                <div className="mt-5 inline-flex rounded-xl border border-line bg-warm p-1" role="group" aria-labelledby="h-promo">
                   {['Да', 'Нет'].map((item) => (
                     <button
                       key={item}
                       type="button"
-                      onClick={() => setCalls(item)}
-                      aria-pressed={calls === item}
+                      onClick={() => {
+                        setPromo(item);
+                        setPromoError(null);
+                      }}
+                      aria-pressed={promo === item}
                       className={`min-w-24 rounded-lg px-7 py-2.5 text-sm font-bold transition-all ${RING} ${
-                        calls === item ? 'bg-brand text-white shadow-sm' : 'text-ink/80 hover:text-ink'
+                        promo === item ? 'bg-brand text-white shadow-sm' : 'text-ink/80 hover:text-ink'
                       }`}
                     >
                       {item}
                     </button>
                   ))}
                 </div>
+                {/* Вместо окна при «Нет»: одна строка, без уговоров — документ
+                    в пакете при любом ответе, «Нет» ничего не стоит. */}
+                {promo === 'Нет' && (
+                  <p className="mt-3 text-[13px] leading-5 text-ink/60">
+                    Согласие на рекламу всё равно будет в пакете — пригодится, если начнёте.
+                  </p>
+                )}
+                {promoError && <p className="mt-3 text-[12px] font-semibold text-danger">{promoError}</p>}
               </div>
             </section>
 
@@ -187,6 +196,7 @@ export default function ClientsClient() {
                 человек видел одни и те же кнопки дважды (правка владельца). */}
             <div className="mt-7 hidden gap-3 border-t border-line pt-5 lg:flex">
               <button
+                data-funnel-back
                 type="button"
                 onClick={() => router.push('/app/start/site')}
                 className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
@@ -202,59 +212,6 @@ export default function ClientsClient() {
                 Далее <ArrowRightIcon size={17} />
               </button>
             </div>
-
-      {noCallsOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="no-calls-title"
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4"
-        >
-          <div className="mt-16 w-full max-w-[420px] rounded-2xl border border-line bg-white p-5 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <h3 id="no-calls-title" className="text-[17px] font-bold tracking-[-0.02em]">
-                Если однажды начнёте писать по базе
-              </h3>
-              <button
-                type="button"
-                onClick={() => setNoCallsOpen(false)}
-                className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}
-                aria-label="Закрыть"
-              >
-                <CloseIcon size={18} />
-              </button>
-            </div>
-            <p className="mt-3 text-[13px] leading-5 text-ink/60">
-              Вы ответили, что не пишете и не звоните по базе клиентов. Если однажды отправите письмо или сообщение по
-              базе, на это нужно предварительное согласие адресата — так требует 38-ФЗ ч.1 ст.18. Согласие уже входит в
-              ваш пакет, доплачивать за него не нужно.
-            </p>
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setNoCallsOpen(false);
-                  setCalls('Да');
-                }}
-                className={`rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
-              >
-                Вернуться и отметить
-              </button>
-              <button
-                data-funnel-back
-                type="button"
-                onClick={() => {
-                  setNoCallsOpen(false);
-                  goNext();
-                }}
-                className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}
-              >
-                Понятно, дальше
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </AnketaFrame>
   );
 }

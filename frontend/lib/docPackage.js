@@ -5,7 +5,7 @@
 // Пакет фиксирован: пять документов из структуры 1+2+2. Название — то, как
 // человек думает о документе («согласие на рассылки»), закон — мелкой
 // справкой рядом (решение 23.09: раньше строка начиналась с «38-ФЗ, ч.1 ст.18 · …»).
-import { ANALYTICS, FEATURES, PURPOSES, SPHERES } from './anketaOptions';
+import { ANALYTICS, FEATURES, PROMO_PURPOSE, PURPOSES, SPHERES } from './anketaOptions';
 
 export const SITE_ID = '486312';
 
@@ -41,8 +41,7 @@ export const DOCUMENTS = [
     id: '13',
     title: 'Согласие на получение рекламных сообщений',
     law: '38-ФЗ, ч.1 ст.18',
-    preview: (v) =>
-      `Настоящим я даю согласие на получение рекламных и информационных сообщений от ${v.operator} по телефону, в мессенджерах и на почту…`,
+    preview: (v) => `Настоящим я даю согласие на получение рекламных и информационных сообщений от ${v.operator} ${v.channels}…`,
   },
 ];
 
@@ -58,7 +57,7 @@ const PURPOSE_TEXT = {
   promo: 'информирование об акциях и новых предложениях',
 };
 const FIELD_TEXT = {
-  name: 'имя',
+  name: 'имя или фамилия, имя, отчество',
   phone: 'номер телефона',
   email: 'адрес электронной почты',
   messenger: 'аккаунт в мессенджере',
@@ -74,6 +73,23 @@ export function operatorName(a) {
   return a.owner === 'ИП' && !/^ИП\s/.test(n) ? `ИП ${n}` : n;
 }
 
+// Цели сайта: отмеченные на шаге и «информирование об акциях», если на
+// вопрос «Рассказываете клиентам об акциях и новинках?» ответили «Да».
+export function sitePurposes(a) {
+  const own = (a.purposes || []).filter((v) => v !== 'promo');
+  return a.callsBase ? [...own, 'promo'] : own;
+}
+
+// Каналы в согласии на рекламу — из того, что сайт собирает: писать клиенту
+// можно только туда, куда он оставил контакт. Раньше каналы были одни на всех.
+const CHANNEL_TEXT = { phone: 'по телефону (звонки и SMS)', messenger: 'в мессенджерах', email: 'на почту' };
+export function adChannels(a) {
+  return ['phone', 'messenger', 'email'].filter((f) => (a.pdFields || []).includes(f)).map((f) => CHANNEL_TEXT[f]);
+}
+function andList(items) {
+  return items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} и ${items[items.length - 1]}`;
+}
+
 // Превью собирается из ответов анкеты — раньше в нём стояли данные чужой
 // компании из макета, и человек видел в своём документе чужого оператора.
 export function docPreview(doc, a) {
@@ -84,8 +100,9 @@ export function docPreview(doc, a) {
     inn: a.inn,
     ogrn: a.ogrn && a.owner !== 'Самозанятый' ? `${ogrnLabel} ${a.ogrn}` : '',
     address: a.address,
-    purposes: (a.purposes || []).map((x) => PURPOSE_TEXT[x]).filter(Boolean).join(', ') || 'по ответам шага «Данные клиентов»',
+    purposes: sitePurposes(a).map((x) => PURPOSE_TEXT[x]).filter(Boolean).join(', ') || 'по ответам шага «Данные клиентов»',
     fields: (a.pdFields || []).map((x) => FIELD_TEXT[x]).filter(Boolean).join(', ') || 'состав — по ответам анкеты',
+    channels: andList(adChannels(a)) || 'по телефону, в мессенджерах и на почту',
   });
 }
 
@@ -124,7 +141,7 @@ export function docOrigin(doc, a) {
     }
     case '03': {
       const sphere = label(SPHERES, a.sphere);
-      const purposes = (a.purposes || []).map((v) => label(PURPOSES, v)).filter(Boolean).map(lower);
+      const purposes = sitePurposes(a).map((v) => label([...PURPOSES, PROMO_PURPOSE], v)).filter(Boolean).map(lower);
       return {
         line: `${sphere ? `Сфера «${sphere}»` : 'Сфера — по ответу «Сфера деятельности»'}, цели: ${purposes.join(', ') || 'по ответу «Цели сбора контактов»'}.`,
         why: 'Собрано по ответам «Сфера деятельности» и «Цели сбора контактов»',
@@ -143,18 +160,22 @@ export function docOrigin(doc, a) {
         step: '/app/start/site',
       };
     }
-    default:
-      // Документ в пакете при любом ответе — меняется только объяснение.
+    default: {
+      // Документ в пакете при любом ответе; каналы — из собранных контактов.
+      const ch = adChannels(a);
       return {
         line:
           a.callsBase === false
-            ? 'Вы ответили, что по базе не пишете, — документ всё равно в пакете, понадобится, когда начнёте.'
+            ? 'Вы ответили, что об акциях не рассказываете, — документ всё равно в пакете, понадобится, когда начнёте.'
             : a.callsBase
-              ? 'Вы ответили, что пишете и звоните по базе клиентов, — согласие названо для этих каналов.'
-              : 'Входит в пакет — понадобится, как только начнёте писать по базе.',
-        why: 'Собрано по ответу на вопрос «Пишете или звоните клиентам из своей базы?»',
+              ? ch.length
+                ? `Вы рассказываете клиентам об акциях — в согласии названы каналы по вашим формам: ${andList(ch)}.`
+                : 'Вы рассказываете клиентам об акциях, но телефона, почты и мессенджера в формах нет — каналы названы все.'
+              : 'Входит в пакет — понадобится, как только начнёте рассказывать клиентам об акциях.',
+        why: 'Собрано по ответам «Какие данные собираете» и «Рассказываете клиентам об акциях и новинках?»',
         step: '/app/start/clients',
       };
+    }
   }
 }
 

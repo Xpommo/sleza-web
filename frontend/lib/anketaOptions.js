@@ -47,46 +47,56 @@ export const FEATURES = [
   { value: 'none', label: 'Ничего из этого нет', exclusive: true },
 ];
 
-// Восемь целей на весь продукт: видны только те, что относятся к сфере,
-// выбранной на «О сайте». Ни одна не отмечена по умолчанию — это реальный
-// выбор, а не декорация: цель обработки уходит в согласие дословно.
+// Цели на весь продукт: видны только те, что относятся к сфере, выбранной на
+// «О сайте». Ни одна не отмечена по умолчанию — это реальный выбор, а не
+// декорация: цель обработки уходит в согласие дословно. Без подписей
+// (владелец 23.09): из названия цель понятна и так.
 export const PURPOSES = [
-  { value: 'booking', label: 'Записать на приём/занятие', hint: 'форма записи, кнопка «Записаться», запись на приём, занятие или демо' },
-  { value: 'order', label: 'Оформить и передать заказ', hint: 'корзина, кнопка «Купить», оформление доставки' },
-  { value: 'property', label: 'Показать объект, записать на просмотр', hint: 'заявка на просмотр, подбор объекта' },
-  { value: 'consult', label: 'Проконсультировать по услуге', hint: 'форма «Задать вопрос», расчёт стоимости, бриф' },
-  { value: 'contract', label: 'Заключить и исполнить договор', hint: 'подписание договора, счета, закрывающие документы' },
-  { value: 'payment', label: 'Принять оплату онлайн', hint: 'оплата картой на сайте, ссылка на оплату' },
-  { value: 'inquiry', label: 'Ответить на обращение', hint: 'форма обратной связи, «Заказать звонок», чат на сайте' },
-  { value: 'promo', label: 'Рассказывать об акциях и новых предложениях', hint: 'рассылка, подписка на новости, письма об акциях' },
+  { value: 'booking', label: 'Записать на приём/занятие' },
+  { value: 'order', label: 'Оформить и передать заказ' },
+  { value: 'property', label: 'Показать объект, записать на просмотр' },
+  { value: 'consult', label: 'Проконсультировать по услуге' },
+  { value: 'contract', label: 'Заключить и исполнить договор' },
+  { value: 'payment', label: 'Принять оплату онлайн' },
+  { value: 'inquiry', label: 'Ответить на обращение' },
 ];
+
+// «Рассказывать об акциях» — не карточка среди целей, а отдельный вопрос шага
+// («Рассказываете клиентам об акциях и новинках?», ответ — callsBase): «Да» сам
+// добавляет эту цель в согласие и политику. Раньше цель и вопрос дублировали
+// друг друга и могли противоречить (владелец 23.09).
+export const PROMO_PURPOSE = { value: 'promo', label: 'Рассказывать об акциях и новых предложениях' };
 
 // Матрица «сфера → цели» собрана вместе с владельцем: у интернет-магазина и
 // у салона списки разные. «Другое» показывает все восемь — человек, не
 // нашедший свою сферу, должен видеть самый широкий список, а не самый узкий.
 export const PURPOSE_MAP = {
-  school: ['booking', 'consult', 'payment', 'inquiry', 'promo'],
-  kids: ['booking', 'consult', 'payment', 'inquiry', 'promo'],
-  bizserv: ['consult', 'contract', 'payment', 'inquiry', 'promo'],
-  homeserv: ['consult', 'contract', 'inquiry', 'promo'],
-  beauty: ['booking', 'inquiry', 'promo'],
-  medicine: ['booking', 'consult', 'inquiry', 'promo'],
-  shop: ['order', 'payment', 'inquiry', 'promo'],
-  food: ['order', 'payment', 'inquiry', 'promo'],
-  realty: ['property', 'consult', 'contract', 'inquiry', 'promo'],
-  finance: ['consult', 'contract', 'inquiry', 'promo'],
-  media: ['consult', 'inquiry', 'promo'],
-  it: ['booking', 'consult', 'contract', 'payment', 'inquiry', 'promo'],
-  manuf: ['booking', 'consult', 'contract', 'inquiry', 'promo'],
+  school: ['booking', 'consult', 'payment', 'inquiry'],
+  kids: ['booking', 'consult', 'payment', 'inquiry'],
+  bizserv: ['consult', 'contract', 'payment', 'inquiry'],
+  homeserv: ['consult', 'contract', 'inquiry'],
+  beauty: ['booking', 'inquiry'],
+  medicine: ['booking', 'consult', 'inquiry'],
+  shop: ['order', 'payment', 'inquiry'],
+  food: ['order', 'payment', 'inquiry'],
+  realty: ['property', 'consult', 'contract', 'inquiry'],
+  finance: ['consult', 'contract', 'inquiry'],
+  media: ['consult', 'inquiry'],
+  it: ['booking', 'consult', 'contract', 'payment', 'inquiry'],
+  manuf: ['booking', 'consult', 'contract', 'inquiry'],
   other: PURPOSES.map((p) => p.value),
 };
 
+// Порядок — как поля идут в форме. Без подписей (владелец 23.09): карточки
+// одной высоты, а «напишем в документе те, что отметите» у мессенджера
+// обещало выбор, которого нет. «Имя или ФИО» — сайту с договором нужны
+// фамилия и отчество, и в документе должно стоять то, что реально собирают.
 export const PD_FIELDS = [
-  { value: 'name', label: 'Имя', hint: 'или ФИО, если нужно в договор' },
+  { value: 'name', label: 'Имя или ФИО' },
   { value: 'phone', label: 'Телефон' },
-  { value: 'email', label: 'Email' },
-  { value: 'messenger', label: 'Мессенджер', hint: 'Telegram, WhatsApp, MAX — напишем в документе те, что отметите' },
-  { value: 'address', label: 'Адрес доставки', hint: 'если возите заказы' },
-  { value: 'birth', label: 'Дата рождения', hint: 'запись на приём, скидки по возрасту' },
+  { value: 'email', label: 'Почта' },
+  { value: 'messenger', label: 'Мессенджер' },
+  { value: 'address', label: 'Адрес доставки' },
+  { value: 'birth', label: 'Дата рождения' },
 ];
 
