@@ -179,6 +179,27 @@ export function docOrigin(doc, a) {
   }
 }
 
+// Правки документов из кабинета — для истории и ленты событий. Одна правка
+// может выпустить новые версии нескольких документов (почта для запросов
+// стоит и в политике, и в согласии), и в ленте это одно событие, а не два.
+export function editEvents(edits = []) {
+  const byAt = new Map();
+  edits.forEach((e) => {
+    const g = byAt.get(e.at) || { at: e.at, what: e.what, docs: [] };
+    const title = DOCUMENTS.find((d) => d.id === (e.doc || '01'))?.title;
+    if (title && !g.docs.includes(title)) g.docs.push(title);
+    byAt.set(e.at, g);
+  });
+  return [...byAt.values()].map((g) => {
+    const names = g.docs.map((t) => `«${t}»`).join(' и ');
+    return {
+      ...g,
+      title: `${names}, ${g.docs.length > 1 ? 'новые версии' : 'новая версия'}`,
+      text: `Обновили ${g.docs.length > 1 ? 'документы' : 'документ'} ${names} — ${lower(g.what || '')}`,
+    };
+  });
+}
+
 export function docUrl(doc) {
   return `cdn.sleza.media/${SITE_ID}/${doc.id}`;
 }

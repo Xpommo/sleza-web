@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, ClockIcon, OkIcon, RefreshIcon, WarnIcon } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
-import { DOCUMENTS } from '../../../lib/docPackage';
+import { DOCUMENTS, editEvents } from '../../../lib/docPackage';
 import { accountSites, siteAnketa } from './_shared/sites';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { RING, SiteHeader, SiteSidebar } from './_shared/SiteChrome';
@@ -151,7 +151,9 @@ export default function SiteOverviewClient() {
     b.invoice && !b.paidAt && [b.invoice.at, `Выставлен счёт № ${b.invoice.no}`, 'bg-warn'],
     state === 'expired' && [a.trialStartedAt + TRIAL_MS, 'Пробный период закончился — виджет снят с сайта', 'bg-danger'],
     a.trialStartedAt && [a.trialStartedAt, a.installed ? 'Код найден на сайте, пробный период запущен' : 'Пробный период запущен, ждём код на сайте', 'bg-brand'],
-    ...(a.docEdits || []).map((e) => [e.at, 'Обновили документ «Реквизиты владельца» — изменились реквизиты', 'bg-brand']),
+    // Какой документ обновили — из самой правки: раньше здесь всегда стояли
+    // «Реквизиты владельца», что бы ни меняли.
+    ...editEvents(a.docEdits).map((e) => [e.at, e.text, 'bg-brand']),
     !unfinished && [madeAt - 1, 'Документы собраны по ответам анкеты', 'bg-ok'],
   ].filter(Boolean).sort((x, y) => y[0] - x[0]);
 

@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { CheckIcon, CopyIcon, DocsIcon, ExternalIcon, LinkIcon, PencilIcon } from '../../../../components/app/AppIcons';
 import { DocRow, DocRowList, IconAction } from '../../../../components/app/DocRows';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { DOCUMENTS, SITE_ID, docOrigin, docUrl } from '../../../../lib/docPackage';
+import { DOCUMENTS, SITE_ID, docOrigin, docUrl, editEvents } from '../../../../lib/docPackage';
 import { accountUser, loadAnketa } from '../../start/_shared/anketaState';
+import PdEmailModal from '../_shared/PdEmailModal';
 import RequisitesModal from '../_shared/RequisitesModal';
 import { siteAnketa } from '../_shared/sites';
 import { subState } from '../_shared/subscription';
@@ -26,6 +27,7 @@ export default function SiteDocumentsClient() {
   const [copied, setCopied] = useState(false);
   const [copiedDoc, setCopiedDoc] = useState(null);
   const [reqOpen, setReqOpen] = useState(false);
+  const [pdOpen, setPdOpen] = useState(false);
 
   useEffect(() => {
     const a = siteAnketa(loadAnketa());
@@ -150,9 +152,13 @@ export default function SiteDocumentsClient() {
                           disabled={!canCopy}
                           why={live ? 'Вернётся после оплаты' : 'Появится после установки кода'}
                         />
-                        {/* Реквизиты — единственное, что клиент правит сам;
-                            правка открывается здесь же, окном поверх списка. */}
+                        {/* Клиент сам правит реквизиты и почту для запросов о
+                            персональных данных (она стоит в политике и в
+                            согласии) — окном поверх списка, здесь же. */}
                         {doc.id === '01' && <IconAction label="Изменить реквизиты" icon={PencilIcon} onClick={() => setReqOpen(true)} />}
+                        {(doc.id === '03' || doc.id === '12') && (
+                          <IconAction label="Изменить почту для запросов" icon={PencilIcon} onClick={() => setPdOpen(true)} />
+                        )}
                       </>
                     }
                   />
@@ -165,11 +171,13 @@ export default function SiteDocumentsClient() {
             <h2 className="text-lg font-bold tracking-[-0.02em]">История изменений</h2>
             {/* Линия соединяет записи, только когда их больше одной. */}
             <div className={`relative mt-6 space-y-6 ${site.edits.length ? 'before:absolute before:bottom-2 before:left-[7px] before:top-2 before:w-px before:bg-line' : ''}`}>
-              {[...site.edits].reverse().map((e) => (
+              {editEvents(site.edits).reverse().map((e) => (
                 <div key={e.at} className="relative flex gap-4">
                   <span className="z-10 mt-1 h-4 w-4 shrink-0 rounded-full border-4 border-white bg-brand" />
                   <div>
-                    <p className="text-sm font-bold">{formatDate(e.at)} · «Реквизиты владельца», новая версия</p>
+                    <p className="text-sm font-bold">
+                      {formatDate(e.at)} · {e.title}
+                    </p>
                     <p className="mt-1 text-sm leading-5 text-ink/60">{e.what} — поправили в кабинете.</p>
                   </div>
                 </div>
@@ -202,6 +210,15 @@ export default function SiteDocumentsClient() {
           )}
         </div>
       </section>
+      {pdOpen && (
+        <PdEmailModal
+          onClose={() => setPdOpen(false)}
+          onSaved={() => {
+            const a = siteAnketa(loadAnketa());
+            setSite((v) => ({ ...v, answers: a, edits: a.docEdits || [] }));
+          }}
+        />
+      )}
       {reqOpen && (
         <RequisitesModal
           onClose={() => setReqOpen(false)}

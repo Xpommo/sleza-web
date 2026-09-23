@@ -68,7 +68,7 @@ export default function RequisitesModal({ onClose, onSaved }) {
         contacts: { ...a.contacts, companyMail: v.companyMail, companyPhone: v.companyPhone },
         // Реквизиты стоят в документе «Реквизиты владельца» — правка
         // выпускает его новую версию, и она видна в истории изменений.
-        docEdits: [...(a.docEdits || []), { at: Date.now(), doc: '01', what: 'Обновлены реквизиты владельца' }],
+        docEdits: [...(a.docEdits || []), { at: Date.now(), doc: '01', what: 'Изменились реквизиты' }],
       });
     }
     onSaved?.(changed);
@@ -108,6 +108,7 @@ export default function RequisitesModal({ onClose, onSaved }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Почта компании" required type="email" placeholder="info@site.ru" {...bind('companyMail')} />
             <PhoneField
+              label="Телефон компании"
               required
               value={v.companyPhone}
               onValue={(p) => {
