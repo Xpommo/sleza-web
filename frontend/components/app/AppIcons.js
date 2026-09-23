@@ -171,6 +171,14 @@ export const LinkIcon = (p) => (
   <Svg {...p}><path d="M10.5 13.5a4 4 0 0 0 5.7 0l2.8-2.8a4 4 0 0 0-5.7-5.7l-1.6 1.6" /><path d="M13.5 10.5a4 4 0 0 0-5.7 0l-2.8 2.8a4 4 0 0 0 5.7 5.7l1.6-1.6" /></Svg>
 );
 
+export const ExternalIcon = (p) => (
+  <Svg {...p}><path d="M14 4.5h5.5V10" /><path d="M19.5 4.5 11 13" /><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" /></Svg>
+);
+
+export const PencilIcon = (p) => (
+  <Svg {...p}><path d="M4.5 19.5h4l10-10a2.8 2.8 0 0 0-4-4l-10 10v4Z" /><path d="M13.5 6.5l4 4" /></Svg>
+);
+
 export const CopyIcon = (p) => (
   <Svg {...p}><rect x="8.5" y="8.5" width="12" height="12" rx="2.2" /><path d="M5.5 15.5A2 2 0 0 1 3.5 13.5v-8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2" /></Svg>
 );

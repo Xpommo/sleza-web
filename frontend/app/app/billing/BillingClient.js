@@ -417,7 +417,7 @@ export default function BillingClient() {
                     </p>
                     <p className="mt-0.5 text-[13px] text-ink/60">Выставлен на {b.invoice.payer?.name || operatorName(a)}</p>
                     <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                      <div className="flex h-12 min-w-0 flex-1 items-center rounded-xl border border-line bg-warm px-4 font-mono text-[12px] text-ink/70">
+                      <div className="flex h-12 min-w-0 shrink-0 items-center sm:flex-1 rounded-xl border border-line bg-warm px-4 font-mono text-[12px] text-ink/70">
                         <span className="truncate">
                           cdn.sleza.media/{SITE_ID}/invoice-{b.invoice.no}.pdf
                         </span>

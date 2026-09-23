@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CheckIcon, CopyIcon, DocsIcon, LinkIcon } from '../../../../components/app/AppIcons';
-import { DocRow, DocRowList } from '../../../../components/app/DocRows';
+import { CheckIcon, CopyIcon, DocsIcon, ExternalIcon, LinkIcon, PencilIcon } from '../../../../components/app/AppIcons';
+import { DocRow, DocRowList, IconAction } from '../../../../components/app/DocRows';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { DOCUMENTS, SITE_ID, docOrigin, docUrl } from '../../../../lib/docPackage';
 import { accountUser, loadAnketa } from '../../start/_shared/anketaState';
@@ -22,7 +22,6 @@ export default function SiteDocumentsClient() {
   const router = useRouter();
   const [site, setSite] = useState(null);
   const [user, setUser] = useState(CURRENT_USER);
-  const [openDoc, setOpenDoc] = useState(null);
   const [copied, setCopied] = useState(false);
   const [copiedDoc, setCopiedDoc] = useState(null);
   const [reqOpen, setReqOpen] = useState(false);
@@ -94,7 +93,7 @@ export default function SiteDocumentsClient() {
               </div>
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <div className="flex h-12 min-w-0 flex-1 items-center gap-3 rounded-xl border border-line bg-warm px-4 font-mono text-[13px] text-ink/70">
+              <div className="flex h-12 min-w-0 shrink-0 items-center sm:flex-1 gap-3 rounded-xl border border-line bg-warm px-4 font-mono text-[13px] text-ink/70">
                 <LinkIcon size={17} className="shrink-0 text-ink/35" />
                 <span className="truncate">{PACKAGE_URL}</span>
               </div>
@@ -117,61 +116,47 @@ export default function SiteDocumentsClient() {
               <h2 className="text-lg font-bold tracking-[-0.02em]">Актуальные документы</h2>
               <span className="shrink-0 text-xs font-semibold text-ink/60">{DOCUMENTS.length} документов</span>
             </div>
-            <DocRowList>
-              {DOCUMENTS.map((doc) => (
-                <DocRow
-                  key={doc.id}
-                  doc={doc}
-                  note={docOrigin(doc, site.answers).line}
-                  status={live ? { tone: 'ok', label: 'Опубликован' } : { tone: 'warn', label: 'Ждёт кода' }}
-                  open={openDoc === doc.id}
-                  onToggle={() => setOpenDoc(openDoc === doc.id ? null : doc.id)}
-                >
-                  <p className="text-[13px] font-semibold">
-                    Версия {1 + site.edits.filter((e) => e.doc === doc.id).length} · от{' '}
-                    {formatDate(site.edits.filter((e) => e.doc === doc.id).at(-1)?.at || site.madeAt)}
-                  </p>
-                  <p className="mt-1.5 text-[13px] leading-5 text-ink/60">
-                    {live
-                      ? 'Действует. Следующая версия появится, только если изменится закон или ваши данные, — мы напишем об этом письмом.'
-                      : 'Текст готов и ждёт установки кода: до неё адрес не открывается.'}
-                  </p>
-                  <p className="mt-3 font-mono text-[11px] text-ink/60">
-                    {docUrl(doc)}
-                    {!live && ' — откроется после установки'}
-                  </p>
-                  {/* Копировать можно и весь раздел, и каждый документ отдельно
-                      (решение 9.09). «Изменить» — только у реквизитов: остальные
-                      четыре собираем сами из ответов анкеты, а реквизиты клиент
-                      правит напрямую. Правка реквизитов не гаснет вместе с
-                      копированием — свои данные поправить можно всегда. */}
-                  {(live || doc.id === '01') && (
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                      {live && (
-                        <button
-                          type="button"
+            {/* Зашёл за документом — взял его одним нажатием: «Открыть» и
+                «Скопировать ссылку» прямо в строке, без раскрытия (правка
+                владельца 23.09). Версия и дата — мелко под статусом. */}
+            <DocRowList actionsLabel="Действия">
+              {DOCUMENTS.map((doc) => {
+                const edits = site.edits.filter((e) => e.doc === doc.id);
+                return (
+                  <DocRow
+                    key={doc.id}
+                    doc={doc}
+                    note={docOrigin(doc, site.answers).line}
+                    status={live ? { tone: 'ok', label: 'Опубликован' } : { tone: 'warn', label: 'Ждёт кода' }}
+                    meta={`версия ${1 + edits.length} · ${formatDate(edits.at(-1)?.at || site.madeAt)}`}
+                    actions={
+                      <>
+                        {/* Открыть можно и после пробного периода: опубликованные
+                            страницы остаются доступны по ссылке (решение 24.08);
+                            гаснет только копирование (HANDOFF 6.15 п.8). */}
+                        <IconAction
+                          label="Открыть"
+                          icon={ExternalIcon}
+                          href={`https://${docUrl(doc)}`}
+                          disabled={!live}
+                          why="Откроется после установки кода"
+                        />
+                        <IconAction
+                          label="Скопировать ссылку"
+                          done={copiedDoc === doc.id ? 'Скопировано' : null}
+                          icon={copiedDoc === doc.id ? CheckIcon : CopyIcon}
                           onClick={() => copyDoc(doc)}
                           disabled={!canCopy}
-                          className={`inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50 ${RING}`}
-                        >
-                          {copiedDoc === doc.id ? <CheckIcon size={15} className="text-ok" /> : <CopyIcon size={15} />}
-                          {copiedDoc === doc.id ? 'Скопировано' : 'Скопировать ссылку'}
-                        </button>
-                      )}
-                      {doc.id === '01' && (
-                        <button
-                          type="button"
-                          onClick={() => setReqOpen(true)}
-                          className={`inline-flex items-center rounded-lg border border-line bg-white px-3 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:text-ink ${RING}`}
-                        >
-                          Изменить реквизиты
-                        </button>
-                      )}
-                      {live && site.expired && <span className="text-[12px] text-ink/60">Копирование вернётся после оплаты</span>}
-                    </div>
-                  )}
-                </DocRow>
-              ))}
+                          why={live ? 'Вернётся после оплаты' : 'Появится после установки кода'}
+                        />
+                        {/* Реквизиты — единственное, что клиент правит сам;
+                            правка открывается здесь же, окном поверх списка. */}
+                        {doc.id === '01' && <IconAction label="Изменить реквизиты" icon={PencilIcon} onClick={() => setReqOpen(true)} />}
+                      </>
+                    }
+                  />
+                );
+              })}
             </DocRowList>
           </section>
 

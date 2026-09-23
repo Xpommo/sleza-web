@@ -7,7 +7,6 @@ import { ArrowRightIcon, ClockIcon, CloseIcon, OkIcon, RefreshIcon, WarnIcon } f
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS } from '../../../lib/docPackage';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
-import RequisitesModal from './_shared/RequisitesModal';
 import { RING, SiteHeader, SiteSidebar } from './_shared/SiteChrome';
 import { PRICE_LABEL, TARIFFS, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEnds } from './_shared/subscription';
 
@@ -36,7 +35,6 @@ export default function SiteOverviewClient() {
   const [a, setA] = useState(null);
   const [user, setUser] = useState(CURRENT_USER);
   const [now, setNow] = useState(Date.now());
-  const [reqOpen, setReqOpen] = useState(false);
   const [offStep, setOffStep] = useState(0);
 
   useEffect(() => {
@@ -138,13 +136,12 @@ export default function SiteOverviewClient() {
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           <SiteHeader title="Обзор" domain={a.domain} context="что сейчас с сайтом и что делать дальше">
-            <p className="mt-1 text-[14px] text-ink/60">
-              {[a.companyName, a.inn && `ИНН ${a.inn}`].filter(Boolean).join(' · ')}
-              {(a.companyName || a.inn) && ' · '}
-              <button type="button" onClick={() => setReqOpen(true)} className={`rounded font-semibold text-brand hover:underline ${RING}`}>
-                Изменить
-              </button>
-            </p>
+            {/* Чей это сайт — подписью, без «Изменить»: реквизиты правятся в
+                одном месте, у документа «Реквизиты владельца» в «Документах»
+                (решение 23.09 — два входа в одну правку заставляли гадать). */}
+            {(a.companyName || a.inn) && (
+              <p className="mt-1 text-[14px] text-ink/60">{[a.companyName, a.inn && `ИНН ${a.inn}`].filter(Boolean).join(' · ')}</p>
+            )}
           </SiteHeader>
 
           <section className={`mt-8 flex flex-col gap-6 rounded-2xl border p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7 ${toneCls}`}>
@@ -287,7 +284,6 @@ export default function SiteOverviewClient() {
           </div>
         </div>
       )}
-      {reqOpen && <RequisitesModal onClose={() => setReqOpen(false)} onSaved={() => setA(loadAnketa())} />}
     </main>
   );
 }
