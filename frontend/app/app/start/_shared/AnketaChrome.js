@@ -35,13 +35,14 @@ export const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents
 // без галочки, но кликабельный: он открыт, не сделан; будущих не видно.
 // «Пройден» и «открыт сейчас» — разные состояния: активному шагу рано
 // носить галочку, он ещё не заполнен.
-export function StepList({ current, onPick }) {
+export function StepList({ current, first = 0, onPick }) {
   const [reached, setReached] = useState(current);
   useEffect(() => setReached(Math.max(current, Math.min(loadAnketa().stepsDone || 0, STEPS.length - 1))), [current]);
   return (
     <div className="relative mt-4 pl-8">
       <div className="absolute left-[11px] top-0 h-full w-px bg-line" />
       {STEPS.slice(0, reached + 1).map((step, i) => {
+        if (i < first) return null;
         const active = i === current;
         const done = i < reached && !active;
         return (
@@ -79,10 +80,10 @@ export function StepList({ current, onPick }) {
 
 // Полоса прогресса над карточкой: пройденные шаги отмечены галочкой вместо
 // номера — цифра у пройденного шага ничего не сообщает, галочка сообщает.
-export function Progress({ current }) {
+export function Progress({ current, first = 0 }) {
   return (
     <div className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Прогресс заполнения">
-      {STEPS.map((step, i) => (
+      {STEPS.map((step, i) => i >= first && (
         <div key={step} className="flex flex-1 items-center gap-2">
           <div className={`h-1.5 flex-1 rounded-full ${i <= current ? 'bg-brand' : 'bg-line'}`} />
           {i < current ? (
@@ -94,7 +95,7 @@ export function Progress({ current }) {
             </span>
           ) : (
             <span className={`hidden text-[11px] font-bold xl:block ${i === current ? 'text-brand' : 'text-ink/35'}`}>
-              {i + 1}
+              {i + 1 - first}
             </span>
           )}
         </div>
@@ -105,7 +106,7 @@ export function Progress({ current }) {
 
 // Сайдбар анкеты — тот же каркас, что у кабинета (SidebarShell): знак,
 // «← Мои сайты», внизу «Поддержка» и аккаунт. Внутри — шаги подключения.
-export function Sidebar({ current, bottomBar }) {
+export function Sidebar({ current, first = 0, bottomBar }) {
   // Тот, кто представился на шаге 1, а не мок аккаунта: иначе в углу анкеты
   // стоял чужой человек, хотя имя и почту уже назвали.
   const [user, setUser] = useState(CURRENT_USER);
@@ -120,7 +121,7 @@ export function Sidebar({ current, bottomBar }) {
       </Link>
       <div className="mt-7 border-t border-line pt-6">
         <p className="mb-1 px-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/60">Подключение сайта</p>
-        <StepList current={current} />
+        <StepList current={current} first={first} />
       </div>
     </SidebarShell>
   );
@@ -130,7 +131,7 @@ export function Sidebar({ current, bottomBar }) {
 // с листом шагов и «Далее». Кнопки не дублируют логику, а нажимают
 // настоящие кнопки шага ([data-funnel-back] / [data-funnel-next]) — все
 // проверки остаются единственными, в своих гейтах.
-function FunnelBar({ current, nextLabel }) {
+function FunnelBar({ current, first = 0, nextLabel }) {
   const [sheet, setSheet] = useState(false);
   const [done, setDone] = useState(0);
   useBottomBar();
@@ -144,7 +145,7 @@ function FunnelBar({ current, nextLabel }) {
         <div className="fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-white p-4 shadow-xl lg:hidden">
           <p className="px-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/60">Шаги анкеты</p>
           <div className="-mt-2">
-            <StepList current={current} onPick={() => setSheet(false)} />
+            <StepList current={current} first={first} onPick={() => setSheet(false)} />
           </div>
           <div className="my-2 h-px bg-line" />
           <Link href="/app/sites" className={`flex items-center gap-2 rounded-lg px-1 py-2 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}>
@@ -157,7 +158,7 @@ function FunnelBar({ current, nextLabel }) {
         className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       >
         <div className="h-1 bg-line">
-          <div className="h-full bg-brand transition-all" style={{ width: `${((current + (done > current ? 1 : 0)) / STEPS.length) * 100}%` }} />
+          <div className="h-full bg-brand transition-all" style={{ width: `${((current - first + (done > current ? 1 : 0)) / (STEPS.length - first)) * 100}%` }} />
         </div>
         <div className="flex items-stretch px-2">
           <button type="button" onClick={() => press('[data-funnel-back]')} className={`${side} text-ink/60`}>
@@ -191,21 +192,31 @@ function FunnelBar({ current, nextLabel }) {
 // прогресса — одни на все шесть шагов. Раньше шапка копировалась в каждый
 // шаг и разошлась: плашки «Защищённая форма» / «Почти готово», разные
 // отступы. Заголовок — той же ступени, что в кабинете (28/36).
+// Второй и следующие сайты — без «Вашего профиля»: это вопрос аккаунта, он
+// уже пройден, и анкета начинается с «О сайте», шкала — «из 5» (живой макет,
+// FUNNEL_ALL.skipIf). Признак skipProfile ставит «Добавить сайт».
+export function useFirstStep() {
+  const [first, setFirst] = useState(0);
+  useEffect(() => setFirst(loadAnketa().skipProfile ? 1 : 0), []);
+  return first;
+}
+
 export function AnketaFrame({ current, title, lead, nextLabel = 'Далее', children }) {
+  const first = useFirstStep();
   return (
     <div className="min-h-screen bg-warm text-ink lg:flex">
-      <Sidebar current={current} bottomBar={<FunnelBar current={current} nextLabel={nextLabel} />} />
+      <Sidebar current={current} first={first} bottomBar={<FunnelBar current={current} first={first} nextLabel={nextLabel} />} />
       <main className="min-w-0 flex-1">
         <div className="mx-auto max-w-[1000px] px-5 py-8 sm:px-8 sm:py-10 lg:px-14 lg:py-12">
           <header className="mb-8">
             <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-brand">
-              Шаг {current + 1} из {STEPS.length}
+              Шаг {current + 1 - first} из {STEPS.length - first}
             </p>
             <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">{title}</h1>
             <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/60">{lead}</p>
           </header>
           <div className="hidden sm:block">
-            <Progress current={current} />
+            <Progress current={current} first={first} />
           </div>
           {children}
         </div>

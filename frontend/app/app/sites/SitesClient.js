@@ -11,7 +11,7 @@ import { CURRENT_USER } from '../../../lib/appMock';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
 import { paidPeriod, subState, trialEnds } from '../site/_shared/subscription';
-import { MAIN, accountSites, cardStatus, setCurrentSite } from '../site/_shared/sites';
+import { MAIN, accountSites, addSite, cardStatus, openSite, siteView } from '../site/_shared/sites';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
@@ -70,31 +70,123 @@ const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring
 // Сайдбар аккаунта: только разделы уровня аккаунта. Документы и виджет
 // принадлежат конкретному сайту и появляются внутри него, а не здесь.
 // «Поддержка» — постоянный пункт, а не запрятанный в меню аккаунта.
+
+const PRIMARY_BTN = `mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`;
+const ROW_BTN = `rounded-lg border border-line px-3 py-2 text-xs font-bold transition hover:border-brand hover:text-brand ${RING}`;
+
+function plural(n, one, few, many) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
+
+// Каждый настоящий сайт — со своим состоянием и прогрессом анкеты, по своей
+// анкете (siteView); демо-строки пресета — по своим полям, как раньше.
+function listSites(a) {
+  return accountSites(a).map((s) => {
+    if (s.demo) {
+      const st = cardStatus(s);
+      return { ...s, status: { ...st, action: 'Открыть сайт', href: '/app/site' }, finished: true, demoMeta: st.meta };
+    }
+    const view = s.key === MAIN ? a : siteView(a, a.extraSites.find((x) => x.key === s.key));
+    const skip = view.skipProfile ? 1 : 0;
+    const progress = anketaProgress(view);
+    return {
+      ...s,
+      inn: view.inn || '',
+      status: siteStatus(view),
+      steps: progress - skip,
+      total: 6 - skip,
+      finished: progress >= 6 || Boolean(view.trialStartedAt),
+    };
+  });
+}
+
+function SiteCard({ site, onOpen }) {
+  const [cls, Icon] = TONE[site.status.tone];
+  return (
+    <article className="rounded-2xl border border-line bg-white p-6 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.35)] transition hover:-translate-y-0.5 sm:p-7">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/[0.08] text-brand">
+              <BuildingIcon size={18} />
+            </span>
+            <h2 className="truncate text-[20px] font-bold tracking-[-0.03em]">{site.domain}</h2>
+          </div>
+          {site.company && <p className="mt-4 text-sm font-medium text-ink/70">{site.company}</p>}
+        </div>
+        <ChevronIcon size={19} className="mt-2 shrink-0 text-ink/25" />
+      </div>
+
+      <div className={`mt-6 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold ${cls}`}>
+        <Icon size={15} /> {site.status.label}
+      </div>
+      <p className="mt-2 px-1 text-[12px] text-ink/60">
+        {site.demo ? site.demoMeta : site.status.meta}
+        {!site.demo && site.finished && site.tariff && ` · ${site.tariff}`}
+      </p>
+
+      {!site.demo && (
+        <>
+          <dl className="mt-6 space-y-3 text-sm">
+            {site.inn && (
+              <div className="flex items-center justify-between">
+                <dt className="text-ink/60">ИНН</dt>
+                <dd className="font-mono font-semibold text-ink/75">{site.inn}</dd>
+              </div>
+            )}
+            {/* Прогресс нужен, пока анкета не пройдена; у работающего
+                сайта «6 из 6» ничего не сообщает. У второго сайта шагов
+                пять — профиль уже пройден на первом. */}
+            {!site.finished && (
+              <div className="flex items-center justify-between">
+                <dt className="text-ink/60">Прогресс анкеты</dt>
+                <dd className="font-semibold text-ink/75">
+                  {site.steps} из {site.total}
+                </dd>
+              </div>
+            )}
+          </dl>
+          {!site.finished && (
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line">
+              <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${(site.steps / site.total) * 100}%` }} />
+            </div>
+          )}
+        </>
+      )}
+
+      <button type="button" onClick={onOpen} className={PRIMARY_BTN}>
+        {site.status.action} <ChevronIcon size={16} />
+      </button>
+    </article>
+  );
+}
+
 export default function SitesClient() {
   const router = useRouter();
-  const [site, setSite] = useState(null);
-  const [steps, setSteps] = useState(0);
+  const [sites, setSites] = useState([]);
   const [view, setView] = useState('cards');
   const [user, setUser] = useState(CURRENT_USER);
 
   // Карточка появляется, как только анкета начата: сайт уже назван, и
   // прятать его до конца анкеты значит терять начатую работу.
   useEffect(() => {
-    const a = loadAnketa();
     setUser(accountUser(CURRENT_USER));
-    if (!a.domain) return;
-    setSite({ domain: a.domain, inn: a.inn || '', company: a.companyName || '' });
-    setSteps(anketaProgress(a));
+    setSites(listSites(loadAnketa()));
   }, []);
 
-  const status = site ? siteStatus(loadAnketa()) : null;
-  // Демо-сайты пресета «Несколько сайтов» открываются в свой кабинет, как
-  // основной: у всех карточек одно действие — «Открыть сайт».
-  const all = site ? accountSites(loadAnketa()) : [];
-  const demo = all.filter((x) => x.demo);
-  const mainTariff = all[0]?.tariff;
-  const StatusIcon = status ? TONE[status.tone][1] : null;
-  const finished = steps >= 6 || Boolean(site && loadAnketa().trialStartedAt);
+  // Настоящий сайт становится открытым (его анкета и кабинет), демо —
+  // открывается поверх основного.
+  function open(site) {
+    openSite(site.key);
+    router.push(site.status.href);
+  }
+
+  const any = sites.length > 0;
+  const anyFinished = sites.some((x) => !x.demo && x.finished);
 
   return (
     <main className="min-h-screen bg-warm text-ink lg:flex">
@@ -109,19 +201,19 @@ export default function SitesClient() {
             </p>
           </header>
 
-          {site ? (
+          {any ? (
             <>
               <div className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold text-ink/70">
-                    {1 + demo.length} {1 + demo.length === 1 ? 'сайт' : 'сайта'}
+                    {sites.length} {plural(sites.length, 'сайт', 'сайта', 'сайтов')}
                   </p>
                   <p className="mt-1 text-xs text-ink/60">Документы и виджет — внутри карточки сайта</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => router.push('/app/start/profile')}
+                    onClick={() => router.push(addSite())}
                     className={`inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-white px-4 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
                   >
                     <PlusIcon size={16} /> Добавить сайт
@@ -146,90 +238,9 @@ export default function SitesClient() {
 
               {view === 'cards' ? (
                 <div className="mt-6 grid gap-5 md:grid-cols-2">
-                  <article className="rounded-2xl border border-line bg-white p-6 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.35)] transition hover:-translate-y-0.5 sm:p-7">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/[0.08] text-brand">
-                            <BuildingIcon size={18} />
-                          </span>
-                          <h2 className="truncate text-[20px] font-bold tracking-[-0.03em]">{site.domain}</h2>
-                        </div>
-                        {site.company && <p className="mt-4 text-sm font-medium text-ink/70">{site.company}</p>}
-                      </div>
-                      <ChevronIcon size={19} className="mt-2 shrink-0 text-ink/25" />
-                    </div>
-
-                    <div className={`mt-6 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold ${TONE[status.tone][0]}`}>
-                      <StatusIcon size={15} /> {status.label}
-                    </div>
-                    <p className="mt-2 px-1 text-[12px] text-ink/60">
-                      {status.meta}
-                      {finished && mainTariff && ` · ${mainTariff}`}
-                    </p>
-
-                    <dl className="mt-6 space-y-3 text-sm">
-                      {site.inn && (
-                        <div className="flex items-center justify-between">
-                          <dt className="text-ink/60">ИНН</dt>
-                          <dd className="font-mono font-semibold text-ink/75">{site.inn}</dd>
-                        </div>
-                      )}
-                      {/* Прогресс нужен, пока анкета не пройдена; у работающего
-                          сайта «6 из 6» ничего не сообщает. */}
-                      {!finished && (
-                        <div className="flex items-center justify-between">
-                          <dt className="text-ink/60">Прогресс анкеты</dt>
-                          <dd className="font-semibold text-ink/75">{steps} из 6</dd>
-                        </div>
-                      )}
-                    </dl>
-                    {!finished && (
-                      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line">
-                        <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${(steps / 6) * 100}%` }} />
-                      </div>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCurrentSite(MAIN);
-                        router.push(status.href);
-                      }}
-                      className={`mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`}
-                    >
-                      {status.action} <ChevronIcon size={16} />
-                    </button>
-                  </article>
-                  {demo.map((d) => {
-                    const st = cardStatus(d);
-                    const [cls, Icon] = TONE[st.tone];
-                    return (
-                      <article key={d.key} className="rounded-2xl border border-line bg-white p-6 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.35)] sm:p-7">
-                        <div className="flex items-center gap-2">
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/[0.08] text-brand">
-                            <BuildingIcon size={18} />
-                          </span>
-                          <h2 className="truncate text-[20px] font-bold tracking-[-0.03em]">{d.domain}</h2>
-                        </div>
-                        {d.company && <p className="mt-4 text-sm font-medium text-ink/70">{d.company}</p>}
-                        <div className={`mt-6 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold ${cls}`}>
-                          <Icon size={15} /> {st.label}
-                        </div>
-                        <p className="mt-2 px-1 text-[12px] text-ink/60">{st.meta}</p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setCurrentSite(d.key);
-                            router.push('/app/site');
-                          }}
-                          className={`mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`}
-                        >
-                          Открыть сайт <ChevronIcon size={16} />
-                        </button>
-                      </article>
-                    );
-                  })}
+                  {sites.map((x) => (
+                    <SiteCard key={x.key} site={x} onOpen={() => open(x)} />
+                  ))}
                 </div>
               ) : (
                 <div className="mt-6 overflow-hidden rounded-2xl border border-line bg-white">
@@ -243,50 +254,20 @@ export default function SitesClient() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td className="px-5 py-4">
-                          <p className="font-bold">{site.domain}</p>
-                          {site.company && <p className="mt-0.5 text-xs text-ink/60">{site.company}</p>}
-                        </td>
-                        <td className="px-5 py-4">
-                          <p className="font-semibold text-ink/80">{status.label}</p>
-                          <p className="mt-0.5 text-xs text-ink/60">{status.meta}</p>
-                        </td>
-                        <td className="px-5 py-4 text-ink/70">{finished ? 'пройдена' : `${steps} из 6`}</td>
-                        <td className="px-5 py-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => {
-                        setCurrentSite(MAIN);
-                        router.push(status.href);
-                      }}
-                            className={`rounded-lg border border-line px-3 py-2 text-xs font-bold transition hover:border-brand hover:text-brand ${RING}`}
-                          >
-                            {status.action} →
-                          </button>
-                        </td>
-                      </tr>
-                      {demo.map((d) => (
-                        <tr key={d.key} className="border-t border-line">
+                      {sites.map((x, i) => (
+                        <tr key={x.key} className={i ? 'border-t border-line' : ''}>
                           <td className="px-5 py-4">
-                            <p className="font-bold">{d.domain}</p>
-                            {d.company && <p className="mt-0.5 text-xs text-ink/60">{d.company}</p>}
+                            <p className="font-bold">{x.domain}</p>
+                            {x.company && <p className="mt-0.5 text-xs text-ink/60">{x.company}</p>}
                           </td>
                           <td className="px-5 py-4">
-                            <p className="font-semibold text-ink/80">{cardStatus(d).label}</p>
-                            <p className="mt-0.5 text-xs text-ink/60">{cardStatus(d).meta}</p>
+                            <p className="font-semibold text-ink/80">{x.status.label}</p>
+                            <p className="mt-0.5 text-xs text-ink/60">{x.demo ? x.demoMeta : x.status.meta}</p>
                           </td>
-                          <td className="px-5 py-4 text-ink/70">пройдена</td>
+                          <td className="px-5 py-4 text-ink/70">{x.finished ? 'пройдена' : `${x.steps} из ${x.total}`}</td>
                           <td className="px-5 py-4 text-right">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setCurrentSite(d.key);
-                                router.push('/app/site');
-                              }}
-                              className={`rounded-lg border border-line px-3 py-2 text-xs font-bold transition hover:border-brand hover:text-brand ${RING}`}
-                            >
-                              Открыть сайт →
+                            <button type="button" onClick={() => open(x)} className={ROW_BTN}>
+                              {x.status.action} →
                             </button>
                           </td>
                         </tr>
@@ -314,7 +295,7 @@ export default function SitesClient() {
                   переключён список. */}
               <button
                 type="button"
-                onClick={() => router.push('/app/start/profile')}
+                onClick={() => router.push(addSite())}
                 className={`mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`}
               >
                 <PlusIcon size={17} /> Добавить сайт
@@ -323,7 +304,7 @@ export default function SitesClient() {
           </div>
           )}
           <p className="mt-6 text-center text-xs text-ink/60">
-            {site ? (finished ? 'Отключить можно любой сайт по отдельности, в «Подписке» — остальные продолжат работать.' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
+            {any ? (anyFinished ? 'Отключить можно любой сайт по отдельности, в «Подписке» — остальные продолжат работать.' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
           </p>
         </div>
       </section>

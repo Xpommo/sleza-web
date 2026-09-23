@@ -12,7 +12,7 @@ import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
 import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
 import SiteOffModal from './SiteOffModal';
 import {
-  accountSites, formatRub, issueSiteInvoice, nextRenewal, paySite, setCurrentSite, setSiteCancelled, setSiteTariff,
+  accountSites, formatRub, issueSiteInvoice, nextRenewal, openSite, paySite, setSiteCancelled, setSiteTariff,
 } from '../site/_shared/sites';
 import { PRICE, TARIFFS, TRIAL_DAYS, trialEnds } from '../site/_shared/subscription';
 
@@ -525,8 +525,9 @@ export default function BillingClient() {
                       reload();
                     }}
                     onGo={() => {
-                      setCurrentSite(site.key);
-                      router.push(STEP_URLS[Math.min(a.stepsDone || 0, 5)]);
+                      // Анкета этого сайта, а не открытого: у каждого сайта свой шаг.
+                      openSite(site.key);
+                      router.push(STEP_URLS[Math.min(site.stepsDone || 0, 5)]);
                     }}
                   >
                     {open?.panel === 'tariff' ? (

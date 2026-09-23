@@ -8,14 +8,17 @@
 // - общие на аккаунт — способ оплаты, карта, плательщик и почта для актов;
 // - тарифом, оплатой и отключением управляют в «Подписке», в строке сайта.
 //
-// Прототип держит один настоящий сайт — тот, что прошёл анкету; его оплата
-// лежит в `billing` анкеты рядом с настройками аккаунта (способ, карта,
-// плательщик). Остальные (extraSites) — демо-строки пресета «Несколько
-// сайтов» в панели «Макет», со своими trialStartedAt / paidAt / invoice.
-// Демо-сайт открывается в свой кабинет: те же экраны, его домен, компания и
-// состояние (siteAnketa), ответы анкеты — общие с основным.
+// Анкета в хранилище — это открытый сейчас сайт плюс общее на аккаунт
+// (профиль, вход, обращения, способ оплаты, карта, плательщик, почта для
+// актов). Остальные сайты лежат в extraSites:
+// - настоящие (real) — добавленные через «Добавить сайт»: всё, что относится
+//   к сайту, — в fields, подписка — в собственных полях строки. «Открыть»
+//   меняет их местами с открытым сайтом (openSite), и анкета, кабинет и
+//   «Подписка» работают с ним как с единственным;
+// - демо — строки пресета «Несколько сайтов» панели «Макет»: открываются
+//   поверх основного (siteAnketa), ответы анкеты у них общие с основным.
 
-import { loadAnketa, saveAnketa } from '../../start/_shared/anketaState';
+import { loadAnketa, replaceAnketa, saveAnketa } from '../../start/_shared/anketaState';
 import { PRICE, TARIFFS, paidPeriod, subState, trialEnds } from './subscription';
 
 export const MAIN = 'main';
@@ -54,8 +57,8 @@ export function siteAnketa(a = loadAnketa()) {
     ...(s.fields || {}),
     domain: s.domain,
     companyName: s.fields?.companyName ?? s.company,
-    stepsDone: 5,
-    installed: true,
+    stepsDone: s.real ? s.fields?.stepsDone || 0 : 5,
+    installed: s.real ? Boolean(s.fields?.installed) : true,
     trialStartedAt: s.trialStartedAt,
     siteTariff: s.tariff,
     siteNextTariff: s.nextTariff || null,
@@ -87,6 +90,7 @@ export function saveSiteFields(patch) {
 // у демо-сайта — его собственные поля.
 function asAnketa(a, s) {
   if (s.key === MAIN) return a;
+  if (s.real) return siteView(a, s);
   return { stepsDone: 5, installed: true, trialStartedAt: s.trialStartedAt, billing: { paidAt: s.paidAt, invoice: s.invoice } };
 }
 
@@ -111,23 +115,136 @@ function describe(a, s, now) {
 }
 
 export function accountSites(a, now = Date.now()) {
-  if (!a.domain) return [];
   const b = a.billing || {};
+  const extra = a.extraSites || [];
+  if (!a.domain && !extra.some((s) => s.real)) return [];
   const list = [
-    {
-      key: MAIN,
-      domain: a.domain,
-      company: a.companyName || '',
-      tariff: mainTariff(a),
-      nextTariff: a.siteNextTariff || null,
-      cancelled: Boolean(b.cancelled),
-      invoice: b.invoice || null,
-      paidAt: b.paidAt || null,
-      demo: false,
-    },
-    ...(a.extraSites || []).map((s) => ({ ...s, demo: true })),
+    ...(a.domain
+      ? [{
+          key: MAIN,
+          domain: a.domain,
+          company: a.companyName || '',
+          tariff: mainTariff(a),
+          nextTariff: a.siteNextTariff || null,
+          cancelled: Boolean(b.cancelled),
+          invoice: b.invoice || null,
+          paidAt: b.paidAt || null,
+          addedAt: a.siteAddedAt || 0,
+          stepsDone: a.stepsDone || 0,
+          real: true,
+          demo: false,
+        }]
+      : []),
+    ...extra.map((s) => ({ ...s, stepsDone: s.real ? s.fields?.stepsDone || 0 : 5, demo: !s.real })),
   ];
-  return list.map((s) => ({ ...s, ...describe(a, s, now), price: PRICE }));
+  // Порядок — по времени добавления, а не «открытый первым»: иначе карточки
+  // переставлялись бы от того, какой сайт открывали последним.
+  const order = (s) => (s.demo ? Infinity : s.addedAt || 0);
+  return list
+    .sort((x, y) => order(x) - order(y))
+    .map((s) => ({ ...s, ...describe(a, s, now), price: PRICE }));
+}
+
+// ─── несколько настоящих сайтов ──────────────────────────────────────────
+// Общее на аккаунт; всё остальное в анкете относится к открытому сайту.
+const ACCOUNT_KEYS = ['role', 'personName', 'personEmail', 'personPhone', 'authVia', 'messengers', 'tickets', 'extraSites', 'billing'];
+// В billing сайту принадлежат только его оплата и счёт; способ оплаты, карта,
+// плательщик, почта для актов и нумерация счетов — аккаунту.
+const SITE_BILLING = ['paidAt', 'paidAmount', 'invoice', 'cancelled', 'cancelledAt', 'tariff'];
+
+function accountPart(a) {
+  const out = {};
+  ACCOUNT_KEYS.forEach((k) => {
+    if (a[k] !== undefined) out[k] = a[k];
+  });
+  const billing = { ...(a.billing || {}) };
+  SITE_BILLING.forEach((k) => delete billing[k]);
+  return { ...out, billing };
+}
+
+// Открытый сайт — строкой в extraSites, со всем, что к нему относится.
+function stash(a) {
+  const fields = {};
+  Object.keys(a).forEach((k) => {
+    if (!ACCOUNT_KEYS.includes(k)) fields[k] = a[k];
+  });
+  const b = a.billing || {};
+  return {
+    key: `site-${a.siteAddedAt || 0}-${a.domain}`,
+    real: true,
+    domain: a.domain,
+    company: a.companyName || '',
+    addedAt: a.siteAddedAt || 0,
+    tariff: mainTariff(a),
+    nextTariff: a.siteNextTariff || null,
+    trialStartedAt: a.trialStartedAt || null,
+    paidAt: b.paidAt || null,
+    paidAmount: b.paidAmount || null,
+    invoice: b.invoice || null,
+    cancelled: Boolean(b.cancelled),
+    cancelledAt: b.cancelledAt || null,
+    docEdits: a.docEdits || [],
+    fields,
+  };
+}
+
+// Настоящий сайт из extraSites в виде анкеты: его ответы, реквизиты и
+// подписка поверх общего на аккаунт. То же читает карточка «Моих сайтов».
+export function siteView(a, s) {
+  return {
+    ...accountPart(a),
+    ...s.fields,
+    domain: s.domain,
+    companyName: s.fields?.companyName ?? s.company,
+    siteTariff: s.tariff,
+    siteNextTariff: s.nextTariff || null,
+    trialStartedAt: s.trialStartedAt,
+    docEdits: s.docEdits || [],
+    siteAddedAt: s.addedAt || 0,
+    billing: {
+      ...accountPart(a).billing,
+      paidAt: s.paidAt,
+      paidAmount: s.paidAmount,
+      invoice: s.invoice,
+      cancelled: s.cancelled,
+      cancelledAt: s.cancelledAt,
+    },
+  };
+}
+
+// Открыть сайт в кабинете. Настоящий — встаёт на место открытого (тот уходит
+// в extraSites целиком), демо — как раньше, поверх основного.
+export function openSite(key) {
+  const a = loadAnketa();
+  const s = key === MAIN ? null : (a.extraSites || []).find((x) => x.key === key);
+  if (!s || !s.real) {
+    setCurrentSite(key);
+    return siteAnketa(a);
+  }
+  const rest = a.extraSites.filter((x) => x.key !== key);
+  const next = { ...siteView(a, s), extraSites: a.domain ? [...rest, stash(a)] : rest };
+  replaceAnketa(next);
+  setCurrentSite(MAIN);
+  return next;
+}
+
+// «Добавить сайт». Первый сайт — обычная анкета с «Вашего профиля». Если сайт
+// уже есть, он уходит в список целиком, а новый начинается с «О сайте»:
+// профиль — вопрос аккаунта, его уже знаем (живой макет, FUNNEL_ALL.skipIf по
+// hasIdentity). skipProfile живёт в самом сайте, поэтому шкала «из 5» не
+// схлопнется посреди первого прохождения и сохранится при возврате к сайту.
+export function addSite() {
+  const a = loadAnketa();
+  setCurrentSite(MAIN);
+  if (!a.domain) return a.stepsDone >= 1 ? '/app/start/site' : '/app/start/profile';
+  replaceAnketa({
+    ...accountPart(a),
+    extraSites: [...(a.extraSites || []), stash(a)],
+    stepsDone: 1,
+    skipProfile: true,
+    siteAddedAt: Date.now(),
+  });
+  return '/app/start/site';
 }
 
 // Ближайшее продление среди оплаченных сайтов — у каждого своя дата,

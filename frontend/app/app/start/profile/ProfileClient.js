@@ -78,6 +78,12 @@ export default function ProfileClient() {
   // и первая отрисовка должна совпасть с серверной.
   useEffect(() => {
     const a = loadAnketa();
+    // У второго сайта профиля в анкете нет — он общий на аккаунт и правится
+    // в «Настройках». Прямая ссылка на шаг ведёт на первый шаг этого сайта.
+    if (a.skipProfile) {
+      router.replace('/app/start/site');
+      return;
+    }
     if (a.role) setRole(a.role);
     if (a.personName) setName(a.personName);
     if (a.personPhone) setPhone(formatPhone(a.personPhone));

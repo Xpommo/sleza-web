@@ -47,6 +47,17 @@ export function markStepDone(step) {
   saveAnketa({ stepsDone: Math.max(loadAnketa().stepsDone || 0, step) });
 }
 
+// Анкета целиком, без слияния с прежней: нужна при смене открытого сайта —
+// ответы прежнего сайта не должны просочиться в новый.
+export function replaceAnketa(next) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem(KEY, JSON.stringify(next));
+  } catch {
+    /* без хранилища прототип держит один сайт, как раньше */
+  }
+}
+
 export function saveAnketa(patch) {
   if (typeof window === 'undefined') return;
   try {

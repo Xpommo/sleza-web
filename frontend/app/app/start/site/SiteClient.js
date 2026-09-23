@@ -10,7 +10,7 @@ import {
   GlobeIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { RING, AnketaFrame, Field, Tile, SectionHead } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, Field, Tile, SectionHead, useFirstStep } from '../_shared/AnketaChrome';
 import { ANALYTICS, FEATURES, PLATFORMS, SPHERES } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
@@ -41,6 +41,8 @@ function toggleOption(prev, value, exclusiveValues) {
 
 export default function SiteClient() {
   const router = useRouter();
+  // У второго сайта это первый шаг: «Назад» — в «Мои сайты», профиля нет.
+  const first = useFirstStep();
 
   const [domain, setDomain] = useState('');
   const [domainError, setDomainError] = useState(null);
@@ -402,7 +404,7 @@ export default function SiteClient() {
               <button
                 data-funnel-back
                 type="button"
-                onClick={() => router.push('/app/start/profile')}
+                onClick={() => router.push(first ? '/app/sites' : '/app/start/profile')}
                 className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
               >
                 <ArrowLeftIcon size={16} /> Назад
