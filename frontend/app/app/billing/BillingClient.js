@@ -12,7 +12,7 @@ import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
 import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
 import SiteOffModal from './SiteOffModal';
 import {
-  accountSites, formatRub, issueSiteInvoice, nextRenewal, openSite, paySite, setSiteCancelled, setSiteTariff,
+  accountSites, currentSiteKey, formatRub, issueSiteInvoice, nextRenewal, openSite, paySite, setSiteCancelled, setSiteTariff,
 } from '../site/_shared/sites';
 import { PRICE, TARIFFS, TRIAL_DAYS, trialEnds } from '../site/_shared/subscription';
 
@@ -92,63 +92,80 @@ const BTN_OUTLINE = `rounded-xl border border-line bg-white px-4 py-2.5 text-sm 
 const BTN_TEXT = `rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
 const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
 
-// Строка сайта: домен и компания, тариф, состояние, действия. Действия
-// словами, а не в «⋯»: назначение элемента должно читаться без клика
-// (правило ревью Ивана). Оплата — тоже здесь: у каждого сайта свой год.
+// Строка сайта (владелец 23.09 — «всё сливается, непонятно, что зачем»):
+// домен, что с подпиской сейчас и что дальше, главное действие — настоящей
+// кнопкой («Оплатить 12 000 ₽»), остальное — тихими ссылками. «Отключить»
+// остаётся словом, а не пунктом в «⋯» (правило ревью Ивана: назначение
+// читается без клика), но серым и справа — действие редкое.
+const PRIMARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
+const LINK = `rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`;
+const QUIET = `rounded text-[13px] font-semibold text-ink/50 hover:text-danger ${RING}`;
+
+function siteLine(site) {
+  return {
+    trial: `Пробный период · дальше ${site.tariff} — ${PRICE_TEXT} в год`,
+    expired: `${site.tariff} — ${PRICE_TEXT} в год`,
+    pending: `${site.tariff} — ${PRICE_TEXT} в год`,
+    paid: site.nextTariff && site.period
+      ? `${site.tariff} · с ${site.period.renew} — ${site.nextTariff}`
+      : site.period && `${site.tariff} · продление ${site.period.renew} — ${PRICE_TEXT}`,
+    'off-soon': site.period && `${site.tariff} · работает до ${site.period.to}, не продлевается`,
+    off: 'Не продлевается',
+    'not-ready': `Пробный период ${TRIAL_DAYS} дней начнётся, когда код появится на сайте`,
+  }[site.kind];
+}
+
 function SiteRow({ site, open, onOpen, onOff, onResume, onGo, children }) {
   const live = !site.cancelled && site.kind !== 'not-ready';
-  const payable = site.kind === 'trial' || site.kind === 'expired' || site.kind === 'pending';
+  const payable = site.kind === 'trial' || site.kind === 'expired';
   return (
-    <div className="border-t border-line py-4 first:border-t-0">
-      <div className="grid gap-x-4 gap-y-2 sm:grid-cols-[minmax(0,1fr)_120px_190px_240px] sm:items-center">
+    <div className="border-t border-line py-5 first:border-t-0 first:pt-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold">{site.domain}</p>
-          {site.company && <p className="mt-0.5 truncate text-[12px] text-ink/60">{site.company}</p>}
+          <p className="text-[15px] font-bold">{site.domain}</p>
+          {site.company && <p className="mt-0.5 text-[12px] text-ink/60">{site.company}</p>}
+          <p className="mt-2 text-[13px] text-ink/75">{siteLine(site)}</p>
         </div>
-        {/* В пробный период тариф — «Пробный период», выбранный тариф —
-            второй строкой: он начнётся после (владелец 23.09). */}
-        <div>
-          <p className="text-sm font-semibold">{site.kind === 'trial' ? 'Пробный период' : site.tariff}</p>
-          <p className="mt-0.5 text-[12px] text-ink/60">
-            {site.kind === 'trial'
-              ? `дальше ${site.tariff} · ${PRICE_TEXT} в год`
-              : site.nextTariff && site.period
-                ? `с ${site.period.renew} — ${site.nextTariff}`
-                : live
-                  ? `${PRICE_TEXT} в год`
-                  : '—'}
-          </p>
-        </div>
-        <span className={`w-fit rounded-full px-3 py-1.5 text-[11px] font-bold ${TONE[site.tone]}`}>{site.label}</span>
-        <div className="flex flex-wrap gap-1 sm:justify-end">
-          {payable && (
-            <button type="button" onClick={() => onOpen('pay')} aria-expanded={open === 'pay'} className={SITE_ACT_MAIN}>
-              {open === 'pay' ? 'Свернуть' : site.kind === 'pending' ? 'Счёт' : 'Оплатить'}
-            </button>
-          )}
-          {live && (
-            <button type="button" onClick={() => onOpen('tariff')} aria-expanded={open === 'tariff'} className={SITE_ACT}>
-              {open === 'tariff' ? 'Свернуть' : 'Тариф'}
-            </button>
-          )}
-          {live && (
-            <button type="button" onClick={onOff} className={`${SITE_ACT_BASE} text-ink/60 hover:text-danger`}>
-              Отключить
-            </button>
-          )}
-          {site.cancelled && (
-            <button type="button" onClick={onResume} className={SITE_ACT_MAIN}>
-              Вернуть в подписку
-            </button>
-          )}
-          {site.kind === 'not-ready' && !site.cancelled && (
-            <button type="button" onClick={onGo} className={SITE_ACT_MAIN}>
-              {site.label === 'код не установлен' ? 'Поставить код' : 'Продолжить анкету'}
-            </button>
-          )}
-        </div>
+        <span className={`w-fit shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold ${TONE[site.tone]}`}>{site.label}</span>
       </div>
-      {open && <div className="mt-4 rounded-xl bg-warm/60 p-4 sm:p-5">{children}</div>}
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
+        {payable && open !== 'pay' && (
+          <button type="button" onClick={() => onOpen('pay')} className={PRIMARY_SM}>
+            Оплатить {PRICE_TEXT}
+          </button>
+        )}
+        {site.kind === 'pending' && open !== 'pay' && (
+          <button type="button" onClick={() => onOpen('pay')} className={PRIMARY_SM}>
+            Счёт № {site.invoice?.no}
+          </button>
+        )}
+        {open === 'pay' && (
+          <button type="button" onClick={() => onOpen('pay')} className={LINK}>
+            Свернуть оплату
+          </button>
+        )}
+        {site.cancelled && (
+          <button type="button" onClick={onResume} className={PRIMARY_SM}>
+            Вернуть в подписку
+          </button>
+        )}
+        {site.kind === 'not-ready' && !site.cancelled && (
+          <button type="button" onClick={onGo} className={PRIMARY_SM}>
+            {site.label === 'код не установлен' ? 'Поставить код' : 'Продолжить анкету'}
+          </button>
+        )}
+        {live && (
+          <button type="button" onClick={() => onOpen('tariff')} aria-expanded={open === 'tariff'} className={LINK}>
+            {open === 'tariff' ? 'Свернуть' : 'Сменить тариф'}
+          </button>
+        )}
+        {live && (
+          <button type="button" onClick={onOff} className={`${QUIET} sm:ml-auto`}>
+            Отключить сайт
+          </button>
+        )}
+      </div>
+      {open && children && <div className="mt-4 rounded-xl border border-line bg-warm/60 p-4 sm:p-5">{children}</div>}
     </div>
   );
 }
@@ -165,14 +182,21 @@ export default function BillingClient() {
   const [off, setOff] = useState(null); // { site, step }
 
   const [methodOpen, setMethodOpen] = useState(false);
-  const [method, setMethod] = useState('По счёту');
+  // Способ оплаты аккаунта: пока ни разу не платили — не выбран (владелец
+  // 23.09: «оплата по счёту» стояла сама, хотя клиент её не выбирал).
+  const [method, setMethod] = useState(null);
+  // Выбор в панели оплаты сайта — до первой оплаты ничего не отмечено.
+  const [payMethod, setPayMethod] = useState(null);
+  const [payErr, setPayErr] = useState(null);
+  const [docsEmail, setDocsEmail] = useState('');
+  const [docsErr, setDocsErr] = useState(null);
   const [cardNo, setCardNo] = useState('');
   const [cardExp, setCardExp] = useState('');
   const [cardCvc, setCardCvc] = useState('');
   const [cardErr, setCardErr] = useState({});
 
   const [payerOpen, setPayerOpen] = useState(false);
-  const [payerMode, setPayerMode] = useState('Как в анкете');
+  const [payerMode, setPayerMode] = useState(null);
   // Отдельный плательщик — в подписке аккаунта, чтобы пережить F5 и не
   // вводиться заново к каждому счёту. null — ещё не заполнен.
   const [otherPayer, setOtherPayer] = useState(null);
@@ -193,11 +217,23 @@ export default function BillingClient() {
     setA(saved);
     setUser(accountUser(CURRENT_USER));
     const b = saved.billing || {};
-    if (b.method) setMethod(b.method);
-    if (b.actsEmail) setActsEmail(b.actsEmail);
+    if (b.method) {
+      setMethod(b.method);
+      setPayMethod(b.method);
+    }
+    if (b.actsEmail) {
+      setActsEmail(b.actsEmail);
+      setDocsEmail(b.actsEmail);
+    }
     if (b.payerOther) {
       setOtherPayer(b.payerOther);
       setPayerMode('Другие реквизиты');
+    } else if (b.method === 'По счёту') setPayerMode('Реквизиты компании');
+    // «Оплатить» с «Обзора» и из «Моих сайтов» открывает оплату сайта сразу.
+    const want = new URLSearchParams(window.location.search).get('pay');
+    if (want) {
+      const key = want === 'current' ? currentSiteKey() : want;
+      if (accountSites(saved).some((x) => x.key === key)) setOpen({ key, panel: 'pay' });
     }
     const id = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(id);
@@ -244,45 +280,75 @@ export default function BillingClient() {
     saveBilling({ method: m });
   }
 
+  // Почта для чека, счёта и акта — спрашиваем при первой оплате и не
+  // подставляем молча почту аккаунта (владелец 23.09): её можно вставить
+  // одной кнопкой. Сохраняется для следующих оплат — в «Для бухгалтерии».
+  function checkDocsEmail() {
+    const v = docsEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+      setDocsErr(v ? 'Нужна почта вида name@site.ru.' : 'Укажите, куда прислать документы об оплате.');
+      return null;
+    }
+    setDocsErr(null);
+    return v;
+  }
+
   // Карта — на аккаунт: привязанной один раз, ею оплачивают и другие сайты.
   function payByCard(site) {
+    let ok = true;
     if (!b.card) {
       const digits = cardNo.replace(/\D/g, '');
-      const [mm, yy] = cardExp.split('/');
+      const [mm] = cardExp.split('/');
       const errs = {};
       if (digits.length !== 16) errs.no = 'Номер карты — 16 цифр.';
       if (!/^\d{2}\/\d{2}$/.test(cardExp) || +mm < 1 || +mm > 12) errs.exp = 'Срок действия — в формате ММ/ГГ.';
       if (!/^\d{3}$/.test(cardCvc)) errs.cvc = 'CVC — 3 цифры на обороте карты.';
       setCardErr(errs);
-      if (Object.keys(errs).length) return;
-      saveAnketa({ billing: { ...loadAnketa().billing, method: 'Картой', card: { last4: digits.slice(-4), exp: `${mm}/${yy}` } } });
-      setMethod('Картой');
+      if (Object.keys(errs).length) ok = false;
+    }
+    const email = checkDocsEmail();
+    if (!ok || !email) return;
+    const patch = { method: 'Картой', actsEmail: email };
+    if (!b.card) {
+      patch.card = { last4: cardNo.replace(/\D/g, '').slice(-4), exp: cardExp };
       setCardNo('');
       setCardExp('');
       setCardCvc('');
     }
+    saveAnketa({ billing: { ...loadAnketa().billing, ...patch } });
+    setMethod('Картой');
+    setActsEmail(email);
     paySite(site.key);
     reload();
     setOpen(null);
   }
 
-  const currentPayer = payerMode === 'Как в анкете' ? null : otherPayer;
-  const payerName = payerMode === 'Как в анкете' ? operatorName(a) : otherPayer?.name || 'другие реквизиты';
+  const currentPayer = payerMode === 'Реквизиты компании' ? null : otherPayer;
+  const payerName = payerMode === 'Реквизиты компании' ? operatorName(a) : otherPayer?.name || 'другие реквизиты';
 
   function issueInvoice(site) {
+    if (!payerMode) {
+      setPayErr('Выберите, на кого выставить счёт.');
+      return;
+    }
     // Без реквизитов плательщика счёт не выставить — сразу открываем окно.
     if (payerMode === 'Другие реквизиты' && !otherPayer) {
-      setPayerOpen(true);
       setPayerModal(true);
       return;
     }
+    const email = checkDocsEmail();
+    if (!email) return;
+    setPayErr(null);
+    saveAnketa({ billing: { ...loadAnketa().billing, method: 'По счёту', actsEmail: email, ...(payerMode === 'Реквизиты компании' ? { payerOther: null } : {}) } });
+    setMethod('По счёту');
+    setActsEmail(email);
     issueSiteInvoice(site.key, currentPayer);
     reload();
   }
 
   function saveActs() {
-    if (actsEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(actsEmail)) {
-      setActsErr('Нужна почта вида name@site.ru — на неё придут акты.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(actsEmail)) {
+      setActsErr('Нужна почта вида name@site.ru — на неё придут чеки и акты.');
       return;
     }
     setActsErr(null);
@@ -369,9 +435,43 @@ export default function BillingClient() {
     </div>
   );
 
+  // Почта для документов об оплате — пустая, пока её не указали; почту
+  // аккаунта можно вставить одной кнопкой, но сами мы её не подставляем.
+  function docsEmailField(label) {
+    return (
+      <div className="mt-5">
+        <Field
+          label={label}
+          required
+          type="email"
+          autoComplete="off"
+          placeholder={`buh@${a.domain}`}
+          value={docsEmail}
+          onChange={(e) => {
+            setDocsEmail(e.target.value);
+            setDocsErr(null);
+          }}
+          error={docsErr}
+        />
+        {a.personEmail && docsEmail.trim() !== a.personEmail && (
+          <button
+            type="button"
+            onClick={() => {
+              setDocsEmail(a.personEmail);
+              setDocsErr(null);
+            }}
+            className={`mt-2 ${LINK}`}
+          >
+            Вставить мою почту — {a.personEmail}
+          </button>
+        )}
+      </div>
+    );
+  }
+
   function cardPart(site) {
     return (
-      <div className={site.invoice ? 'mt-5 border-t border-line pt-5' : ''}>
+      <div>
         {b.card ? (
           <p className="text-[13px] leading-5 text-ink/65">
             Спишем {PRICE_TEXT} с карты <b className="text-ink">···· {b.card.last4}</b>. Год подписки {site.domain} начнётся
@@ -411,18 +511,66 @@ export default function BillingClient() {
                 error={cardErr.cvc}
               />
             </div>
-            <p className="mt-3 text-[12px] text-ink/60">Карта привяжется к аккаунту — ею можно будет оплачивать и другие сайты.</p>
+            <p className="mt-3 text-[12px] text-ink/60">
+              Карта привяжется к аккаунту — ею можно будет оплачивать и другие сайты. Год подписки {site.domain} начнётся с
+              оплаты.
+            </p>
           </>
         )}
-        <button type="button" onClick={() => payByCard(site)} className={`mt-4 ${PRIMARY}`}>
+        {docsEmailField('Куда прислать чек и акт')}
+        <button type="button" onClick={() => payByCard(site)} className={`mt-5 ${PRIMARY}`}>
           Оплатить {PRICE_TEXT}
         </button>
       </div>
     );
   }
 
-  // Панель оплаты в строке сайта: картой — списание сразу, по счёту — счёт на
-  // этот сайт. Способ и плательщик общие, меняются в «Оплате» ниже.
+  function invoicePart(site) {
+    return (
+      <div>
+        <p id={`payer-${site.key}`} className="mb-2 text-sm font-bold">
+          Счёт на
+        </p>
+        <Segmented
+          options={['Реквизиты компании', 'Другие реквизиты']}
+          value={payerMode}
+          onChange={(v) => {
+            setPayerMode(v);
+            setPayErr(null);
+            if (v === 'Другие реквизиты' && !otherPayer) setPayerModal(true);
+          }}
+          ariaLabelledby={`payer-${site.key}`}
+        />
+        {payerMode && (
+          <p className="mt-2 text-[12px] leading-4 text-ink/60">
+            {payerMode === 'Реквизиты компании'
+              ? `${operatorName(a)} · ${payerNote}`
+              : otherPayer
+                ? `${otherPayer.name} · ${payerSummary(otherPayer)}`
+                : 'Реквизиты другой компании не заполнены'}
+            {payerMode === 'Другие реквизиты' && (
+              <>
+                {' · '}
+                <button type="button" onClick={() => setPayerModal(true)} className={LINK}>
+                  {otherPayer ? 'Изменить' : 'Заполнить'}
+                </button>
+              </>
+            )}
+          </p>
+        )}
+        {payErr && <p className="mt-2 text-[12px] font-semibold text-danger">{payErr}</p>}
+        {docsEmailField('Куда прислать счёт и акт')}
+        <p className="mt-4 text-[12px] text-ink/60">Год подписки {site.domain} начнётся с оплаты — у сайта будет своя дата продления.</p>
+        <button type="button" onClick={() => issueInvoice(site)} className={`mt-4 ${PRIMARY}`}>
+          Выставить счёт на {PRICE_TEXT}
+        </button>
+      </div>
+    );
+  }
+
+  // Оплата сайта по шагам (владелец 23.09): как платите → данные → куда
+  // прислать документы → оплатить. Ничего не выбрано заранее: способ,
+  // плательщик и почта — решения клиента, а не наши.
   function payPanel(site) {
     const inv = site.invoice;
     if (inv) {
@@ -462,27 +610,23 @@ export default function BillingClient() {
                 Сформировать заново — на {payerName}
               </button>
             )}
-            {method !== 'Картой' && (
-              <button type="button" onClick={() => pickMethod('Картой')} className={`rounded text-sm font-semibold text-brand hover:text-ink ${RING}`}>
+            {payMethod !== 'Картой' && (
+              <button type="button" onClick={() => setPayMethod('Картой')} className={LINK}>
                 Оплатить картой вместо счёта →
               </button>
             )}
           </div>
-          {method === 'Картой' && cardPart(site)}
+          {payMethod === 'Картой' && <div className="mt-5 border-t border-line pt-5">{cardPart(site)}</div>}
         </>
       );
     }
-    return method === 'Картой' ? (
-      cardPart(site)
-    ) : (
+    return (
       <>
-        <p className="text-[13px] leading-5 text-ink/65">
-          Счёт на <b className="text-ink">{payerName}</b> за год подписки {site.domain}. Год начнётся с оплаты — у сайта будет
-          своя дата продления.
+        <p id={`how-${site.key}`} className="mb-2 text-sm font-bold">
+          Как платите?
         </p>
-        <button type="button" onClick={() => issueInvoice(site)} className={`mt-4 ${PRIMARY}`}>
-          Выставить счёт на {PRICE_TEXT}
-        </button>
+        <Segmented options={['Картой', 'По счёту']} value={payMethod} onChange={setPayMethod} ariaLabelledby={`how-${site.key}`} />
+        {payMethod && <div className="mt-5 border-t border-line pt-5">{payMethod === 'Картой' ? cardPart(site) : invoicePart(site)}</div>}
       </>
     );
   }
@@ -587,7 +731,10 @@ export default function BillingClient() {
                 )}
               </Panel>
 
-              {/* Общее на аккаунт: как платим и кто плательщик. */}
+              {/* Общее на аккаунт: как платим и кто плательщик. Появляется после
+                  первой оплаты — до неё способа и плательщика нет, выбирают их
+                  в оплате сайта (владелец 23.09). */}
+              {b.method && (
               <Panel title="Оплата">
                 <Row
                   label="Способ оплаты"
@@ -621,9 +768,9 @@ export default function BillingClient() {
                 {method === 'По счёту' && (
                   <Row
                     label="Плательщик"
-                    value={payerMode === 'Как в анкете' ? operatorName(a) : otherPayer?.name || 'Реквизиты не заполнены'}
+                    value={payerMode === 'Реквизиты компании' ? operatorName(a) : otherPayer?.name || 'Реквизиты не заполнены'}
                     note={
-                      payerMode === 'Как в анкете'
+                      payerMode === 'Реквизиты компании'
                         ? `${payerNote} · из анкеты`
                         : otherPayer
                           ? `${payerSummary(otherPayer)} · отдельные реквизиты`
@@ -634,9 +781,9 @@ export default function BillingClient() {
                     onAction={() => setPayerOpen(!payerOpen)}
                   >
                     <div className="space-y-3">
-                      <Segmented options={['Как в анкете', 'Другие реквизиты']} value={payerMode} onChange={setPayerMode} />
+                      <Segmented options={['Реквизиты компании', 'Другие реквизиты']} value={payerMode} onChange={setPayerMode} />
                       <p className="text-[13px] leading-5 text-ink/60">
-                        {payerMode === 'Как в анкете'
+                        {payerMode === 'Реквизиты компании'
                           ? 'Возьмём данные компании с шага «Реквизиты». В подвал сайта они и так идут — здесь они нужны только для счёта.'
                           : 'Нужно, когда счёт оплачивает другая компания — не та, чьи реквизиты стоят в подвале сайта.'}
                       </p>
@@ -652,15 +799,17 @@ export default function BillingClient() {
                   Способ оплаты и плательщик — общие для всех сайтов. Оплачивают каждый сайт в его строке выше.
                 </p>
               </Panel>
+              )}
 
               {/* Для бухгалтерии: куда слать акты и чеки и сами акты — по одному
                   на оплаченный год каждого сайта. Бухгалтерский адрес относится
                   к оплате, а не к настройкам аккаунта (макет, 9.09). */}
+              {(b.actsEmail || paidSites.length > 0) && (
               <Panel title="Для бухгалтерии">
                 <Row
-                  label="Акты и чеки"
-                  value={b.actsEmail || a.personEmail || 'почта аккаунта'}
-                  note={b.actsEmail ? null : 'почта аккаунта — можно указать бухгалтерию'}
+                  label="Чеки, счета, акты"
+                  value={b.actsEmail || 'почта не указана'}
+                  note="сюда приходят документы об оплате" 
                   action="Изменить"
                   open={actsEditing}
                   onAction={() => setActsEditing(!actsEditing)}
@@ -683,18 +832,18 @@ export default function BillingClient() {
                       Сохранить
                     </button>
                   </div>
-                  <p className="mt-2 text-[12px] text-ink/60">Если оставить пустым, будем присылать на почту аккаунта.</p>
                 </Row>
                 {paidSites.map((s) => (
                   <Row
                     key={s.key}
                     label={`Акт · ${s.domain}`}
                     value={`${s.period.from} – ${s.period.to}`}
-                    note={`${PRICE_TEXT} · отправлен на ${b.actsEmail || a.personEmail || 'почту аккаунта'}`}
+                    note={`${PRICE_TEXT} · отправлен на ${b.actsEmail}`}
                     actions={<IconAction label="Открыть акт" icon={ExternalIcon} href={`https://cdn.sleza.media/${SITE_ID}/act-${s.key}-${s.period.years}.pdf`} />}
                   />
                 ))}
               </Panel>
+              )}
 
               <div className="mt-6">{fold}</div>
             </>

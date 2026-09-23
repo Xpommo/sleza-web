@@ -37,6 +37,12 @@ export function setCurrentSite(key) {
   }
 }
 
+// Какой сайт открыт — для «Оплатить» с «Обзора»: «Подписка» раскрывает
+// оплату именно его.
+export function currentSiteKey() {
+  return currentKey();
+}
+
 function currentKey() {
   try {
     return window.sessionStorage.getItem(CURRENT) || MAIN;

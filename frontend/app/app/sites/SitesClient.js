@@ -35,7 +35,7 @@ function siteStatus(a, now = Date.now()) {
   const open = { action: 'Открыть сайт', href: '/app/site' };
   // Отключают сайт в «Подписке» — туда и ведёт карточка (решение 23.09).
   if (a.billing?.cancelled && sub !== 'paid') return { tone: 'warn', label: 'Сайт отключён', meta: 'не оплачивается', action: 'Вернуть в подписку', href: '/app/billing' };
-  if (sub === 'expired') return { tone: 'warn', label: 'Пробный период закончился', meta: 'виджет отключён', action: 'Оплатить', href: '/app/billing' };
+  if (sub === 'expired') return { tone: 'warn', label: 'Пробный период закончился', meta: 'виджет отключён', action: 'Оплатить', href: '/app/billing?pay=current' };
   if (sub === 'pending') return { tone: 'info', label: 'Счёт выставлен', meta: 'оплата обычно проходит за 1–3 рабочих дня', ...open };
   if (sub === 'paid') {
     const to = paidPeriod(a.billing.paidAt).to;
