@@ -96,7 +96,7 @@ export default function ClientsClient() {
   }
 
   return (
-    <AnketaFrame current={2} title="Данные клиентов" lead={<>Как вы работаете с контактами клиентов. От этого зависят согласия и тексты, которые встанут у форм на сайте.</>}>
+    <AnketaFrame current={2} title="Данные клиентов" lead={<>Как вы работаете с контактами клиентов — от этого зависят согласия у форм на сайте.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               <div className="border-b border-line pb-7">
@@ -104,7 +104,7 @@ export default function ClientsClient() {
                   id="h-purpose"
                   title="Цели сбора контактов"
                   required
-                  hint="Отметьте всё, что подходит — по этим целям соберём формулировки согласия и текст у форм на сайте."
+                  hint="Отметьте всё, что подходит."
                   whyOpen={purposeWhy}
                   onWhy={() => setPurposeWhy(!purposeWhy)}
                   why="Цель обработки — обязательная часть согласия: использовать данные для цели, которая в нём не названа, нельзя. Поэтому отмеченное определяет, что будет написано в согласии и в тексте у формы на сайте."
@@ -131,7 +131,7 @@ export default function ClientsClient() {
                   id="h-fields"
                   title="Какие данные собираете"
                   required
-                  hint="Что посетитель вводит в формы на сайте. Из отмеченного соберём состав данных в политике и в согласии — перечислить его там обязательно."
+                  hint="Что посетитель вводит в формы на сайте."
                   whyOpen={fieldsWhy}
                   onWhy={() => setFieldsWhy(!fieldsWhy)}
                   why="Состав данных — вторая обязательная часть и политики, и согласия, наравне с целью. Перечислять его нужно точно: если в документе написан Telegram, а вы пишете в WhatsApp, документ неточен."

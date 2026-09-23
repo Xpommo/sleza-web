@@ -30,7 +30,7 @@ export default function DocumentsClient() {
   }, []);
 
   return (
-    <AnketaFrame current={4} title="Пакет документов" lead={<>Собрали пакет под <span className="font-semibold text-ink">{domain}</span>. Откройте любой документ — покажем начало текста. Полностью он откроется на сайте после установки.</>}>
+    <AnketaFrame current={4} title="Пакет документов" lead={<>Собрали пакет под <span className="font-semibold text-ink">{domain}</span>. Откройте любой документ — покажем начало, целиком он откроется на сайте после установки.</>}>
 
             <section className="mb-7">
               <DocRowList>

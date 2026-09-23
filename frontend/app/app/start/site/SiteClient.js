@@ -200,12 +200,11 @@ export default function SiteClient() {
                   или нет. */}
               <div className="mb-8">
                 <label className="block">
-                  <span className="mb-1 flex items-center gap-1 text-[13px] font-bold text-ink-2">
+                  <span className="mb-2 flex items-center gap-1 text-[13px] font-bold text-ink-2">
                     Сфера деятельности <span className="text-brand">*</span>
                   </span>
-                  <span className="mb-2 block text-[13px] text-ink/60">
-                    Под неё подберём список целей на следующем шаге и оговорки в документах.
-                  </span>
+                  {/* Без подписи под полем: то же самое, только подробнее, говорит
+                      «Зачем это нужно» ниже — две версии одного объяснения. */}
                   <span className="relative block">
                     <select
                       value={sphere}
@@ -337,7 +336,7 @@ export default function SiteClient() {
                   id="h-features"
                   title="Формы и сервисы на сайте"
                   required
-                  hint="Что посетитель может сделать на сайте. Под каждым пунктом написано, куда встанет согласие."
+                  hint="Что посетитель может сделать на сайте."
                   whyOpen={featuresWhy}
                   onWhy={() => setFeaturesWhy(!featuresWhy)}
                   why="Формы, чаты и заказы собирают персональные данные — отмеченное попадёт в политику обработки персональных данных и определит, где на сайте встанет текст согласия — галочкой в форме регистрации, строкой под кнопкой отправки или нигде, если сайт контакты не собирает."

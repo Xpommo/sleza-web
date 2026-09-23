@@ -10,7 +10,7 @@ import {
 import { CURRENT_USER } from '../../../lib/appMock';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
-import { TRIAL_MS, formatLeft, paidPeriod, subState } from '../site/_shared/subscription';
+import { paidPeriod, subState, trialEnds } from '../site/_shared/subscription';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
@@ -42,7 +42,7 @@ function siteStatus(a, now = Date.now()) {
     return { tone: 'ok', label: 'Документы актуальны', meta: `оплачено до ${to}`, ...open };
   }
   if (sub === 'trial') {
-    const left = `осталось ${formatLeft(a.trialStartedAt + TRIAL_MS - now)}`;
+    const left = `бесплатно до ${trialEnds(a)}`;
     // Пробный период уже запущен, а код ещё не нашли: проверка идёт до 15
     // минут, и кабинет сайта уже открыт — туда и ведём, а не обратно в анкету.
     return { tone: 'info', label: 'Пробный период', meta: a.installed ? left : `${left} · код на сайте пока не найден`, ...open };

@@ -63,8 +63,8 @@ const PRESETS = [
   ['Анкета: пакет собран', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 4 }), '/app/start/documents'],
   ['Всё пройдено, код не поставлен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5 }), '/app/site'],
   ['Пробный период, код найден', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 2 * HOUR }), '/app/site'],
-  ['Пробный период, кода нет', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: false, trialStartedAt: Date.now() - 10 * 60 * 1000 }), '/app/site'],
-  ['Пробный период закончился', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 25 * HOUR }), '/app/site'],
+  // Пробный период — 5 дней с момента, когда код найден (решение 23.09).
+  ['Пробный период закончился', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 6 * 24 * HOUR }), '/app/site'],
   ['Счёт выставлен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 5 * HOUR, billing: { method: 'По счёту', invoice: { no: `${new Date().getFullYear()}-0142`, at: Date.now() - HOUR, payer: null } } }), '/app/billing'],
   ['Счёт висит больше 3 дней', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 5 * 24 * HOUR, billing: { method: 'По счёту', invoice: { no: `${new Date().getFullYear()}-0142`, at: Date.now() - 4 * 24 * HOUR, payer: null } } }), '/app/billing'],
   ['Оплачено', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, actsEmail: 'buh@alfa-school.ru' } }), '/app/site'],

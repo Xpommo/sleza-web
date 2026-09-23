@@ -5,12 +5,16 @@
 
 export const PRICE = 12000;
 export const PRICE_LABEL = '12 000 ₽';
-export const TRIAL_MS = 24 * 3600 * 1000;
+// Пробный период — 5 дней с момента, когда код найден на сайте (решение
+// владельца 23.09; было 24 часа с нажатия «Активировать»). За сутки через
+// подрядчика не успевали даже поставить код.
+export const TRIAL_DAYS = 5;
+export const TRIAL_MS = TRIAL_DAYS * 24 * 3600 * 1000;
 // Линейка тарифов не утверждена: названия — заглушки из макета, цена одна.
 export const TARIFFS = ['Тариф Х', 'Тариф У', 'Тариф Z'];
 
 // notstarted — пробный период не запущен (анкета или установка не закончены);
-// trial — идут 24 часа; expired — сутки прошли, оплаты нет;
+// trial — идут 5 дней; expired — они прошли, оплаты нет;
 // pending — выставлен счёт, ждём перевод; paid — оплачено.
 export function subState(a, now = Date.now()) {
   const b = a.billing || {};
@@ -31,6 +35,12 @@ export function paidPeriod(paidAt) {
   to.setFullYear(to.getFullYear() + 1);
   to.setDate(to.getDate() - 1);
   return { from: formatDate(from), to: formatDate(to), renew: formatDate(to.getTime() + 24 * 3600 * 1000), years: `${from.getFullYear()}–${from.getFullYear() + 1}` };
+}
+
+// Последний день пробного периода — одна дата вместо таймера на каждом
+// экране: таймер при годовой подписке давил, а не помогал.
+export function trialEnds(a) {
+  return formatDate(a.trialStartedAt + TRIAL_MS - 1);
 }
 
 export function formatLeft(ms) {

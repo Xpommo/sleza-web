@@ -9,7 +9,7 @@ import { DOCUMENTS } from '../../../lib/docPackage';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import RequisitesModal from './_shared/RequisitesModal';
 import { RING, SiteHeader, SiteSidebar } from './_shared/SiteChrome';
-import { PRICE_LABEL, TARIFFS, TRIAL_MS, formatDate, formatLeft, paidPeriod, subState } from './_shared/subscription';
+import { PRICE_LABEL, TARIFFS, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEnds } from './_shared/subscription';
 
 const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
 const BTN = `inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`;
@@ -74,12 +74,12 @@ export default function SiteOverviewClient() {
   if (state === 'notstarted') {
     banner = unfinished
       ? { tone: 'warn', Icon: WarnIcon, title: 'Анкета не закончена', text: <>Документы собираются по ответам анкеты — ответьте на оставшиеся вопросы, и пакет будет готов.</>, cta: ['Продолжить анкету', STEP_URLS[a.stepsDone || 0]] }
-      : { tone: 'muted', Icon: WarnIcon, title: 'Документы собраны, код не установлен', text: <>Пакет готов. Виджет включится, когда код встанет на сайт.</>, cta: ['Поставить код на сайт', '/app/start/code'] };
+      : { tone: 'muted', Icon: WarnIcon, title: 'Документы собраны, код не установлен', text: <>Пакет готов. Как только код встанет на сайт, включим документы и виджет — {TRIAL_DAYS} дней бесплатно.</>, cta: ['Поставить код на сайт', '/app/start/code'] };
   } else if (state === 'trial') {
     banner = {
-      tone: 'warn', Icon: ClockIcon, title: `Пробный период — осталось ${formatLeft(a.trialStartedAt + TRIAL_MS - now)}`,
+      tone: 'warn', Icon: ClockIcon, title: `Пробный период — до ${trialEnds(a)}`,
       text: a.installed
-        ? <>Документы и виджет уже работают на {domain}. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва, и мы напомним письмом заранее.</>
+        ? <>Документы и виджет уже работают на {domain}. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва. Напомним письмом за день до конца.</>
         : <>Код на {domain} пока не нашли — проверка занимает до 15 минут. Как только он появится, документы и виджет заработают. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва.</>,
       cta: ['Оплатить', '/app/billing'],
     };
@@ -99,14 +99,18 @@ export default function SiteOverviewClient() {
     muted: 'border-line bg-white text-ink/60',
   }[banner.tone];
 
+  // Статус сайта — только в баннере наверху (решение 23.09): раньше он
+  // повторялся тут строкой «Статус» и ещё раз в событиях. В карточке —
+  // факты подписки: тариф, цена, продление, номер счёта.
+  const priceRow = ['Цена', `${PRICE_LABEL} в год`];
   const subRows = {
-    notstarted: [['Статус', 'ещё не начата'], ['Тариф', tariff]],
-    trial: [['Статус', 'пробный период'], ['Тариф', tariff]],
-    expired: [['Статус', 'пробный период закончился'], ['Виджет', 'отключён']],
-    pending: [['Статус', 'счёт выставлен'], ['Счёт', `№ ${b.invoice?.no} · обычно 1–3 рабочих дня`]],
+    notstarted: [['Тариф', tariff], priceRow],
+    trial: [['Тариф', tariff], priceRow],
+    expired: [['Тариф', tariff], priceRow],
+    pending: [['Тариф', tariff], ['Счёт', `№ ${b.invoice?.no} · обычно 1–3 рабочих дня`]],
     paid: period && (b.cancelled
-      ? [['Статус', `отключается · работает до ${period.to}`], ['Отключение', `работает до ${period.to}`]]
-      : [['Статус', `оплачено до ${period.to}`], ['Продление', `${period.renew} · ${PRICE_LABEL}`]]),
+      ? [['Тариф', tariff], ['Работает до', period.to]]
+      : [['Тариф', tariff], ['Продление', `${period.renew} · ${PRICE_LABEL}`]]),
   }[state];
 
   const madeAt = a.trialStartedAt || now;

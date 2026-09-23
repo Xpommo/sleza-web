@@ -12,6 +12,7 @@ import {
 } from '../../../../components/app/AppIcons';
 import { RING, AnketaFrame, Field, Segmented, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
+import { TRIAL_DAYS, trialEnds } from '../../site/_shared/subscription';
 
 const SITE_ID = '486312';
 
@@ -53,6 +54,12 @@ export default function CodeClient() {
     setPlatform(a.platform || '');
     setRole(a.role || '');
     setMailTo(a.personEmail || '');
+    // Вернулись на шаг, когда код уже найден, — показываем найденное, а не
+    // просим проверять заново.
+    if (a.installed && a.trialStartedAt) {
+      setFound(true);
+      setTrialTo(trialEnds(a));
+    }
   }, []);
 
   // Подрядчику выбор не показываем: он сам и есть тот, кому поручают,
@@ -65,7 +72,7 @@ export default function CodeClient() {
   const [probes, setProbes] = useState(0);
   const [found, setFound] = useState(false);
   const [failOpen, setFailOpen] = useState(false);
-  const [doneOpen, setDoneOpen] = useState(false);
+  const [trialTo, setTrialTo] = useState('');
   const [sent, setSent] = useState(false);
 
   const snippet = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID}" async></script>`;
@@ -91,23 +98,28 @@ export default function CodeClient() {
       setChecking(false);
       const next = probes + 1;
       setProbes(next);
-      if (next >= 2) setFound(true);
+      if (next >= 2) onFound();
       else setFailOpen(true);
     }, 1200);
   }
 
-  function startTrial() {
-    saveAnketa({ installed: found, installMode: effectiveMode, trialStartedAt: Date.now() });
-    setDoneOpen(true);
+  // Пробный период стартует сам, как только код найден (решение владельца
+  // 23.09): «поставил код — заработало», без отдельной кнопки «Активировать».
+  // Отсчёт — с момента, когда документы реально на сайте, не раньше.
+  function onFound() {
+    const a = { installed: true, installMode: effectiveMode, trialStartedAt: Date.now() };
+    saveAnketa(a);
+    setFound(true);
+    setTrialTo(trialEnds(a));
   }
 
   return (
-    <AnketaFrame current={5} title="Установка" nextLabel="Готово" lead={<>Осталось добавить на сайт одну строку кода и проверить, что она встала. После этого включим документы и виджет на 24 часа бесплатно.</>}>
+    <AnketaFrame current={5} title="Установка" nextLabel={found ? 'В кабинет' : effectiveMode === 'Поставлю сам' ? 'Проверить' : 'Отправить'} lead={<>Поставьте на сайт одну строку кода — как только увидим её, включим документы и виджет на {TRIAL_DAYS} дней бесплатно.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {!isContractor && (
                 <>
-                  <SectionHead id="h-mode" title="Кто поставит код?" hint="Выберите удобный вариант установки" />
+                  <SectionHead id="h-mode" title="Кто поставит код?" />
                   <div className="mt-5">
                     <Segmented options={['Поставлю сам', 'Поручу другому']} value={mode} onChange={setMode} ariaLabelledby="h-mode" />
                   </div>
@@ -193,6 +205,7 @@ export default function CodeClient() {
                       </div>
                       {!found && (
                         <button
+                          data-funnel-next
                           type="button"
                           onClick={checkScript}
                           disabled={checking}
@@ -204,10 +217,13 @@ export default function CodeClient() {
                       )}
                     </div>
                     {found && (
-                      <p className="mt-3 flex items-center gap-2 rounded-lg bg-ok/10 px-3 py-2.5 text-[13px] font-semibold text-ok">
-                        <CheckIcon size={16} /> Всё на месте. Осталось активировать пробный период — 24 часа документы и
-                        виджет работают бесплатно.
-                      </p>
+                      <div className="mt-3 flex items-start gap-2 rounded-lg bg-ok/10 px-3 py-2.5 text-[13px] leading-5 text-ok">
+                        <CheckIcon size={16} className="mt-0.5 shrink-0" />
+                        <p>
+                          <b className="font-bold">Код найден — документы и виджет уже работают.</b> Бесплатно до {trialTo}, дальше
+                          понадобится оплата — напомним письмом за день до конца.
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -235,6 +251,7 @@ export default function CodeClient() {
                       }}
                     />
                     <button
+                      data-funnel-next={effectiveMode === 'Поручу другому' ? '' : undefined}
                       type="button"
                       onClick={() => setSent(true)}
                       className={`h-[52px] shrink-0 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
@@ -244,34 +261,39 @@ export default function CodeClient() {
                   </div>
                   <p className="mt-4 text-[13px] leading-5 text-ink/60">
                     Разбираться самим не обязательно — перешлите тому, кто ведёт сайт: разработчику, агентству или
-                    веб-мастеру. Как только код появится на сайте, мы увидим это сами и напишем вам. Вернётесь в
-                    кабинет по ссылке из письма и запустите пробный период — отсчёт начнётся с вашего нажатия, а не с
-                    момента установки.
+                    веб-мастеру. Как только код появится на сайте, мы увидим это сами и напишем вам — с этого момента
+                    пойдут {TRIAL_DAYS} бесплатных дней.
                   </p>
                 </div>
               )}
 
+              {/* Одно главное действие на состояние: пока кода нет — проверить
+                  его (кнопка выше), когда найден — перейти в кабинет. Отдельной
+                  «Активировать» больше нет: пробный период стартует сам. */}
               <div className="mt-8 border-t border-line pt-6">
-                <button
-                data-funnel-next
-                  type="button"
-                  onClick={startTrial}
-                  className={`flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
-                >
-                  Активировать пробный период <ArrowRightIcon size={17} />
-                </button>
-                <p className="mt-3 text-center text-[13px] text-ink/60">
-                  {found ? 'Пробный период пойдёт с момента активации.' : 'Сначала проверьте код на сайте — кнопка проверки выше. Пробный период пойдёт с момента активации.'}
-                </p>
-                <div className="mt-4 flex justify-center">
+                {found ? (
                   <button
+                    data-funnel-next
                     type="button"
-                    onClick={() => router.push('/app/sites')}
-                    className={`rounded text-sm font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}
+                    onClick={() => router.push('/app/site')}
+                    className={`flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
                   >
-                    Поставлю позже →
+                    Перейти в кабинет <ArrowRightIcon size={17} />
                   </button>
-                </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <p className="text-[13px] leading-5 text-ink/60">
+                      Пробный период начнётся сам, как только увидим код на сайте, — {TRIAL_DAYS} дней бесплатно.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => router.push(effectiveMode === 'Поручу другому' ? '/app/site' : '/app/sites')}
+                      className={`rounded text-sm font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}
+                    >
+                      {effectiveMode === 'Поручу другому' ? 'Перейти в кабинет →' : 'Поставлю позже →'}
+                    </button>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -338,34 +360,6 @@ export default function CodeClient() {
         </div>
       )}
 
-      {/* Финал анкеты. Текст зависит от того, нашли ли код: обещать
-          «всё работает» там, где скрипта на странице нет, нельзя — но и
-          держать человека на шаге из-за этого тоже незачем. */}
-      {doneOpen && (
-        <div role="dialog" aria-modal="true" aria-labelledby="done-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4">
-          <div className="mt-16 w-full max-w-[440px] rounded-2xl border border-line bg-white p-6 shadow-sm">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ok/10 text-ok">
-              <CheckIcon size={22} />
-            </span>
-            <h3 id="done-title" className="mt-4 text-lg font-bold tracking-[-0.03em]">
-              Пробный период активирован
-            </h3>
-            <p className="mt-3 text-[13px] leading-5 text-ink/65">
-              {found
-                ? 'Код на сайте нашли — документы и виджет уже работают. Первые 24 часа — бесплатно, дальше понадобится оплата.'
-                : 'Код на сайте мы пока не видим: проверка занимает до 15 минут. Заходить в кабинет можно уже сейчас — как только код появится, документы и виджет включатся сами.'}
-            </p>
-            <button
-                data-funnel-back
-              type="button"
-              onClick={() => router.push('/app/site')}
-              className={`mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
-            >
-              Перейти в кабинет <ArrowRightIcon size={17} />
-            </button>
-          </div>
-        </div>
-      )}
     </AnketaFrame>
   );
 }

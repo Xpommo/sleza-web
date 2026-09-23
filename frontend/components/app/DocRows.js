@@ -40,7 +40,10 @@ export function DocRow({ doc, note, status, action = 'Посмотреть', ope
           <div className="min-w-0">
             {/* Без обрезки: в названии стоит закон, который документ
                 закрывает, — срезать его многоточием нельзя. */}
-            <h3 className="text-sm font-bold leading-5">{doc.title}</h3>
+            <h3 className="text-sm font-bold leading-5">
+              {doc.title}
+              <span className="ml-2 whitespace-nowrap font-mono text-[11px] font-normal text-ink/60">{doc.law}</span>
+            </h3>
             <p className="mt-1 text-[12px] leading-4 text-ink/60">{note}</p>
           </div>
         </div>
