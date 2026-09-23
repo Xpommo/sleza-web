@@ -7,15 +7,28 @@ import {
   ArrowRightIcon,
   CheckIcon,
   CloseIcon,
+  CopyIcon,
+  LinkIcon,
   MailIcon,
   RefreshIcon,
 } from '../../../../components/app/AppIcons';
+import { TelegramIcon } from '../../../../components/app/AuthBits';
+import { EMAIL_RE } from '../../../../lib/validate';
 import { RING, AnketaFrame, Field, Segmented, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
 import { TRIAL_DAYS, trialEnds } from '../../site/_shared/subscription';
 import { MAIN, setCurrentSite } from '../../site/_shared/sites';
 
 const SITE_ID = '486312';
+// Страница с инструкцией: код и шаги под платформу — её и пересылают
+// исполнителю. Ссылка короче и надёжнее простыни текста в мессенджере, код в
+// переписке не ломается. В прототипе адрес условный.
+const INSTRUCTION_URL = `https://cdn.sleza.media/${SITE_ID}/install`;
+
+// «Шаги установки для Тильды» — платформа в родительном падеже.
+const PLATFORM_FOR = { 'Тильда': 'Тильды', 'WordPress': 'WordPress', 'Битрикс': 'Битрикса' };
+
+const SHARE_BTN = `inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-bold shadow-sm transition hover:border-brand hover:text-brand ${RING}`;
 
 // Инструкция зависит от платформы, названной на «О сайте»: на документы она
 // не влияет, а вот куда именно вставлять код — влияет только она.
@@ -46,7 +59,18 @@ export default function CodeClient() {
   const router = useRouter();
   const [platform, setPlatform] = useState('');
   const [role, setRole] = useState('');
+  // Почта «себе» (только на телефоне) и почта исполнителя — разные поля:
+  // раньше они делили одно, и исполнителю по умолчанию стояла почта клиента.
+  const [selfMail, setSelfMail] = useState('');
+  const [selfSent, setSelfSent] = useState(false);
+  const [selfError, setSelfError] = useState(null);
   const [mailTo, setMailTo] = useState('');
+  const [mailError, setMailError] = useState(null);
+  const [mailOpen, setMailOpen] = useState(false);
+  // Чем поделились: mail | tg | copy | share. После этого вместо кнопок —
+  // что произошло и что дальше, и главной становится «Перейти в кабинет».
+  const [shared, setShared] = useState(null);
+  const [canShare, setCanShare] = useState(false);
   const [domain, setDomain] = useState('');
 
   useEffect(() => {
@@ -54,7 +78,10 @@ export default function CodeClient() {
     setDomain(a.domain || '');
     setPlatform(a.platform || '');
     setRole(a.role || '');
-    setMailTo(a.personEmail || '');
+    setSelfMail(a.personEmail || '');
+    // Системное меню «Поделиться» (на телефоне — с MAX, WhatsApp, Telegram):
+    // у MAX нет ссылки для выбора собеседника, как у Telegram, — только так.
+    setCanShare(typeof navigator !== 'undefined' && typeof navigator.share === 'function');
     // Вернулись на шаг, когда код уже найден, — показываем найденное, а не
     // просим проверять заново.
     if (a.installed && a.trialStartedAt) {
@@ -74,7 +101,39 @@ export default function CodeClient() {
   const [found, setFound] = useState(false);
   const [failOpen, setFailOpen] = useState(false);
   const [trialTo, setTrialTo] = useState('');
-  const [sent, setSent] = useState(false);
+
+  const shareText = `Инструкция по установке кода на ${domain || 'сайт'}`;
+  function shareMail() {
+    const v = mailTo.trim();
+    if (!EMAIL_RE.test(v)) {
+      setMailError(v ? 'Нужна почта вида name@site.ru.' : 'Укажите почту того, кто ведёт сайт.');
+      return;
+    }
+    setShared({ kind: 'mail', to: v });
+  }
+  function shareTelegram() {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(INSTRUCTION_URL)}&text=${encodeURIComponent(shareText)}`, '_blank', 'noopener');
+    setShared({ kind: 'tg' });
+  }
+  function shareCopy() {
+    navigator.clipboard?.writeText(INSTRUCTION_URL).catch(() => {});
+    setShared({ kind: 'copy' });
+  }
+  async function shareSystem() {
+    try {
+      await navigator.share({ title: shareText, text: shareText, url: INSTRUCTION_URL });
+      setShared({ kind: 'share' });
+    } catch {
+      /* закрыли меню — ничего не отправили */
+    }
+  }
+  function sendSelf() {
+    if (!EMAIL_RE.test(selfMail.trim())) {
+      setSelfError('Нужна почта вида name@site.ru.');
+      return;
+    }
+    setSelfSent(true);
+  }
 
   const snippet = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID}" async></script>`;
   const steps = PLATFORM_STEPS[platform] || PLATFORM_STEPS.default;
@@ -115,7 +174,7 @@ export default function CodeClient() {
   }
 
   return (
-    <AnketaFrame current={5} title="Установка" nextLabel={found ? 'В кабинет' : effectiveMode === 'Поставлю сам' ? 'Проверить' : 'Отправить'} lead={<>Поставьте на сайт одну строку кода — как только увидим её, включим документы и виджет на {TRIAL_DAYS} дней бесплатно.</>}>
+    <AnketaFrame current={5} title="Установка" nextLabel={found || (effectiveMode === 'Поручу другому' && shared) ? 'В кабинет' : effectiveMode === 'Поставлю сам' ? 'Проверить' : canShare ? 'Поделиться' : 'Отправить'} lead={<>Поставьте на сайт одну строку кода — как только увидим её, включим документы и виджет на {TRIAL_DAYS} дней бесплатно.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {!isContractor && (
@@ -131,22 +190,30 @@ export default function CodeClient() {
               {effectiveMode === 'Поставлю сам' ? (
                 <div className="space-y-7">
                   <div>
-                    <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-[15px] font-bold">Скопируйте код</h3>
-                        <p className="mt-1 text-sm text-ink/60">Одна строка — ставится один раз и работает на всех страницах.</p>
-                      </div>
+                    <div className="mb-3">
+                      <h3 className="text-[15px] font-bold">Скопируйте код</h3>
+                      <p className="mt-1 text-sm text-ink/60">Одна строка — ставится один раз и работает на всех страницах.</p>
+                    </div>
+                    {/* Копирование — привычной иконкой в углу кода, как в
+                        документации: кнопку-надпись над кодом не замечали
+                        (владелец 23.09). После нажатия — галочка и «Скопировано». */}
+                    <div className="relative">
+                      <pre className="overflow-x-auto rounded-xl bg-ink p-5 pr-14 font-mono text-[12px] leading-6 text-white/85">
+                        <code>{snippet}</code>
+                      </pre>
                       <button
                         type="button"
                         onClick={copyCode}
-                        className={`shrink-0 rounded-lg border border-line bg-white px-3 py-2 text-xs font-bold transition hover:border-brand hover:text-brand ${RING}`}
+                        aria-label={copied ? 'Скопировано' : 'Скопировать код'}
+                        title="Скопировать код"
+                        className={`absolute right-2.5 top-2.5 inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold transition ${
+                          copied ? 'bg-ok text-white' : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
+                        } ${RING}`}
                       >
-                        {copied ? '✓ Скопировано' : 'Скопировать код'}
+                        {copied ? <CheckIcon size={15} /> : <CopyIcon size={16} />}
+                        {copied && 'Скопировано'}
                       </button>
                     </div>
-                    <pre className="overflow-x-auto rounded-xl bg-ink p-5 font-mono text-[12px] leading-6 text-white/85">
-                      <code>{snippet}</code>
-                    </pre>
                   </div>
 
                   <div>
@@ -182,18 +249,20 @@ export default function CodeClient() {
                         placeholder="kirill@alfa-school.ru"
                         icon={MailIcon}
                         type="email"
-                        value={mailTo}
+                        value={selfMail}
                         onChange={(e) => {
-                          setMailTo(e.target.value);
-                          setSent(false);
+                          setSelfMail(e.target.value);
+                          setSelfSent(false);
+                          setSelfError(null);
                         }}
+                        error={selfError}
                       />
                       <button
                         type="button"
-                        onClick={() => setSent(true)}
+                        onClick={sendSelf}
                         className={`h-[52px] shrink-0 rounded-xl border border-line bg-white px-5 text-sm font-bold shadow-sm transition hover:border-brand hover:text-brand ${RING}`}
                       >
-                        {sent ? '✓ Отправили' : 'Отправить'}
+                        {selfSent ? '✓ Отправили' : 'Отправить'}
                       </button>
                     </div>
                   </div>
@@ -232,39 +301,90 @@ export default function CodeClient() {
                 <div className="rounded-xl border border-line bg-warm p-5">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
-                      <MailIcon size={18} />
+                      <LinkIcon size={18} />
                     </span>
                     <div>
-                      <h3 className="text-[15px] font-bold">Отправьте инструкцию ответственному</h3>
-                      <p className="mt-1 text-sm text-ink/60">Ему уйдёт код и пошаговая инструкция под вашу платформу.</p>
+                      <h3 className="text-[15px] font-bold">Отправьте инструкцию тому, кто ведёт сайт</h3>
+                      <p className="mt-1 text-sm text-ink/60">В ней код и шаги установки{PLATFORM_FOR[platform] ? ` для ${PLATFORM_FOR[platform]}` : ''}.</p>
                     </div>
                   </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                    <Field
-                      label="Почта того, кто ведёт сайт"
-                      placeholder="webmaster@alfa-school.ru"
-                      icon={MailIcon}
-                      type="email"
-                      value={mailTo}
-                      onChange={(e) => {
-                        setMailTo(e.target.value);
-                        setSent(false);
-                      }}
-                    />
-                    <button
-                      data-funnel-next={effectiveMode === 'Поручу другому' ? '' : undefined}
-                      type="button"
-                      onClick={() => setSent(true)}
-                      className={`h-[52px] shrink-0 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
-                    >
-                      {sent ? '✓ Отправили' : 'Отправить инструкцию'}
-                    </button>
-                  </div>
-                  <p className="mt-4 text-[13px] leading-5 text-ink/60">
-                    Разбираться самим не обязательно — перешлите тому, кто ведёт сайт: разработчику, агентству или
-                    веб-мастеру. Как только код появится на сайте, мы увидим это сами и напишем вам — с этого момента
-                    пойдут {TRIAL_DAYS} бесплатных дней.
-                  </p>
+                  {/* С исполнителем чаще переписываются в мессенджере, чем по
+                      почте (владелец 23.09): делимся ссылкой на инструкцию любым
+                      способом. На телефоне — системное меню (там и MAX); на
+                      компьютере — Telegram, у которого есть выбор собеседника. */}
+                  {!shared ? (
+                    <>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {canShare ? (
+                          <button
+                            data-funnel-next
+                            type="button"
+                            onClick={shareSystem}
+                            className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                          >
+                            <LinkIcon size={16} /> Поделиться
+                          </button>
+                        ) : (
+                          <button data-funnel-next type="button" onClick={shareTelegram} className={SHARE_BTN}>
+                            <TelegramIcon size={18} /> Telegram
+                          </button>
+                        )}
+                        <button type="button" onClick={() => setMailOpen(!mailOpen)} aria-expanded={mailOpen} className={SHARE_BTN}>
+                          <MailIcon size={17} /> Почта
+                        </button>
+                        <button type="button" onClick={shareCopy} className={SHARE_BTN}>
+                          <CopyIcon size={16} /> Скопировать ссылку
+                        </button>
+                      </div>
+                      {mailOpen && (
+                        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                          <Field
+                            label="Почта того, кто ведёт сайт"
+                            placeholder="webmaster@alfa-school.ru"
+                            icon={MailIcon}
+                            type="email"
+                            autoComplete="off"
+                            value={mailTo}
+                            onChange={(e) => {
+                              setMailTo(e.target.value);
+                              setMailError(null);
+                            }}
+                            error={mailError}
+                          />
+                          <button
+                            type="button"
+                            onClick={shareMail}
+                            className={`h-[52px] shrink-0 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                          >
+                            Отправить
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="mt-4 flex items-start gap-3 rounded-xl border border-ok/25 bg-ok/[0.06] p-4">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ok text-white">
+                        <CheckIcon size={12} />
+                      </span>
+                      <div>
+                        <p className="text-sm font-bold">
+                          {{
+                            mail: `Инструкцию отправили на ${shared.to}`,
+                            tg: 'Открыли Telegram — выберите, кому отправить инструкцию',
+                            copy: 'Ссылку на инструкцию скопировали — отправьте её исполнителю',
+                            share: 'Инструкцией поделились',
+                          }[shared.kind]}
+                        </p>
+                        <p className="mt-1 text-[13px] leading-5 text-ink/65">
+                          Когда код появится на сайте, мы увидим это сами — пробный период на {TRIAL_DAYS} дней начнётся
+                          автоматически.
+                        </p>
+                        <button type="button" onClick={() => setShared(null)} className={`mt-2 rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`}>
+                          Отправить ещё раз
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -272,7 +392,10 @@ export default function CodeClient() {
                   его (кнопка выше), когда найден — перейти в кабинет. Отдельной
                   «Активировать» больше нет: пробный период стартует сам. */}
               <div className="mt-8 border-t border-line pt-6">
-                {found ? (
+                {/* Инструкцию отправили — дальше человеку делать нечего, кроме как
+                    перейти в кабинет: это и есть главная кнопка, а не серая
+                    ссылка внизу (владелец 23.09). */}
+                {found || (effectiveMode === 'Поручу другому' && shared) ? (
                   <button
                     data-funnel-next
                     type="button"
