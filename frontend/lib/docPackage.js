@@ -109,7 +109,9 @@ export function docOrigin(doc, a) {
         step: '/app/start/requisites',
       };
     case '02': {
-      const n = named(analytics, ANALYTICS);
+      // «Другое» — не название счётчика: в документ идёт то, что человек вписал.
+      const n = named(analytics.filter((v) => v !== 'other'), ANALYTICS);
+      if (analytics.includes('other') && a.analyticsOther?.trim()) n.push(a.analyticsOther.trim());
       return {
         line: n.length
           ? `Вы отметили: ${n.join(', ')} — ${n.length > 1 ? 'они названы' : 'она названа'} в политике как источник cookie.`

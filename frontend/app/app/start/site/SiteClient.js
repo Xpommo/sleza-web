@@ -61,6 +61,8 @@ export default function SiteClient() {
   const [platformWhy, setPlatformWhy] = useState(false);
 
   const [analytics, setAnalytics] = useState([]);
+  const [analyticsOther, setAnalyticsOther] = useState('');
+  const [analyticsOtherError, setAnalyticsOtherError] = useState(null);
   const [analyticsError, setAnalyticsError] = useState(null);
   const [analyticsWhy, setAnalyticsWhy] = useState(false);
 
@@ -83,6 +85,7 @@ export default function SiteClient() {
     // «Не знаю» снят 23.09 — старый ответ не должен молча считаться выбором.
     const known = (a.analytics || []).filter((v) => ANALYTICS.some((o) => o.value === v));
     if (known.length) setAnalytics(known);
+    if (a.analyticsOther) setAnalyticsOther(a.analyticsOther);
     if (a.features?.length) setFeatures(a.features);
     setRestored(true);
   }, []);
@@ -91,8 +94,8 @@ export default function SiteClient() {
   // «Назад» и F5 теряют всё, что набрано на этом шаге. Пишем только после
   // восстановления — иначе пустые значения первой отрисовки затрут анкету.
   useEffect(() => {
-    if (restored) saveAnketa({ domain, sphere, sphereOther, platform, platformOther, analytics, features });
-  }, [restored, domain, sphere, sphereOther, platform, platformOther, analytics, features]);
+    if (restored) saveAnketa({ domain, sphere, sphereOther, platform, platformOther, analytics, analyticsOther, features });
+  }, [restored, domain, sphere, sphereOther, platform, platformOther, analytics, analyticsOther, features]);
 
   const analyticsExclusive = ANALYTICS.filter((o) => o.exclusive).map((o) => o.value);
   const featuresExclusive = FEATURES.filter((o) => o.exclusive).map((o) => o.value);
@@ -148,6 +151,12 @@ export default function SiteClient() {
     } else {
       setAnalyticsError(null);
     }
+    if (analytics.includes('other') && !analyticsOther.trim()) {
+      setAnalyticsOtherError('Напишите, какой счётчик стоит, — назовём его в политике обработки cookie.');
+      ok = false;
+    } else {
+      setAnalyticsOtherError(null);
+    }
 
     if (features.length === 0) {
       setFeaturesError('Отметьте, что есть на сайте, или «Ничего из этого нет» — от этого зависит, куда встанет согласие.');
@@ -158,7 +167,7 @@ export default function SiteClient() {
 
     if (!ok) return;
 
-    saveAnketa({ domain: dom, sphere, sphereOther, platform, platformOther, analytics, features });
+    saveAnketa({ domain: dom, sphere, sphereOther, platform, platformOther, analytics, analyticsOther, features });
 
     // «Формы и сервисы» — единственный вопрос шага, который ветвит путь:
     // если сайт вообще не собирает контакты, спрашивать на следующем шаге
@@ -333,10 +342,25 @@ export default function SiteClient() {
                       onClick={() => {
                         setAnalytics((prev) => toggleOption(prev, o.value, analyticsExclusive));
                         setAnalyticsError(null);
+                        setAnalyticsOtherError(null);
                       }}
                     />
                   ))}
                 </div>
+                {analytics.includes('other') && (
+                  <div className="mt-3">
+                    <Field
+                      label="Какой счётчик?"
+                      placeholder="Например: Top.Mail.Ru, LiveInternet"
+                      value={analyticsOther}
+                      onChange={(e) => {
+                        setAnalyticsOther(e.target.value);
+                        setAnalyticsOtherError(null);
+                      }}
+                      error={analyticsOtherError}
+                    />
+                  </div>
+                )}
                 {analyticsError && <p className="mt-2 text-[12px] font-semibold text-danger">{analyticsError}</p>}
               </div>
 
