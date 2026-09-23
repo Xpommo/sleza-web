@@ -10,6 +10,7 @@ import {
   CertificateIcon,
   CheckIcon,
   InfoIcon,
+  ShieldCheckIcon,
   MailIcon,
   PhoneIcon,
   UserIcon,
@@ -143,7 +144,6 @@ export default function RequisitesClient() {
   const [companyPhone, setCompanyPhone] = useState('');
   const [companyPhoneError, setCompanyPhoneError] = useState(null);
   const [postAddress, setPostAddress] = useState('');
-  const [postOpen, setPostOpen] = useState(false);
   const [pdContact, setPdContact] = useState('');
   const [restored, setRestored] = useState(false);
 
@@ -186,7 +186,6 @@ export default function RequisitesClient() {
       setCompanyMail(a.contacts.companyMail || '');
       setCompanyPhone(formatPhone(a.contacts.companyPhone || ''));
       setPostAddress(a.contacts.postAddress || '');
-      setPostOpen(Boolean(a.contacts.postAddress));
       setPdContact(a.contacts.pdContact || '');
     }
   }, []);
@@ -213,6 +212,7 @@ export default function RequisitesClient() {
       license, licenseNo, licenseDate, licenseOrg, itAccred, softRegistry, media, mediaNo, mediaDate, mediaOrg,
       companyMail, companyPhone, postAddress, pdContact]);
   const [pdContactError, setPdContactError] = useState(null);
+  const [pdWhy, setPdWhy] = useState(false);
   const [contactsWhy, setContactsWhy] = useState(false);
 
   const isOoo = owner === 'ООО';
@@ -368,8 +368,8 @@ export default function RequisitesClient() {
 
     put(setCompanyMailError, 'companyMail');
     put(setCompanyPhoneError, 'companyPhone');
-    if (!pdContact.trim()) {
-      fail(setPdContactError, 'Нужна почта или телефон — по этому контакту к вам будут обращаться по вопросам персональных данных.');
+    if (!EMAIL_RE.test(pdContact.trim())) {
+      fail(setPdContactError, pdContact.trim() ? 'Нужна почта вида name@site.ru — на неё клиенты пришлют отзыв согласия.' : 'Укажите почту — без неё в политике и согласии не будет способа отозвать согласие.');
     } else setPdContactError(null);
 
     if (!ok) return;
@@ -398,7 +398,7 @@ export default function RequisitesClient() {
                 id="h-registry"
                 icon={BuildingIcon}
                 title="Данные из реестра"
-                why="Покажем их в подвале сайта — по ним любой контрагент подготовит договор или счёт без лишних запросов."
+                why="По закону на сайте должно быть видно, кто им владеет: наименование, адрес и регистрационные номера."
                 whyOpen={registryWhy}
                 onWhy={() => setRegistryWhy(!registryWhy)}
               />
@@ -514,7 +514,7 @@ export default function RequisitesClient() {
                   id="h-bank"
                   icon={BankIcon}
                   title="Банковские реквизиты"
-                  why="Покажем их в подвале рядом с реквизитами — клиенты и партнёры оплатят счёт, не запрашивая данные отдельно."
+                  why="Банковские реквизиты нужны для договора и оплаты по безналичному расчёту."
                   whyOpen={bankWhy}
                   onWhy={() => setBankWhy(!bankWhy)}
                 />
@@ -606,9 +606,9 @@ export default function RequisitesClient() {
                     title="Лицензии и статусы"
                     why={
                       licenseSphere
-                        ? 'Для вашей сферы на сайте нужно указать номер лицензии, срок её действия и кто её выдал — выведем это в подвал рядом с реквизитами.'
+                        ? 'Если деятельность лицензируется, на сайте должны быть номер лицензии, срок её действия и кто её выдал.'
                         : showMedia
-                          ? 'Если сайт зарегистрирован как СМИ, на нём нужно указать номер свидетельства, дату регистрации и кто зарегистрировал — выведем это в подвал рядом с реквизитами.'
+                          ? 'У зарегистрированного СМИ на сайте должны быть номер свидетельства, дата регистрации и кто зарегистрировал.'
                           : null
                     }
                     whyOpen={licenseWhy}
@@ -757,7 +757,7 @@ export default function RequisitesClient() {
                 id="h-contacts"
                 icon={PhoneIcon}
                 title="Контакты для посетителей сайта"
-                why="Покажем их в подвале сайта: по ним с компанией свяжутся посетители и партнёры."
+                why="Почту закон требует показывать на сайте, по телефону с компанией связываются клиенты и партнёры."
                 whyOpen={contactsWhy}
                 onWhy={() => setContactsWhy(!contactsWhy)}
               />
@@ -789,40 +789,45 @@ export default function RequisitesClient() {
                   }}
                   error={companyPhoneError}
                 />
-                {/* Только у ООО: у ИП и самозанятого основной адрес и так
-                    почтовый — второе такое же поле было бы дублем (макет, 9.09). */}
-                {(!owner || owner === 'ООО') && postOpen && (
-                  <Field
-                    label="Адрес для писем"
-                    placeholder="Если отличается от юридического"
-                    icon={BuildingIcon}
-                    value={postAddress}
-                    onChange={(e) => setPostAddress(e.target.value)}
-                  />
-                )}
-                {/* Отдельно от бухгалтерской почты намеренно: на общий ящик
-                    такие обращения обычно не доходят до того, кто отвечает. */}
+              </div>
+
+              <div className="my-7 h-px bg-line" />
+
+              {/* Не контакт для подвала, а адрес для документов: куда клиент
+                  пришлёт отзыв согласия или запрос о своих данных (152-ФЗ ст.9,
+                  ст.14). Заполняется отдельно и осознанно — почту компании сюда
+                  не подставляем, автозаполнение браузера выключено (владелец
+                  23.09). Отдельный блок: в «Контактах» он читался как ещё один
+                  контакт для посетителей. */}
+              <BlockHead
+                id="h-pd"
+                icon={ShieldCheckIcon}
+                title="Запросы о персональных данных"
+                why="Адрес будет в политике и в согласии: по нему клиент отзывает согласие или спрашивает, какие данные о нём хранятся."
+                whyOpen={pdWhy}
+                onWhy={() => setPdWhy(!pdWhy)}
+              />
+              <div className="mt-5 grid gap-5 md:grid-cols-2">
                 <Field
-                  label="Контакт для вопросов о персональных данных"
+                  className="md:col-span-2"
+                  label="Почта, на которую клиенты пришлют отзыв согласия или запрос о своих данных"
                   required
-                  placeholder="Почта или телефон"
-                  icon={InfoIcon}
+                  placeholder="pd@alfa-school.ru"
+                  icon={MailIcon}
+                  inputMode="email"
+                  autoComplete="off"
+                  name="pd-requests"
                   value={pdContact}
                   onChange={(e) => {
                     setPdContact(e.target.value);
                     setPdContactError(null);
                   }}
+                  onBlur={() => {
+                    if (pdContact.trim() && !EMAIL_RE.test(pdContact.trim())) setPdContactError('Нужна почта вида name@site.ru — на неё клиенты пришлют отзыв согласия.');
+                  }}
                   error={pdContactError}
                 />
               </div>
-              {/* Обычно письма идут на юридический адрес — отдельное поле нужно
-                  редко и прячется за ссылкой (только у ООО: у ИП и самозанятого
-                  основной адрес и так почтовый). */}
-              {(!owner || owner === 'ООО') && !postOpen && (
-                <button type="button" onClick={() => setPostOpen(true)} className={LINK_BTN}>
-                  Другой адрес для писем
-                </button>
-              )}
             </section>
 
             {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,

@@ -106,7 +106,7 @@ export default function RequisitesModal({ onClose, onSaved }) {
           </div>
           <Field label={L.address} required placeholder={L.addressPlaceholder} {...bind('address')} />
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Email компании" required type="email" placeholder="info@site.ru" {...bind('companyMail')} />
+            <Field label="Почта компании" required type="email" placeholder="info@site.ru" {...bind('companyMail')} />
             <PhoneField
               required
               value={v.companyPhone}
