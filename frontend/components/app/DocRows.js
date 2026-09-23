@@ -34,7 +34,10 @@ export function DocRowList({ children, actionsLabel = 'Действие', withSt
 // actions — кнопки прямо в строке вместо раскрытия («Документы» кабинета:
 // зашёл за ссылкой — взял её одним нажатием). Без actions — прежний
 // аккордеон с превью (шаг 5 анкеты: там раскрытие показывает начало текста).
-export function DocRow({ doc, note, status, meta, action = 'Посмотреть', open, onToggle, actions, children }) {
+// href — название документа само ссылка на него (владелец 23.09: отдельная
+// иконка «Открыть» в каждой строке добавляла кнопок). Без статуса версия и
+// дата встают мелко под строкой.
+export function DocRow({ doc, note, status, meta, href, action = 'Посмотреть', open, onToggle, actions, children }) {
   const panelId = `doc-panel-${doc.id}`;
   return (
     <div className="border-b border-line last:border-0">
@@ -47,10 +50,17 @@ export function DocRow({ doc, note, status, meta, action = 'Посмотреть
             {/* Без обрезки: в названии стоит закон, который документ
                 закрывает, — срезать его многоточием нельзя. */}
             <h3 className="text-sm font-bold leading-5">
-              {doc.title}
+              {href ? (
+                <a href={href} target="_blank" rel="noreferrer" className={`rounded underline-offset-4 transition hover:text-brand hover:underline ${RING}`}>
+                  {doc.title}
+                </a>
+              ) : (
+                doc.title
+              )}
               <span className="ml-2 whitespace-nowrap font-mono text-[11px] font-normal text-ink/60">{doc.law}</span>
             </h3>
             <p className="mt-1 text-[12px] leading-4 text-ink/60">{note}</p>
+            {!status && meta && <p className="mt-1 text-[11px] text-ink/45">{meta}</p>}
           </div>
         </div>
         {/* На узком экране статус и кнопка встают в одну строку под текстом;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CheckIcon, CopyIcon, DocsIcon, ExternalIcon, LinkIcon, PencilIcon } from '../../../../components/app/AppIcons';
+import { CheckIcon, CopyIcon, DocsIcon, LinkIcon } from '../../../../components/app/AppIcons';
 import { DocRow, DocRowList, IconAction } from '../../../../components/app/DocRows';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { DOCUMENTS, SITE_ID, docOrigin, docUrl, editEvents } from '../../../../lib/docPackage';
@@ -122,49 +122,64 @@ export default function SiteDocumentsClient() {
             {/* Зашёл за документом — взял его одним нажатием: «Открыть» и
                 «Скопировать ссылку» прямо в строке, без раскрытия (правка
                 владельца 23.09). Версия и дата — мелко под статусом. */}
-            <DocRowList actionsLabel="Действия">
+            {/* Строки одинаковые (владелец 23.09 — «много кнопок, вразнобой»):
+                название — ссылка на документ, справа одна иконка «Скопировать
+                ссылку». Статус «Опубликован» был у всех одинаковым — снят; до
+                установки кода это видно в строке версии. Правки — не карандашами
+                по строкам, а отдельным блоком «Что можно изменить» ниже. */}
+            <DocRowList actionsLabel="Ссылка" withStatus={false}>
               {DOCUMENTS.map((doc) => {
                 const edits = site.edits.filter((e) => e.doc === doc.id);
                 return (
                   <DocRow
                     key={doc.id}
                     doc={doc}
+                    href={live ? `https://${docUrl(doc)}` : undefined}
                     note={docOrigin(doc, site.answers).line}
-                    status={live ? { tone: 'ok', label: 'Опубликован' } : { tone: 'warn', label: 'Ждёт кода' }}
-                    meta={`версия ${1 + edits.length} · ${formatDate(edits.at(-1)?.at || site.madeAt)}`}
+                    meta={`версия ${1 + edits.length} · ${formatDate(edits.at(-1)?.at || site.madeAt)}${live ? '' : ' · откроется после установки кода'}`}
                     actions={
-                      <>
-                        {/* Открыть можно и после пробного периода: опубликованные
-                            страницы остаются доступны по ссылке (решение 24.08);
-                            гаснет только копирование (HANDOFF 6.15 п.8). */}
-                        <IconAction
-                          label="Открыть"
-                          icon={ExternalIcon}
-                          href={`https://${docUrl(doc)}`}
-                          disabled={!live}
-                          why="Откроется после установки кода"
-                        />
-                        <IconAction
-                          label="Скопировать ссылку"
-                          done={copiedDoc === doc.id ? 'Скопировано' : null}
-                          icon={copiedDoc === doc.id ? CheckIcon : CopyIcon}
-                          onClick={() => copyDoc(doc)}
-                          disabled={!canCopy}
-                          why={live ? 'Вернётся после оплаты' : 'Появится после установки кода'}
-                        />
-                        {/* Клиент сам правит реквизиты и почту для запросов о
-                            персональных данных (она стоит в политике и в
-                            согласии) — окном поверх списка, здесь же. */}
-                        {doc.id === '01' && <IconAction label="Изменить реквизиты" icon={PencilIcon} onClick={() => setReqOpen(true)} />}
-                        {(doc.id === '03' || doc.id === '12') && (
-                          <IconAction label="Изменить почту для запросов" icon={PencilIcon} onClick={() => setPdOpen(true)} />
-                        )}
-                      </>
+                      <IconAction
+                        label="Скопировать ссылку"
+                        done={copiedDoc === doc.id ? 'Скопировано' : null}
+                        icon={copiedDoc === doc.id ? CheckIcon : CopyIcon}
+                        onClick={() => copyDoc(doc)}
+                        disabled={!canCopy}
+                        why={live ? 'Вернётся после оплаты' : 'Появится после установки кода'}
+                      />
                     }
                   />
                 );
               })}
             </DocRowList>
+          </section>
+
+          {/* Что клиент правит сам — в одном месте и названо прямо: реквизиты и
+              почта для запросов о персональных данных. Остальное в документах
+              собрано по ответам анкеты (решения владельца 23.09). */}
+          <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+            <h2 className="text-lg font-bold tracking-[-0.02em]">Что можно изменить</h2>
+            <p className="mt-1 text-[13px] text-ink/60">Остальное в документах собрано по ответам анкеты.</p>
+            <div className="mt-4 divide-y divide-line">
+              {[
+                ['Реквизиты владельца', [site.answers.companyName, site.answers.inn && `ИНН ${site.answers.inn}`].filter(Boolean).join(' · '), 'Изменить реквизиты', () => setReqOpen(true)],
+                ['Почта для запросов о персональных данных', site.answers.contacts?.pdContact || 'не указана', 'Изменить почту для запросов', () => setPdOpen(true)],
+              ].map(([label, value, aria, onClick]) => (
+                <div key={label} className="flex items-center justify-between gap-4 py-3.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold">{label}</p>
+                    <p className="mt-0.5 truncate text-[12px] text-ink/60">{value}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onClick}
+                    aria-label={aria}
+                    className={`shrink-0 rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
+                  >
+                    Изменить
+                  </button>
+                </div>
+              ))}
+            </div>
           </section>
 
           <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
