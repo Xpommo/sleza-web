@@ -8,6 +8,7 @@ import {
   BankIcon,
   BuildingIcon,
   CertificateIcon,
+  CheckIcon,
   InfoIcon,
   MailIcon,
   PhoneIcon,
@@ -22,14 +23,53 @@ import { EMAIL_RE, formatPhone } from '../../../../lib/validate';
 const OWNERS = ['ООО', 'ИП', 'Самозанятый'];
 
 // Лицензия требуется не по всякой сфере. Медицина и образование —
-// лицензируемые виды деятельности, СМИ — не лицензия, а регистрация, ИТ —
-// вообще не лицензия, а аккредитация и реестр ПО (спрашиваем отдельно).
+// лицензируемые виды деятельности. СМИ — не лицензия, а свидетельство о
+// регистрации (спрашиваем отдельно, владелец 23.09), ИТ — аккредитация и
+// реестр ПО (тоже отдельно).
 const LICENSE_SPHERES = {
   medicine: 'Медицина, клиники',
   school: 'Онлайн-школа, курсы, репетиторство',
   kids: 'Детский центр, кружки, секции',
-  media: 'СМИ, онлайн-издание',
 };
+
+// Банк и корсчёт однозначно определяются БИК — вводить их незачем. В
+// прототипе — несколько настоящих банков для демонстрации (как подстановка
+// по ИНН); в продукте — справочник БИК Банка России. Не нашли — поля вручную.
+const BIK_LOOKUP = {
+  '044525225': { bank: 'ПАО «Сбербанк»', corr: '30101810400000000225' },
+  '044525974': { bank: 'АО «ТБанк»', corr: '30101810145250000974' },
+  '044525593': { bank: 'АО «Альфа-Банк»', corr: '30101810200000000593' },
+  '044525187': { bank: 'Банк ВТБ (ПАО)', corr: '30101810700000000187' },
+};
+
+// Найденное — карточкой на проверку, а не пятью открытыми полями
+// (владелец 23.09: блок реквизитов был слишком большим). «Изменить»
+// открывает поля.
+function FoundCard({ note, title, lines, onEdit }) {
+  return (
+    <div className="mt-4 flex items-start justify-between gap-4 rounded-xl border border-ok/25 bg-ok/[0.05] p-4">
+      <div className="flex min-w-0 gap-3">
+        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ok text-white">
+          <CheckIcon size={12} />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[12px] font-semibold text-ok">{note}</p>
+          <p className="mt-1 text-sm font-bold text-ink">{title}</p>
+          {lines.filter(Boolean).map((l) => (
+            <p key={l} className="mt-0.5 text-[13px] leading-5 text-ink/65">
+              {l}
+            </p>
+          ))}
+        </div>
+      </div>
+      <button type="button" onClick={onEdit} className={`shrink-0 rounded text-sm font-semibold text-brand hover:text-ink ${RING}`}>
+        Изменить
+      </button>
+    </div>
+  );
+}
+
+const LINK_BTN = `mt-3 rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`;
 
 // Демо-подстановка по ИНН: реестр в этом дереве не запрашивается (бэкенда
 // здесь нет), но поведение то же, что в утверждённой анкете — заполняем и
@@ -64,6 +104,8 @@ export default function RequisitesClient() {
   const [address, setAddress] = useState('');
   const [addressError, setAddressError] = useState(null);
   const [registryWhy, setRegistryWhy] = useState(false);
+  // Поля реестра открыты, только когда их правят или заполняют вручную.
+  const [regEdit, setRegEdit] = useState(false);
 
   const [account, setAccount] = useState('');
   const [accountError, setAccountError] = useState(null);
@@ -74,6 +116,7 @@ export default function RequisitesClient() {
   const [corr, setCorr] = useState('');
   const [corrError, setCorrError] = useState(null);
   const [bankWhy, setBankWhy] = useState(false);
+  const [bankEdit, setBankEdit] = useState(false);
 
   const [license, setLicense] = useState(null);
   const [licenseError, setLicenseError] = useState(null);
@@ -87,11 +130,20 @@ export default function RequisitesClient() {
   const [itAccred, setItAccred] = useState(null);
   const [softRegistry, setSoftRegistry] = useState(null);
 
+  const [media, setMedia] = useState(null);
+  const [mediaError, setMediaError] = useState(null);
+  const [mediaNo, setMediaNo] = useState('');
+  const [mediaNoError, setMediaNoError] = useState(null);
+  const [mediaDate, setMediaDate] = useState('');
+  const [mediaOrg, setMediaOrg] = useState('Роскомнадзор');
+  const [mediaOrgError, setMediaOrgError] = useState(null);
+
   const [companyMail, setCompanyMail] = useState('');
   const [companyMailError, setCompanyMailError] = useState(null);
   const [companyPhone, setCompanyPhone] = useState('');
   const [companyPhoneError, setCompanyPhoneError] = useState(null);
   const [postAddress, setPostAddress] = useState('');
+  const [postOpen, setPostOpen] = useState(false);
   const [pdContact, setPdContact] = useState('');
   const [restored, setRestored] = useState(false);
 
@@ -124,10 +176,17 @@ export default function RequisitesClient() {
     }
     setItAccred(a.itAccred ?? null);
     setSoftRegistry(a.softRegistry ?? null);
+    if (a.mediaReg) {
+      setMedia(a.mediaReg.has ?? null);
+      setMediaNo(a.mediaReg.no || '');
+      setMediaDate(a.mediaReg.date || '');
+      setMediaOrg(a.mediaReg.org ?? 'Роскомнадзор');
+    }
     if (a.contacts) {
       setCompanyMail(a.contacts.companyMail || '');
       setCompanyPhone(formatPhone(a.contacts.companyPhone || ''));
       setPostAddress(a.contacts.postAddress || '');
+      setPostOpen(Boolean(a.contacts.postAddress));
       setPdContact(a.contacts.pdContact || '');
     }
   }, []);
@@ -138,6 +197,7 @@ export default function RequisitesClient() {
       bank: { account, bank, bik, corr },
       license: licenseSphere ? { has: license, no: licenseNo, date: licenseDate, org: licenseOrg } : null,
       itAccred, softRegistry,
+      mediaReg: sphere === 'media' ? { has: media, no: mediaNo, date: mediaDate, org: mediaOrg } : null,
       contacts: { companyMail, companyPhone, postAddress, pdContact },
     };
   }
@@ -150,7 +210,7 @@ export default function RequisitesClient() {
     // answers() читает те же значения, что перечислены здесь
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restored, owner, inn, name, ogrn, kpp, address, account, bank, bik, corr,
-      license, licenseNo, licenseDate, licenseOrg, itAccred, softRegistry,
+      license, licenseNo, licenseDate, licenseOrg, itAccred, softRegistry, media, mediaNo, mediaDate, mediaOrg,
       companyMail, companyPhone, postAddress, pdContact]);
   const [pdContactError, setPdContactError] = useState(null);
   const [contactsWhy, setContactsWhy] = useState(false);
@@ -161,7 +221,10 @@ export default function RequisitesClient() {
   // физлицо без ОГРНИП, лицензии у него быть не может, и вопрос не задаём.
   const licenseSphere = owner === 'Самозанятый' ? null : LICENSE_SPHERES[sphere];
   const showIt = isOoo && sphere === 'it';
-  const showLicenseBlock = Boolean(licenseSphere) || showIt;
+  // Свидетельство СМИ — при любой форме владения: учредителем СМИ может быть
+  // и гражданин.
+  const showMedia = sphere === 'media';
+  const showLicenseBlock = Boolean(licenseSphere) || showIt || showMedia;
 
   // Подстановка срабатывает на полной длине ИНН и только когда форма
   // владения уже выбрана: у ООО 10 цифр, у ИП и самозанятого 12.
@@ -199,6 +262,27 @@ export default function RequisitesClient() {
     put(address, 'address', setAddress);
     lastFill.current = found;
     clearRegistryErrors();
+    setRegEdit(false);
+  }
+
+  const lastBank = useRef({});
+  function onBikChange(e) {
+    const value = digitsOnly(e.target.value).slice(0, 9);
+    setBik(value);
+    setBikError(null);
+    if (value.length !== 9) return;
+    const found = BIK_LOOKUP[value];
+    if (!found) {
+      setBankEdit(true);
+      return;
+    }
+    const last = lastBank.current;
+    if (!bank || bank === last.bank) setBank(found.bank);
+    if (!corr || corr === last.corr) setCorr(found.corr);
+    lastBank.current = found;
+    setBankError(null);
+    setCorrError(null);
+    setBankEdit(false);
   }
 
   function pickOwner(item) {
@@ -231,6 +315,21 @@ export default function RequisitesClient() {
     put(setBankError, 'bank');
     put(setBikError, 'bik');
     put(setCorrError, 'corr');
+    // Ошибка в свёрнутых полях не должна прятаться за карточкой: открываем их.
+    // Пока ИНН не введён, хватает ошибки у самого ИНН.
+    if (!e.inn && (e.name || e.ogrn || e.kpp || e.address)) setRegEdit(true);
+    if (!e.bik && (e.bank || e.corr)) setBankEdit(true);
+
+    if (showMedia) {
+      if (!media) fail(setMediaError, 'Ответьте, зарегистрирован ли сайт как СМИ — от этого зависит, что показать в подвале.');
+      else setMediaError(null);
+      if (media === 'Да') {
+        if (!mediaNo.trim()) fail(setMediaNoError, 'Укажите номер свидетельства — он публикуется вместе с реквизитами.');
+        else setMediaNoError(null);
+        if (!mediaOrg.trim()) fail(setMediaOrgError, 'Укажите, кто зарегистрировал СМИ.');
+        else setMediaOrgError(null);
+      }
+    }
 
     if (licenseSphere) {
       if (!license) fail(setLicenseError, 'Ответьте про лицензию — без ответа мы не знаем, указывать ли её в документах.');
@@ -291,6 +390,22 @@ export default function RequisitesClient() {
                   onChange={onInnChange}
                   error={innError}
                 />
+              </div>
+              {/* Нашли по ИНН — карточка на проверку; поля — по «Изменить» или
+                  вручную. Карточка только при полном ИНН: иначе под недописанным
+                  номером висела бы чужая компания. */}
+              {!regEdit && inn.length === innLength && name && address ? (
+                <FoundCard
+                  note="Нашли по ИНН — проверьте"
+                  title={name}
+                  lines={[
+                    [owner !== 'Самозанятый' && ogrn && `${isOoo ? 'ОГРН' : 'ОГРНИП'} ${ogrn}`, isOoo && kpp && `КПП ${kpp}`].filter(Boolean).join(' · '),
+                    address,
+                  ]}
+                  onEdit={() => setRegEdit(true)}
+                />
+              ) : regEdit ? (
+                <div className="mt-5 grid gap-5 md:grid-cols-2">
                 <Field
                   label={ownerLabels(owner).name}
                   required
@@ -350,8 +465,14 @@ export default function RequisitesClient() {
                     error={addressError}
                   />
                 </div>
-              </div>
-              {innFound && <p className="mt-3 text-[13px] font-semibold text-ok">✓ Нашли по ИНН — проверьте, что всё верно</p>}
+                </div>
+              ) : (
+                owner && (
+                  <button type="button" onClick={() => setRegEdit(true)} className={LINK_BTN}>
+                    Заполнить вручную
+                  </button>
+                )
+              )}
 
               <div className="my-7 h-px bg-line" />
 
@@ -368,6 +489,17 @@ export default function RequisitesClient() {
                 />
                 <div className="mt-5 grid gap-5 md:grid-cols-2">
                   <Field
+                    label="БИК"
+                    required
+                    placeholder="9 цифр"
+                    icon={InfoIcon}
+                    badge="Банк подставим по БИК"
+                    inputMode="numeric"
+                    value={bik}
+                    onChange={onBikChange}
+                    error={bikError}
+                  />
+                  <Field
                     label="Расчётный счёт"
                     required
                     /* У самозанятого счёт обычно личный (40817…), а не расчётный. */
@@ -381,45 +513,45 @@ export default function RequisitesClient() {
                     }}
                     error={accountError}
                   />
-                  <Field
-                    label="Банк"
-                    required
-                    placeholder="ПАО «Сбербанк»"
-                    icon={BuildingIcon}
-                    value={bank}
-                    onChange={(e) => {
-                      setBank(e.target.value);
-                      setBankError(null);
-                    }}
-                    error={bankError}
-                  />
-                  <Field
-                    label="БИК"
-                    required
-                    placeholder="9 цифр"
-                    icon={InfoIcon}
-                    inputMode="numeric"
-                    value={bik}
-                    onChange={(e) => {
-                      setBik(digitsOnly(e.target.value).slice(0, 9));
-                      setBikError(null);
-                    }}
-                    error={bikError}
-                  />
-                  <Field
-                    label="Корреспондентский счёт"
-                    required
-                    placeholder="30101810..."
-                    icon={BankIcon}
-                    inputMode="numeric"
-                    value={corr}
-                    onChange={(e) => {
-                      setCorr(digitsOnly(e.target.value).slice(0, 20));
-                      setCorrError(null);
-                    }}
-                    error={corrError}
-                  />
                 </div>
+                {!bankEdit && bik.length === 9 && bank && corr ? (
+                  <FoundCard note="Нашли по БИК — проверьте" title={bank} lines={[`Корреспондентский счёт ${corr}`]} onEdit={() => setBankEdit(true)} />
+                ) : (
+                  bankEdit && (
+                    <>
+                      {bik.length === 9 && !BIK_LOOKUP[bik] && !bank && (
+                        <p className="mt-3 text-[13px] text-ink/60">Не нашли банк по БИК — заполните вручную.</p>
+                      )}
+                      <div className="mt-5 grid gap-5 md:grid-cols-2">
+                        <Field
+                          label="Банк"
+                          required
+                          placeholder="ПАО «Сбербанк»"
+                          icon={BuildingIcon}
+                          value={bank}
+                          onChange={(e) => {
+                            setBank(e.target.value);
+                            setBankError(null);
+                          }}
+                          error={bankError}
+                        />
+                        <Field
+                          label="Корреспондентский счёт"
+                          required
+                          placeholder="30101810..."
+                          icon={BankIcon}
+                          inputMode="numeric"
+                          value={corr}
+                          onChange={(e) => {
+                            setCorr(digitsOnly(e.target.value).slice(0, 20));
+                            setCorrError(null);
+                          }}
+                          error={corrError}
+                        />
+                      </div>
+                    </>
+                  )
+                )}
               </div>
 
               {/* Блок появляется только там, где есть что спрашивать: лицензия
@@ -431,7 +563,13 @@ export default function RequisitesClient() {
                     id="h-license"
                     icon={CertificateIcon}
                     title="Лицензии и статусы"
-                    why={licenseSphere ? 'Для вашей сферы на сайте нужно указать номер лицензии, срок её действия и кто её выдал — выведем это в подвал рядом с реквизитами.' : null}
+                    why={
+                      licenseSphere
+                        ? 'Для вашей сферы на сайте нужно указать номер лицензии, срок её действия и кто её выдал — выведем это в подвал рядом с реквизитами.'
+                        : showMedia
+                          ? 'Если сайт зарегистрирован как СМИ, на нём нужно указать номер свидетельства, дату регистрации и кто зарегистрировал — выведем это в подвал рядом с реквизитами.'
+                          : null
+                    }
                     whyOpen={licenseWhy}
                     onWhy={() => setLicenseWhy(!licenseWhy)}
                   />
@@ -501,6 +639,60 @@ export default function RequisitesClient() {
                     </div>
                   )}
 
+                  {showMedia && (
+                    <div className="mt-5">
+                      <p id="h-media" className="mb-3 text-sm font-bold text-ink-2">
+                        Сайт зарегистрирован как СМИ? <span className="text-brand">*</span>
+                      </p>
+                      <Segmented
+                        options={['Да', 'Нет']}
+                        value={media}
+                        onChange={(v) => {
+                          setMedia(v);
+                          setMediaError(null);
+                        }}
+                        ariaLabelledby="h-media"
+                      />
+                      {mediaError && <p className="mt-2 text-[12px] font-semibold text-danger">{mediaError}</p>}
+                      {media === 'Да' && (
+                        <div className="mt-5 grid gap-5 md:grid-cols-2">
+                          <Field
+                            label="Номер свидетельства"
+                            required
+                            placeholder="ЭЛ № ФС 77-12345"
+                            icon={CertificateIcon}
+                            value={mediaNo}
+                            onChange={(e) => {
+                              setMediaNo(e.target.value);
+                              setMediaNoError(null);
+                            }}
+                            error={mediaNoError}
+                          />
+                          <Field
+                            label="Дата регистрации"
+                            placeholder="01.01.2024"
+                            icon={InfoIcon}
+                            value={mediaDate}
+                            onChange={(e) => setMediaDate(e.target.value)}
+                          />
+                          <div className="md:col-span-2">
+                            <Field
+                              label="Кто зарегистрировал"
+                              required
+                              icon={BuildingIcon}
+                              value={mediaOrg}
+                              onChange={(e) => {
+                                setMediaOrg(e.target.value);
+                                setMediaOrgError(null);
+                              }}
+                              error={mediaOrgError}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {showIt && (
                     <div className={licenseSphere ? 'mt-7 border-t border-line pt-7' : 'mt-5'}>
                       <div className="grid gap-5 md:grid-cols-2">
@@ -558,7 +750,7 @@ export default function RequisitesClient() {
                 />
                 {/* Только у ООО: у ИП и самозанятого основной адрес и так
                     почтовый — второе такое же поле было бы дублем (макет, 9.09). */}
-                {(!owner || owner === 'ООО') && (
+                {(!owner || owner === 'ООО') && postOpen && (
                   <Field
                     label="Адрес для писем"
                     placeholder="Если отличается от юридического"
@@ -582,6 +774,14 @@ export default function RequisitesClient() {
                   error={pdContactError}
                 />
               </div>
+              {/* Обычно письма идут на юридический адрес — отдельное поле нужно
+                  редко и прячется за ссылкой (только у ООО: у ИП и самозанятого
+                  основной адрес и так почтовый). */}
+              {(!owner || owner === 'ООО') && !postOpen && (
+                <button type="button" onClick={() => setPostOpen(true)} className={LINK_BTN}>
+                  Другой адрес для писем
+                </button>
+              )}
             </section>
 
             {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,
