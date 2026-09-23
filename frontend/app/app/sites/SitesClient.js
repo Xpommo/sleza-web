@@ -34,12 +34,11 @@ function siteStatus(a, now = Date.now()) {
   const sub = subState(a, now);
   const open = { action: 'Открыть сайт', href: '/app/site' };
   // Отключают сайт в «Подписке» — туда и ведёт карточка (решение 23.09).
-  if (a.billing?.cancelled && sub !== 'paid') return { tone: 'warn', label: 'Сайт отключён', meta: 'не оплачивается', action: 'Вернуть в подписку', href: '/app/billing' };
   if (sub === 'expired') return { tone: 'warn', label: 'Пробный период закончился', meta: 'виджет отключён', action: 'Оплатить', href: '/app/billing?pay=current' };
   if (sub === 'pending') return { tone: 'info', label: 'Счёт выставлен', meta: 'оплата обычно проходит за 1–3 рабочих дня', ...open };
   if (sub === 'paid') {
-    const to = paidPeriod(a.billing.paidAt).to;
-    if (a.billing.cancelled) return { tone: 'warn', label: 'Сайт отключается', meta: `работает до ${to}`, ...open };
+    const to = paidPeriod(a.billing.paidAt, a.billing.paidYears).to;
+    if (a.billing.cancelled) return { tone: 'warn', label: 'Автопродление выключено', meta: `работает до ${to}`, ...open };
     // Те же слова, что в баннере «Обзора»: оплачено, но документы ещё не на сайте.
     if (!a.installed) return { tone: 'warn', label: 'Оплачено, ждём код на сайте', meta: `оплачено до ${to}`, action: 'Поставить код на сайт', href: STEP_URLS[5] };
     return { tone: 'ok', label: 'Документы актуальны', meta: `оплачено до ${to}`, ...open };
@@ -304,7 +303,7 @@ export default function SitesClient() {
           </div>
           )}
           <p className="mt-6 text-center text-xs text-ink/60">
-            {any ? (anyFinished ? 'Отключить можно любой сайт по отдельности, в «Подписке» — остальные продолжат работать.' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
+            {any ? (anyFinished ? 'Оплата списывается с баланса в «Подписке»; автопродление выключается у каждого сайта отдельно.' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
           </p>
         </div>
       </section>

@@ -81,7 +81,7 @@ export default function SiteOverviewClient() {
   const state = subState(a, now);
   const mainSite = accountSites(a, now)[0];
   const tariff = mainSite.tariff;
-  const period = b.paidAt ? paidPeriod(b.paidAt) : null;
+  const period = b.paidAt ? paidPeriod(b.paidAt, b.paidYears) : null;
   const unfinished = (a.stepsDone || 0) < 4;
   const domain = <span className="font-semibold text-ink">{a.domain}</span>;
 
@@ -89,12 +89,11 @@ export default function SiteOverviewClient() {
   // из утверждённого макета; честные к состоянию: «уже работают» — только
   // когда код на сайте действительно найден.
   let banner;
-  // Сайт отключают в «Подписке» — здесь об этом говорит баннер, и путь назад
-  // ведёт туда же.
-  if (b.cancelled) {
-    banner = state === 'paid'
-      ? { tone: 'warn', Icon: WarnIcon, title: `Сайт отключается — работает до ${period.to}`, text: <>До этой даты всё работает как сейчас, продлевать {domain} не будем.</>, cta: ['Вернуть в подписку', '/app/billing'] }
-      : { tone: 'muted', Icon: WarnIcon, title: 'Сайт отключён', text: <>Виджет снят с {domain}, платить за сайт не нужно. Опубликованные документы остаются доступны по ссылке.</>, cta: ['Вернуть в подписку', '/app/billing'] };
+  // Автопродление выключают в «Подписке» — здесь об этом говорит баннер, и
+  // путь назад ведёт туда же. Выключенное автопродление не отключает сайт
+  // сразу: он работает до конца оплаченного срока (партнёрская программа).
+  if (b.cancelled && state === 'paid') {
+    banner = { tone: 'warn', Icon: WarnIcon, title: `Автопродление выключено — сайт работает до ${period.to}`, text: <>После этой даты виджет снимем с {domain}. Опубликованные документы останутся доступны по ссылке.</>, cta: ['Включить автопродление', '/app/billing?pay=current'] };
   } else if (state === 'notstarted') {
     banner = unfinished
       ? { tone: 'warn', Icon: WarnIcon, title: 'Анкета не закончена', text: <>Документы собираются по ответам анкеты — ответьте на оставшиеся вопросы, и пакет будет готов.</>, cta: ['Продолжить анкету', STEP_URLS[a.stepsDone || 0]] }
@@ -103,12 +102,12 @@ export default function SiteOverviewClient() {
     banner = {
       tone: 'warn', Icon: ClockIcon, title: `Пробный период — до ${trialEnds(a)}`,
       text: a.installed
-        ? <>Документы и виджет уже работают на {domain}. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва. Напомним письмом за день до конца.</>
-        : <>Код на {domain} пока не нашли — проверка занимает до 15 минут. Как только он появится, документы и виджет заработают. Оплатите до конца пробного периода — тогда они продолжат работать без перерыва.</>,
-      cta: ['Оплатить', '/app/billing?pay=current'],
+        ? <>Документы и виджет уже работают на {domain}. {b.cancelled ? 'Автопродление выключено — после этой даты сайт отключится.' : 'Когда пробный период закончится, спишем оплату года с баланса — пополните его заранее. Напомним письмом за день до конца.'}</>
+        : <>Код на {domain} пока не нашли — проверка занимает до 15 минут. Как только он появится, документы и виджет заработают.</>,
+      cta: ['Оплатить год', '/app/billing?pay=current'],
     };
   } else if (state === 'expired') {
-    banner = { tone: 'danger', Icon: WarnIcon, title: 'Пробный период закончился', text: <>Виджет снят с сайта — cookie-баннер и подвал больше не показываются посетителям. Оплата вернёт всё на место.</>, cta: ['Оплатить', '/app/billing?pay=current'] };
+    banner = { tone: 'danger', Icon: WarnIcon, title: 'Пробный период закончился', text: <>Виджет снят с сайта — cookie-баннер и подвал больше не показываются посетителям. Оплата вернёт всё на место.</>, cta: ['Оплатить год', '/app/billing?pay=current'] };
   } else if (state === 'pending') {
     banner = { tone: 'warn', Icon: RefreshIcon, title: 'Счёт выставлен', text: <>Документы и виджет работают на {domain}. Отметим сайт оплаченным, как только поступят деньги — обычно 1–3 рабочих дня.</>, cta: ['Открыть счёт', '/app/billing?pay=current'] };
   } else {
@@ -191,9 +190,9 @@ export default function SiteOverviewClient() {
           </section>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            {/* Отключают и меняют тариф сайта в «Подписке», в его строке —
+            {/* Автопродление и тариф сайта — в «Подписке», в его строке —
                 одно место на все сайты аккаунта (решение владельца 23.09). */}
-            <Card title="Подписка" rows={subRows} href="/app/billing" link="Тариф и отключение — в подписке" />
+            <Card title="Подписка" rows={subRows} href="/app/billing" link="Тариф и автопродление — в подписке" />
             <Card title="Документы" rows={docRows} href="/app/site/documents" link="Все документы" />
           </div>
 

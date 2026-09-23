@@ -28,13 +28,25 @@ export function formatDate(ms) {
   return new Date(ms).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-// Оплаченный год: с даты оплаты по тот же день через год минус один.
-export function paidPeriod(paidAt) {
+// Оплаченный срок: с начала оплаченного года на years лет вперёд (ручное
+// продление добавляет к сроку 12 месяцев — партнёрская программа, 14.09).
+export function paidPeriod(paidAt, years = 1) {
   const from = new Date(paidAt);
   const to = new Date(paidAt);
-  to.setFullYear(to.getFullYear() + 1);
+  to.setFullYear(to.getFullYear() + (years || 1));
   to.setDate(to.getDate() - 1);
-  return { from: formatDate(from), to: formatDate(to), renew: formatDate(to.getTime() + 24 * 3600 * 1000), years: `${from.getFullYear()}–${from.getFullYear() + 1}` };
+  return {
+    from: formatDate(from),
+    to: formatDate(to),
+    renew: formatDate(to.getTime() + 24 * 3600 * 1000),
+    years: `${from.getFullYear()}–${from.getFullYear() + (years || 1)}`,
+  };
+}
+
+// Когда закончится пробный период — точка, с которой начнётся оплаченный
+// год, если оплатить заранее: пробные дни не сгорают.
+export function trialEndAt(a) {
+  return a.trialStartedAt ? a.trialStartedAt + TRIAL_MS : null;
 }
 
 // Последний день пробного периода — одна дата вместо таймера на каждом

@@ -66,18 +66,21 @@ const PRESETS = [
   ['Пробный период, код найден', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 2 * HOUR }), '/app/site'],
   // Пробный период — 5 дней с момента, когда код найден (решение 23.09).
   ['Пробный период закончился', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 6 * 24 * HOUR }), '/app/site'],
-  ['Счёт выставлен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 5 * HOUR, billing: { method: 'По счёту', invoice: { no: `${new Date().getFullYear()}-0142`, at: Date.now() - HOUR, payer: null } } }), '/app/billing'],
-  ['Счёт висит больше 3 дней', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 5 * 24 * HOUR, billing: { method: 'По счёту', invoice: { no: `${new Date().getFullYear()}-0142`, at: Date.now() - 4 * 24 * HOUR, payer: null } } }), '/app/billing'],
-  ['Оплачено', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, actsEmail: 'buh@alfa-school.ru' } }), '/app/site'],
+  // Модель баланса (партнёрская программа, 14.09): пополняют баланс, оплата
+  // года каждого сайта списывается с него.
+  ['Пробный период, баланс пополнен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 2 * HOUR, billing: { ...CARD, actsEmail: 'buh@alfa-school.ru', balance: 12000, ops: [{ at: Date.now() - HOUR, kind: 'topup', amount: 12000, method: 'Картой' }] } }), '/app/billing'],
+  ['Счёт на пополнение выставлен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 5 * HOUR, billing: { method: 'По счёту', actsEmail: 'buh@alfa-school.ru', topupInvoice: { no: `${new Date().getFullYear()}-0142`, at: Date.now() - HOUR, payer: null, amount: 12000 } } }), '/app/billing'],
+  ['Счёт висит больше 3 дней', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 4 * 24 * HOUR, billing: { method: 'По счёту', actsEmail: 'buh@alfa-school.ru', topupInvoice: { no: `${new Date().getFullYear()}-0142`, at: Date.now() - 4 * 24 * HOUR, payer: null, amount: 12000 } } }), '/app/billing'],
+  ['Оплачено', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, actsEmail: 'buh@alfa-school.ru', balance: 0, ops: [{ at: Date.now() - HOUR - 60000, kind: 'topup', amount: 12000, method: 'Картой' }, { at: Date.now() - HOUR, kind: 'debit', amount: 12000, site: 'alfa-school.ru' }] } }), '/app/site'],
   // Несколько сайтов — как у агента или партнёра (решения 23.09): у каждого
   // сайта свой тариф и своя дата продления, сайт, добавленный посреди года,
   // платит за свой год отдельно. Три сайта — демо-строки.
-  ['Несколько сайтов (агент)', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, siteTariff: 'Тариф Х', billing: { ...CARD, paidAt: Date.now() - HOUR, actsEmail: 'buh@alfa-school.ru', invoiceSeq: 150 }, extraSites: [
+  ['Несколько сайтов (агент)', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, siteTariff: 'Тариф Х', billing: { ...CARD, paidAt: Date.now() - HOUR, actsEmail: 'buh@alfa-school.ru', invoiceSeq: 150, balance: 24000, ops: [{ at: Date.now() - 2 * DAY, kind: 'topup', amount: 60000, method: 'По счёту' }, { at: Date.now() - HOUR, kind: 'debit', amount: 12000, site: 'alfa-school.ru' }] }, extraSites: [
     { key: 'beta', domain: 'beta-kids.ru', company: 'ИП Иванова М. С.', tariff: 'Тариф У', trialStartedAt: Date.now() - 200 * DAY, paidAt: Date.now() - 195 * DAY, cancelled: false },
     { key: 'gamma', domain: 'gamma-shop.ru', company: 'ООО «Гамма»', tariff: 'Тариф Х', trialStartedAt: Date.now() - 120 * DAY, paidAt: Date.now() - 115 * DAY, cancelled: true },
     { key: 'delta', domain: 'delta-clinic.ru', company: 'ООО «Дельта»', tariff: 'Тариф Z', trialStartedAt: Date.now() - DAY, cancelled: false },
   ] }), '/app/billing'],
-  ['Оплачено, сайт отключается', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, cancelled: true, cancelledAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
+  ['Оплачено, автопродление выключено', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, cancelled: true, cancelledAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
 ];
 
 function readUi() {

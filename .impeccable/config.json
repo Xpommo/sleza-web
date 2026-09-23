@@ -983,6 +983,114 @@
         ],
         "createdAt": "2026-09-21T11:53:06.641Z",
         "reason": "user confirmed: preserving v0.dev visual across cabinet screens"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12px",
+        "files": [
+          "frontend/app/app/start/site/SiteClient.js"
+        ],
+        "createdAt": "2026-09-22T06:52:45.450Z",
+        "reason": "same cabinet type ramp as sibling files already excepted (12/13.5/19px used consistently across frontend/app/app); DESIGN.md documents the HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "19px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-22T06:52:45.450Z",
+        "reason": "same cabinet type ramp as sibling files already excepted (12/13.5/19px used consistently across frontend/app/app); DESIGN.md documents the HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13.5px",
+        "files": [
+          "frontend/app/app/start/code/CodeClient.js"
+        ],
+        "createdAt": "2026-09-22T06:52:45.450Z",
+        "reason": "same cabinet type ramp as sibling files already excepted (12/13.5/19px used consistently across frontend/app/app); DESIGN.md documents the HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "19px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-22T06:52:45.450Z",
+        "reason": "same cabinet type ramp as sibling files already excepted (12/13.5/19px used consistently across frontend/app/app); DESIGN.md documents the HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13.5px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-22T06:52:45.450Z",
+        "reason": "same cabinet type ramp as sibling files already excepted (12/13.5/19px used consistently across frontend/app/app); DESIGN.md documents the HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10.5px",
+        "files": [
+          "frontend/app/app/site/SiteOverviewClient.js"
+        ],
+        "createdAt": "2026-09-22T06:52:45.450Z",
+        "reason": "same cabinet type ramp as sibling files already excepted (12/13.5/19px used consistently across frontend/app/app); DESIGN.md documents the HTML macet, not this React tree"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "frontend/app/app/billing/BillingClient.js"
+        ],
+        "createdAt": "2026-09-23T10:30:19.604Z",
+        "reason": "established cabinet type scale: same sizes in this file at git HEAD and in sibling cabinet files already ignored"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12px",
+        "files": [
+          "frontend/app/app/billing/BillingClient.js"
+        ],
+        "createdAt": "2026-09-23T10:30:19.670Z",
+        "reason": "established cabinet type scale: same sizes in this file at git HEAD and in sibling cabinet files already ignored"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "frontend/app/app/billing/BillingClient.js"
+        ],
+        "createdAt": "2026-09-23T10:30:19.743Z",
+        "reason": "established cabinet type scale: same sizes in this file at git HEAD and in sibling cabinet files already ignored"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "15px",
+        "files": [
+          "frontend/app/app/billing/BillingClient.js"
+        ],
+        "createdAt": "2026-09-23T10:30:19.806Z",
+        "reason": "established cabinet type scale: same sizes in this file at git HEAD and in sibling cabinet files already ignored"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "28px",
+        "files": [
+          "frontend/app/app/billing/BillingClient.js"
+        ],
+        "createdAt": "2026-09-23T10:30:19.860Z",
+        "reason": "established cabinet type scale: same sizes in this file at git HEAD and in sibling cabinet files already ignored"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "36px",
+        "files": [
+          "frontend/app/app/billing/BillingClient.js"
+        ],
+        "createdAt": "2026-09-23T10:30:19.909Z",
+        "reason": "established cabinet type scale: same sizes in this file at git HEAD and in sibling cabinet files already ignored"
       }
     ]
   }

@@ -1,9 +1,10 @@
 'use client';
 
-// Отключение сайта — в «Подписке», в его строке (решение владельца 23.09:
-// одно место; раньше кнопка жила на «Обзоре» сайта). Два шага, как решено
-// 10.09: сначала «Может, получится помочь?» — ровно один раз, с честно
-// названной кнопкой «Всё равно отключить», потом последствия.
+// Выключение автопродления — в «Подписке», переключателем в строке сайта.
+// Это и есть «отключить сайт» (партнёрская программа, 14.09): сайт работает
+// до конца оплаченного срока или пробного периода, дальше не продлевается.
+// Два шага, как решено 10.09: сначала «Может, получится помочь?» — ровно один
+// раз, с честно названной кнопкой, потом последствия.
 
 import { useRouter } from 'next/navigation';
 import { CloseIcon } from '../../../components/app/AppIcons';
@@ -14,12 +15,13 @@ const BTN = `rounded-xl border border-line bg-white px-5 py-3 text-sm font-bold 
 export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, onConfirm }) {
   const router = useRouter();
   const paid = site.kind === 'paid';
+  const trial = site.kind === 'trial';
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="off-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4">
       <div className="mt-16 w-full max-w-[460px] rounded-2xl border border-line bg-white p-6 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <h3 id="off-title" className="text-lg font-bold tracking-[-0.03em]">
-            {step === 1 ? 'Может, получится помочь?' : `Отключить ${site.domain}?`}
+            {step === 1 ? 'Может, получится помочь?' : `Выключить автопродление ${site.domain}?`}
           </h3>
           <button type="button" onClick={onClose} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>
             <CloseIcon size={18} />
@@ -28,23 +30,27 @@ export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, o
         {step === 1 ? (
           <>
             <p className="mt-3 text-[13px] leading-5 text-ink/65">
-              Если виджет мешает вёрстке, документы не подходят под ваш случай или счёт пришёл не тот — напишите, разберёмся.
-              {paid ? ` Отключить успеете всегда: сайт работает до ${paidUntil}.` : ''}
+              Если виджет мешает вёрстке или документы не подходят под ваш случай — напишите, разберёмся.
+              {paid ? ` Выключить успеете всегда: сайт оплачен до ${paidUntil}.` : ''}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <button type="button" onClick={() => router.push('/app/support')} className={BTN}>
                 Написать в поддержку
               </button>
               <button type="button" onClick={() => onStep(2)} className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}>
-                Всё равно отключить
+                Всё равно выключить
               </button>
             </div>
           </>
         ) : (
           <>
             <p className="mt-3 text-[13px] leading-5 text-ink/65">
-              Отключается только этот сайт — остальные сайты аккаунта продолжат работать, а этот продлевать не будем.
-              {paid ? ` До ${paidUntil} всё работает как сейчас — этот период уже оплачен. После этой даты:` : ' Отключим сразу:'}
+              Продлевать {site.domain} не будем, остальные сайты это не затронет.
+              {paid
+                ? ` До ${paidUntil} всё работает как сейчас — этот период оплачен. После этой даты:`
+                : trial
+                  ? ` До ${paidUntil} идёт пробный период. После него:`
+                  : ' Пока год не оплачен, сайт не включится:'}
             </p>
             {/* Страница уже опубликованной политики остаётся доступной по
                 ссылке всегда — иначе бывший клиент становится нарушителем из-за
@@ -59,10 +65,10 @@ export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, o
                 onClick={onConfirm}
                 className={`rounded-xl border border-danger/30 px-5 py-3 text-sm font-bold text-danger hover:bg-danger/[0.05] ${RING}`}
               >
-                Да, отключить
+                Да, выключить
               </button>
               <button type="button" onClick={onClose} className={BTN}>
-                Оставить сайт
+                Оставить автопродление
               </button>
             </div>
           </>

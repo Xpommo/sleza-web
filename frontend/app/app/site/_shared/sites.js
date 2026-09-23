@@ -19,7 +19,7 @@
 //   поверх основного (siteAnketa), ответы анкеты у них общие с основным.
 
 import { loadAnketa, replaceAnketa, saveAnketa } from '../../start/_shared/anketaState';
-import { PRICE, TARIFFS, paidPeriod, subState, trialEnds } from './subscription';
+import { PRICE, TARIFFS, formatDate, paidPeriod, subState, trialEndAt, trialEnds } from './subscription';
 
 export const MAIN = 'main';
 const CURRENT = 'current_site_v1';
@@ -69,7 +69,7 @@ export function siteAnketa(a = loadAnketa()) {
     siteTariff: s.tariff,
     siteNextTariff: s.nextTariff || null,
     docEdits: s.docEdits || [],
-    billing: { ...a.billing, paidAt: s.paidAt, invoice: s.invoice, cancelled: s.cancelled, paidAmount: PRICE },
+    billing: { ...a.billing, paidAt: s.paidAt, paidYears: s.paidYears || 1, invoice: s.invoice, cancelled: s.cancelled, paidAmount: PRICE },
   };
 }
 
@@ -97,17 +97,19 @@ export function saveSiteFields(patch) {
 function asAnketa(a, s) {
   if (s.key === MAIN) return a;
   if (s.real) return siteView(a, s);
-  return { stepsDone: 5, installed: true, trialStartedAt: s.trialStartedAt, billing: { paidAt: s.paidAt, invoice: s.invoice } };
+  return { stepsDone: 5, installed: true, trialStartedAt: s.trialStartedAt, billing: { paidAt: s.paidAt, paidYears: s.paidYears || 1, invoice: s.invoice } };
 }
 
 function describe(a, s, now) {
   const v = asAnketa(a, s);
   const state = subState(v, now);
-  const period = v.billing?.paidAt ? paidPeriod(v.billing.paidAt) : null;
-  if (s.cancelled) {
-    return state === 'paid'
-      ? { kind: 'off-soon', label: `отключается · до ${period.to}`, tone: 'warn', period }
-      : { kind: 'off', label: 'отключён', tone: 'muted', period };
+  const period = v.billing?.paidAt ? paidPeriod(v.billing.paidAt, v.billing.paidYears) : null;
+  // «Отключить» = выключить автопродление (партнёрская программа, 14.09):
+  // сайт работает до конца оплаченного срока, дальше не продлевается. До
+  // оплаты выключенное автопродление ничего не меняет сейчас — пробный
+  // период идёт как шёл.
+  if (s.cancelled && state === 'paid') {
+    return { kind: 'off-soon', label: `до ${period.to} · без продления`, tone: 'warn', period };
   }
   if (state === 'notstarted') {
     return (v.stepsDone || 0) >= 4
@@ -135,6 +137,8 @@ export function accountSites(a, now = Date.now()) {
           cancelled: Boolean(b.cancelled),
           invoice: b.invoice || null,
           paidAt: b.paidAt || null,
+          paidYears: b.paidYears || 1,
+          trialStartedAt: a.trialStartedAt || null,
           addedAt: a.siteAddedAt || 0,
           stepsDone: a.stepsDone || 0,
           real: true,
@@ -156,7 +160,7 @@ export function accountSites(a, now = Date.now()) {
 const ACCOUNT_KEYS = ['role', 'personName', 'personEmail', 'personPhone', 'authVia', 'messengers', 'tickets', 'extraSites', 'billing'];
 // В billing сайту принадлежат только его оплата и счёт; способ оплаты, карта,
 // плательщик, почта для актов и нумерация счетов — аккаунту.
-const SITE_BILLING = ['paidAt', 'paidAmount', 'invoice', 'cancelled', 'cancelledAt', 'tariff'];
+const SITE_BILLING = ['paidAt', 'paidYears', 'paidAmount', 'invoice', 'cancelled', 'cancelledAt', 'tariff'];
 
 function accountPart(a) {
   const out = {};
@@ -185,6 +189,7 @@ function stash(a) {
     nextTariff: a.siteNextTariff || null,
     trialStartedAt: a.trialStartedAt || null,
     paidAt: b.paidAt || null,
+    paidYears: b.paidYears || 1,
     paidAmount: b.paidAmount || null,
     invoice: b.invoice || null,
     cancelled: Boolean(b.cancelled),
@@ -210,6 +215,7 @@ export function siteView(a, s) {
     billing: {
       ...accountPart(a).billing,
       paidAt: s.paidAt,
+      paidYears: s.paidYears || 1,
       paidAmount: s.paidAmount,
       invoice: s.invoice,
       cancelled: s.cancelled,
@@ -255,11 +261,26 @@ export function addSite() {
 
 // Ближайшее продление среди оплаченных сайтов — у каждого своя дата,
 // поэтому показываем ближайшую, а не «общую».
+// Ближайшее списание с баланса автопродлением: у оплаченного — дата
+// продления, у сайта в пробном периоде — его конец. Выключенное
+// автопродление не списывает.
+function debitAt(s) {
+  if (s.cancelled) return null;
+  if (s.kind === 'paid' && s.paidAt) {
+    const d = new Date(s.paidAt);
+    d.setFullYear(d.getFullYear() + (s.paidYears || 1));
+    return d.getTime();
+  }
+  if (s.kind === 'trial' && s.trialStartedAt) return trialEndAt(s);
+  return null;
+}
+
 export function nextRenewal(sites) {
   const due = sites
-    .filter((s) => s.kind === 'paid')
-    .map((s) => ({ site: s, date: s.period.renew, at: s.paidAt }))
-    .sort((x, y) => x.at - y.at);
+    .map((s) => ({ site: s, at: debitAt(s) }))
+    .filter((x) => x.at)
+    .sort((x, y) => x.at - y.at)
+    .map((x) => ({ ...x, date: formatDate(x.at) }));
   return due[0] || null;
 }
 
@@ -299,6 +320,72 @@ export function paySite(key) {
   );
 }
 
+// ─── баланс аккаунта (партнёрская программа, 14.09) ─────────────────────
+// Баланс один — у пользователя; у сайта своего нет. Пополняют баланс (картой
+// или по счёту), а оплата года каждого сайта списывается с него: вручную
+// («Оплатить год» / «Продлить ещё на год» — сразу) или автопродлением в дату
+// продления. Операции — в истории для бухгалтерии.
+export function balanceOf(a) {
+  return a.billing?.balance || 0;
+}
+
+export function topUpBalance(amount, method) {
+  const a = loadAnketa();
+  const b = a.billing || {};
+  saveAnketa({
+    billing: {
+      ...b,
+      balance: (b.balance || 0) + amount,
+      topupInvoice: null,
+      ops: [...(b.ops || []), { at: Date.now(), kind: 'topup', amount, method }],
+    },
+  });
+}
+
+// Счёт на пополнение баланса — один на любую сумму, а не на каждый сайт.
+export function issueTopupInvoice(amount, payer) {
+  const a = loadAnketa();
+  const seq = (a.billing?.invoiceSeq || 141) + 1;
+  const invoice = { no: `${new Date().getFullYear()}-${String(seq).padStart(4, '0')}`, at: Date.now(), payer, amount };
+  saveAnketa({ billing: { ...a.billing, invoiceSeq: seq, topupInvoice: invoice } });
+}
+
+// Срок после оплаты года: оплачено — +12 месяцев к сроку; идёт пробный
+// период — год начнётся после него (пробные дни не сгорают); иначе — сегодня.
+function nextTerm(paidAt, paidYears, trialStartedAt) {
+  if (paidAt) return { paidAt, paidYears: (paidYears || 1) + 1 };
+  const trialEnd = trialEndAt({ trialStartedAt });
+  if (trialEnd && trialEnd > Date.now()) return { paidAt: trialEnd, paidYears: 1 };
+  return { paidAt: Date.now(), paidYears: 1 };
+}
+
+// Оплатить год сайта с баланса. false — не хватает денег.
+export function payYearFromBalance(key) {
+  const a = loadAnketa();
+  const site = accountSites(a).find((x) => x.key === key);
+  if (!site || balanceOf(a) < PRICE) return false;
+  const b = a.billing || {};
+  saveAnketa({
+    billing: {
+      ...b,
+      balance: balanceOf(a) - PRICE,
+      ops: [...(b.ops || []), { at: Date.now(), kind: 'debit', amount: PRICE, site: site.domain }],
+    },
+  });
+  patchSite(
+    key,
+    (x) => ({ billing: { ...x.billing, ...nextTerm(x.billing?.paidAt, x.billing?.paidYears, x.trialStartedAt), paidAmount: PRICE, invoice: null } }),
+    (s) => ({ ...nextTerm(s.paidAt, s.paidYears, s.trialStartedAt), invoice: null }),
+  );
+  return true;
+}
+
+// Когда с баланса спишут оплату сайта автопродлением, или null — не спишут.
+export function nextDebit(site) {
+  const at = debitAt(site);
+  return at ? formatDate(at) : null;
+}
+
 // Счёт на один сайт. Номера сквозные на аккаунт — два разных счёта под одним
 // номером быть не должно.
 export function issueSiteInvoice(key, payer) {
@@ -318,7 +405,7 @@ export function issueSiteInvoice(key, payer) {
 // в баннере «Обзора»: одно состояние — одно имя.
 const CARD = {
   paid: 'Документы актуальны',
-  'off-soon': 'Сайт отключается',
+  'off-soon': 'Автопродление выключено',
   off: 'Сайт отключён',
   pending: 'Счёт выставлен',
   expired: 'Пробный период закончился',
@@ -326,7 +413,7 @@ const CARD = {
   'not-ready': 'Документы собраны',
 };
 export function cardStatus(site) {
-  const meta = site.kind === 'off-soon' ? site.label.replace('отключается · до', 'работает до') : site.label;
+  const meta = site.kind === 'off-soon' ? `работает ${site.label}` : site.label;
   // В пробный период тариф ещё не действует — рядом с «Пробный период» его
   // название путало.
   return { label: CARD[site.kind], meta: site.kind === 'trial' ? meta : `${meta} · ${site.tariff}`, tone: site.tone === 'muted' ? 'warn' : site.tone };
