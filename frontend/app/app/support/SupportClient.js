@@ -121,7 +121,7 @@ export default function SupportClient() {
                     <p className="text-[13px] font-semibold text-ink/60">
                       Заявка №{t.no} · {new Date(t.at).toLocaleDateString('ru-RU')}
                     </p>
-                    <span className="rounded-full bg-warn/10 px-3 py-1 text-[11px] font-bold text-warn">{t.status}</span>
+                    <span className="rounded-full bg-warn/10 px-3 py-1 text-[11px] font-bold text-warn-ink">{t.status}</span>
                   </div>
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{t.text}</p>
                 </article>

@@ -13,7 +13,7 @@ import {
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { accountUser, loadAnketa, rememberReturn, returnPath, userLabel } from '../../start/_shared/anketaState';
 
-export const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
+export const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
 export function TearMark({ size = 28 }) {
   return (
@@ -68,6 +68,48 @@ function NavList({ items, active, label }) {
 // на последний открытый экран кабинета. Сами они в «куда вернуться» не
 // попадают: иначе Поддержка → Настройки → «Назад» → «Назад» ходило бы по кругу.
 const SIDE_SCREENS = ['/app/settings', '/app/support'];
+
+// Окно ведёт себя как окно: фокус переходит в него, Tab не уходит на
+// страницу под затемнением, Escape закрывает, а после закрытия фокус
+// возвращается на кнопку, которая окно открыла. step — у окон с шагами:
+// нажатая кнопка шага исчезает, и фокус снова ставится на окно.
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+export function useDialog(ref, onClose, step) {
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const back = document.activeElement;
+    const items = () => [...el.querySelectorAll(FOCUSABLE)].filter((x) => x.offsetParent !== null);
+    el.focus();
+    function onKey(e) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        close.current?.();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const list = items();
+      if (!list.length) return;
+      const first = list[0];
+      const last = list[list.length - 1];
+      const at = document.activeElement;
+      if (e.shiftKey && (at === first || at === el)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (at === last || at === el)) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    el.addEventListener('keydown', onKey);
+    return () => {
+      el.removeEventListener('keydown', onKey);
+      back?.focus?.();
+    };
+  }, [ref, step]);
+}
 
 export function useRememberReturn() {
   const pathname = usePathname();
@@ -167,7 +209,7 @@ export function AccountMenu({ user, compact = false }) {
           <>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-bold text-ink">{who.title}</span>
-              {who.sub && <span className="mt-0.5 block truncate text-xs text-ink/60">{who.sub}</span>}
+              {who.sub && <span className="mt-0.5 block truncate text-[11px] text-ink/60">{who.sub}</span>}
             </span>
             <ChevronDownIcon size={15} className={`shrink-0 text-ink/35 transition-transform ${open ? '' : 'rotate-180'}`} />
           </>

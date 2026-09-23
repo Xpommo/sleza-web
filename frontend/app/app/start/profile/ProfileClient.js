@@ -162,7 +162,7 @@ export default function ProfileClient() {
                 onClick={() => setAuthListOpen(!authListOpen)}
                 aria-expanded={authListOpen}
                 disabled={freeMessengers.length === 0}
-                className={`hidden items-center gap-2 rounded-xl border border-line bg-white px-4 py-3 text-sm font-bold shadow-sm transition-colors hover:border-brand disabled:cursor-default disabled:text-ink/45 disabled:hover:border-line sm:flex ${RING}`}
+                className={`hidden items-center gap-2 rounded-xl border border-line bg-white px-4 py-3 text-sm font-bold shadow-sm transition-colors hover:border-brand disabled:cursor-default disabled:text-ink/60 disabled:hover:border-line sm:flex ${RING}`}
               >
                 {freeMessengers.length ? `Добавить вход через ${freeMessengers.join(' или ')}` : 'Все способы входа привязаны'}
                 <ChevronDownIcon size={16} className={authListOpen ? 'rotate-180' : ''} />

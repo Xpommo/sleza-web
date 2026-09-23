@@ -21,7 +21,7 @@ import { terms } from '../../lib/appMock';
 // в меню аккаунта.
 
 const RING =
-  'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15 focus-visible:border-brand';
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
 // Подпись зависит от режима: клиенту с одним сайтом «проект» — чужое слово.
 const navItems = (isAgency) => [
@@ -104,7 +104,7 @@ function SidebarChrome({ children, pathname, navOverride, backLink }) {
         <div className="mb-7"><Logo /></div>
         {backLink && (
           <Link href={backLink.href}
-            className={`mb-3 inline-flex items-center gap-1.5 rounded px-3 text-[12.5px] font-semibold text-ink/55 transition-colors hover:text-ink ${RING}`}>
+            className={`mb-3 inline-flex items-center gap-1.5 rounded px-3 text-[12.5px] font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}>
             ← {backLink.label}
           </Link>
         )}
@@ -147,7 +147,7 @@ function SidebarChrome({ children, pathname, navOverride, backLink }) {
             <div className="mb-6"><Logo onClick={() => setDrawer(false)} /></div>
             {backLink && (
               <Link href={backLink.href} onClick={() => setDrawer(false)}
-                className={`mb-3 inline-flex items-center gap-1.5 rounded px-3 text-[12.5px] font-semibold text-ink/55 ${RING}`}>
+                className={`mb-3 inline-flex items-center gap-1.5 rounded px-3 text-[12.5px] font-semibold text-ink/60 ${RING}`}>
                 ← {backLink.label}
               </Link>
             )}

@@ -7,13 +7,13 @@
 // Форма собственности здесь не меняется: от неё зависит весь набор полей,
 // это другой разговор, чем поправить адрес или счёт.
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { CloseIcon } from '../../../../components/app/AppIcons';
 import { Field, PhoneField } from '../../start/_shared/AnketaChrome';
 import { loadAnketa } from '../../start/_shared/anketaState';
 import { saveSiteFields, siteAnketa } from './sites';
 import { digitsOnly, ownerLabels, validateRequisites } from '../../start/_shared/requisitesRules';
-import { RING } from './SiteChrome';
+import { RING, useDialog } from './SiteChrome';
 
 const KEYS = ['inn', 'name', 'ogrn', 'kpp', 'address', 'account', 'bank', 'bik', 'corr', 'companyMail', 'companyPhone'];
 
@@ -35,6 +35,8 @@ function fromAnketa(a) {
 }
 
 export default function RequisitesModal({ onClose, onSaved }) {
+  const dialog = useRef(null);
+  useDialog(dialog, onClose);
   const [initial] = useState(() => fromAnketa(siteAnketa(loadAnketa())));
   const [v, setV] = useState(initial);
   const [err, setErr] = useState({});
@@ -76,7 +78,7 @@ export default function RequisitesModal({ onClose, onSaved }) {
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="req-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4">
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="req-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none">
       <div className="my-10 w-full max-w-[560px] rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
         <div className="flex items-start justify-between gap-3">
           <div>

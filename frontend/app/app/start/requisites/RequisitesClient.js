@@ -76,7 +76,7 @@ function FoundCard({ note, title, lines, onEdit }) {
 function EditCard({ note, onDone, children }) {
   return (
     <div className="mt-4 rounded-xl border border-warn/40 bg-warn/[0.06] p-4 sm:p-5">
-      <p className="text-[12px] font-semibold text-warn">{note}</p>
+      <p className="text-[12px] font-semibold text-warn-ink">{note}</p>
       <div className="mt-3 grid gap-5 md:grid-cols-2">{children}</div>
       {onDone && (
         <button

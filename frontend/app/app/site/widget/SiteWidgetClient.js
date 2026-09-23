@@ -109,7 +109,7 @@ export default function SiteWidgetClient() {
           {!site.installed && (
             <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-warn/30 bg-warn/[0.06] p-6 sm:p-7">
               <div className="flex items-start gap-3">
-                <WarnIcon size={19} className="mt-0.5 shrink-0 text-warn" />
+                <WarnIcon size={19} className="mt-0.5 shrink-0 text-warn-ink" />
                 <div>
                   <h2 className="text-lg font-bold tracking-[-0.02em]">Кода на сайте пока нет</h2>
                   <p className="mt-1 text-sm text-ink/60">Проверка занимает до 15 минут. Пока кода нет, посетители не видят ни баннер, ни подвал.</p>

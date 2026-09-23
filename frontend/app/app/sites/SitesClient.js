@@ -60,10 +60,10 @@ function siteStatus(a, now = Date.now()) {
 const TONE = {
   ok: ['border-ok/25 bg-ok/10 text-ok', OkIcon],
   info: ['border-brand/20 bg-brand/[0.06] text-brand', ClockIcon],
-  warn: ['border-warn/30 bg-warn/10 text-warn', WarnIcon],
+  warn: ['border-warn/30 bg-warn/10 text-warn-ink', WarnIcon],
 };
 
-const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
+const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
 
 // Сайдбар аккаунта: только разделы уровня аккаунта. Документы и виджет

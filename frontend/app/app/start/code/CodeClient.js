@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
@@ -14,7 +14,7 @@ import {
 } from '../../../../components/app/AppIcons';
 import { TelegramIcon } from '../../../../components/app/AuthBits';
 import { EMAIL_RE } from '../../../../lib/validate';
-import { RING, AnketaFrame, Field, Segmented, SectionHead } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, Field, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
 import { TRIAL_DAYS, trialEnds } from '../../site/_shared/subscription';
 import { MAIN, setCurrentSite } from '../../site/_shared/sites';
@@ -54,6 +54,46 @@ const PLATFORM_STEPS = {
     'Вставьте строку и сохраните изменения.',
   ],
 };
+
+const MODES = ['Поставлю сам', 'Поручу другому'];
+
+// «Кто поставит код?» — вкладками, а не сегментом (владелец 23.09): это
+// переключение инструкции, а не ответ, который попадёт в документы, поэтому
+// одна вкладка всегда открыта. Сегмент с синей подложкой выглядел выбранным
+// за клиента ответом и спорил с главной кнопкой шага.
+function ModeTabs({ mode, onChange }) {
+  const refs = useRef([]);
+  function onKey(e, i) {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const j = (i + (e.key === 'ArrowRight' ? 1 : MODES.length - 1)) % MODES.length;
+    onChange(MODES[j]);
+    refs.current[j]?.focus();
+  }
+  return (
+    <div role="tablist" aria-labelledby="h-mode" className="mt-4 flex gap-7 border-b border-line">
+      {MODES.map((m, i) => (
+        <button
+          key={m}
+          ref={(el) => (refs.current[i] = el)}
+          type="button"
+          role="tab"
+          id={`mode-tab-${i}`}
+          aria-selected={mode === m}
+          aria-controls="mode-panel"
+          tabIndex={mode === m ? 0 : -1}
+          onClick={() => onChange(m)}
+          onKeyDown={(e) => onKey(e, i)}
+          className={`-mb-px rounded-t-md border-b-2 pb-3 pt-1 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
+            mode === m ? 'border-ink text-ink' : 'border-transparent text-ink/60 hover:text-ink'
+          }`}
+        >
+          {m}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function CodeClient() {
   const router = useRouter();
@@ -180,224 +220,226 @@ export default function CodeClient() {
               {!isContractor && (
                 <>
                   <SectionHead id="h-mode" title="Кто поставит код?" />
-                  <div className="mt-5">
-                    <Segmented options={['Поставлю сам', 'Поручу другому']} value={mode} onChange={setMode} ariaLabelledby="h-mode" />
-                  </div>
-                  <div className="my-7 h-px bg-line" />
+                  <ModeTabs mode={mode} onChange={setMode} />
                 </>
               )}
 
-              {effectiveMode === 'Поставлю сам' ? (
-                <div className="space-y-7">
-                  <div>
-                    <div className="mb-3">
-                      <h3 className="text-[15px] font-bold">Скопируйте код</h3>
-                      <p className="mt-1 text-sm text-ink/60">Одна строка — ставится один раз и работает на всех страницах.</p>
-                    </div>
-                    {/* Копирование — привычной иконкой в углу кода, как в
-                        документации: кнопку-надпись над кодом не замечали
-                        (владелец 23.09). После нажатия — галочка и «Скопировано». */}
-                    <div className="relative">
-                      <pre className="overflow-x-auto rounded-xl bg-ink p-5 pr-14 font-mono text-[12px] leading-6 text-white/85">
-                        <code>{snippet}</code>
-                      </pre>
-                      <button
-                        type="button"
-                        onClick={copyCode}
-                        aria-label={copied ? 'Скопировано' : 'Скопировать код'}
-                        title="Скопировать код"
-                        className={`absolute right-2.5 top-2.5 inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold transition ${
-                          copied ? 'bg-ok text-white' : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
-                        } ${RING}`}
-                      >
-                        {copied ? <CheckIcon size={15} /> : <CopyIcon size={16} />}
-                        {copied && 'Скопировано'}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-[15px] font-bold">
-                      Вставьте на сайт{platform ? ` — ${platform}` : ''}
-                    </h3>
-                    <p className="mt-1 text-sm text-ink/60">
-                      {platform
-                        ? 'Инструкция под платформу, которую вы назвали на шаге «О сайте».'
-                        : 'Платформа не указана — общая инструкция.'}
-                    </p>
-                    {/* Пункты списком, без кружков-номеров: нумерация внутри
-                        «Шага 6 из 6» спорила со счётчиком самой анкеты. */}
-                    <ul className="mt-4 space-y-2.5">
-                      {steps.map((t) => (
-                        <li key={t} className="flex gap-3 text-sm leading-5 text-ink/70">
-                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
-                          {t}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Только на телефоне: лезть в админку сайта с телефона
-                      нереалистично, честный сценарий — переслать себе и доделать
-                      с компьютера. На компьютере человек и так за ним (макет). */}
-                  <div className="rounded-xl border border-line bg-warm p-4 lg:hidden">
-                    <h3 className="text-[15px] font-bold">Отправьте себе на почту</h3>
-                    <p className="mt-1 text-sm text-ink/60">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                      <Field
-                        label="Почта"
-                        placeholder="kirill@alfa-school.ru"
-                        icon={MailIcon}
-                        type="email"
-                        value={selfMail}
-                        onChange={(e) => {
-                          setSelfMail(e.target.value);
-                          setSelfSent(false);
-                          setSelfError(null);
-                        }}
-                        error={selfError}
-                      />
-                      <button
-                        type="button"
-                        onClick={sendSelf}
-                        className={`h-[52px] shrink-0 rounded-xl border border-line bg-white px-5 text-sm font-bold shadow-sm transition hover:border-brand hover:text-brand ${RING}`}
-                      >
-                        {selfSent ? '✓ Отправили' : 'Отправить'}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-line bg-warm p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <h3 className="text-[15px] font-bold">Проверьте, что код заработал</h3>
-                        <p className="mt-1 text-sm text-ink/60">Откроем ваш сайт и поищем строку кода на странице.</p>
-                      </div>
-                      {!found && (
-                        <button
-                          data-funnel-next
-                          type="button"
-                          onClick={checkScript}
-                          disabled={checking}
-                          aria-busy={checking}
-                          className={`flex shrink-0 items-center gap-2 rounded-lg bg-white px-3.5 py-2.5 text-xs font-bold text-brand shadow-sm ring-1 ring-line transition hover:ring-brand disabled:cursor-wait disabled:text-ink/60 ${RING}`}
-                        >
-                          <RefreshIcon size={14} className={checking ? 'animate-spin' : ''} /> {checking ? 'Проверяем…' : 'Проверить код на сайте'}
-                        </button>
-                      )}
-                    </div>
-                    {found && (
-                      <div className="mt-3 flex items-start gap-2 rounded-lg bg-ok/10 px-3 py-2.5 text-[13px] leading-5 text-ok">
-                        <CheckIcon size={16} className="mt-0.5 shrink-0" />
-                        <p>
-                          <b className="font-bold">Код найден — документы и виджет уже работают.</b> Бесплатно до {trialTo}, дальше
-                          понадобится оплата — напомним письмом за день до конца.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-line bg-warm p-5">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
-                      <LinkIcon size={18} />
-                    </span>
+              <div
+                {...(!isContractor && { role: 'tabpanel', id: 'mode-panel', 'aria-labelledby': `mode-tab-${MODES.indexOf(mode)}` })}
+                className={isContractor ? '' : 'pt-7'}
+              >
+                {effectiveMode === 'Поставлю сам' ? (
+                  <div className="space-y-7">
                     <div>
-                      <h3 className="text-[15px] font-bold">Отправьте инструкцию тому, кто ведёт сайт</h3>
-                      <p className="mt-1 text-sm text-ink/60">В ней код и шаги установки{PLATFORM_FOR[platform] ? ` для ${PLATFORM_FOR[platform]}` : ''}.</p>
+                      <div className="mb-3">
+                        <h3 className="text-[15px] font-bold">Скопируйте код</h3>
+                        <p className="mt-1 text-sm text-ink/60">Одна строка — ставится один раз и работает на всех страницах.</p>
+                      </div>
+                      {/* Копирование — привычной иконкой в углу кода, как в
+                          документации: кнопку-надпись над кодом не замечали
+                          (владелец 23.09). После нажатия — галочка и «Скопировано». */}
+                      <div className="relative">
+                        <pre className="overflow-x-auto rounded-xl bg-ink p-5 pr-14 font-mono text-[12px] leading-6 text-white/85">
+                          <code>{snippet}</code>
+                        </pre>
+                        <button
+                          type="button"
+                          onClick={copyCode}
+                          aria-label={copied ? 'Скопировано' : 'Скопировать код'}
+                          title="Скопировать код"
+                          className={`absolute right-2.5 top-2.5 inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold transition ${
+                            copied ? 'bg-ok text-white' : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
+                          } ${RING}`}
+                        >
+                          {copied ? <CheckIcon size={15} /> : <CopyIcon size={16} />}
+                          {copied && 'Скопировано'}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  {/* С исполнителем чаще переписываются в мессенджере, чем по
-                      почте (владелец 23.09): делимся ссылкой на инструкцию любым
-                      способом. На телефоне — системное меню (там и MAX); на
-                      компьютере — Telegram, у которого есть выбор собеседника. */}
-                  {!shared ? (
-                    <>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {canShare ? (
+
+                    <div>
+                      <h3 className="text-[15px] font-bold">
+                        Вставьте на сайт{platform ? ` — ${platform}` : ''}
+                      </h3>
+                      <p className="mt-1 text-sm text-ink/60">
+                        {platform
+                          ? 'Инструкция под платформу, которую вы назвали на шаге «О сайте».'
+                          : 'Платформа не указана — общая инструкция.'}
+                      </p>
+                      {/* Пункты списком, без кружков-номеров: нумерация внутри
+                          «Шага 6 из 6» спорила со счётчиком самой анкеты. */}
+                      <ul className="mt-4 space-y-2.5">
+                        {steps.map((t) => (
+                          <li key={t} className="flex gap-3 text-sm leading-5 text-ink/70">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
+                            {t}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Только на телефоне: лезть в админку сайта с телефона
+                        нереалистично, честный сценарий — переслать себе и доделать
+                        с компьютера. На компьютере человек и так за ним (макет). */}
+                    <div className="rounded-xl border border-line bg-warm p-4 lg:hidden">
+                      <h3 className="text-[15px] font-bold">Отправьте себе на почту</h3>
+                      <p className="mt-1 text-sm text-ink/60">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                        <Field
+                          label="Почта"
+                          placeholder="kirill@alfa-school.ru"
+                          icon={MailIcon}
+                          type="email"
+                          value={selfMail}
+                          onChange={(e) => {
+                            setSelfMail(e.target.value);
+                            setSelfSent(false);
+                            setSelfError(null);
+                          }}
+                          error={selfError}
+                        />
+                        <button
+                          type="button"
+                          onClick={sendSelf}
+                          className={`h-[52px] shrink-0 rounded-xl border border-line bg-white px-5 text-sm font-bold shadow-sm transition hover:border-brand hover:text-brand ${RING}`}
+                        >
+                          {selfSent ? '✓ Отправили' : 'Отправить'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-line bg-warm p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+                        <div>
+                          <h3 className="text-[15px] font-bold">Проверьте, что код заработал</h3>
+                          <p className="mt-1 text-sm text-ink/60">Откроем ваш сайт и поищем строку кода на странице.</p>
+                        </div>
+                        {!found && (
                           <button
                             data-funnel-next
                             type="button"
-                            onClick={shareSystem}
-                            className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                            onClick={checkScript}
+                            disabled={checking}
+                            aria-busy={checking}
+                            className={`flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] disabled:cursor-wait disabled:bg-brand/70 sm:w-auto ${RING}`}
                           >
-                            <LinkIcon size={16} /> Поделиться
-                          </button>
-                        ) : (
-                          <button data-funnel-next type="button" onClick={shareTelegram} className={SHARE_BTN}>
-                            <TelegramIcon size={18} /> Telegram
+                            <RefreshIcon size={16} className={checking ? 'animate-spin' : ''} /> {checking ? 'Проверяем…' : 'Проверить код на сайте'}
                           </button>
                         )}
-                        <button type="button" onClick={() => setMailOpen(!mailOpen)} aria-expanded={mailOpen} className={SHARE_BTN}>
-                          <MailIcon size={17} /> Почта
-                        </button>
-                        <button type="button" onClick={shareCopy} className={SHARE_BTN}>
-                          <CopyIcon size={16} /> Скопировать ссылку
-                        </button>
                       </div>
-                      {mailOpen && (
-                        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                          <Field
-                            label="Почта того, кто ведёт сайт"
-                            placeholder="webmaster@alfa-school.ru"
-                            icon={MailIcon}
-                            type="email"
-                            autoComplete="off"
-                            value={mailTo}
-                            onChange={(e) => {
-                              setMailTo(e.target.value);
-                              setMailError(null);
-                            }}
-                            error={mailError}
-                          />
-                          <button
-                            type="button"
-                            onClick={shareMail}
-                            className={`h-[52px] shrink-0 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
-                          >
-                            Отправить
-                          </button>
+                      {found && (
+                        <div className="mt-3 flex items-start gap-2 rounded-lg bg-ok/10 px-3 py-2.5 text-[13px] leading-5 text-ok">
+                          <CheckIcon size={16} className="mt-0.5 shrink-0" />
+                          <p>
+                            <b className="font-bold">Код найден — документы и виджет уже работают.</b> Бесплатно до {trialTo}, дальше
+                            понадобится оплата — напомним письмом за день до конца.
+                          </p>
                         </div>
                       )}
-                    </>
-                  ) : (
-                    <div className="mt-4 flex items-start gap-3 rounded-xl border border-ok/25 bg-ok/[0.06] p-4">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ok text-white">
-                        <CheckIcon size={12} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-line bg-warm p-5">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
+                        <LinkIcon size={18} />
                       </span>
                       <div>
-                        <p className="text-sm font-bold">
-                          {{
-                            mail: `Инструкцию отправили на ${shared.to}`,
-                            tg: 'Открыли Telegram — выберите, кому отправить инструкцию',
-                            copy: 'Ссылку на инструкцию скопировали — отправьте её исполнителю',
-                            share: 'Инструкцией поделились',
-                          }[shared.kind]}
-                        </p>
-                        <p className="mt-1 text-[13px] leading-5 text-ink/65">
-                          Когда код появится на сайте, мы увидим это сами — пробный период на {TRIAL_DAYS} дней начнётся
-                          автоматически.
-                        </p>
-                        {/* Скопировали — ссылка перед глазами, её можно выделить
-                            или скопировать снова; «Отправить ещё раз» после
-                            копирования звучало бессмысленно (владелец 23.09). */}
-                        {shared.kind === 'copy' && (
-                          <p className="mt-2 flex items-center gap-2">
-                            <span className="min-w-0 break-all font-mono text-[12px] text-ink/70">{INSTRUCTION_URL}</span>
-                            <button type="button" onClick={shareCopy} aria-label="Скопировать ссылку" title="Скопировать ссылку" className={`shrink-0 rounded p-1 text-ink/50 hover:text-brand ${RING}`}>
-                              <CopyIcon size={15} />
-                            </button>
-                          </p>
-                        )}
-                        <button type="button" onClick={() => setShared(null)} className={`mt-2 rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`}>
-                          Выбрать другой способ
-                        </button>
+                        <h3 className="text-[15px] font-bold">Отправьте инструкцию тому, кто ведёт сайт</h3>
+                        <p className="mt-1 text-sm text-ink/60">В ней код и шаги установки{PLATFORM_FOR[platform] ? ` для ${PLATFORM_FOR[platform]}` : ''}.</p>
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
+                    {/* С исполнителем чаще переписываются в мессенджере, чем по
+                        почте (владелец 23.09): делимся ссылкой на инструкцию любым
+                        способом. На телефоне — системное меню (там и MAX); на
+                        компьютере — Telegram, у которого есть выбор собеседника. */}
+                    {!shared ? (
+                      <>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {canShare ? (
+                            <button
+                              data-funnel-next
+                              type="button"
+                              onClick={shareSystem}
+                              className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                            >
+                              <LinkIcon size={16} /> Поделиться
+                            </button>
+                          ) : (
+                            <button data-funnel-next type="button" onClick={shareTelegram} className={SHARE_BTN}>
+                              <TelegramIcon size={18} /> Telegram
+                            </button>
+                          )}
+                          <button type="button" onClick={() => setMailOpen(!mailOpen)} aria-expanded={mailOpen} className={SHARE_BTN}>
+                            <MailIcon size={17} /> Почта
+                          </button>
+                          <button type="button" onClick={shareCopy} className={SHARE_BTN}>
+                            <CopyIcon size={16} /> Скопировать ссылку
+                          </button>
+                        </div>
+                        {mailOpen && (
+                          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                            <Field
+                              label="Почта того, кто ведёт сайт"
+                              placeholder="webmaster@alfa-school.ru"
+                              icon={MailIcon}
+                              type="email"
+                              autoComplete="off"
+                              value={mailTo}
+                              onChange={(e) => {
+                                setMailTo(e.target.value);
+                                setMailError(null);
+                              }}
+                              error={mailError}
+                            />
+                            <button
+                              type="button"
+                              onClick={shareMail}
+                              className={`h-[52px] shrink-0 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                            >
+                              Отправить
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="mt-4 flex items-start gap-3 rounded-xl border border-ok/25 bg-ok/[0.06] p-4">
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ok text-white">
+                          <CheckIcon size={12} />
+                        </span>
+                        <div>
+                          <p className="text-sm font-bold">
+                            {{
+                              mail: `Инструкцию отправили на ${shared.to}`,
+                              tg: 'Открыли Telegram — выберите, кому отправить инструкцию',
+                              copy: 'Ссылку на инструкцию скопировали — отправьте её исполнителю',
+                              share: 'Инструкцией поделились',
+                            }[shared.kind]}
+                          </p>
+                          <p className="mt-1 text-[13px] leading-5 text-ink/65">
+                            Когда код появится на сайте, мы увидим это сами — пробный период на {TRIAL_DAYS} дней начнётся
+                            автоматически.
+                          </p>
+                          {/* Скопировали — ссылка перед глазами, её можно выделить
+                              или скопировать снова; «Отправить ещё раз» после
+                              копирования звучало бессмысленно (владелец 23.09). */}
+                          {shared.kind === 'copy' && (
+                            <p className="mt-2 flex items-center gap-2">
+                              <span className="min-w-0 break-all font-mono text-[12px] text-ink/70">{INSTRUCTION_URL}</span>
+                              <button type="button" onClick={shareCopy} aria-label="Скопировать ссылку" title="Скопировать ссылку" className={`shrink-0 rounded p-1 text-ink/60 hover:text-brand ${RING}`}>
+                                <CopyIcon size={15} />
+                              </button>
+                            </p>
+                          )}
+                          <button type="button" onClick={() => setShared(null)} className={`mt-2 rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`}>
+                            Выбрать другой способ
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Одно главное действие на состояние: пока кода нет — проверить
                   его (кнопка выше), когда найден — перейти в кабинет. Отдельной

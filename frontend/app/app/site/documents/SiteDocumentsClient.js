@@ -140,6 +140,7 @@ export default function SiteDocumentsClient() {
                     actions={
                       <IconAction
                         label="Скопировать ссылку"
+                        name={`Скопировать ссылку на «${doc.title}»`}
                         done={copiedDoc === doc.id ? 'Скопировано' : null}
                         icon={copiedDoc === doc.id ? CheckIcon : CopyIcon}
                         onClick={() => copyDoc(doc)}

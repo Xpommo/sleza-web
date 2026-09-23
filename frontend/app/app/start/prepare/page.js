@@ -65,7 +65,7 @@ export default function PreparePage() {
       <div className="flex items-center gap-3 rounded-lg border border-line-2 bg-white p-4">
         <div className="min-w-0 flex-1">
           <div className="text-[14.5px] font-bold">{org.name}</div>
-          <div className="mt-0.5 font-mono text-[12.5px] text-ink/55">ИНН {org.inn}</div>
+          <div className="mt-0.5 font-mono text-[12.5px] text-ink/60">ИНН {org.inn}</div>
         </div>
         {reqSaved && <span className="shrink-0 text-[12.5px] font-semibold text-ok">✓ проверено</span>}
         <button type="button" onClick={() => setReqOpen(true)}
@@ -73,7 +73,7 @@ export default function PreparePage() {
           {reqSaved ? 'Изменить' : 'Проверить и изменить'}
         </button>
       </div>
-      <p className="mt-2 text-[12px] text-ink/50">Подставили из ЕГРЮЛ — станет первым документом в «Документах».</p>
+      <p className="mt-2 text-[12px] text-ink/60">Подставили из ЕГРЮЛ — станет первым документом в «Документах».</p>
 
       <div className="mt-6 border-t border-line-2 pt-4">
         <Link href="/app/start/anketa"

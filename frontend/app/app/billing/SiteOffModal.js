@@ -6,18 +6,21 @@
 // Два шага, как решено 10.09: сначала «Может, получится помочь?» — ровно один
 // раз, с честно названной кнопкой, потом последствия.
 
+import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { CloseIcon } from '../../../components/app/AppIcons';
-import { RING } from '../site/_shared/SiteChrome';
+import { RING, useDialog } from '../site/_shared/SiteChrome';
 
 const BTN = `rounded-xl border border-line bg-white px-5 py-3 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
 
 export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, onConfirm }) {
+  const dialog = useRef(null);
+  useDialog(dialog, onClose, step);
   const router = useRouter();
   const paid = site.kind === 'paid';
   const trial = site.kind === 'trial';
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="off-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4">
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="off-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none">
       <div className="mt-16 w-full max-w-[460px] rounded-2xl border border-line bg-white p-6 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <h3 id="off-title" className="text-lg font-bold tracking-[-0.03em]">

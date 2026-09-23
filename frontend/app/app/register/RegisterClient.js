@@ -78,7 +78,7 @@ export default function RegisterClient() {
         <BrandMark dark />
 
         <div className="relative my-14 max-w-[560px] lg:my-0">
-          <h1 className="text-[38px] font-bold leading-[1.06] tracking-[-0.045em] sm:text-[44px]">
+          <h1 className="text-balance text-[38px] font-bold leading-[1.06] tracking-[-0.045em] sm:text-[44px]">
             Документы для сайта — готовим и держим в порядке
           </h1>
           {/* Утверждение о законодательстве, а не о нашей ответственности:

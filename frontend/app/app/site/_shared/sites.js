@@ -284,6 +284,26 @@ export function nextRenewal(sites) {
   return due[0] || null;
 }
 
+// Хватит ли баланса на автопродления — по порядку дат, ближайшее первым:
+// { [key]: { at, amount } } для сайтов, чей год баланс не покроет, — сколько
+// не хватит и когда спишем. Покрытые сюда не попадают.
+export function debitShortfall(sites, balance) {
+  let left = balance;
+  const short = {};
+  sites
+    .map((s) => ({ key: s.key, at: debitAt(s) }))
+    .filter((x) => x.at)
+    .sort((x, y) => x.at - y.at)
+    .forEach(({ key, at }) => {
+      if (left >= PRICE) left -= PRICE;
+      else {
+        short[key] = { at, amount: PRICE - left };
+        left = 0;
+      }
+    });
+  return short;
+}
+
 function patchSite(key, patchMain, patchDemo) {
   const a = loadAnketa();
   if (key === MAIN) {

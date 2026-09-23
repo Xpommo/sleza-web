@@ -10,7 +10,7 @@ import { CURRENT_USER } from '../../lib/appMock';
 // иначе клиенту с пятью сайтами пришлось бы каждый раз уточнять, о каком речь.
 
 const RING =
-  'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15 focus-visible:border-brand';
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
 const ITEMS = [
   { label: 'Настройки',         Icon: SettingsIcon },
@@ -50,7 +50,7 @@ export default function AccountMenu({ align = 'right', compact = false }) {
         </span>
         <span className={`min-w-0 ${compact ? '' : 'flex-1'}`}>
           <span className="block truncate text-[13px] font-semibold text-ink">{CURRENT_USER.name}</span>
-          {!compact && <span className="block truncate font-mono text-[10.5px] text-ink/50">{CURRENT_USER.email}</span>}
+          {!compact && <span className="block truncate font-mono text-[10.5px] text-ink/60">{CURRENT_USER.email}</span>}
         </span>
         <span className={`text-ink/40 transition-transform ${open ? 'rotate-90' : ''}`}>
           <ChevronIcon size={14} />
@@ -76,7 +76,7 @@ export default function AccountMenu({ align = 'right', compact = false }) {
         >
           <div className="border-b border-line px-3 pb-2 pt-1">
             <div className="truncate text-[13px] font-semibold">{CURRENT_USER.name}</div>
-            <div className="truncate font-mono text-[10.5px] text-ink/50">{CURRENT_USER.email}</div>
+            <div className="truncate font-mono text-[10.5px] text-ink/60">{CURRENT_USER.email}</div>
           </div>
 
           {/* Разделы аккаунта — заглушки, пока их нечем наполнить */}

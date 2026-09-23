@@ -5,15 +5,17 @@
 // разрешил»). Почта стоит и в политике, и в согласии — правка выпускает
 // новые версии обоих документов.
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { CloseIcon, MailIcon } from '../../../../components/app/AppIcons';
 import { EMAIL_RE } from '../../../../lib/validate';
 import { Field } from '../../start/_shared/AnketaChrome';
 import { loadAnketa } from '../../start/_shared/anketaState';
 import { saveSiteFields, siteAnketa } from './sites';
-import { RING } from './SiteChrome';
+import { RING, useDialog } from './SiteChrome';
 
 export default function PdEmailModal({ onClose, onSaved }) {
+  const dialog = useRef(null);
+  useDialog(dialog, onClose);
   const [initial] = useState(() => siteAnketa(loadAnketa()).contacts?.pdContact || '');
   const [value, setValue] = useState(initial);
   const [error, setError] = useState(null);
@@ -39,7 +41,7 @@ export default function PdEmailModal({ onClose, onSaved }) {
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="pd-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4">
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="pd-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none">
       <div className="my-10 w-full max-w-[480px] rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
         <div className="flex items-start justify-between gap-3">
           <div>

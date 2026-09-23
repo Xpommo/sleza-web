@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, ClockIcon, OkIcon, RefreshIcon, WarnIcon } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS, editEvents } from '../../../lib/docPackage';
-import { accountSites, siteAnketa } from './_shared/sites';
+import { accountSites, balanceOf, siteAnketa } from './_shared/sites';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { RING, SiteHeader, SiteSidebar } from './_shared/SiteChrome';
-import { PRICE_LABEL, TARIFFS, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEnds } from './_shared/subscription';
+import { PRICE, PRICE_LABEL, TARIFFS, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEndAt, trialEnds } from './_shared/subscription';
 
 const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
 const BTN = `inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`;
@@ -99,10 +99,16 @@ export default function SiteOverviewClient() {
       ? { tone: 'warn', Icon: WarnIcon, title: 'Анкета не закончена', text: <>Документы собираются по ответам анкеты — ответьте на оставшиеся вопросы, и пакет будет готов.</>, cta: ['Продолжить анкету', STEP_URLS[a.stepsDone || 0]] }
       : { tone: 'muted', Icon: WarnIcon, title: 'Документы собраны, код не установлен', text: <>Пакет готов. Как только код встанет на сайт, включим документы и виджет — {TRIAL_DAYS} дней бесплатно.</>, cta: ['Поставить код на сайт', '/app/start/code'] };
   } else if (state === 'trial') {
+    // Пробный период — хорошая новость, а не тревога: синий, как плашка в
+    // «Моих сайтах» и «Подписке». Жёлтый — только в последний день, когда
+    // уходит и письмо-напоминание (владелец 23.09). «Пополните» — только
+    // если на балансе действительно не хватает на год.
+    const lastDay = trialEndAt(a) - now <= 24 * 3600 * 1000;
+    const enough = balanceOf(loadAnketa()) >= PRICE; // баланс — один на аккаунт
     banner = {
-      tone: 'warn', Icon: ClockIcon, title: `Пробный период — до ${trialEnds(a)}`,
+      tone: lastDay ? 'warn' : 'info', Icon: ClockIcon, title: `Пробный период — до ${trialEnds(a)}`,
       text: a.installed
-        ? <>Документы и виджет уже работают на {domain}. {b.cancelled ? 'Автопродление выключено — после этой даты сайт отключится.' : 'Когда пробный период закончится, спишем оплату года с баланса — пополните его заранее. Напомним письмом за день до конца.'}</>
+        ? <>Документы и виджет уже работают на {domain}. {b.cancelled ? 'Автопродление выключено — после этой даты сайт отключится.' : enough ? 'Когда пробный период закончится, спишем оплату года с баланса — на нём хватает.' : 'Когда пробный период закончится, спишем оплату года с баланса — пополните его заранее. Напомним письмом за день до конца.'}</>
         : <>Код на {domain} пока не нашли — проверка занимает до 15 минут. Как только он появится, документы и виджет заработают.</>,
       cta: ['Оплатить год', '/app/billing?pay=current'],
     };
@@ -116,7 +122,8 @@ export default function SiteOverviewClient() {
       : { tone: 'warn', Icon: WarnIcon, title: 'Оплачено, ждём код на сайте', text: <>Как только код появится на {domain}, документы и виджет заработают.</>, cta: ['Поставить код на сайт', '/app/start/code'] };
   }
   const toneCls = {
-    warn: 'border-warn/30 bg-warn/[0.06] text-warn',
+    info: 'border-brand/20 bg-brand/[0.04] text-brand',
+    warn: 'border-warn/30 bg-warn/[0.06] text-warn-ink',
     danger: 'border-danger/25 bg-danger/[0.05] text-danger',
     ok: 'border-ok/25 bg-ok/[0.06] text-ok',
     muted: 'border-line bg-white text-ink/60',

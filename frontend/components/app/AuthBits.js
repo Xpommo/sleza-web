@@ -9,7 +9,7 @@ import { useRef, useState } from 'react';
 import { ChevronIcon, CloseIcon, MailIcon } from './AppIcons';
 import { EMAIL_RE } from '../../lib/validate';
 
-export const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
+export const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
 // Знак — капля: тот же контур, что носит виджет на сайтах клиентов.
 export function TearMark({ size = 30, className = '' }) {

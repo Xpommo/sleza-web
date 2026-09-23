@@ -51,7 +51,7 @@ export default function ReadyPage() {
           </div>
         ))}
       </div>
-      <p className="mt-2.5 text-[12px] text-ink/55">
+      <p className="mt-2.5 text-[12px] text-ink/60">
         {weClose.length} {weClose.length === 1 ? 'пункт закроется' : 'пункта закроются'}, как только виджет встанет на сайт.
         {youClose.length > 0 && ' По остальному пришлём инструкцию отдельно.'}
       </p>
@@ -62,7 +62,7 @@ export default function ReadyPage() {
           <div key={d.name} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line px-4 py-3 last:border-0">
             <div className="min-w-[200px] flex-1">
               <div className="text-[14px] font-semibold">{d.name}</div>
-              <div className="font-mono text-[11px] text-ink/50">{project.domain}{d.href}</div>
+              <div className="font-mono text-[11px] text-ink/60">{project.domain}{d.href}</div>
             </div>
             <button type="button" className={`rounded-lg border border-line-2 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:border-ink/40 ${RING}`}>
               Открыть
@@ -70,11 +70,11 @@ export default function ReadyPage() {
           </div>
         ))}
       </div>
-      <p className="mt-2 text-[11.5px] text-ink/50">Ссылки постоянные: обновим документ — адрес не изменится.</p>
+      <p className="mt-2 text-[11.5px] text-ink/60">Ссылки постоянные: обновим документ — адрес не изменится.</p>
 
       <h2 className="mb-3 mt-6 text-[15px] font-bold tracking-[-0.02em]">Вот что появится на сайте</h2>
       <div className="overflow-hidden rounded-lg border border-line-2">
-        <div className="border-b border-line-2 bg-paper px-4 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-ink/45">
+        <div className="border-b border-line-2 bg-paper px-4 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-ink/60">
           подвал сайта после установки
         </div>
         <div className="bg-ink px-5 py-5">
@@ -102,7 +102,7 @@ export default function ReadyPage() {
           <span className="text-[14.5px] text-ink/70">Подписка</span>
           <span className="text-[19px] font-extrabold tracking-[-0.02em]">{PRICE}</span>
         </div>
-        <p className="mt-1 text-[12.5px] text-ink/55">Спишем при оплате, дальше — раз в месяц. Отменить можно в любой момент.</p>
+        <p className="mt-1 text-[12.5px] text-ink/60">Спишем при оплате, дальше — раз в месяц. Отменить можно в любой момент.</p>
       </div>
 
       <div className="mt-6 border-t border-line-2 pt-4">
@@ -110,7 +110,7 @@ export default function ReadyPage() {
           className={`flex w-full items-center justify-center rounded-lg bg-ink px-5 py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand ${RING}`}>
           Установить и оплатить за {PRICE.split('/')[0].trim()}
         </Link>
-        <p className="mt-2.5 text-center text-[12px] text-ink/55">Без оплаты и установки баннер и реквизиты на сайте не появятся</p>
+        <p className="mt-2.5 text-center text-[12px] text-ink/60">Без оплаты и установки баннер и реквизиты на сайте не появятся</p>
       </div>
     </StartFrame>
   );

@@ -50,7 +50,7 @@ data-site="${project.domain.replace(/\./g, '-')}" async></script>`}
           {TABS.map(t => (
             <button key={t.key} type="button" onClick={() => setTab(t.key)}
               className={`-mb-px border-b-2 px-3 py-2 text-[13px] font-semibold transition-colors ${
-                tab === t.key ? 'border-ink text-ink' : 'border-transparent text-ink/55 hover:text-ink'
+                tab === t.key ? 'border-ink text-ink' : 'border-transparent text-ink/60 hover:text-ink'
               }`}>
               {t.label}
             </button>
@@ -73,7 +73,7 @@ data-site="${project.domain.replace(/\./g, '-')}" async></script>`}
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[13.5px] text-ink/75">Подключимся к сайту и поставим сами. Нужен доступ в админку.</p>
-            <p className="mt-1 text-[11.5px] text-ink/50">Разово, обычно в течение рабочего дня</p>
+            <p className="mt-1 text-[11.5px] text-ink/60">Разово, обычно в течение рабочего дня</p>
           </div>
           <span className="shrink-0 text-[16px] font-extrabold">1 500 ₽</span>
         </div>
@@ -87,7 +87,7 @@ data-site="${project.domain.replace(/\./g, '-')}" async></script>`}
           <>
             <div className="inline-flex items-center gap-1.5 text-[14px] font-bold text-ok">✓ Скрипт установлен, всё работает</div>
             <p className="mt-2 text-[13.5px] text-ink/70">Баннер показывается, реквизиты в подвале, ссылки на документы на месте.</p>
-            <button type="button" onClick={() => setFound(false)} className={`mt-3 text-[13px] font-semibold text-ink/55 transition-colors hover:text-ink ${RING}`}>
+            <button type="button" onClick={() => setFound(false)} className={`mt-3 text-[13px] font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}>
               показать состояние «не найден»
             </button>
           </>
@@ -108,7 +108,7 @@ data-site="${project.domain.replace(/\./g, '-')}" async></script>`}
 
       <h2 className="mb-3 mt-8 text-[15px] font-bold tracking-[-0.02em]">Осталось оплатить</h2>
 
-      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink/45">
+      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink/60">
         <span className="rounded-full border border-line-2 px-2 py-0.5">макет</span>
         <span className="inline-flex items-center gap-1.5">
           оплата:
@@ -139,13 +139,13 @@ data-site="${project.domain.replace(/\./g, '-')}" async></script>`}
       ) : (
         <>
           <div className="rounded-lg border border-line-2 bg-white p-4">
-            <h3 className="text-[13px] font-bold uppercase tracking-[0.04em] text-ink/50">Сразу</h3>
+            <h3 className="text-[13px] font-bold uppercase tracking-[0.04em] text-ink/60">Сразу</h3>
             <ul className="mt-2 space-y-1.5 text-[13.5px] text-ink/75">
               <li>· Готовый пакет документов под ваши формы и трекеры</li>
               <li>· Виджет: куки-баннер и реквизиты в подвале</li>
               <li>· Постоянные ссылки на документы</li>
             </ul>
-            <h3 className="mt-4 text-[13px] font-bold uppercase tracking-[0.04em] text-ink/50">Каждый месяц</h3>
+            <h3 className="mt-4 text-[13px] font-bold uppercase tracking-[0.04em] text-ink/60">Каждый месяц</h3>
             <ul className="mt-2 space-y-1.5 text-[13.5px] text-ink/75">
               <li>· Проверка сайта и обновление документов при смене закона</li>
               <li>· Уведомления, если что-то изменилось</li>
@@ -177,7 +177,7 @@ data-site="${project.domain.replace(/\./g, '-')}" async></script>`}
               className={`flex w-full items-center justify-center rounded-lg bg-ink px-5 py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand ${RING}`}>
               Оплатить {PRICE.split('/')[0].trim()} и войти в кабинет →
             </Link>
-            <p className="mt-2.5 text-center text-[12px] text-ink/55">
+            <p className="mt-2.5 text-center text-[12px] text-ink/60">
               Автопродление раз в месяц · отменить можно в любой момент, деньги за неиспользованные дни вернём
             </p>
           </div>

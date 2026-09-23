@@ -9,7 +9,7 @@
 
 import { ChevronDownIcon, DocsIcon } from './AppIcons';
 
-const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
+const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 const COLS = 'sm:grid-cols-[minmax(0,1fr)_150px_140px]';
 // Без колонки статуса — где он у всех одинаковый и ничего не сообщает (шаг 5:
 // «Готово» у всех пяти документов).
@@ -60,7 +60,7 @@ export function DocRow({ doc, note, status, meta, href, action = 'Посмотр
               <span className="ml-2 whitespace-nowrap font-mono text-[11px] font-normal text-ink/60">{doc.law}</span>
             </h3>
             <p className="mt-1 text-[12px] leading-4 text-ink/60">{note}</p>
-            {!status && meta && <p className="mt-1 text-[11px] text-ink/45">{meta}</p>}
+            {!status && meta && <p className="mt-1 text-[11px] text-ink/60">{meta}</p>}
           </div>
         </div>
         {/* На узком экране статус и кнопка встают в одну строку под текстом;
@@ -70,7 +70,7 @@ export function DocRow({ doc, note, status, meta, href, action = 'Посмотр
           <span className="flex flex-col gap-1">
             <span
               className={`w-fit rounded-full px-3 py-1.5 text-[11px] font-bold ${
-                status.tone === 'warn' ? 'bg-warn/10 text-warn' : 'bg-ok/10 text-ok'
+                status.tone === 'warn' ? 'bg-warn/10 text-warn-ink' : 'bg-ok/10 text-ok'
               }`}
             >
               {status.label}
@@ -118,7 +118,10 @@ export function DocRow({ doc, note, status, meta, href, action = 'Посмотр
 // Кнопка-иконка в строке документа. Подпись — всплывающей подсказкой и для
 // скринридера (aria-label): иконка без слова читается только вместе с ней.
 // Неактивная объясняет почему (why) — «нельзя» без причины хуже, чем ничего.
-export function IconAction({ label, why, icon: Icon, onClick, href, disabled, done }) {
+// name — полное имя для скринридера, когда в списке несколько одинаковых
+// кнопок («Скопировать ссылку» ×6 не различить на слух); подсказка — короткая.
+export function IconAction({ label, name, why, icon: Icon, onClick, href, disabled, done }) {
+  const spoken = name || label;
   const cls = `group/ia relative flex h-9 w-9 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink/60 ${RING}`;
   const tip = (
     <span
@@ -130,14 +133,14 @@ export function IconAction({ label, why, icon: Icon, onClick, href, disabled, do
   );
   if (href && !disabled) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className={cls}>
+      <a href={href} target="_blank" rel="noopener noreferrer" aria-label={spoken} className={cls}>
         <Icon size={17} />
         {tip}
       </a>
     );
   }
   return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-label={disabled && why ? `${label} — ${why}` : label} className={cls}>
+    <button type="button" onClick={onClick} disabled={disabled} aria-label={disabled && why ? `${spoken} — ${why}` : spoken} className={cls}>
       <Icon size={17} className={done ? 'text-ok' : ''} />
       {tip}
     </button>

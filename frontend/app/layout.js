@@ -92,7 +92,11 @@ function jsonLdFaq() {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ru">
+    // Переменные шрифтов — на <html>, не на <body>: --font-sans в globals.css
+    // объявлена на :root и ссылается на --font-onest. Пока класс висел на
+    // body, на корне переменная была пустой, и весь текст с 24.06 шёл
+    // шрифтом браузера по умолчанию (Times) вместо Onest.
+    <html lang="ru" className={`${onest.variable} ${jetbrainsMono.variable}`}>
       <head>
         <script
           type="application/ld+json"
@@ -107,7 +111,7 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLdFaq()) }}
         />
       </head>
-      <body className={`${onest.variable} ${jetbrainsMono.variable} bg-warm text-ink min-h-screen antialiased`}>
+      <body className="bg-warm text-ink min-h-screen antialiased">
         {children}
         <CookieBanner />
       </body>

@@ -5,10 +5,10 @@
 // макете (modal-req-invoice); с реквизитами владельца из анкеты не связаны
 // и их не меняют — это разные сущности (правка макета 26.08).
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { CloseIcon } from '../../../components/app/AppIcons';
 import { Field, PhoneField } from '../start/_shared/AnketaChrome';
-import { RING } from '../site/_shared/SiteChrome';
+import { RING, useDialog } from '../site/_shared/SiteChrome';
 import { phoneIncomplete } from '../../../lib/validate';
 
 export const EMPTY_PAYER = { name: '', inn: '', ogrn: '', email: '', phone: '', account: '', bank: '', bik: '', corr: '' };
@@ -29,6 +29,8 @@ export function payerSummary(p) {
 }
 
 export default function InvoicePayerModal({ initial, onClose, onSave }) {
+  const dialog = useRef(null);
+  useDialog(dialog, onClose);
   const [v, setV] = useState({ ...EMPTY_PAYER, ...initial });
   const [err, setErr] = useState({});
 
@@ -49,7 +51,7 @@ export default function InvoicePayerModal({ initial, onClose, onSave }) {
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="payer-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4">
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="payer-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none">
       <div className="my-10 w-full max-w-[560px] rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
         <div className="flex items-start justify-between gap-3">
           <h3 id="payer-title" className="text-lg font-bold tracking-[-0.03em]">

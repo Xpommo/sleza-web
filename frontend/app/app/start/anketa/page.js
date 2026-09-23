@@ -40,7 +40,7 @@ export default function AnketaPage() {
 
       <div className="mt-5 rounded-lg border border-line-2 bg-white p-4">
         <h3 className="text-[15px] font-bold">Звоните, пишете в мессенджеры или на почту по базе клиентов?</h3>
-        <p className="mb-3.5 mt-1.5 text-[12.5px] text-ink/55">
+        <p className="mb-3.5 mt-1.5 text-[12.5px] text-ink/60">
           От этого зависит, нужно ли отдельное согласие на рекламные рассылки.
           Без него звонок или письмо по старой базе — уже нарушение.
         </p>
@@ -56,7 +56,7 @@ export default function AnketaPage() {
 
       <div className="mt-3 rounded-lg border border-line-2 bg-white p-4">
         <h3 className="text-[15px] font-bold">Для чего вы собираете контакты?</h3>
-        <p className="mb-1 mt-1.5 text-[12.5px] text-ink/55">
+        <p className="mb-1 mt-1.5 text-[12.5px] text-ink/60">
           Это попадёт в политику — цели обработки должны совпадать с тем, что вы делаете на самом деле.
         </p>
         <div className="mt-2.5">

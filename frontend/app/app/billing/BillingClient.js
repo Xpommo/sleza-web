@@ -13,7 +13,7 @@ import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
 import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
 import SiteOffModal from './SiteOffModal';
 import {
-  accountSites, balanceOf, currentSiteKey, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite, payYearFromBalance,
+  accountSites, balanceOf, currentSiteKey, debitShortfall, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite, payYearFromBalance,
   setSiteCancelled, setSiteTariff, topUpBalance,
 } from '../site/_shared/sites';
 import { PRICE, TARIFFS, TRIAL_DAYS, formatDate, paidPeriod, trialEnds } from '../site/_shared/subscription';
@@ -86,12 +86,15 @@ function plural(n, one, few, many) {
 const TONE = {
   ok: 'bg-ok/10 text-ok',
   info: 'bg-brand/[0.07] text-brand',
-  warn: 'bg-warn/10 text-warn',
+  warn: 'bg-warn/10 text-warn-ink',
   muted: 'bg-warm text-ink/60',
 };
 
 const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
 const PRIMARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
+const SECONDARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold text-ink shadow-sm transition hover:border-line-2 ${RING}`;
+// «Скоро» для денег — месяц: так же решает, синяя ли «Продлить на 1 год».
+const SOON = 30 * 24 * 3600 * 1000;
 const BTN_OUTLINE = `rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
 const BTN_TEXT = `rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
 const LINK = `rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`;
@@ -106,7 +109,7 @@ const SITE_COLS = 'sm:grid-cols-[minmax(0,1.6fr)_minmax(0,0.9fr)_minmax(0,1.5fr)
 const BADGE = {
   ok: 'bg-ok/10 text-ok',
   info: 'bg-brand/[0.07] text-brand',
-  warn: 'bg-warn/10 text-warn',
+  warn: 'bg-warn/10 text-warn-ink',
   danger: 'bg-danger/10 text-danger',
   beige: 'bg-warm text-ink/70 ring-1 ring-inset ring-line',
   muted: 'bg-warm text-ink/60',
@@ -155,7 +158,7 @@ function RowMenu({ site, hasHistory, onPick }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
   const end = endsAt(site);
-  const urgent = ['trial', 'expired', 'pending'].includes(site.kind) || (end && end - Date.now() < 30 * 24 * 3600 * 1000);
+  const urgent = ['trial', 'expired', 'pending'].includes(site.kind) || (end && end - Date.now() < SOON);
   const items =
     site.kind === 'not-ready'
       ? [[site.label === 'код не установлен' ? 'Поставить код' : 'Продолжить анкету', 'go', true]]
@@ -173,7 +176,7 @@ function RowMenu({ site, hasHistory, onPick }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Действия · ${site.domain}`}
-        className={`flex h-9 w-9 items-center justify-center rounded-full text-ink/50 transition hover:bg-warm hover:text-ink ${open ? 'bg-warm text-ink' : ''} ${RING}`}
+        className={`flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition hover:bg-warm hover:text-ink ${open ? 'bg-warm text-ink' : ''} ${RING}`}
       >
         <MoreHorizontalIcon size={18} />
       </button>
@@ -209,14 +212,25 @@ function RowMenu({ site, hasHistory, onPick }) {
   );
 }
 
-function SiteTableRow({ site, open, hasHistory, onPick, onAuto, children }) {
+function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, children }) {
   const [tone, text] = badgeOf(site);
   const live = site.kind !== 'not-ready';
   const debit = !site.cancelled ? nextDebit(site) : null;
   const tariff = site.kind === 'trial' ? 'Пробный период' : live ? site.tariff : '—';
   const badge = <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-[12px] font-bold ${BADGE[tone]}`}>{text}</span>;
-  const debitLine = debit && <p className="mt-1 text-[12px] text-ink/55">{debit} спишем {PRICE_TEXT}</p>;
-  const nextTariff = site.nextTariff && site.period && <p className="mt-0.5 text-[12px] text-ink/55">с {site.period.renew} — {site.nextTariff}</p>;
+  // Автопродление включено, а денег на списание нет — жёлтым, с суммой:
+  // серое «спишем» при пустом балансе читалось как «всё в порядке». Дата
+  // уже стоит в плашке статуса — здесь только сколько не хватит.
+  const debitLine =
+    debit &&
+    (short ? (
+      <p className="mt-1 text-[12px] font-semibold text-warn-ink">Не хватает {formatRub(short)} на год</p>
+    ) : (
+      <p className="mt-1 text-[12px] text-ink/60">
+        {debit} спишем {PRICE_TEXT}
+      </p>
+    ));
+  const nextTariff = site.nextTariff && site.period && <p className="mt-0.5 text-[12px] text-ink/60">с {site.period.renew} — {site.nextTariff}</p>;
   const sw = live && <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />;
   const menu = <RowMenu site={site} hasHistory={hasHistory} onPick={onPick} />;
   return (
@@ -225,7 +239,7 @@ function SiteTableRow({ site, open, hasHistory, onPick, onAuto, children }) {
       <div className={`hidden gap-4 px-6 py-4 sm:grid sm:items-center ${SITE_COLS}`}>
         <div className="min-w-0">
           <p className="truncate text-[15px] font-bold">{site.domain}</p>
-          {site.company && <p className="mt-0.5 truncate text-[12px] text-ink/55">{site.company}</p>}
+          {site.company && <p className="mt-0.5 truncate text-[12px] text-ink/60">{site.company}</p>}
         </div>
         <div className="min-w-0">
           <p className="truncate text-[14px] font-semibold text-ink/80">{tariff}</p>
@@ -243,7 +257,7 @@ function SiteTableRow({ site, open, hasHistory, onPick, onAuto, children }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate text-[15px] font-bold">{site.domain}</p>
-            {site.company && <p className="mt-0.5 truncate text-[12px] text-ink/55">{site.company}</p>}
+            {site.company && <p className="mt-0.5 truncate text-[12px] text-ink/60">{site.company}</p>}
           </div>
           {menu}
         </div>
@@ -353,6 +367,13 @@ export default function BillingClient() {
   const req = a.contacts || {};
   const account = a.bank?.account || '';
   const renewal = nextRenewal(sites);
+  // Нехватка на балансе — только близкая: «не хватает» за год до списания
+  // (сразу после оплаты года) было не предупреждением, а придиркой.
+  const short = debitShortfall(sites, balance);
+  const dueShort = Object.values(short)
+    .filter((x) => x.at - now < SOON)
+    .sort((x, y) => x.at - y.at);
+  const shortSum = dueShort.reduce((sum, x) => sum + x.amount, 0);
   const paidSites = sites.filter((s) => s.period && (s.kind === 'paid' || s.kind === 'off-soon'));
   const ops = b.ops || [];
 
@@ -731,7 +752,7 @@ export default function BillingClient() {
             required
             inputMode="numeric"
             placeholder="12 000"
-            value={amount}
+            value={amount ? Number(amount).toLocaleString('ru-RU') : ''}
             onChange={(e) => {
               setAmount(e.target.value.replace(/\D/g, '').slice(0, 8));
               setAmountErr(null);
@@ -818,6 +839,13 @@ export default function BillingClient() {
   // Оплатить год / продлить ещё на год — с баланса, в строке сайта.
   function renewPanel(site) {
     const enough = balance >= PRICE;
+    // Тем же глаголом, что нажали: «Оплатить год» с «Обзора» раньше
+    // открывало панель без заголовка с одной «Пополнить» внутри.
+    const title = (
+      <p className="mb-1.5 text-[15px] font-bold">
+        {site.kind === 'paid' || site.kind === 'off-soon' ? `Продлить ${site.domain} на год` : `Оплатить год ${site.domain}`} — {PRICE_TEXT}
+      </p>
+    );
     const what =
       site.kind === 'trial'
         ? `Год ${site.domain} начнётся после пробного периода — пробные дни не сгорают.`
@@ -826,6 +854,7 @@ export default function BillingClient() {
           : `${site.domain} включится сегодня — на год.`;
     return enough ? (
       <>
+        {title}
         <p className="text-[13px] leading-5 text-ink/70">
           Спишем {PRICE_TEXT} с баланса ({formatRub(balance)}). {what}
         </p>
@@ -835,6 +864,7 @@ export default function BillingClient() {
       </>
     ) : (
       <>
+        {title}
         <p className="text-[13px] leading-5 text-ink/70">
           На балансе {formatRub(balance)} — не хватает {formatRub(PRICE - balance)} на год. {what}
         </p>
@@ -885,12 +915,19 @@ export default function BillingClient() {
                     <p className="mt-1 text-[28px] font-bold leading-none tracking-[-0.03em]">{formatRub(balance)}</p>
                     <p className="mt-2 text-[13px] leading-5 text-ink/60">
                       {renewal
-                        ? `Ближайшее списание — ${renewal.date} · ${renewal.site.domain} · ${PRICE_TEXT}${balance < PRICE ? ' — на балансе не хватает' : ''}`
+                        ? `Ближайшее списание — ${renewal.date} · ${renewal.site.domain} · ${PRICE_TEXT}`
                         : 'С баланса оплачивается год каждого сайта — в его дату продления.'}
                     </p>
+                    {shortSum > 0 && (
+                      <p className="mt-3 w-fit rounded-lg bg-warn/10 px-3 py-2 text-[13px] font-semibold leading-5 text-warn-ink">
+                        Не хватает {formatRub(shortSum)} — пополните до {formatDate(dueShort[0].at)}
+                      </p>
+                    )}
                   </div>
+                  {/* Главная — только когда пополнить действительно нужно и
+                      ниже не открыта оплата сайта со своей синей кнопкой. */}
                   {!topupOpen && (
-                    <button type="button" onClick={() => openTopup()} className={PRIMARY_SM}>
+                    <button type="button" onClick={() => openTopup(shortSum || PRICE)} className={shortSum > 0 && open?.panel !== 'renew' ? PRIMARY_SM : SECONDARY_SM}>
                       Пополнить
                     </button>
                   )}
@@ -922,6 +959,7 @@ export default function BillingClient() {
                     <SiteTableRow
                       key={site.key}
                       site={site}
+                      short={short[site.key] && short[site.key].at - now < SOON ? short[site.key].amount : null}
                       open={open?.key === site.key ? open.panel : null}
                       hasHistory={ops.some((op) => op.kind === 'debit' && op.site === site.domain)}
                       onPick={(id) => {
@@ -1097,8 +1135,8 @@ export default function BillingClient() {
                             : [...ops].reverse().slice(0, 4)
                         ).map((op) => (
                           <li key={`${op.at}-${op.kind}-${op.site || ''}`} className="flex items-baseline gap-3 py-2 text-[13px]">
-                            <span className="w-20 shrink-0 text-ink/55">{formatDate(op.at)}</span>
-                            <span className="min-w-0 flex-1 truncate text-ink/80">
+                            <span className="w-20 shrink-0 text-ink/60">{formatDate(op.at)}</span>
+                            <span className="min-w-0 flex-1 break-words text-ink/80">
                               {op.kind === 'topup' ? `Пополнение ${op.method === 'Картой' ? 'картой' : 'по счёту'}` : `Оплата года · ${op.site}`}
                             </span>
                             <span className={`shrink-0 font-semibold ${op.kind === 'topup' ? 'text-ok' : 'text-ink'}`}>

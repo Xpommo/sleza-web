@@ -7,10 +7,10 @@ import { SEGMENT_LEGEND, checkSegments } from '../../lib/appMock';
 
 export const TONE_TEXT = {
   danger: 'text-danger',
-  warn:   'text-warn',
+  warn:   'text-warn-ink',
   ok:     'text-ok',
   brand:  'text-brand',
-  muted:  'text-ink/55',
+  muted:  'text-ink/60',
 };
 
 export const TONE_BG = {
@@ -85,7 +85,7 @@ export function ChecksStrip({ project, withLegend = true }) {
         ))}
       </div>
       {withLegend && (
-        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[9.5px] uppercase tracking-[0.06em] text-ink/45">
+        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[9.5px] uppercase tracking-[0.06em] text-ink/60">
           {SEGMENT_LEGEND.map(l => (
             <span key={l.text} className="inline-flex items-center gap-1">
               <span className={`h-1.5 w-1.5 rounded-full ${TONE_BG[l.tone]}`} />

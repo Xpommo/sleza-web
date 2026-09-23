@@ -14,7 +14,7 @@ import { SidebarShell, TearMark, useBottomBar } from '../../site/_shared/SiteChr
 // («Настройка»/«Проверка» отклонены разбором за то, что не говорят, что внутри).
 export const STEPS = ['Ваш профиль', 'О сайте', 'Данные клиентов', 'Реквизиты', 'Пакет документов', 'Установка'];
 
-export const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15 focus-visible:border-brand';
+export const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
 // Знак — тот же, что в кабинете и на входе: раньше анкета носила фонарик
 // сканера, и переход «Мои сайты → анкета» выглядел как переход в другой сервис.
@@ -240,7 +240,7 @@ export function Field({ label, required, placeholder, icon: Icon, badge, classNa
             {required && <span className="text-brand"> *</span>}
           </span>
           {badge && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/[0.08] px-2.5 py-1 text-[10px] font-bold text-brand">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/[0.08] px-2.5 py-1 text-[11px] font-bold text-brand">
               {badge}
             </span>
           )}
@@ -258,7 +258,11 @@ export function Field({ label, required, placeholder, icon: Icon, badge, classNa
           {...rest}
         />
       </span>
-      {error && <span className="mt-1.5 block text-[12px] font-semibold text-danger">{error}</span>}
+      {error && (
+        <span role="alert" className="mt-1.5 block text-[12px] font-semibold text-danger">
+          {error}
+        </span>
+      )}
     </label>
   );
 }
@@ -350,7 +354,7 @@ export function Segmented({ options, value, onChange, ariaLabelledby }) {
 export function BlockHead({ id, icon: Icon, title, why, whyOpen, onWhy }) {
   return (
     <div>
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-4">
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
             <Icon size={18} />
@@ -375,7 +379,7 @@ export function WhyButton({ open, onClick }) {
       type="button"
       onClick={onClick}
       aria-expanded={open}
-      className={`flex shrink-0 items-center gap-1 rounded text-xs font-semibold text-brand transition-colors hover:text-ink ${RING}`}
+      className={`-my-1 flex min-h-6 shrink-0 items-center gap-1 rounded py-1 text-xs font-semibold text-brand transition-colors hover:text-ink ${RING}`}
     >
       <InfoIcon size={14} /> Зачем это нужно
     </button>
@@ -426,10 +430,13 @@ export function Tile({ title, description, selected, onClick, compact = false, r
 // Шапка вопроса: заголовок и подпись слева, «Зачем это нужно» справа.
 // Объяснение раскрывается под шапкой — кнопка отвечает на вопрос, который
 // человек задаёт именно здесь, а не уводит его в конец карточки.
+// На телефоне «Зачем» всегда под заголовком, с sm — справа: рядом с
+// заголовком на узком экране он ломал короткие заголовки на две строки
+// («Платформа / сайта»), а «то справа, то снизу» смотрелось разнобоем.
 export function SectionHead({ id, title, required, whyOpen, onWhy, why }) {
   return (
     <div>
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:justify-between sm:gap-4">
         <div>
           <h2 id={id} className="text-xl font-bold tracking-[-0.02em]">
             {title}

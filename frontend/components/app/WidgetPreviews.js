@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { CloseIcon, ShieldCheckIcon } from './AppIcons';
 
-const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
+const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
 export const THEMES = ['Светлая', 'Тёмная', 'Авто'];
 export const WIDGET_DEFAULTS = { bannerTheme: 'Авто', footerTheme: 'Авто', bannerOn: true, footerOn: true };
@@ -87,7 +87,7 @@ export function CookieBannerPreview({ theme, note = true }) {
             Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с
             условиями обработки cookie. Отключить их можно в настройках браузера.
           </p>
-          <p className={`mt-2 text-[11px] ${dark ? 'text-white/50' : 'text-ink/45'}`}>Политика обработки cookie →</p>
+          <p className={`mt-2 text-[11px] ${dark ? 'text-white/50' : 'text-ink/60'}`}>Политика обработки cookie →</p>
         </div>
         <span className={`shrink-0 rounded-lg px-4 py-2.5 text-center text-xs font-bold ${dark ? 'bg-white text-ink' : 'bg-ink text-white'}`}>
           Принять и продолжить
@@ -184,7 +184,7 @@ export function FooterPreview({ theme, note = true }) {
             {pill.locked && <span className="text-[10px] opacity-60">🔒</span>}
           </button>
         ))}
-        <span className={`ml-auto text-[12px] font-semibold ${dark ? 'text-white/70' : 'text-ink/55'}`}>Реквизиты</span>
+        <span className={`ml-auto text-[12px] font-semibold ${dark ? 'text-white/70' : 'text-ink/60'}`}>Реквизиты</span>
       </div>
 
       {open &&

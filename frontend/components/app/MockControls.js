@@ -24,7 +24,7 @@ export function MockProvider({ children }) {
   );
 }
 
-const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
+const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
 function Group({ label, options, value, onChange }) {
   return (
@@ -50,7 +50,7 @@ function Group({ label, options, value, onChange }) {
 export function MockBar() {
   const m = useMock();
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink/45">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink/60">
       <span className="rounded-full border border-line-2 px-2 py-0.5">макет</span>
       <Group
         label="режим"
