@@ -112,8 +112,14 @@ export default function SettingsClient() {
             ) : (
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-[15px] font-bold">{user.name}</p>
-                  <p className="mt-1 break-all font-mono text-[13px] text-ink/60">{user.email}</p>
+                  {/* До шага «Ваш профиль» имени (при входе по почте) или почты
+                      (при входе через мессенджер) может ещё не быть. */}
+                  <p className="text-[15px] font-bold">{user.name || 'Имя не указано'}</p>
+                  {user.email ? (
+                    <p className="mt-1 break-all font-mono text-[13px] text-ink/60">{user.email}</p>
+                  ) : (
+                    <p className="mt-1 text-[13px] text-ink/60">Почта не указана</p>
+                  )}
                   <p className="mt-0.5 text-[13px] text-ink/60">{phone || 'Телефон не указан'}</p>
                 </div>
                 <button type="button" onClick={openForm} className={BTN_SECONDARY}>
@@ -129,8 +135,14 @@ export default function SettingsClient() {
           <h2 className="mt-9 text-lg font-bold tracking-[-0.02em]">Вход</h2>
           <Card>
             <p className="text-[15px] font-bold">По коду из письма</p>
-            <p className="mt-1 break-all font-mono text-[13px] text-ink/60">{user.email}</p>
-            <p className="mt-0.5 text-[13px] text-ink/60">Пароль не нужен — присылаем код на эту почту</p>
+            {user.email ? (
+              <>
+                <p className="mt-1 break-all font-mono text-[13px] text-ink/60">{user.email}</p>
+                <p className="mt-0.5 text-[13px] text-ink/60">Пароль не нужен — присылаем код на эту почту</p>
+              </>
+            ) : (
+              <p className="mt-1 text-[13px] text-ink/60">Заработает, когда укажете почту в контактах</p>
+            )}
 
             <div className="my-5 h-px bg-line" />
 

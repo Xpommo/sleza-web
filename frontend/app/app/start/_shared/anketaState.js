@@ -19,13 +19,25 @@ export function loadAnketa() {
 }
 
 // Имя и почта в углу кабинета — те, что человек назвал на «Ваш профиль».
-// Пока анкета не пройдена, показываем данные аккаунта из мока.
+// До этого — только то, что мы о нём уже знаем: при входе через мессенджер
+// имя приходит из него (в прототипе — из мока), почты ещё нет; при входе по
+// почте есть почта, а имени нет. Чужие «Кирилл» или director@… рядом с тем,
+// что человек ввёл сам, выглядели как чужой аккаунт. Если никто не входил
+// (экран открыт панелью «Макет») — мок целиком, как в макете.
 export function accountUser(fallback) {
   const a = loadAnketa();
+  const byMail = a.authVia === 'почта';
+  const byMessenger = Boolean(a.authVia) && !byMail;
   return {
-    name: a.personName || fallback.name,
-    email: a.personEmail || fallback.email,
+    name: a.personName || (byMail ? '' : fallback.name),
+    email: a.personEmail || (byMessenger ? '' : fallback.email),
   };
+}
+
+// Как подписать человека, пока имени нет: почтой. Первая буква — для аватара.
+export function userLabel(user) {
+  const title = user.name || user.email;
+  return { title, sub: user.name ? user.email : '', initial: title.slice(0, 1).toUpperCase() };
 }
 
 // Шаг засчитан, когда по нему нажали «Далее», — не когда в анкете появился
@@ -73,8 +85,8 @@ export function setMessenger(name, on) {
   saveAnketa({ messengers: { ...loadAuth().messengers, [name]: on } });
 }
 
-// Куда вернуться из Настроек: в них заходят из любого раздела через меню
-// аккаунта, и жёсткий «← Обзор» уводил не туда (живой макет).
+// Куда вернуться из Настроек и Поддержки: в них заходят из любого раздела
+// кабинета, и жёсткий «← Обзор» уводил не туда (живой макет).
 const RETURN_KEY = 'cabinet_return_v1';
 
 export function rememberReturn(path) {

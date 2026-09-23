@@ -27,6 +27,25 @@ function Rows({ rows }) {
   );
 }
 
+// Карточки «Подписка» и «Документы» — одна схема. Ссылка прижата к низу:
+// в ряду карточки одной высоты, а строк у них разное число, и без этого
+// разделитель и ссылка в соседних карточках стояли на разной высоте.
+function Card({ title, rows, href, link }) {
+  return (
+    <article className="flex flex-col rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+      <h2 className="text-lg font-bold tracking-[-0.02em]">{title}</h2>
+      <Rows rows={rows} />
+      <div className="mt-auto pt-5">
+        <div className="border-t border-line pt-5">
+          <Link href={href} className="text-sm font-semibold text-brand hover:underline">
+            {link} →
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function sameDay(ms) {
   return new Date(ms).toDateString() === new Date().toDateString() ? 'Сегодня' : formatDate(ms);
 }
@@ -74,8 +93,8 @@ export default function SiteOverviewClient() {
   // ведёт туда же.
   if (b.cancelled) {
     banner = state === 'paid'
-      ? { tone: 'warn', Icon: WarnIcon, title: `Сайт отключается — работает до ${period.to}`, text: <>До этой даты всё работает как сейчас, в следующий счёт {domain} не войдёт.</>, cta: ['Вернуть в подписку', '/app/billing'] }
-      : { tone: 'muted', Icon: WarnIcon, title: 'Сайт отключён', text: <>Виджет снят с {domain}, в счёт сайт не входит. Опубликованные документы остаются доступны по ссылке.</>, cta: ['Вернуть в подписку', '/app/billing'] };
+      ? { tone: 'warn', Icon: WarnIcon, title: `Сайт отключается — работает до ${period.to}`, text: <>До этой даты всё работает как сейчас, продлевать {domain} не будем.</>, cta: ['Вернуть в подписку', '/app/billing'] }
+      : { tone: 'muted', Icon: WarnIcon, title: 'Сайт отключён', text: <>Виджет снят с {domain}, платить за сайт не нужно. Опубликованные документы остаются доступны по ссылке.</>, cta: ['Вернуть в подписку', '/app/billing'] };
   } else if (state === 'notstarted') {
     banner = unfinished
       ? { tone: 'warn', Icon: WarnIcon, title: 'Анкета не закончена', text: <>Документы собираются по ответам анкеты — ответьте на оставшиеся вопросы, и пакет будет готов.</>, cta: ['Продолжить анкету', STEP_URLS[a.stepsDone || 0]] }
@@ -166,30 +185,10 @@ export default function SiteOverviewClient() {
           </section>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <article className="rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
-              <h2 className="text-lg font-bold tracking-[-0.02em]">Подписка</h2>
-              <Rows rows={subRows} />
-              {/* Счёт общий на все сайты аккаунта — сказано там, где человек
-                  смотрит на деньги конкретного сайта (решение 18 сентября). */}
-              <p className="mt-4 text-[13px] text-ink/60">Счёт, тариф и акты — общие для всех сайтов аккаунта.</p>
-              <div className="mt-5 border-t border-line pt-5">
-                <Link href="/app/billing" className="text-sm font-semibold text-brand hover:underline">
-                  Тариф и отключение — в подписке →
-                </Link>
-              </div>
-              {/* Отключают и меняют тариф сайта в «Подписке», в его строке —
-                  одно место на все сайты аккаунта (решение владельца 23.09). */}
-            </article>
-
-            <article className="rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
-              <h2 className="text-lg font-bold tracking-[-0.02em]">Документы</h2>
-              <Rows rows={docRows} />
-              <div className="mt-5 border-t border-line pt-5">
-                <Link href="/app/site/documents" className="text-sm font-semibold text-brand hover:underline">
-                  Все документы →
-                </Link>
-              </div>
-            </article>
+            {/* Отключают и меняют тариф сайта в «Подписке», в его строке —
+                одно место на все сайты аккаунта (решение владельца 23.09). */}
+            <Card title="Подписка" rows={subRows} href="/app/billing" link="Тариф и отключение — в подписке" />
+            <Card title="Документы" rows={docRows} href="/app/site/documents" link="Все документы" />
           </div>
 
           <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">

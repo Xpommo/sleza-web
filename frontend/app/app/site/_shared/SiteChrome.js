@@ -11,7 +11,7 @@ import {
   ArrowLeftIcon, BillingIcon, ChevronDownIcon, DocsIcon, LogoutIcon, MonitorIcon, ProjectsIcon, SettingsIcon, SupportIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { accountUser, loadAnketa, rememberReturn, returnPath } from '../../start/_shared/anketaState';
+import { accountUser, loadAnketa, rememberReturn, returnPath, userLabel } from '../../start/_shared/anketaState';
 
 export const RING = 'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/15';
 
@@ -25,9 +25,10 @@ export function TearMark({ size = 28 }) {
 }
 
 // Разделы сайта. Подписки среди них нет — решение владельца 18 сентября:
-// счёт, тариф, реквизиты плательщика и акты общие на все сайты аккаунта,
-// поэтому «Подписка» живёт в аккаунтном меню, рядом с «Мои сайты». Пункт в
-// меню сайта обещал бы «подписку этого сайта».
+// «Подписка» живёт в аккаунтном меню, рядом с «Мои сайты». С 23.09 тариф и
+// год подписки у каждого сайта свои, но оплачивают, меняют тариф и
+// отключают все сайты в одном месте — в строках «Подписки»; общие там
+// способ оплаты, плательщик и почта для актов.
 export const SITE_NAV = [
   { label: 'Обзор', Icon: ProjectsIcon, href: '/app/site' },
   { label: 'Документы', Icon: DocsIcon, href: '/app/site/documents' },
@@ -63,12 +64,29 @@ function NavList({ items, active, label }) {
   );
 }
 
-// Экран, с которого пришли в Настройки, — туда их «← Назад».
+// Настройки и Поддержка открываются из любого раздела, и их «← Назад» ведёт
+// на последний открытый экран кабинета. Сами они в «куда вернуться» не
+// попадают: иначе Поддержка → Настройки → «Назад» → «Назад» ходило бы по кругу.
+const SIDE_SCREENS = ['/app/settings', '/app/support'];
+
 export function useRememberReturn() {
   const pathname = usePathname();
   useEffect(() => {
-    if (pathname && !pathname.includes('/app/settings')) rememberReturn(pathname.replace(/\/$/, ''));
+    if (pathname && !SIDE_SCREENS.some((p) => pathname.includes(p))) rememberReturn(pathname.replace(/\/$/, ''));
   }, [pathname]);
+}
+
+function BackButton() {
+  const router = useRouter();
+  return (
+    <button
+      type="button"
+      onClick={() => router.push(returnPath())}
+      className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
+    >
+      <ArrowLeftIcon size={16} /> Назад
+    </button>
+  );
 }
 
 const MENU_ITEM = `flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-left text-[14px] font-semibold text-ink/70 transition hover:bg-warm hover:text-ink ${RING}`;
@@ -123,6 +141,7 @@ function useEscape(open, close) {
 export function AccountMenu({ user, compact = false }) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef(null);
+  const who = userLabel(user);
   useEscape(open, () => {
     setOpen(false);
     btnRef.current?.focus();
@@ -136,19 +155,19 @@ export function AccountMenu({ user, compact = false }) {
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-haspopup="menu"
-        aria-label={compact ? `Меню аккаунта: ${user.name}` : undefined}
+        aria-label={compact ? `Меню аккаунта: ${who.title}` : undefined}
         className={`flex items-center gap-3 rounded-xl text-left transition ${RING} ${
           compact ? 'p-0.5' : `w-full px-1 py-1 hover:bg-warm ${open ? 'bg-warm' : ''}`
         }`}
       >
         <span className={`flex shrink-0 items-center justify-center rounded-full bg-ink font-bold text-white ${compact ? 'h-9 w-9 text-[13px]' : 'h-10 w-10 text-sm'}`}>
-          {user.name.slice(0, 1)}
+          {who.initial}
         </span>
         {!compact && (
           <>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-bold text-ink">{user.name}</span>
-              <span className="mt-0.5 block truncate text-xs text-ink/60">{user.email}</span>
+              <span className="block truncate text-sm font-bold text-ink">{who.title}</span>
+              {who.sub && <span className="mt-0.5 block truncate text-xs text-ink/60">{who.sub}</span>}
             </span>
             <ChevronDownIcon size={15} className={`shrink-0 text-ink/35 transition-transform ${open ? '' : 'rotate-180'}`} />
           </>
@@ -169,8 +188,8 @@ export function AccountMenu({ user, compact = false }) {
         >
           {compact && (
             <div className="border-b border-line px-2.5 pb-2 pt-1">
-              <p className="truncate text-[13px] font-bold">{user.name}</p>
-              <p className="truncate text-[12px] text-ink/60">{user.email}</p>
+              <p className="truncate text-[13px] font-bold">{who.title}</p>
+              {who.sub && <p className="truncate text-[12px] text-ink/60">{who.sub}</p>}
             </div>
           )}
           <div className={compact ? 'pt-1' : ''}>
@@ -305,11 +324,14 @@ function useHasSite() {
   return has;
 }
 
+// Поддержка — с «← Назад», как Настройки (живой макет, support-back), но с
+// навигацией аккаунта: из неё переходят сразу в нужный раздел (макет, 25.08).
 export function AccountSidebar({ active, user = CURRENT_USER, supportActive }) {
   const hasSite = useHasSite();
   return (
     <SidebarShell user={user} supportActive={supportActive} bottomBar={hasSite && active !== 'Мои сайты' ? <SiteTabbar /> : null}>
-      <div className="mt-10">
+      {supportActive && <BackButton />}
+      <div className={supportActive ? 'mt-7 border-t border-line pt-6' : 'mt-10'}>
         <NavList items={ACCOUNT_NAV} active={active} label="Основная навигация" />
       </div>
     </SidebarShell>
@@ -319,17 +341,10 @@ export function AccountSidebar({ active, user = CURRENT_USER, supportActive }) {
 // Настройки — уровень аккаунта, общие для всех сайтов: в сайдбаре только
 // сам раздел и «← Назад» туда, откуда пришли (живой макет, s-settings).
 export function SettingsSidebar({ user = CURRENT_USER }) {
-  const router = useRouter();
   const hasSite = useHasSite();
   return (
     <SidebarShell user={user} bottomBar={hasSite ? <SiteTabbar /> : null}>
-      <button
-        type="button"
-        onClick={() => router.push(returnPath())}
-        className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
-      >
-        <ArrowLeftIcon size={16} /> Назад
-      </button>
+      <BackButton />
       <div className="mt-7 border-t border-line pt-6">
         <NavList items={[{ label: 'Настройки', Icon: SettingsIcon, href: '/app/settings' }]} active="Настройки" label="Аккаунт" />
       </div>

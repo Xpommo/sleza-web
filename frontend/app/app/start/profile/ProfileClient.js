@@ -14,7 +14,7 @@ import {
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { validateEmail } from '../../../../lib/validate';
 import { RING, AnketaFrame, Field, SectionHead } from '../_shared/AnketaChrome';
-import { loadAnketa, loadAuth, markStepDone, saveAnketa, setMessenger } from '../_shared/anketaState';
+import { loadAnketa, loadAuth, markStepDone, saveAnketa, setMessenger, userLabel } from '../_shared/anketaState';
 
 const ROLES = ['Директор / собственник', 'Сотрудник', 'Подрядчик'];
 
@@ -93,6 +93,10 @@ export default function ProfileClient() {
   }, [restored, role, name, phone, email]);
 
   const freeMessengers = MESSENGERS.map((m) => m.name).filter((n) => !auth.messengers[n]);
+  // Кто вы — пока имя не введено, то, что мы уже знаем: имя приходит из
+  // мессенджера, которым вошли; при входе по почте имени нет — показываем почту.
+  const byMail = auth.via === 'почта';
+  const who = userLabel({ name: name || (byMail ? '' : CURRENT_USER.name), email: byMail ? email : '' });
 
   function pickRole(item) {
     setRole(item);
@@ -133,12 +137,12 @@ export default function ProfileClient() {
     <AnketaFrame current={0} title="Ваш профиль" lead={<>Шесть шагов, на выходе — пакет документов и строка кода для сайта. Начнём с вас.</>}>
 
             <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
-                  {(name || CURRENT_USER.name).slice(0, 1)}
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
+                  {who.initial}
                 </div>
-                <div>
-                  <p className="font-bold">{name || CURRENT_USER.name}</p>
+                <div className="min-w-0">
+                  <p className="break-all font-bold">{who.title}</p>
                   <p className="text-sm text-ink/60">{auth.via === 'почта' ? 'вход по коду из письма' : `вход через ${auth.via}`}</p>
                 </div>
               </div>
