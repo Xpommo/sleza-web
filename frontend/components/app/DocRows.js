@@ -101,6 +101,9 @@ export function DocRow({ doc, note, status, meta, href, action = 'Посмотр
       <div
         id={panelId}
         aria-hidden={!open}
+        // Свёрнутая панель — вне порядка Tab: без inert клавиатура заходила в
+        // невидимое «Изменить ответ →» (grid 0fr прячет только глазами).
+        {...(!open && { inert: '' })}
         className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
           open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
         }`}

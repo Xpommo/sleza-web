@@ -172,6 +172,7 @@ export default function SiteWidgetClient() {
             <div
               id="install-code"
               aria-hidden={!codeOpen}
+              {...(!codeOpen && { inert: '' })}
               className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${codeOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
             >
               <div className="overflow-hidden">

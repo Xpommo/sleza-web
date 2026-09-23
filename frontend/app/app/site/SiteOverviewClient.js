@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, ClockIcon, OkIcon, RefreshIcon, WarnIcon } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS, editEvents } from '../../../lib/docPackage';
-import { accountSites, balanceOf, siteAnketa } from './_shared/sites';
+import { accountSites, balanceOf, currentSiteKey, setSiteCancelled, siteAnketa } from './_shared/sites';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { RING, SiteHeader, SiteSidebar } from './_shared/SiteChrome';
 import { PRICE, PRICE_LABEL, TARIFFS, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEndAt, trialEnds } from './_shared/subscription';
@@ -88,12 +88,21 @@ export default function SiteOverviewClient() {
   // Главная карточка — что сейчас с сайтом и что делать дальше. Тексты
   // из утверждённого макета; честные к состоянию: «уже работают» — только
   // когда код на сайте действительно найден.
+  // «Включить автопродление» включает только автосписание с баланса в дату
+  // продления — ни оплаты, ни перехода (владелец 23.09). Раньше кнопка вела
+  // на оплату года, и «Списать» продлевало срок, а автопродление оставалось
+  // выключенным.
+  function enableRenew() {
+    setSiteCancelled(currentSiteKey(), false);
+    setA(siteAnketa(loadAnketa()));
+  }
+
   let banner;
   // Автопродление выключают в «Подписке» — здесь об этом говорит баннер, и
   // путь назад ведёт туда же. Выключенное автопродление не отключает сайт
   // сразу: он работает до конца оплаченного срока (партнёрская программа).
   if (b.cancelled && state === 'paid') {
-    banner = { tone: 'warn', Icon: WarnIcon, title: `Автопродление выключено — сайт работает до ${period.to}`, text: <>После этой даты виджет снимем с {domain}. Опубликованные документы останутся доступны по ссылке.</>, cta: ['Включить автопродление', '/app/billing?pay=current'] };
+    banner = { tone: 'warn', Icon: WarnIcon, title: `Автопродление выключено — сайт работает до ${period.to}`, text: <>После этой даты виджет снимем с {domain}. Опубликованные документы останутся доступны по ссылке.</>, cta: ['Включить автопродление', enableRenew] };
   } else if (state === 'notstarted') {
     banner = unfinished
       ? { tone: 'warn', Icon: WarnIcon, title: 'Анкета не закончена', text: <>Документы собираются по ответам анкеты — ответьте на оставшиеся вопросы, и пакет будет готов.</>, cta: ['Продолжить анкету', STEP_URLS[a.stepsDone || 0]] }
@@ -190,8 +199,12 @@ export default function SiteOverviewClient() {
               <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/65">{banner.text}</p>
             </div>
             {banner.cta && (
-              <button type="button" onClick={() => router.push(banner.cta[1])} className={BTN}>
-                {banner.cta[0]} <ArrowRightIcon size={16} />
+              <button
+                type="button"
+                onClick={() => (typeof banner.cta[1] === 'function' ? banner.cta[1]() : router.push(banner.cta[1]))}
+                className={BTN}
+              >
+                {banner.cta[0]} {typeof banner.cta[1] === 'string' && <ArrowRightIcon size={16} />}
               </button>
             )}
           </section>

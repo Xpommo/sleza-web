@@ -261,6 +261,9 @@ export default function SiteClient() {
                 {sphereError && <p className="mt-1.5 text-[12px] font-semibold text-danger">{sphereError}</p>}
                 <div
                   aria-hidden={sphere !== 'other'}
+                  // inert — чтобы Tab не заходил в скрытое поле: набранное там
+                  // молча сохранялось в анкету.
+                  {...(sphere !== 'other' && { inert: '' })}
                   className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
                     sphere === 'other' ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
                   }`}

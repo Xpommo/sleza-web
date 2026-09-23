@@ -234,7 +234,7 @@ Three warm neutrals do almost all the work; blue is spent on action and choice; 
 - **Amber Caution** (`#b87900` for fills, borders and dots; **Amber Ink** `#8a5a00`, `warn-ink`, for text): needs attention soon (the last day of the trial, auto-renew off, money short for a debit within a month, a field to review). Amber text is always `warn-ink`: `#b87900` as text on its tint was 3.2:1. Also the yellow edit frame (`border-warn/40 bg-warn/[0.06]`) around a found-by-INN card being changed.
 - **Rust Alert** (`#d63816`): blocked, overdue, field error, destructive confirmation.
 
-**The Near-Term Warning Rule.** Amber means "act soon", so it is spent only on what needs action within about a month (the `SOON` threshold in «Подписка»). A trial is good news and stays blue until its last day; a balance short for a debit a year away is not a warning at all.
+**The Near-Term Warning Rule.** Amber means "act soon" or "this site is set to switch off" (auto-renew off). For money it is spent only on a debit the balance won't cover within about a month (`SOON` in «Подписка»), and for a trial only on its last day (`warnWithin`): a trial is good news and stays blue, on «Обзор» and in «Подписка» alike, while the next move («Оплатить год», «Пополнить») is still the blue button. A shortfall is named once: in the balance card (a site row repeats it only when there are several sites, to show which one). A balance short for a debit a year away is not a warning at all.
 
 **The Tint-Not-Fill Rule.** A status color is shown as text on its own 10% tint (pill or notice), never as a solid fill behind white text. The only solid fills in the system are blue (action/choice) and ink (you are here).
 
@@ -340,6 +340,7 @@ Confident and few.
 - Row actions: at most one icon action inline; anything more goes into a «⋯» menu (Menu shadow, 12px radius, closes on Escape and outside click). Repeated icon actions get a full spoken name (`name` prop: «Скопировать ссылку на «Политика…»»), while the tooltip stays short.
 
 ### Section Heads (`SectionHead`, `BlockHead`) and «Зачем это нужно»
+- Collapsed panels (the `grid-rows-[0fr]` disclosure in document rows, FAQ, «Что входит», the widget code, «Другое» on step 2) are `inert` while closed, so Tab and screen readers skip what the eye can't see.
 - A question or block title with a small blue «ⓘ Зачем это нужно» toggle: on the right from `sm`, always directly under the heading on phones (next to it, it broke short headings onto two lines, and «sometimes right, sometimes below» read as inconsistency). The explanation opens under the heading in a Desk panel (12px radius, 13px Muted Ink), one short sentence of fact. The toggle keeps a 24px tall hit area.
 
 ### Navigation
@@ -349,7 +350,7 @@ Confident and few.
 
 ### Modal
 - 45% ink scrim, panel 480–560px wide, 16px radius, Sheet, 24–28px padding, 18px bold title with a close icon, actions bottom-left: primary blue button, then a text «Отмена».
-- Behavior through `useDialog` (`site/_shared/SiteChrome.js`): focus moves into the dialog on open, Tab cycles inside it, Escape closes it, and focus returns to the control that opened it. Multi-step dialogs pass their step so focus lands back in the dialog after a step changes.
+- Behavior through `useDialog` (`site/_shared/SiteChrome.js`): focus moves into the dialog on open, Tab cycles inside it, Escape closes it, and focus returns to the control that opened it. Multi-step dialogs pass their step so focus lands back in the dialog after a step changes; a conditionally rendered dialog (step 6 «Пока не видим код») passes its open flag the same way.
 
 ## Do's and Don'ts
 
@@ -363,6 +364,7 @@ Confident and few.
 - **Do** turn a document or site title into the link itself instead of adding an «Открыть» button.
 - **Do** use tabs (Ink underline) to switch views and Segmented (blue fill) only for answers (**The Answer-or-View Rule**).
 - **Do** keep readable text at 60% ink or darker, and amber text in `warn-ink`.
+- **Do** make every collapsed panel `inert` and every overlay a `useDialog` dialog.
 
 ### Don't:
 - **Don't** put a hint line under a question heading or a caption inside a choice tile; if the heading is unclear without it, rewrite the heading.

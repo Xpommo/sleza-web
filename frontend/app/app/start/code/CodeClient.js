@@ -18,6 +18,7 @@ import { RING, AnketaFrame, Field, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
 import { TRIAL_DAYS, trialEnds } from '../../site/_shared/subscription';
 import { MAIN, setCurrentSite } from '../../site/_shared/sites';
+import { useDialog } from '../../site/_shared/SiteChrome';
 
 const SITE_ID = '486312';
 // Страница с инструкцией: код и шаги под платформу — её и пересылают
@@ -140,6 +141,10 @@ export default function CodeClient() {
   const [probes, setProbes] = useState(0);
   const [found, setFound] = useState(false);
   const [failOpen, setFailOpen] = useState(false);
+  // Окно «Пока не видим код» — как окна «Подписки»: фокус внутрь, Tab по
+  // кругу, Escape закрывает (failOpen перезапускает хук при открытии).
+  const failRef = useRef(null);
+  useDialog(failRef, () => setFailOpen(false), failOpen);
   const [trialTo, setTrialTo] = useState('');
 
   const shareText = `Инструкция по установке кода на ${domain || 'сайт'}`;
@@ -492,14 +497,16 @@ export default function CodeClient() {
 
       {failOpen && (
         <div
+          ref={failRef}
+          tabIndex={-1}
           role="dialog"
           aria-modal="true"
           aria-labelledby="fail-title"
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none"
         >
           <div className="mt-16 w-full max-w-[420px] rounded-2xl border border-line bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
-              <h3 id="fail-title" className="text-[17px] font-bold tracking-[-0.02em]">
+              <h3 id="fail-title" className="text-lg font-bold tracking-[-0.02em]">
                 Пока не видим код
               </h3>
               <button

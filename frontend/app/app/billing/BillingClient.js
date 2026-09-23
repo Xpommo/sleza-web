@@ -94,7 +94,12 @@ const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl b
 const PRIMARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
 const SECONDARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold text-ink shadow-sm transition hover:border-line-2 ${RING}`;
 // «Скоро» для денег — месяц: так же решает, синяя ли «Продлить на 1 год».
-const SOON = 30 * 24 * 3600 * 1000;
+const DAY = 24 * 3600 * 1000;
+const SOON = 30 * DAY;
+// Когда нехватку пора называть жёлтым. У пробного периода — только в его
+// последний день, как баннер «Обзора» и письмо-напоминание (владелец 23.09:
+// пробный период — хорошая новость); у оплаченного сайта — за месяц.
+const warnWithin = (site) => (site.kind === 'trial' ? DAY : SOON);
 const BTN_OUTLINE = `rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
 const BTN_TEXT = `rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
 const LINK = `rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`;
@@ -369,11 +374,18 @@ export default function BillingClient() {
   const renewal = nextRenewal(sites);
   // Нехватка на балансе — только близкая: «не хватает» за год до списания
   // (сразу после оплаты года) было не предупреждением, а придиркой.
+  // soonShort — пополнить пора (синяя «Пополнить», как синяя «Оплатить год»
+  // в «Обзоре»); warnShort — пора предупредить жёлтым. Называем нехватку один
+  // раз — в карточке баланса; строка сайта повторяет её, только когда сайтов
+  // несколько и надо показать, какому не хватает.
   const short = debitShortfall(sites, balance);
-  const dueShort = Object.values(short)
-    .filter((x) => x.at - now < SOON)
+  const soonShort = sites.filter((s) => short[s.key] && short[s.key].at - now < SOON);
+  const warnShort = sites
+    .filter((s) => short[s.key] && short[s.key].at - now < warnWithin(s))
+    .map((s) => short[s.key])
     .sort((x, y) => x.at - y.at);
-  const shortSum = dueShort.reduce((sum, x) => sum + x.amount, 0);
+  const shortSum = soonShort.reduce((sum, s) => sum + short[s.key].amount, 0);
+  const warnSum = warnShort.reduce((sum, x) => sum + x.amount, 0);
   const paidSites = sites.filter((s) => s.period && (s.kind === 'paid' || s.kind === 'off-soon'));
   const ops = b.ops || [];
 
@@ -579,6 +591,7 @@ export default function BillingClient() {
       <div
         id="what-included"
         aria-hidden={!whatOpen}
+        {...(!whatOpen && { inert: '' })}
         className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${whatOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
       >
         <div className="overflow-hidden">
@@ -918,9 +931,9 @@ export default function BillingClient() {
                         ? `Ближайшее списание — ${renewal.date} · ${renewal.site.domain} · ${PRICE_TEXT}`
                         : 'С баланса оплачивается год каждого сайта — в его дату продления.'}
                     </p>
-                    {shortSum > 0 && (
+                    {warnSum > 0 && (
                       <p className="mt-3 w-fit rounded-lg bg-warn/10 px-3 py-2 text-[13px] font-semibold leading-5 text-warn-ink">
-                        Не хватает {formatRub(shortSum)} — пополните до {formatDate(dueShort[0].at)}
+                        Не хватает {formatRub(warnSum)} — пополните до {formatDate(warnShort[0].at)}
                       </p>
                     )}
                   </div>
@@ -959,7 +972,7 @@ export default function BillingClient() {
                     <SiteTableRow
                       key={site.key}
                       site={site}
-                      short={short[site.key] && short[site.key].at - now < SOON ? short[site.key].amount : null}
+                      short={!single && short[site.key] && short[site.key].at - now < warnWithin(site) ? short[site.key].amount : null}
                       open={open?.key === site.key ? open.panel : null}
                       hasHistory={ops.some((op) => op.kind === 'debit' && op.site === site.domain)}
                       onPick={(id) => {

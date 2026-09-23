@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-23T17:45:14.000Z",
+  "generatedAt": "2026-09-23T18:28:46.000Z",
   "title": "Design System: Слеза Белый Сайт",
   "extensions": {
     "colorMeta": {
@@ -512,7 +512,7 @@
       },
       {
         "name": "The Near-Term Warning Rule",
-        "body": "Amber means \"act soon\", so it is spent only on what needs action within about a month (the `SOON` threshold in «Подписка»). A trial is good news and stays blue until its last day; a balance short for a debit a year away is not a warning at all.",
+        "body": "Amber means \"act soon\" or \"this site is set to switch off\" (auto-renew off). For money it is spent only on a debit the balance won't cover within about a month (`SOON` in «Подписка»), and for a trial only on its last day (`warnWithin`): a trial is good news and stays blue, on «Обзор» and in «Подписка» alike, while the next move («Оплатить год», «Пополнить») is still the blue button. A shortfall is named once: in the balance card (a site row repeats it only when there are several sites, to show which one). A balance short for a debit a year away is not a warning at all.",
         "section": "colors"
       },
       {
@@ -560,7 +560,8 @@
       "**Do** render domains, codes, law references and the install snippet in JetBrains Mono; keep money and prose in Onest.",
       "**Do** turn a document or site title into the link itself instead of adding an «Открыть» button.",
       "**Do** use tabs (Ink underline) to switch views and Segmented (blue fill) only for answers (**The Answer-or-View Rule**).",
-      "**Do** keep readable text at 60% ink or darker, and amber text in `warn-ink`."
+      "**Do** keep readable text at 60% ink or darker, and amber text in `warn-ink`.",
+      "**Do** make every collapsed panel `inert` and every overlay a `useDialog` dialog."
     ],
     "donts": [
       "**Don't** put a hint line under a question heading or a caption inside a choice tile; if the heading is unclear without it, rewrite the heading.",
