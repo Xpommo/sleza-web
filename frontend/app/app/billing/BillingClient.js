@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRightIcon, CheckIcon, ChevronDownIcon, CopyIcon, ExternalIcon } from '../../../components/app/AppIcons';
+import { ArrowRightIcon, CheckIcon, ChevronDownIcon, CopyIcon, ExternalIcon, MoreHorizontalIcon } from '../../../components/app/AppIcons';
 import { IconAction } from '../../../components/app/DocRows';
 import { Switch } from '../../../components/app/WidgetPreviews';
 import { CURRENT_USER } from '../../../lib/appMock';
@@ -91,91 +91,176 @@ const TONE = {
 };
 
 const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
-const PRIMARY_XS = `inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-[13px] font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
 const PRIMARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
 const BTN_OUTLINE = `rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
 const BTN_TEXT = `rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
 const LINK = `rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`;
 
-// Что с подпиской сайта сейчас и что дальше — одной строкой.
-function siteLine(site) {
-  const debit = nextDebit(site);
+// Таблица сайтов (владелец 23.09: «перегружено и выбивается из общего») —
+// в том же виде, что список в «Документах»: шапка моно-капсами, строки через
+// тонкую линию. Одна сетка на шапку и строки — колонки не пляшут от длины
+// домена. Действия — в меню «⋯» (решение владельца 23.09; прежнее правило
+// Ивана «действия словами, не в ⋯» для этой таблицы снято).
+const SITE_COLS = 'sm:grid-cols-[minmax(0,1.6fr)_minmax(0,0.9fr)_minmax(0,1.5fr)_112px_40px]';
+
+const BADGE = {
+  ok: 'bg-ok/10 text-ok',
+  info: 'bg-brand/[0.07] text-brand',
+  warn: 'bg-warn/10 text-warn',
+  danger: 'bg-danger/10 text-danger',
+  beige: 'bg-warm text-ink/70 ring-1 ring-inset ring-line',
+  muted: 'bg-warm text-ink/60',
+};
+
+function badgeOf(site) {
   switch (site.kind) {
-    case 'trial':
-      return site.cancelled
-        ? `Пробный период до ${site.trialTo} · автопродление выключено — потом сайт отключится`
-        : `Пробный период до ${site.trialTo} · ${debit} спишем ${PRICE_TEXT} за год (${site.tariff})`;
-    case 'expired':
-      return `Пробный период закончился · ${site.tariff} — ${PRICE_TEXT} в год`;
     case 'paid':
-      return site.nextTariff
-        ? `${site.tariff} · оплачено до ${site.period.to} · с ${site.period.renew} — ${site.nextTariff}`
-        : `${site.tariff} · оплачено до ${site.period.to} · ${debit} спишем ${PRICE_TEXT}`;
+      return ['ok', `Оплачено до ${site.period.to}`];
     case 'off-soon':
-      return `${site.tariff} · работает до ${site.period.to}, без продления`;
+      return ['beige', `До ${site.period.to} · Без продления`];
+    case 'trial':
+      return ['info', `Бесплатно до ${site.trialTo}`];
+    case 'expired':
+      return ['danger', 'Пробный период закончился'];
     case 'pending':
-      return `${site.tariff} — ${PRICE_TEXT} в год`;
+      return ['warn', 'Ждёт оплаты по счёту'];
     default:
-      return `Пробный период ${TRIAL_DAYS} дней начнётся, когда код появится на сайте`;
+      return ['muted', site.label === 'код не установлен' ? 'Код не установлен' : 'Анкета не закончена'];
   }
 }
 
-// Строка сайта (владелец 23.09 — «всё сливается»): что сейчас и что дальше,
-// главное действие — синей кнопкой, «Сменить тариф» — ссылкой, автопродление
-// — переключателем. «Отключить сайт» больше не отдельная кнопка: выключенное
-// автопродление и есть отключение — сайт работает до конца оплаченного срока.
-function SiteRow({ site, open, onOpen, onAuto, onGo, children }) {
-  const live = site.kind !== 'not-ready';
-  const unpaid = site.kind === 'trial' || site.kind === 'expired' || site.kind === 'pending';
-  // Две строки вместо четырёх (владелец 23.09 — «блоки большие»): домен с
-  // компанией и плашкой, ниже — что с подпиской и действия справа. У агента
-  // с десятками сайтов список иначе превращается в ленту.
+// Когда закончится оплаченный срок или пробный период — чтобы подсветить
+// «Продлить на 1 год», если до конца меньше месяца.
+function endsAt(site) {
+  if (site.paidAt) {
+    const d = new Date(site.paidAt);
+    d.setFullYear(d.getFullYear() + (site.paidYears || 1));
+    return d.getTime();
+  }
+  return null;
+}
+
+function RowMenu({ site, hasHistory, onPick }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        btnRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+  const end = endsAt(site);
+  const urgent = ['trial', 'expired', 'pending'].includes(site.kind) || (end && end - Date.now() < 30 * 24 * 3600 * 1000);
+  const items =
+    site.kind === 'not-ready'
+      ? [[site.label === 'код не установлен' ? 'Поставить код' : 'Продолжить анкету', 'go', true]]
+      : [
+          ['Продлить на 1 год', 'renew', urgent],
+          ['Сменить тариф', 'tariff'],
+          ['Посмотреть историю счетов', 'history', false, !hasHistory],
+        ];
   return (
-    <div id={`site-${site.key}`} className="border-t border-line py-4 first:border-t-0 first:pt-2">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <p className="min-w-0 text-[15px] font-bold">
-          {site.domain}
-          {site.company && <span className="ml-2 text-[12px] font-normal text-ink/60">{site.company}</span>}
-        </p>
-        <span className={`w-fit shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${TONE[site.tone]}`}>{site.label}</span>
+    <div className="relative justify-self-end">
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Действия · ${site.domain}`}
+        className={`flex h-9 w-9 items-center justify-center rounded-full text-ink/50 transition hover:bg-warm hover:text-ink ${open ? 'bg-warm text-ink' : ''} ${RING}`}
+      >
+        <MoreHorizontalIcon size={18} />
+      </button>
+      {/* Прозрачный ловец: клик мимо меню только закрывает его. */}
+      {open && <div className="fixed inset-0 z-30" aria-hidden="true" onClick={() => setOpen(false)} />}
+      {open && (
+        <div
+          role="menu"
+          aria-label={`Действия · ${site.domain}`}
+          className="absolute right-0 top-[calc(100%+4px)] z-40 w-64 rounded-xl border border-line bg-white p-1.5 shadow-[0_18px_40px_-18px_rgba(17,17,16,0.35)]"
+        >
+          {items.map(([label, id, hl, disabled]) => (
+            <button
+              key={id}
+              type="button"
+              role="menuitem"
+              disabled={disabled}
+              onClick={() => {
+                setOpen(false);
+                onPick(id);
+              }}
+              className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-[14px] font-semibold transition hover:bg-warm disabled:cursor-default disabled:text-ink/35 disabled:hover:bg-transparent ${
+                hl ? 'text-brand' : 'text-ink/80'
+              } ${RING}`}
+            >
+              {label}
+              {disabled && <span className="ml-auto text-[12px] font-normal">пока нет</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SiteTableRow({ site, open, hasHistory, onPick, onAuto, children }) {
+  const [tone, text] = badgeOf(site);
+  const live = site.kind !== 'not-ready';
+  const debit = !site.cancelled ? nextDebit(site) : null;
+  const tariff = site.kind === 'trial' ? 'Пробный период' : live ? site.tariff : '—';
+  const badge = <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-[12px] font-bold ${BADGE[tone]}`}>{text}</span>;
+  const debitLine = debit && <p className="mt-1 text-[12px] text-ink/55">{debit} спишем {PRICE_TEXT}</p>;
+  const nextTariff = site.nextTariff && site.period && <p className="mt-0.5 text-[12px] text-ink/55">с {site.period.renew} — {site.nextTariff}</p>;
+  const sw = live && <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />;
+  const menu = <RowMenu site={site} hasHistory={hasHistory} onPick={onPick} />;
+  return (
+    <div id={`site-${site.key}`} className="scroll-mt-6 border-b border-line last:border-0">
+      {/* Широкий экран — колонки таблицы. */}
+      <div className={`hidden gap-4 px-6 py-4 sm:grid sm:items-center ${SITE_COLS}`}>
+        <div className="min-w-0">
+          <p className="truncate text-[15px] font-bold">{site.domain}</p>
+          {site.company && <p className="mt-0.5 truncate text-[12px] text-ink/55">{site.company}</p>}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-[14px] font-semibold text-ink/80">{tariff}</p>
+          {nextTariff}
+        </div>
+        <div className="min-w-0">
+          {badge}
+          {debitLine}
+        </div>
+        <div>{sw}</div>
+        {menu}
       </div>
-      <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-        <p className="min-w-0 text-[13px] leading-5 text-ink/70">{siteLine(site)}</p>
-        <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2">
-          {unpaid && open !== 'renew' && (
-            <button type="button" onClick={() => onOpen('renew')} className={PRIMARY_XS}>
-              Оплатить год
-            </button>
-          )}
-          {!unpaid && live && open !== 'renew' && (
-            <button type="button" onClick={() => onOpen('renew')} className={LINK}>
-              Продлить на год
-            </button>
-          )}
-          {open === 'renew' && (
-            <button type="button" onClick={() => onOpen('renew')} className={LINK}>
-              Свернуть
-            </button>
-          )}
-          {site.kind === 'not-ready' && (
-            <button type="button" onClick={onGo} className={PRIMARY_XS}>
-              {site.label === 'код не установлен' ? 'Поставить код' : 'Продолжить анкету'}
-            </button>
-          )}
+      {/* Телефон — та же строка карточкой: колонок нет, подписи на месте. */}
+      <div className="px-5 py-4 sm:hidden">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-bold">{site.domain}</p>
+            {site.company && <p className="mt-0.5 truncate text-[12px] text-ink/55">{site.company}</p>}
+          </div>
+          {menu}
+        </div>
+        <div className="mt-3">
+          {badge}
+          {debitLine}
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-3 text-[13px]">
+          <span className="font-semibold text-ink/75">{tariff}</span>
           {live && (
-            <button type="button" onClick={() => onOpen('tariff')} aria-expanded={open === 'tariff'} className={LINK}>
-              {open === 'tariff' ? 'Свернуть' : 'Сменить тариф'}
-            </button>
-          )}
-          {live && (
-            <label className="flex items-center gap-2 text-[13px] font-semibold text-ink/70">
-              <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />
-              Автопродление
+            <label className="flex items-center gap-2 font-semibold text-ink/65">
+              Автопродление {sw}
             </label>
           )}
         </div>
       </div>
-      {open && children && <div className="mt-3 rounded-xl border border-line bg-warm/60 p-4 sm:p-5">{children}</div>}
+      {open && children && <div className="border-t border-line bg-warm/50 px-5 py-4 sm:px-6">{children}</div>}
     </div>
   );
 }
@@ -224,6 +309,8 @@ export default function BillingClient() {
   const [actsErr, setActsErr] = useState(null);
   const [copied, setCopied] = useState(null);
   const [opsAll, setOpsAll] = useState(false);
+  // «Посмотреть историю счетов» из меню сайта — история только этого сайта.
+  const [historyFor, setHistoryFor] = useState(null);
 
   useEffect(() => {
     const saved = loadAnketa();
@@ -812,26 +899,48 @@ export default function BillingClient() {
                 {topupOpen && <div className="mt-6 border-t border-line pt-6">{topupPanel()}</div>}
               </section>
 
-              {/* Сайты: что с каждым, когда спишем, автопродление. */}
-              <Panel title="Сайты в подписке" aside={`${sites.length} ${plural(sites.length, 'сайт', 'сайта', 'сайтов')}`}>
-                {sites.map((site) => (
-                  <SiteRow
-                    key={site.key}
-                    site={site}
-                    open={open?.key === site.key ? open.panel : null}
-                    onOpen={(panel) => toggle(site, panel)}
-                    onAuto={(on) => {
-                      if (on) {
-                        setSiteCancelled(site.key, false);
-                        reload();
-                      } else setOff({ site, step: 1 });
-                    }}
-                    onGo={() => {
-                      // Анкета этого сайта, а не открытого: у каждого сайта свой шаг.
-                      openSite(site.key);
-                      router.push(STEP_URLS[Math.min(site.stepsDone || 0, 5)]);
-                    }}
+              {/* Сайты — таблицей, как «Актуальные документы» в «Документах». */}
+              <section className="mt-9">
+                <div className="mb-4 flex items-end justify-between gap-4">
+                  <h2 className="text-lg font-bold tracking-[-0.02em]">Сайты в подписке</h2>
+                  <span className="shrink-0 text-xs font-semibold text-ink/60">
+                    {sites.length} {plural(sites.length, 'сайт', 'сайта', 'сайтов')}
+                  </span>
+                </div>
+                <div className="rounded-2xl border border-line bg-white shadow-sm">
+                  <div
+                    aria-hidden="true"
+                    className={`hidden gap-4 rounded-t-2xl border-b border-line bg-warm/70 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/60 sm:grid ${SITE_COLS}`}
                   >
+                    <span>Сайт</span>
+                    <span>Тариф</span>
+                    <span>Статус и оплата</span>
+                    <span>Автопродление</span>
+                    <span />
+                  </div>
+                  {sites.map((site) => (
+                    <SiteTableRow
+                      key={site.key}
+                      site={site}
+                      open={open?.key === site.key ? open.panel : null}
+                      hasHistory={ops.some((op) => op.kind === 'debit' && op.site === site.domain)}
+                      onPick={(id) => {
+                        if (id === 'go') {
+                          // Анкета этого сайта, а не открытого: у каждого сайта свой шаг.
+                          openSite(site.key);
+                          router.push(STEP_URLS[Math.min(site.stepsDone || 0, 5)]);
+                        } else if (id === 'history') {
+                          setHistoryFor(site.domain);
+                          setTimeout(() => document.getElementById('history')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                        } else toggle(site, id);
+                      }}
+                      onAuto={(on) => {
+                        if (on) {
+                          setSiteCancelled(site.key, false);
+                          reload();
+                        } else setOff({ site, step: 1 });
+                      }}
+                    >
                     {open?.panel === 'tariff' ? (
                       <>
                         {/* Тариф не применяется по клику: случайное нажатие по
@@ -869,9 +978,10 @@ export default function BillingClient() {
                     ) : (
                       renewPanel(site)
                     )}
-                  </SiteRow>
-                ))}
-              </Panel>
+                    </SiteTableRow>
+                  ))}
+                </div>
+              </section>
 
               {/* Общее на аккаунт: как пополняем и кто плательщик. Появляется
                   после первого пополнения — до него способа и плательщика нет,
@@ -970,10 +1080,22 @@ export default function BillingClient() {
                       и актов десятки, строка «подпись — значение — пояснение»
                       на каждую растягивала блок (владелец 23.09). */}
                   {ops.length > 0 && (
-                    <div className="border-t border-line py-4">
-                      <p className="mb-1 text-[13px] text-ink/60">История</p>
+                    <div id="history" className="scroll-mt-6 border-t border-line py-4">
+                      <p className="mb-1 flex flex-wrap items-baseline gap-x-3 text-[13px] text-ink/60">
+                        История{historyFor ? ` · ${historyFor}` : ''}
+                        {historyFor && (
+                          <button type="button" onClick={() => setHistoryFor(null)} className={LINK}>
+                            Показать всю
+                          </button>
+                        )}
+                      </p>
                       <ul className="divide-y divide-line">
-                        {(opsAll ? [...ops].reverse() : [...ops].reverse().slice(0, 4)).map((op) => (
+                        {(historyFor
+                          ? [...ops].reverse().filter((op) => op.site === historyFor)
+                          : opsAll
+                            ? [...ops].reverse()
+                            : [...ops].reverse().slice(0, 4)
+                        ).map((op) => (
                           <li key={`${op.at}-${op.kind}-${op.site || ''}`} className="flex items-baseline gap-3 py-2 text-[13px]">
                             <span className="w-20 shrink-0 text-ink/55">{formatDate(op.at)}</span>
                             <span className="min-w-0 flex-1 truncate text-ink/80">
@@ -986,7 +1108,7 @@ export default function BillingClient() {
                           </li>
                         ))}
                       </ul>
-                      {ops.length > 4 && (
+                      {!historyFor && ops.length > 4 && (
                         <button type="button" onClick={() => setOpsAll(!opsAll)} className={`mt-1 ${LINK}`}>
                           {opsAll ? 'Свернуть' : `Вся история — ${ops.length}`}
                         </button>

@@ -179,6 +179,10 @@ export const PencilIcon = (p) => (
   <Svg {...p}><path d="M4.5 19.5h4l10-10a2.8 2.8 0 0 0-4-4l-10 10v4Z" /><path d="M13.5 6.5l4 4" /></Svg>
 );
 
+export const MoreHorizontalIcon = (p) => (
+  <Svg {...p}><circle cx="12" cy="12" r="1.1" /><circle cx="19" cy="12" r="1.1" /><circle cx="5" cy="12" r="1.1" /></Svg>
+);
+
 export const CopyIcon = (p) => (
   <Svg {...p}><rect x="8.5" y="8.5" width="12" height="12" rx="2.2" /><path d="M5.5 15.5A2 2 0 0 1 3.5 13.5v-8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2" /></Svg>
 );
