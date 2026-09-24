@@ -64,6 +64,9 @@ const PRESETS = [
   ['Анкета: пакет собран', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 4 }), '/app/start/documents'],
   ['Всё пройдено, код не поставлен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5 }), '/app/site'],
   ['Пробный период, код найден', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 2 * HOUR }), '/app/site'],
+  // Google Analytics на сайте — задача «Уберите Google Analytics» на «Обзоре»
+  // (владелец 24.09). В остальных состояниях его нет, как в данных демо-сайта.
+  ['Пробный период, на сайте Google Analytics', () => ({ ...PERSON, ...SITE, analytics: ['metrika', 'ga'], ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 2 * HOUR }), '/app/site'],
   // Пробный период — 5 дней с момента, когда код найден (решение 23.09).
   ['Пробный период закончился', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 6 * 24 * HOUR }), '/app/site'],
   // Модель баланса (партнёрская программа, 14.09): пополняют баланс, оплата

@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRightIcon } from '../../../components/app/AppIcons';
+import { ArrowRightIcon, CheckIcon, CopyIcon } from '../../../components/app/AppIcons';
+import { IconAction } from '../../../components/app/DocRows';
 import { CURRENT_USER } from '../../../lib/appMock';
-import { DOCUMENTS, editEvents } from '../../../lib/docPackage';
-import { accountSites, balanceOf, currentSiteKey, setSiteCancelled, siteAnketa } from './_shared/sites';
+import { DOCUMENTS, docUrl, editEvents } from '../../../lib/docPackage';
+import { accountSites, balanceOf, currentSiteKey, saveSiteFields, setSiteCancelled, siteAnketa } from './_shared/sites';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { RING, SiteSidebar } from './_shared/SiteChrome';
 import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEndAt, trialEnds } from './_shared/subscription';
@@ -15,12 +16,14 @@ import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEnd
 // сколько ещё будет работать подписка, все ли документы актуальны и когда
 // обновлены, какие были последние изменения. Без поясняющих фраз («что сейчас
 // с сайтом и что делать дальше» — текст из макета, а не ответ) и без плашки:
-// её состояние и единственное действие — в карточке «Подписка».
+// её состояние и единственное действие — в карточке «Подписка». Под ответами —
+// задачи, которые клиент делает на сайте сам (владелец 24.09), пока они есть.
 
 const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
 const BTN = `inline-flex h-11 w-fit items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
 const DAY = 24 * 3600 * 1000;
-const TONE = { warn: 'text-warn-ink', danger: 'text-danger', ok: 'text-ok', muted: 'text-ink/60', none: 'text-ink' };
+const CONSENT = DOCUMENTS.find((d) => d.id === '12');
+const TONE ={ warn: 'text-warn-ink', danger: 'text-danger', ok: 'text-ok', muted: 'text-ink/60', none: 'text-ink' };
 
 function plural(n, one, few, many) {
   const m10 = n % 10;
@@ -55,11 +58,38 @@ function Answer({ label, value, tone = 'none', facts, action, link }) {
   );
 }
 
+// Задача клиента: что сделать и почему — одной строкой, закон мелко рядом, как
+// в строке документа. «Сделано» — белая кнопка: синяя на экране одна, и она
+// у подписки.
+function Task({ title, law, text, name, onDone, children }) {
+  return (
+    <div className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+      <div className="min-w-0">
+        <h3 className="text-sm font-bold">
+          {title}
+          <span className="ml-2 whitespace-nowrap font-mono text-[11px] font-normal text-ink/60">{law}</span>
+        </h3>
+        <p className="mt-1 max-w-2xl text-[13px] leading-5 text-ink/60">{text}</p>
+        {children}
+      </div>
+      <button
+        type="button"
+        onClick={onDone}
+        aria-label={name}
+        className={`w-fit shrink-0 rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
+      >
+        Сделано
+      </button>
+    </div>
+  );
+}
+
 export default function SiteOverviewClient() {
   const router = useRouter();
   const [a, setA] = useState(null);
   const [user, setUser] = useState(CURRENT_USER);
   const [now, setNow] = useState(Date.now());
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const saved = siteAnketa(loadAnketa());
@@ -94,6 +124,31 @@ export default function SiteOverviewClient() {
   function enableRenew() {
     setSiteCancelled(currentSiteKey(), false);
     setA(siteAnketa(loadAnketa()));
+  }
+
+  // Отметку «Сделано» ставит сам клиент — проверить формы и счётчики на его
+  // сайте прототип не может.
+  function consentDone() {
+    saveSiteFields({ tasksDone: { ...a.tasksDone, consentLink: Date.now() } });
+    setA(siteAnketa(loadAnketa()));
+  }
+
+  // Убранный Google Analytics уходит из ответа «Счётчики на сайте», а с ним —
+  // из «Политики обработки куки»: документ не должен называть счётчик,
+  // которого на сайте нет. Опубликованный документ получает новую версию.
+  function gaRemoved() {
+    const rest = (a.analytics || []).filter((v) => v !== 'ga');
+    saveSiteFields({
+      analytics: rest.length ? rest : ['none'],
+      ...(a.installed && { docEdits: [...(a.docEdits || []), { at: Date.now(), doc: '02', what: 'Убран Google Analytics' }] }),
+    });
+    setA(siteAnketa(loadAnketa()));
+  }
+
+  function copyConsent() {
+    navigator.clipboard?.writeText(`https://${docUrl(CONSENT)}`).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   // 1. Сколько ещё будет работать подписка. Кнопка — только когда без неё
@@ -167,8 +222,21 @@ export default function SiteOverviewClient() {
         ? { value: 'Актуальны', tone: 'ok', facts: [`${DOCUMENTS.length} документов`, `${edits.length ? 'обновлены' : 'собраны'} ${formatDate(updatedAt)}`] }
         : { value: 'Ждут кода', tone: 'warn', facts: [`${DOCUMENTS.length} документов`, `собраны ${formatDate(madeAt)}`] };
 
-  // 3. Последние изменения — только то, что действительно произошло.
+  // 3. Что сделать на сайте самому (владелец 24.09): мы собрали документы и
+  // ставим виджет, а формы и счётчики — в руках клиента. Задача висит до
+  // отметки «Сделано». Ссылку на согласие — только когда она открывается
+  // (код стоит, подписка не остановлена) и формы на сайте есть; Google
+  // Analytics — пока он в ответе «Счётчики на сайте».
+  const features = a.features || [];
+  const noForms = features.length > 0 && features.every((v) => v === 'none');
+  const tasks = [
+    live && !noForms && !a.tasksDone?.consentLink && 'consent',
+    (a.analytics || []).includes('ga') && 'ga',
+  ].filter(Boolean);
+
+  // 4. Последние изменения — только то, что действительно произошло.
   const events = [
+    a.tasksDone?.consentLink && [a.tasksDone.consentLink, 'Ссылка на согласие добавлена в формы сайта — отметили вы', 'bg-ok'],
     b.paidAt && [b.paidAt, `Подписка оплачена — до ${period.to}`, 'bg-ok'],
     b.cancelled && b.paidAt && [b.cancelledAt || now, `Автопродление выключено — сайт работает до ${period.to}`, 'bg-warn'],
     b.invoice && !b.paidAt && [b.invoice.at, `Выставлен счёт № ${b.invoice.no}`, 'bg-warn'],
@@ -197,6 +265,48 @@ export default function SiteOverviewClient() {
             <Answer label="Подписка" {...sub} link={subLink} />
             <Answer label="Документы" {...docs} link={['Все документы', '/app/site/documents']} />
           </div>
+
+          {tasks.length > 0 && (
+            <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+              <div className="flex items-baseline justify-between gap-4">
+                <h2 className="text-lg font-bold tracking-[-0.02em]">Сделайте на сайте сами</h2>
+                <span className="shrink-0 text-xs font-semibold text-ink/60">
+                  {tasks.length} {plural(tasks.length, 'задача', 'задачи', 'задач')}
+                </span>
+              </div>
+              <div className="mt-5 divide-y divide-line">
+                {tasks.includes('consent') && (
+                  <Task
+                    title="Добавьте ссылку на согласие в формы сайта"
+                    law={CONSENT.law}
+                    text="Рядом с кнопкой отправки — в каждой форме, где оставляют контакты."
+                    name="Сделано: ссылка на согласие добавлена в формы"
+                    onDone={consentDone}
+                  >
+                    <div className="mt-2 flex min-w-0 items-center gap-1">
+                      <span className="truncate font-mono text-[12px] text-ink/70">{docUrl(CONSENT)}</span>
+                      <IconAction
+                        label="Скопировать ссылку"
+                        name="Скопировать ссылку на согласие"
+                        done={copied ? 'Скопировано' : null}
+                        icon={copied ? CheckIcon : CopyIcon}
+                        onClick={copyConsent}
+                      />
+                    </div>
+                  </Task>
+                )}
+                {tasks.includes('ga') && (
+                  <Task
+                    title="Уберите Google Analytics с сайта"
+                    law="152-ФЗ"
+                    text="Он сохраняет данные посетителей на серверах за рубежом — с 1 июля 2025 года это запрещено, даже если он назван в политике."
+                    name="Сделано: Google Analytics убран с сайта"
+                    onDone={gaRemoved}
+                  />
+                )}
+              </div>
+            </section>
+          )}
 
           <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
             <h2 className="text-lg font-bold tracking-[-0.02em]">Последние изменения</h2>
