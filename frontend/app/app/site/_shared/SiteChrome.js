@@ -47,11 +47,11 @@ export const ACCOUNT_NAV = [
 
 const rub = (n) => `${n.toLocaleString('ru-RU')} ₽`;
 
-// Баланс аккаунта и «Бухгалтерия» — после первого пополнения (способ
+// Баланс в меню телефона и «Бухгалтерия» — после первого пополнения (способ
 // пополнения выбран или есть операции), как раньше блоки «Пополнение» и «Для
-// бухгалтерии»: до него «0 ₽» в углу ничего не сообщает и читается как долг.
+// бухгалтерии»: до него «0 ₽» ничего не сообщает и читается как долг.
 // Сумму перечитываем на каждое сохранение анкеты — пополнили в «Оплате»,
-// и строка в сайдбаре сразу показывает новую.
+// и меню сразу показывает новую.
 export function useMoney() {
   const [money, setMoney] = useState(null);
   useEffect(() => {
@@ -165,9 +165,9 @@ const MENU_ITEM = `flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 tex
 // остаются только Настройки и Выход.
 // «Выйти» ведёт туда, откуда входят, и ничего не сбрасывает: следующий вход
 // показывает тот же кабинет (макет, FIXLOG d736f60 — «Выйти» не мёртвая).
-// На телефоне баланс — первой строкой меню, с подписью «Баланс», как в углу
-// сайдбара: сумма справа у «Оплаты» читалась как долг «к оплате» (владелец
-// 24.09).
+// На телефоне баланс — первой строкой меню, с подписью «Баланс»: сумма справа
+// у «Оплаты» читалась как долг «к оплате» (владелец 24.09). На компьютере
+// такой строки нет — в углу над аккаунтом она смотрелась лишней.
 function MenuItems({ full, onPick }) {
   const router = useRouter();
   const money = useMoney();
@@ -362,7 +362,6 @@ function MoreIcon() {
 // знак и аватар с меню; навигацию несут нижние панели.
 export function SidebarShell({ user, children, supportActive, bottomBar }) {
   useRememberReturn();
-  const money = useMoney();
   return (
     <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-5 py-4 lg:sticky lg:top-0 lg:h-[calc(100vh-var(--cookie-banner-h,0px))] lg:w-[270px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:pb-8 lg:pt-8">
       <div className="flex items-center gap-2.5">
@@ -385,18 +384,8 @@ export function SidebarShell({ user, children, supportActive, bottomBar }) {
         >
           <SupportIcon size={17} /> Поддержка
         </Link>
-        {/* Баланс — у аккаунта, в углу с ним (владелец 24.09): он общий на все
-            сайты. Цвет нейтральный — о нехватке говорят «Оплата» и «Обзор». */}
-        {money && (
-          <Link
-            href="/app/billing"
-            aria-label={`Баланс ${rub(money.balance)} — открыть «Оплату»`}
-            className={`mb-5 flex items-center gap-3 px-2 text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
-          >
-            <WalletIcon size={17} /> Баланс
-            <span className="ml-auto font-bold text-ink">{rub(money.balance)}</span>
-          </Link>
-        )}
+        {/* Строка «Баланс · N ₽» над аккаунтом была и убрана (владелец 24.09:
+            «смотрится лишним») — баланс виден в «Оплате». */}
         <AccountMenu user={user} />
       </div>
       {bottomBar}
