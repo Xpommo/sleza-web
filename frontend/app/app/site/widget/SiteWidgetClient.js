@@ -16,7 +16,7 @@ const SNIPPET = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID
 
 // Баннер и подвал — две карточки, а не одна «функция виджета»: у них
 // разная юридическая роль. Подвал — постоянная публикация документов
-// (152-ФЗ ст.18.1 ч.2), баннер — разовый запрос согласия на cookie.
+// (152-ФЗ ст.18.1 ч.2), баннер — разовый запрос согласия на куки.
 // Выключают их по отдельности, когда у клиента уже стоит свой баннер
 // или свой подвал на конструкторе.
 function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onTheme, notLive, children }) {
@@ -125,7 +125,7 @@ export default function SiteWidgetClient() {
           )}
 
           <Block
-            title="Cookie-баннер"
+            title="Куки-баннер"
             themeId="h-banner"
             on={w.bannerOn}
             onToggle={(v) => update({ bannerOn: v })}
@@ -133,7 +133,7 @@ export default function SiteWidgetClient() {
             onTheme={(t) => update({ bannerTheme: t })}
             notLive={notLive}
             offNote="Баннер выключен — посетители его не видят."
-            offWarning="Посетители не увидят запрос согласия перед использованием cookie."
+            offWarning="Посетители не увидят запрос согласия перед использованием куки."
           >
             <CookieBannerPreview theme={w.bannerTheme} />
           </Block>
@@ -152,11 +152,6 @@ export default function SiteWidgetClient() {
             <FooterPreview theme={w.footerTheme} />
           </Block>
 
-          {/* Не «что видел посетитель» — у баннера нет интерактивного
-              действия, — а «что опубликовано и когда». */}
-          <p className="mt-6 text-[13px] leading-5 text-ink/60">
-            Публикуем и датируем сами — если понадобится доказать, что было опубликовано и когда, ответ уже в системе, не в голове.
-          </p>
 
           <section className="mt-6 rounded-2xl border border-line bg-white shadow-sm">
             <button

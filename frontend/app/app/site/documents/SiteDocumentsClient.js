@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CheckIcon, CopyIcon, DocsIcon, LinkIcon } from '../../../../components/app/AppIcons';
+import { CheckIcon, ClockIcon, CopyIcon, DocsIcon, LinkIcon } from '../../../../components/app/AppIcons';
 import { DocRow, DocRowList, IconAction } from '../../../../components/app/DocRows';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { DOCUMENTS, SITE_ID, docOrigin, docUrl, editEvents } from '../../../../lib/docPackage';
@@ -80,6 +80,12 @@ export default function SiteDocumentsClient() {
               {live
                 ? 'Открыты по постоянным адресам — ссылки в подвале сайта не ломаются. Когда меняется закон, мы переписываем текст и поднимаем версию.'
                 : 'Собраны по вашим ответам. Откроются по постоянным адресам, как только на сайте появится код.'}
+            </p>
+            {/* Раньше жило в «Виджете» между блоками, где его никто не видел
+                (владелец 24.09); по смыслу — про документы, их версии и даты. */}
+            <p className="mt-3 flex max-w-2xl items-start gap-2.5 text-[14px] font-semibold leading-6 text-ink/80">
+              <ClockIcon size={17} className="mt-[3px] shrink-0 text-brand" />
+              Публикуем и датируем сами — если понадобится доказать, что было опубликовано и когда, ответ уже в системе, не в голове.
             </p>
           </SiteHeader>
 

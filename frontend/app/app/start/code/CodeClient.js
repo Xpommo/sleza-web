@@ -14,6 +14,7 @@ import {
 } from '../../../../components/app/AppIcons';
 import { TelegramIcon } from '../../../../components/app/AuthBits';
 import { EMAIL_RE } from '../../../../lib/validate';
+import { PLATFORMS } from '../../../../lib/anketaOptions';
 import { RING, AnketaFrame, Field, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
 import { TRIAL_DAYS, trialEnds } from '../../site/_shared/subscription';
@@ -99,6 +100,14 @@ function ModeTabs({ mode, onChange }) {
 export default function CodeClient() {
   const router = useRouter();
   const [platform, setPlatform] = useState('');
+  // Платформу можно поправить прямо здесь: ошибиться на шаге «О сайте» —
+  // обычное дело, а возвращаться ради неё в анкету незачем (владелец 24.09).
+  const [platformPick, setPlatformPick] = useState(false);
+  function changePlatform(p) {
+    setPlatform(p);
+    saveAnketa({ platform: p });
+    setPlatformPick(false);
+  }
   const [role, setRole] = useState('');
   // Почта «себе» (только на телефоне) и почта исполнителя — разные поля:
   // раньше они делили одно, и исполнителю по умолчанию стояла почта клиента.
@@ -269,8 +278,33 @@ export default function CodeClient() {
                       <p className="mt-1 text-sm text-ink/60">
                         {platform
                           ? 'Инструкция под платформу, которую вы назвали на шаге «О сайте».'
-                          : 'Платформа не указана — общая инструкция.'}
+                          : 'Платформа не указана — общая инструкция.'}{' '}
+                        <button
+                          type="button"
+                          onClick={() => setPlatformPick(!platformPick)}
+                          aria-expanded={platformPick}
+                          className={`rounded font-semibold text-brand hover:text-ink ${RING}`}
+                        >
+                          Другая платформа?
+                        </button>
                       </p>
+                      {platformPick && (
+                        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Платформа сайта">
+                          {PLATFORMS.map((p) => (
+                            <button
+                              key={p}
+                              type="button"
+                              aria-pressed={platform === p}
+                              onClick={() => changePlatform(p)}
+                              className={`rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition ${RING} ${
+                                platform === p ? 'border-brand bg-brand/[0.06] text-brand' : 'border-line bg-white text-ink/70 hover:border-line-2 hover:text-ink'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       {/* Пункты списком, без кружков-номеров: нумерация внутри
                           «Шага 6 из 6» спорила со счётчиком самой анкеты. */}
                       <ul className="mt-4 space-y-2.5">
@@ -317,7 +351,7 @@ export default function CodeClient() {
                       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
                         <div>
                           <h3 className="text-[15px] font-bold">Проверьте, что код заработал</h3>
-                          <p className="mt-1 text-sm text-ink/60">Откроем ваш сайт и поищем строку кода на странице.</p>
+                          <p className="mt-1 text-sm text-ink/60">Проверим, появился ли код на вашем сайте.</p>
                         </div>
                         {!found && (
                           <button
@@ -446,40 +480,23 @@ export default function CodeClient() {
                 )}
               </div>
 
-              {/* Одно главное действие на состояние: пока кода нет — проверить
-                  его (кнопка выше), когда найден — перейти в кабинет. Отдельной
-                  «Активировать» больше нет: пробный период стартует сам. */}
-              <div className="mt-8 border-t border-line pt-6">
-                {/* Инструкцию отправили — дальше человеку делать нечего, кроме как
-                    перейти в кабинет: это и есть главная кнопка, а не серая
-                    ссылка внизу (владелец 23.09). */}
-                {found || (effectiveMode === 'Поручу другому' && shared) ? (
+              {/* Пока кода нет — заметка и «позже»; когда найден (или
+                  инструкцию отправили), «Перейти в кабинет» встаёт вниз, рядом
+                  с «Назад», как «Далее» на остальных шагах (владелец 24.09). */}
+              {!(found || (effectiveMode === 'Поручу другому' && shared)) && (
+                <div className="mt-8 flex flex-col items-center gap-3 border-t border-line pt-6 text-center">
+                  <p className="text-[13px] leading-5 text-ink/60">
+                    Пробный период начнётся сам, как только увидим код на сайте, — {TRIAL_DAYS} дней бесплатно.
+                  </p>
                   <button
-                    data-funnel-next
                     type="button"
-                    onClick={() => {
-                      setCurrentSite(MAIN);
-                      router.push('/app/site');
-                    }}
-                    className={`flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
+                    onClick={() => router.push(effectiveMode === 'Поручу другому' ? '/app/site' : '/app/sites')}
+                    className={`rounded text-sm font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}
                   >
-                    Перейти в кабинет <ArrowRightIcon size={17} />
+                    {effectiveMode === 'Поручу другому' ? 'Перейти в кабинет →' : 'Поставлю позже →'}
                   </button>
-                ) : (
-                  <div className="flex flex-col items-center gap-3 text-center">
-                    <p className="text-[13px] leading-5 text-ink/60">
-                      Пробный период начнётся сам, как только увидим код на сайте, — {TRIAL_DAYS} дней бесплатно.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => router.push(effectiveMode === 'Поручу другому' ? '/app/site' : '/app/sites')}
-                      className={`rounded text-sm font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}
-                    >
-                      {effectiveMode === 'Поручу другому' ? 'Перейти в кабинет →' : 'Поставлю позже →'}
-                    </button>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </section>
 
             {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,
@@ -493,6 +510,19 @@ export default function CodeClient() {
               >
                 <ArrowLeftIcon size={17} /> Назад
               </button>
+              {(found || (effectiveMode === 'Поручу другому' && shared)) && (
+                <button
+                  data-funnel-next
+                  type="button"
+                  onClick={() => {
+                    setCurrentSite(MAIN);
+                    router.push('/app/site');
+                  }}
+                  className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
+                >
+                  Перейти в кабинет <ArrowRightIcon size={17} />
+                </button>
+              )}
             </div>
 
       {failOpen && (

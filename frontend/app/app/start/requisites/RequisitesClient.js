@@ -128,6 +128,9 @@ export default function RequisitesClient() {
   const [registryWhy, setRegistryWhy] = useState(false);
   // Поля реестра открыты, только когда их правят или заполняют вручную.
   const [regEdit, setRegEdit] = useState(false);
+  // «Заполнить вручную» выключает подстановку: дописал ИНН — поля, которые
+  // человек заполняет сам, не перезаписываются и не сворачиваются (владелец 24.09).
+  const [regManual, setRegManual] = useState(false);
 
   const [account, setAccount] = useState('');
   const [accountError, setAccountError] = useState(null);
@@ -139,6 +142,7 @@ export default function RequisitesClient() {
   const [corrError, setCorrError] = useState(null);
   const [bankWhy, setBankWhy] = useState(false);
   const [bankEdit, setBankEdit] = useState(false);
+  const [bankManual, setBankManual] = useState(false);
 
   const [license, setLicense] = useState(null);
   const [licenseError, setLicenseError] = useState(null);
@@ -151,6 +155,12 @@ export default function RequisitesClient() {
 
   const [itAccred, setItAccred] = useState(null);
   const [softRegistry, setSoftRegistry] = useState(null);
+  // Номера записей — то, ради чего спрашиваем: без них ответ «Есть» никуда
+  // не шёл (владелец 24.09). Показываем в «Реквизитах» на сайте.
+  const [itAccredNo, setItAccredNo] = useState('');
+  const [itAccredNoError, setItAccredNoError] = useState(null);
+  const [softRegistryNo, setSoftRegistryNo] = useState('');
+  const [softRegistryNoError, setSoftRegistryNoError] = useState(null);
 
   const [media, setMedia] = useState(null);
   const [mediaError, setMediaError] = useState(null);
@@ -197,6 +207,8 @@ export default function RequisitesClient() {
     }
     setItAccred(a.itAccred ?? null);
     setSoftRegistry(a.softRegistry ?? null);
+    setItAccredNo(a.itAccredNo || '');
+    setSoftRegistryNo(a.softRegistryNo || '');
     if (a.mediaReg) {
       setMedia(a.mediaReg.has ?? null);
       setMediaNo(a.mediaReg.no || '');
@@ -217,6 +229,8 @@ export default function RequisitesClient() {
       bank: { account, bank, bik, corr },
       license: licenseSphere ? { has: license, no: licenseNo, date: licenseDate, org: licenseOrg } : null,
       itAccred, softRegistry,
+      itAccredNo: itAccred === 'Есть' ? itAccredNo : '',
+      softRegistryNo: softRegistry === 'Есть' ? softRegistryNo : '',
       mediaReg: sphere === 'media' ? { has: media, no: mediaNo, date: mediaDate, org: mediaOrg } : null,
       contacts: { companyMail, companyPhone, postAddress, pdContact },
     };
@@ -230,7 +244,7 @@ export default function RequisitesClient() {
     // answers() читает те же значения, что перечислены здесь
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restored, owner, inn, name, ogrn, kpp, address, account, bank, bik, corr,
-      license, licenseNo, licenseDate, licenseOrg, itAccred, softRegistry, media, mediaNo, mediaDate, mediaOrg,
+      license, licenseNo, licenseDate, licenseOrg, itAccred, softRegistry, itAccredNo, softRegistryNo, media, mediaNo, mediaDate, mediaOrg,
       companyMail, companyPhone, postAddress, pdContact]);
   const [pdContactError, setPdContactError] = useState(null);
   const [pdWhy, setPdWhy] = useState(false);
@@ -261,15 +275,19 @@ export default function RequisitesClient() {
   }
 
   const lastFill = useRef({});
-  function onInnChange(e) {
-    const value = digitsOnly(e.target.value).slice(0, 12);
+  // ИНН — ровно той длины, что у выбранной формы (10 у ООО, 12 у ИП и
+  // самозанятого): лишнюю цифру не дать ввести, иначе подстановка молчит, а
+  // человек не понимает почему (владелец 24.09).
+  function applyInn(raw, who, manual = regManual) {
+    const len = who === 'ООО' ? 10 : 12;
+    const value = raw.slice(0, len);
     setInn(value);
     setInnError(null);
-    if (!owner || value.length !== innLength) {
+    if (!who || value.length !== len || manual) {
       setInnFound(false);
       return;
     }
-    const found = INN_LOOKUP[owner] || {};
+    const found = INN_LOOKUP[who] || {};
     setInnFound(true);
     // Заполняем пустые поля и те, что подставили сами в прошлый раз; то,
     // что человек поправил руками, не трогаем (решение макета 8.09).
@@ -284,6 +302,9 @@ export default function RequisitesClient() {
     lastFill.current = found;
     clearRegistryErrors();
     setRegEdit(false);
+  }
+  function onInnChange(e) {
+    applyInn(digitsOnly(e.target.value), owner);
   }
 
   // «Готово» у раскрытых полей: правки остаются, поля сворачиваются обратно в
@@ -306,11 +327,10 @@ export default function RequisitesClient() {
   }
 
   const lastBank = useRef({});
-  function onBikChange(e) {
-    const value = digitsOnly(e.target.value).slice(0, 9);
+  function applyBik(value, manual = bankManual) {
     setBik(value);
     setBikError(null);
-    if (value.length !== 9) return;
+    if (value.length !== 9 || manual) return;
     const found = BIK_LOOKUP[value];
     const last = lastBank.current;
     if (!found) {
@@ -329,13 +349,27 @@ export default function RequisitesClient() {
     setCorrError(null);
     setBankEdit(false);
   }
+  function onBikChange(e) {
+    applyBik(digitsOnly(e.target.value).slice(0, 9));
+  }
 
   function pickOwner(item) {
     setOwner(item);
     setOwnerError(null);
-    setInnFound(false);
-    setInnError(null);
     clearRegistryErrors();
+    // ИНН другой длины к новой форме не подходит: не обрезаем молча, а
+    // стираем вместе с тем, что по нему подставили.
+    if (inn.length > (item === 'ООО' ? 10 : 12)) {
+      const last = lastFill.current;
+      if (name === last.name) setName('');
+      if (ogrn === last.ogrn) setOgrn('');
+      if (kpp === last.kpp) setKpp('');
+      if (address === last.address) setAddress('');
+      lastFill.current = {};
+      setInn('');
+      setInnFound(false);
+      setInnError(null);
+    } else applyInn(inn, item);
   }
 
   function handleNext() {
@@ -345,7 +379,10 @@ export default function RequisitesClient() {
       ok = false;
     };
 
-    if (!owner) fail(setOwnerError, 'Выберите, кто владеет сайтом — от этого зависит, какие реквизиты спрашивать.');
+    if (!owner) {
+      setOwnerError('Выберите, кто владеет сайтом — от этого зависит, какие реквизиты спрашивать.');
+      return;
+    }
 
     // Реквизиты проверяются общими правилами — теми же, что у окна
     // «Реквизиты владельца» в кабинете.
@@ -387,6 +424,15 @@ export default function RequisitesClient() {
       }
     }
 
+    if (showIt && itAccred === 'Есть') {
+      if (!itAccredNo.trim()) fail(setItAccredNoError, 'Укажите номер записи — покажем его в реквизитах на сайте.');
+      else setItAccredNoError(null);
+    }
+    if (showIt && softRegistry === 'Есть') {
+      if (!softRegistryNo.trim()) fail(setSoftRegistryNoError, 'Укажите номер записи в реестре — покажем его в реквизитах на сайте.');
+      else setSoftRegistryNoError(null);
+    }
+
     put(setCompanyMailError, 'companyMail');
     put(setCompanyPhoneError, 'companyPhone');
     if (!EMAIL_RE.test(pdContact.trim())) {
@@ -413,6 +459,10 @@ export default function RequisitesClient() {
               </div>
               {ownerError && <p className="mt-2 text-[12px] font-semibold text-danger">{ownerError}</p>}
 
+              {/* До выбора формы — только сам вопрос: двадцать полей сразу
+                  пугали, а половина из них зависит от ответа (владелец 24.09). */}
+              {owner && (
+              <>
               <div className="my-7 h-px bg-line" />
 
               <BlockHead
@@ -427,10 +477,13 @@ export default function RequisitesClient() {
                 <Field
                   label="ИНН"
                   required
-                  placeholder={owner ? `${innLength} цифр` : 'Сначала выберите форму владения'}
+                  placeholder={`${innLength} цифр`}
                   icon={BankIcon}
-                  badge="Автозаполнение по ИНН"
+                  badge={regManual ? null : 'Автозаполнение по ИНН'}
                   inputMode="numeric"
+                  name="inn"
+                  autoComplete="off"
+                  maxLength={innLength}
                   value={inn}
                   onChange={onInnChange}
                   error={innError}
@@ -512,11 +565,28 @@ export default function RequisitesClient() {
                 </div>
                 </EditCard>
               ) : (
-                owner && (
-                  <button type="button" onClick={() => setRegEdit(true)} className={LINK_BTN}>
-                    Заполнить вручную
-                  </button>
-                )
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegManual(true);
+                    setRegEdit(true);
+                  }}
+                  className={LINK_BTN}
+                >
+                  Заполнить вручную
+                </button>
+              )}
+              {regManual && regEdit && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegManual(false);
+                    applyInn(inn, owner, false);
+                  }}
+                  className={LINK_BTN}
+                >
+                  Подставить по ИНН
+                </button>
               )}
 
               <div className="my-7 h-px bg-line" />
@@ -528,7 +598,7 @@ export default function RequisitesClient() {
                   id="h-bank"
                   icon={BankIcon}
                   title="Банковские реквизиты"
-                  why="Банковские реквизиты нужны для договора и оплаты по безналичному расчёту."
+                  why="Встанут в «Реквизиты владельца» на вашем сайте — по ним ваши клиенты платят вам по счёту."
                   whyOpen={bankWhy}
                   onWhy={() => setBankWhy(!bankWhy)}
                 />
@@ -538,8 +608,11 @@ export default function RequisitesClient() {
                     required
                     placeholder="9 цифр"
                     icon={InfoIcon}
-                    badge="Банк подставим по БИК"
+                    badge={bankManual ? null : 'Банк подставим по БИК'}
                     inputMode="numeric"
+                    name="bik"
+                    autoComplete="off"
+                    maxLength={9}
                     value={bik}
                     onChange={onBikChange}
                     error={bikError}
@@ -551,6 +624,8 @@ export default function RequisitesClient() {
                     placeholder={owner === 'Самозанятый' ? '40817810...' : '40702810...'}
                     icon={BankIcon}
                     inputMode="numeric"
+                    name="account"
+                    autoComplete="off"
                     value={account}
                     onChange={(e) => {
                       setAccount(digitsOnly(e.target.value).slice(0, 20));
@@ -600,6 +675,32 @@ export default function RequisitesClient() {
                     </EditCard>
                   )
                 )}
+                {/* Как у ИНН: «вручную» — и подстановка по БИК больше не
+                    вмешивается в то, что человек вводит сам (владелец 24.09). */}
+                {!bankEdit && !(bik.length === 9 && bank && corr) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBankManual(true);
+                      setBankEdit(true);
+                    }}
+                    className={LINK_BTN}
+                  >
+                    Заполнить вручную
+                  </button>
+                )}
+                {bankManual && bankEdit && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBankManual(false);
+                      applyBik(bik, false);
+                    }}
+                    className={LINK_BTN}
+                  >
+                    Подставить по БИК
+                  </button>
+                )}
               </div>
 
               {/* Блок появляется только там, где есть что спрашивать: лицензия
@@ -616,7 +717,7 @@ export default function RequisitesClient() {
                         ? 'Если деятельность лицензируется, на сайте должны быть номер лицензии, срок её действия и кто её выдал.'
                         : showMedia
                           ? 'У зарегистрированного СМИ на сайте должны быть номер свидетельства, дата регистрации и кто зарегистрировал.'
-                          : null
+                          : 'Если есть — номера записей покажем в «Реквизитах» на сайте: для заказчиков это подтверждение статуса.'
                     }
                     whyOpen={licenseWhy}
                     onWhy={() => setLicenseWhy(!licenseWhy)}
@@ -645,7 +746,7 @@ export default function RequisitesClient() {
                           <Field
                             label="Номер лицензии"
                             required
-                            placeholder="ЛО-77-01-000000"
+                            placeholder={sphere === 'medicine' ? 'Л041-01137-77/00368259' : 'Л035-01298-77/00123456'}
                             icon={CertificateIcon}
                             value={licenseNo}
                             onChange={(e) => {
@@ -665,7 +766,7 @@ export default function RequisitesClient() {
                             <Field
                               label="Кто выдал"
                               required
-                              placeholder="Департамент здравоохранения города Москвы"
+                              placeholder={sphere === 'medicine' ? 'Департамент здравоохранения города Москвы' : 'Департамент образования и науки города Москвы'}
                               icon={BuildingIcon}
                               value={licenseOrg}
                               onChange={(e) => {
@@ -745,12 +846,42 @@ export default function RequisitesClient() {
                     <div className={licenseSphere ? 'mt-7 border-t border-line pt-7' : 'mt-5'}>
                       <div className="grid gap-5 md:grid-cols-2">
                         <div>
-                          <p className="mb-3 text-sm font-bold text-ink-2">Аккредитация IT</p>
-                          <Segmented options={['Есть', 'Нет']} value={itAccred} onChange={setItAccred} />
+                          <p id="h-it-accred" className="mb-3 text-sm font-bold text-ink-2">Аккредитация IT</p>
+                          <Segmented options={['Есть', 'Нет']} value={itAccred} onChange={setItAccred} ariaLabelledby="h-it-accred" />
+                          {itAccred === 'Есть' && (
+                            <Field
+                              className="mt-4"
+                              label="Номер записи в реестре аккредитованных"
+                              required
+                              placeholder="№ записи и дата решения"
+                              icon={CertificateIcon}
+                              value={itAccredNo}
+                              onChange={(e) => {
+                                setItAccredNo(e.target.value);
+                                setItAccredNoError(null);
+                              }}
+                              error={itAccredNoError}
+                            />
+                          )}
                         </div>
                         <div>
-                          <p className="mb-3 text-sm font-bold text-ink-2">ПО в реестре российского ПО</p>
-                          <Segmented options={['Есть', 'Нет']} value={softRegistry} onChange={setSoftRegistry} />
+                          <p id="h-soft-registry" className="mb-3 text-sm font-bold text-ink-2">ПО в реестре российского ПО</p>
+                          <Segmented options={['Есть', 'Нет']} value={softRegistry} onChange={setSoftRegistry} ariaLabelledby="h-soft-registry" />
+                          {softRegistry === 'Есть' && (
+                            <Field
+                              className="mt-4"
+                              label="Номер записи в реестре ПО"
+                              required
+                              placeholder="№ 12345 от 01.02.2024"
+                              icon={CertificateIcon}
+                              value={softRegistryNo}
+                              onChange={(e) => {
+                                setSoftRegistryNo(e.target.value);
+                                setSoftRegistryNoError(null);
+                              }}
+                              error={softRegistryNoError}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -835,6 +966,8 @@ export default function RequisitesClient() {
                   error={pdContactError}
                 />
               </div>
+              </>
+              )}
             </section>
 
             {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,

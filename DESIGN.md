@@ -334,6 +334,9 @@ Confident and few.
 
 **The Answer-or-View Rule.** A Segmented control asks for an answer that ends up in the documents, so it starts empty and fills blue when chosen. Tabs switch what you see, so one is always open and they never fill. If a choice changes nothing but the view, it's tabs.
 
+### Answer provenance (step 5)
+- Under an expanded document preview: «Изменить ответ:» followed by one small bordered chip per source answer (12px semibold, Hairline border, blue on hover). A chip opens a modal with exactly that one question and its usual controls (`AnswerModal`); saving updates the preview in place. Never send the client back into the anketa to change one answer.
+
 ### Data Table (`DocRowList`, sites in «Подписка»)
 - One 16px-radius white container; a Desk-70% head band with Label typography; rows 16px × 24px with Hairline dividers and a Desk-60% hover.
 - Each row leads with a 40px blue-tint icon tile. The row title is itself the link (blue on hover, underlined), so no separate «Открыть» button is needed.
@@ -375,4 +378,5 @@ Confident and few.
 - **Don't** introduce half-pixel font sizes or new radii outside 6 / 8 / 12 / 16px and pill.
 - **Don't** reach for Filed Paper (`#faf8f4`) on new screens; the page is Desk, content is Sheet.
 - **Don't** preselect an answer in the anketa, including a segmented control; the client chooses.
+- **Don't** write «cookie» in interface or document text; it is «куки» («Куки-баннер», «Политика обработки куки»).
 - **Don't** warn about something more than a month away, or paint a running trial amber before its last day (**The Near-Term Warning Rule**).

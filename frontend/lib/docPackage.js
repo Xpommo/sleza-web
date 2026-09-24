@@ -5,7 +5,7 @@
 // Пакет фиксирован: пять документов из структуры 1+2+2. Название — то, как
 // человек думает о документе («согласие на рассылки»), закон — мелкой
 // справкой рядом (решение 23.09: раньше строка начиналась с «38-ФЗ, ч.1 ст.18 · …»).
-import { ANALYTICS, PD_FIELDS, PROMO_PURPOSE, PURPOSES } from './anketaOptions';
+import { ANALYTICS, PD_FIELDS, bookingText, purposeLabel } from './anketaOptions';
 
 export const SITE_ID = '486312';
 
@@ -18,10 +18,10 @@ export const DOCUMENTS = [
   },
   {
     id: '02',
-    title: 'Политика обработки cookie',
+    title: 'Политика обработки куки',
     law: '152-ФЗ',
     preview: (v) =>
-      `Настоящая Политика определяет порядок использования файлов cookie и аналогичных технологий на сайте ${v.domain}, включая аналитику и работу виджета…`,
+      `Настоящая Политика определяет порядок использования файлов куки и аналогичных технологий на сайте ${v.domain}, включая аналитику и работу виджета…`,
   },
   {
     id: '03',
@@ -47,7 +47,6 @@ export const DOCUMENTS = [
 
 // Цели и состав данных — в той форме, в какой они стоят в тексте документа.
 const PURPOSE_TEXT = {
-  booking: 'запись на приём или занятие',
   order: 'оформление и передача заказа',
   property: 'показ объектов и запись на просмотр',
   consult: 'консультирование по услугам',
@@ -104,7 +103,7 @@ const mark = (v) => (v ? `\u0001${v}\u0002` : v);
 // компании из макета, и человек видел в своём документе чужого оператора.
 export function docPreview(doc, a) {
   const ogrnLabel = a.owner === 'ИП' ? 'ОГРНИП' : 'ОГРН';
-  const purposes = sitePurposes(a).map((x) => PURPOSE_TEXT[x]).filter(Boolean).join(', ');
+  const purposes = sitePurposes(a).map((x) => (x === 'booking' ? bookingText(a.sphere) : PURPOSE_TEXT[x])).filter(Boolean).join(', ');
   const fields = (a.pdFields || []).map((x) => FIELD_TEXT[x]).filter(Boolean).join(', ');
   const channels = andList(adChannels(a));
   return doc.preview({
@@ -137,6 +136,9 @@ export function docOrigin(doc, a) {
         line: `Владелец: ${operatorName(a)}${a.inn ? `, ИНН ${a.inn}` : ''}.`,
         why: 'Собрано по ответам «Владелец сайта» и «Данные из реестра»',
         step: '/app/start/requisites',
+        // sources — какие ответы можно поправить прямо из пакета: ровно те,
+        // из которых взяты данные документа (владелец 24.09).
+        sources: ['requisites'],
       };
     case '02': {
       // «Другое» — не название счётчика: в документ идёт то, что человек вписал.
@@ -146,18 +148,21 @@ export function docOrigin(doc, a) {
         line: n.length
           ? `Названы счётчики: ${n.join(', ')}.`
           : analytics.includes('none')
-            ? 'Счётчиков нет — описаны только технические cookie.'
+            ? 'Счётчиков нет — описаны только технические куки.'
             : 'Счётчики — по ответу «Счётчики на сайте».',
         why: 'Собрано по ответу «Счётчики на сайте»',
         step: '/app/start/site',
+        sources: ['analytics'],
       };
     }
     case '03': {
-      const purposes = sitePurposes(a).map((v) => label([...PURPOSES, PROMO_PURPOSE], v)).filter(Boolean).map(lower);
+      const purposes = sitePurposes(a).map((v) => purposeLabel(v, a.sphere)).filter(Boolean).map(lower);
       return {
         line: purposes.length ? `Названы цели: ${purposes.join(', ')}.` : 'Цели — по ответу «Цели сбора контактов».',
         why: 'Собрано по ответам «Сфера деятельности» и «Цели сбора контактов»',
         step: '/app/start/clients',
+        // Сфера задаёт только варианты целей; в документ идут сами цели.
+        sources: ['purposes'],
       };
     }
     case '12': {
@@ -171,6 +176,7 @@ export function docOrigin(doc, a) {
           : `${f.length ? `Названы данные: ${f.join(', ')}. ` : ''}Ссылку на согласие добавьте в формы сайта.`,
         why: 'Собрано по ответам «Какие данные собираете» и «Цели сбора контактов»',
         step: '/app/start/clients',
+        sources: ['pdFields', 'purposes'],
       };
     }
     default: {
@@ -179,7 +185,7 @@ export function docOrigin(doc, a) {
       return {
         line:
           a.callsBase === false
-            ? 'Об акциях вы не рассказываете — документ пригодится, когда начнёте.'
+            ? 'Документ в пакете на случай звонков и сообщений клиентам о новинках — это тоже реклама.'
             : a.callsBase
               ? ch.length
                 ? `Названы каналы: ${andList(ch)}.`
@@ -187,6 +193,7 @@ export function docOrigin(doc, a) {
               : 'Понадобится, когда начнёте рассказывать клиентам об акциях.',
         why: 'Собрано по ответам «Какие данные собираете» и «Рассказываете клиентам об акциях и новинках?»',
         step: '/app/start/clients',
+        sources: ['pdFields', 'promo'],
       };
     }
   }

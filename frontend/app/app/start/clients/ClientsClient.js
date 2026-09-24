@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ArrowRightIcon } from '../../../../components/app/AppIcons';
 import { RING, AnketaFrame, SectionHead, Tile } from '../_shared/AnketaChrome';
-import { PD_FIELDS, PURPOSES, PURPOSE_MAP } from '../../../../lib/anketaOptions';
+import { PD_FIELDS, PURPOSES, PURPOSE_MAP, purposeLabel } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
 // Порядок вопросов (владелец 23.09): что собираете → зачем → рассказываете
@@ -86,7 +86,7 @@ export default function ClientsClient() {
     }
 
     if (!promo) {
-      setPromoError('Ответьте «Да» или «Нет» — от этого зависит согласие на рекламу.');
+      setPromoError('Ответьте «Да» или «Нет» — от ответа зависят согласие и политика.');
       ok = false;
     } else {
       setPromoError(null);
@@ -141,7 +141,7 @@ export default function ClientsClient() {
                   {visiblePurposes.map((p) => (
                     <Tile
                       key={p.value}
-                      title={p.label}
+                      title={purposeLabel(p.value, sphere)}
                       compact
                       selected={purposes.includes(p.value)}
                       onClick={() => {
@@ -161,7 +161,7 @@ export default function ClientsClient() {
                   required
                   whyOpen={promoWhy}
                   onWhy={() => setPromoWhy(!promoWhy)}
-                  why="Нужно для «Согласия на получение рекламных сообщений» — назовём в нём каналы, которыми пишете."
+                  why="Звонить и писать клиентам об акциях можно только с их согласия — если рассказываете, впишем эту цель в согласие и политику."
                 />
                 <div className="mt-5 inline-flex rounded-xl border border-line bg-warm p-1" role="group" aria-labelledby="h-promo">
                   {['Да', 'Нет'].map((item) => (
@@ -181,11 +181,13 @@ export default function ClientsClient() {
                     </button>
                   ))}
                 </div>
-                {/* Вместо окна при «Нет»: одна строка, без уговоров — документ
-                    в пакете при любом ответе, «Нет» ничего не стоит. */}
+                {/* «Нет» часто отвечают те, у кого рассылок нет, но менеджеры
+                    звонят клиентам с новинками — это тоже реклама, и на неё нужно
+                    согласие (владелец 24.09). Подсвечиваем именно этот случай. */}
                 {promo === 'Нет' && (
-                  <p className="mt-3 text-[13px] leading-5 text-ink/60">
-                    Согласие на рекламу всё равно будет в пакете — пригодится, если начнёте.
+                  <p className="mt-3 max-w-2xl text-[13px] leading-5 text-ink/60">
+                    Звонок или сообщение клиенту о новинке — тоже реклама, даже от менеджера: если такое бывает, ответьте
+                    «Да». Согласие на рекламу в пакете будет при любом ответе.
                   </p>
                 )}
                 {promoError && <p className="mt-3 text-[12px] font-semibold text-danger">{promoError}</p>}

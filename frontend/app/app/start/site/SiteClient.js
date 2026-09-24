@@ -148,13 +148,13 @@ export default function SiteClient() {
     }
 
     if (analytics.length === 0) {
-      setAnalyticsError('Отметьте счётчики или «Ничего из этого нет» — от этого зависит политика обработки cookie.');
+      setAnalyticsError('Отметьте счётчики или «Ничего из этого нет» — от этого зависит политика обработки куки.');
       ok = false;
     } else {
       setAnalyticsError(null);
     }
     if (analytics.includes('other') && !analyticsOther.trim()) {
-      setAnalyticsOtherError('Напишите, какой счётчик стоит, — назовём его в политике обработки cookie.');
+      setAnalyticsOtherError('Напишите, какой счётчик стоит, — его нужно указать в политике обработки куки.');
       ok = false;
     } else {
       setAnalyticsOtherError(null);
@@ -196,7 +196,7 @@ export default function SiteClient() {
                   required
                   whyOpen={domainWhy}
                   onWhy={() => setDomainWhy(!domainWhy)}
-                  why="Адрес попадёт в документы и в код установки."
+                  why="Адрес сайта будет в каждом документе пакета."
                 />
                 <Field
                   className="mt-5"
@@ -231,7 +231,7 @@ export default function SiteClient() {
                   required
                   whyOpen={sphereWhy}
                   onWhy={() => setSphereWhy(!sphereWhy)}
-                  why="Сфера определит список целей на следующем шаге — у каждой сферы они свои."
+                  why="По сфере подберём варианты на шаге «Данные клиентов» — для чего вы собираете контакты: у школы это запись на занятие, у магазина — заказ."
                 />
                 <span className="relative mt-5 block">
                   <select
@@ -297,7 +297,7 @@ export default function SiteClient() {
                   required
                   whyOpen={platformWhy}
                   onWhy={() => setPlatformWhy(!platformWhy)}
-                  why="Нужна для точной инструкции по установке кода на последнем шаге."
+                  why="В конце покажем по шагам, как подключить документы на вашей платформе."
                 />
                 {/* Два столбца, как у всех карточек анкеты (владелец 23.09): в
                     четыре в ряд края не совпадали со счётчиками и формами ниже. */}
@@ -336,7 +336,7 @@ export default function SiteClient() {
                   required
                   whyOpen={analyticsWhy}
                   onWhy={() => setAnalyticsWhy(!analyticsWhy)}
-                  why="Нужно для документа «Политика обработки cookie» — в нём назовём счётчики, которые стоят на сайте."
+                  why="Счётчики, которые стоят на сайте, перечислим в «Политике обработки куки»."
                 />
                 <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-analytics">
                   {ANALYTICS.map((o) => (

@@ -466,17 +466,38 @@ export default function BillingClient() {
     return v;
   }
 
+  function cardErrors() {
+    const digits = cardNo.replace(/\D/g, '');
+    const [mm] = cardExp.split('/');
+    const errs = {};
+    if (digits.length !== 16) errs.no = 'Номер карты — 16 цифр.';
+    if (!/^\d{2}\/\d{2}$/.test(cardExp) || +mm < 1 || +mm > 12) errs.exp = 'Срок действия — в формате ММ/ГГ.';
+    if (!/^\d{3}$/.test(cardCvc)) errs.cvc = 'CVC — 3 цифры на обороте карты.';
+    return errs;
+  }
+
+  // Привязать карту прямо в «Пополнении», без пополнения (владелец 24.09):
+  // «карту привяжем при пополнении» оставляло её на потом, а смысл привязки —
+  // чтобы потом о ней не вспоминать.
+  function bindCard() {
+    const errs = cardErrors();
+    setCardErr(errs);
+    if (Object.keys(errs).length) return;
+    saveBilling({ method: 'Картой', card: { last4: cardNo.replace(/\D/g, '').slice(-4), exp: cardExp } });
+    setCardNo('');
+    setCardExp('');
+    setCardCvc('');
+    setMethod('Картой');
+    setPayMethod('Картой');
+    setMethodOpen(false);
+  }
+
   // Карта — на аккаунт: привязанной один раз, ею пополняют баланс и дальше.
   function topupByCard() {
     const sum = checkAmount();
     let ok = Boolean(sum);
     if (!b.card) {
-      const digits = cardNo.replace(/\D/g, '');
-      const [mm] = cardExp.split('/');
-      const errs = {};
-      if (digits.length !== 16) errs.no = 'Номер карты — 16 цифр.';
-      if (!/^\d{2}\/\d{2}$/.test(cardExp) || +mm < 1 || +mm > 12) errs.exp = 'Срок действия — в формате ММ/ГГ.';
-      if (!/^\d{3}$/.test(cardCvc)) errs.cvc = 'CVC — 3 цифры на обороте карты.';
+      const errs = cardErrors();
       setCardErr(errs);
       if (Object.keys(errs).length) ok = false;
     }
@@ -562,13 +583,13 @@ export default function BillingClient() {
 
   // «Что входит»: рамка зависит от состояния, один список на разные
   // ситуации врал бы в части из них.
-  const common = ['Готовый пакет документов под ваш сайт', 'Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты', 'Документы по постоянным адресам — ссылки не ломаются'];
+  const common = ['Готовый пакет документов под ваш сайт', 'Виджет: куки-баннер и подвал, из которого открываются документы и реквизиты', 'Документы по постоянным адресам — ссылки не ломаются'];
   const frames =
     main.kind === 'paid' || !single
-      ? [['Что работает по подписке', ['Пакет документов под ваш сайт, собранный по вашим ответам', 'Виджет: cookie-баннер и подвал, из которого открываются документы и реквизиты', 'Маркировка упоминаний по реестрам на ваших страницах', 'Переписываем документы при изменении закона и присылаем письмо', 'Проверяем, что виджет и документы на сайте на месте']]]
+      ? [['Что работает по подписке', ['Пакет документов под ваш сайт, собранный по вашим ответам', 'Виджет: куки-баннер и подвал, из которого открываются документы и реквизиты', 'Маркировка упоминаний по реестрам на ваших страницах', 'Переписываем документы при изменении закона и присылаем письмо', 'Проверяем, что виджет и документы на сайте на месте']]]
       : main.kind === 'expired'
         ? [
-            ['Сейчас отключено', ['Виджет снят с сайта — cookie-баннер и подвал не показываются', 'Документы в кабинете открываются только на просмотр']],
+            ['Сейчас отключено', ['Виджет снят с сайта — куки-баннер и подвал не показываются', 'Документы в кабинете открываются только на просмотр']],
             ['Оплата включит снова', ['Виджет и документы заработают как прежде', 'Следим за законом и обновляем документы сами', 'Уведомления, если что-то изменилось']],
           ]
         : [
@@ -652,6 +673,43 @@ export default function BillingClient() {
 
   const sumText = formatRub(Number(String(amount).replace(/\D/g, '')) || 0);
 
+  function cardFields() {
+    return (
+      <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
+        <Field
+          label="Номер карты"
+          required
+          inputMode="numeric"
+          placeholder="0000 0000 0000 0000"
+          value={cardNo}
+          onChange={(e) => setCardNo(e.target.value.replace(/[^\d ]/g, '').slice(0, 19))}
+          error={cardErr.no}
+        />
+        <Field
+          label="Срок"
+          required
+          inputMode="numeric"
+          placeholder="ММ/ГГ"
+          value={cardExp}
+          onChange={(e) => {
+            const d = e.target.value.replace(/\D/g, '').slice(0, 4);
+            setCardExp(d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d);
+          }}
+          error={cardErr.exp}
+        />
+        <Field
+          label="CVC"
+          required
+          inputMode="numeric"
+          placeholder="000"
+          value={cardCvc}
+          onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
+          error={cardErr.cvc}
+        />
+      </div>
+    );
+  }
+
   function cardPart() {
     return (
       <div>
@@ -661,38 +719,7 @@ export default function BillingClient() {
           </p>
         ) : (
           <>
-            <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
-              <Field
-                label="Номер карты"
-                required
-                inputMode="numeric"
-                placeholder="0000 0000 0000 0000"
-                value={cardNo}
-                onChange={(e) => setCardNo(e.target.value.replace(/[^\d ]/g, '').slice(0, 19))}
-                error={cardErr.no}
-              />
-              <Field
-                label="Срок"
-                required
-                inputMode="numeric"
-                placeholder="ММ/ГГ"
-                value={cardExp}
-                onChange={(e) => {
-                  const d = e.target.value.replace(/\D/g, '').slice(0, 4);
-                  setCardExp(d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d);
-                }}
-                error={cardErr.exp}
-              />
-              <Field
-                label="CVC"
-                required
-                inputMode="numeric"
-                placeholder="000"
-                value={cardCvc}
-                onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                error={cardErr.cvc}
-              />
-            </div>
+            {cardFields()}
             <p className="mt-3 text-[12px] text-ink/60">Карта привяжется к аккаунту — ею можно будет пополнять баланс и дальше.</p>
           </>
         )}
@@ -1042,12 +1069,20 @@ export default function BillingClient() {
                   <Row
                     label="Способ"
                     value={method === 'Картой' ? (b.card ? `Карта ···· ${b.card.last4}` : 'Картой') : 'По счёту'}
-                    note={method === 'Картой' ? (b.card ? `до ${b.card.exp}` : 'карту привяжете при пополнении') : 'счёт на почту, оплата переводом'}
+                    note={method === 'Картой' ? (b.card ? `до ${b.card.exp}` : 'карта не привязана') : 'счёт на почту, оплата переводом'}
                     action="Изменить"
                     open={methodOpen}
                     onAction={() => setMethodOpen(!methodOpen)}
                   >
                     <Segmented options={['Картой', 'По счёту']} value={method} onChange={pickMethod} />
+                    {method === 'Картой' && !b.card && (
+                      <div className="mt-5">
+                        {cardFields()}
+                        <button type="button" onClick={bindCard} className={`mt-4 ${PRIMARY_SM}`}>
+                          Привязать карту
+                        </button>
+                      </div>
+                    )}
                     {b.card && (
                       <button
                         type="button"

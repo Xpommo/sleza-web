@@ -12,6 +12,8 @@ import { CookieBannerPreview, FooterPreview, WIDGET_DEFAULTS, widgetSettings } f
 import { RING, AnketaFrame } from '../_shared/AnketaChrome';
 import { loadAnketa, markStepDone } from '../_shared/anketaState';
 import { DOCUMENTS, MARK, docOrigin, docPreview } from '../../../../lib/docPackage';
+import RequisitesModal from '../../site/_shared/RequisitesModal';
+import AnswerModal, { QUESTION_TITLES } from './AnswerModal';
 
 // Превью с выделенными ответами: свои данные внутри юридического текста —
 // то, что показывает «документ собран под вас», а не шаблон (владелец 23.09:
@@ -37,6 +39,9 @@ export default function DocumentsClient() {
   // в полотно, от которого и уходили.
   const [openDoc, setOpenDoc] = useState(null);
   const [widget, setWidget] = useState(WIDGET_DEFAULTS);
+  // Какой ответ правят сейчас — окно с одним этим вопросом.
+  const [editing, setEditing] = useState(null);
+  const reload = () => setAnswers(loadAnketa());
 
   useEffect(() => {
     const saved = loadAnketa();
@@ -61,18 +66,22 @@ export default function DocumentsClient() {
                     <p className="text-[13px] leading-6 text-ink/70">
                       <MarkedText text={docPreview(doc, { ...answers, domain })} />
                     </p>
-                    {/* Вторая половина петли: ответ виден в документе, и из
-                        документа можно вернуться ровно к тому ответу. */}
-                    <p className="mt-3 text-[12px] text-ink/60">
-                      {docOrigin(doc, answers).why} ·{' '}
-                      <button
-                        type="button"
-                        onClick={() => router.push(docOrigin(doc, answers).step)}
-                        className={`whitespace-nowrap rounded font-bold text-ink/60 hover:text-ink ${RING}`}
-                      >
-                        Изменить ответ →
-                      </button>
-                    </p>
+                    {/* Вторая половина петли: ответ виден в документе, и прямо
+                        отсюда правится ровно тот ответ, из которого взяты данные,
+                        — окном, без возврата в анкету (владелец 24.09). */}
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-ink/60">
+                      <span>Изменить ответ:</span>
+                      {docOrigin(doc, answers).sources.map((k) => (
+                        <button
+                          key={k}
+                          type="button"
+                          onClick={() => setEditing(k)}
+                          className={`rounded-lg border border-line bg-white px-2.5 py-1 font-semibold text-ink/80 transition hover:border-brand hover:text-brand ${RING}`}
+                        >
+                          {QUESTION_TITLES[k]}
+                        </button>
+                      ))}
+                    </div>
                   </DocRow>
                 ))}
               </DocRowList>
@@ -90,7 +99,7 @@ export default function DocumentsClient() {
                 )}
               </div>
 
-              <h3 className="mb-3 text-[15px] font-bold">Cookie-баннер</h3>
+              <h3 className="mb-3 text-[15px] font-bold">Куки-баннер</h3>
               <CookieBannerPreview theme={widget.bannerTheme} note={false} />
 
               <h3 className="mb-3 mt-7 text-[15px] font-bold">Подвал сайта</h3>
@@ -135,6 +144,8 @@ export default function DocumentsClient() {
                 Поставить код на сайт <ArrowRightIcon size={17} />
               </button>
             </div>
+      {editing === 'requisites' && <RequisitesModal track={false} onClose={() => setEditing(null)} onSaved={reload} />}
+      {editing && editing !== 'requisites' && <AnswerModal kind={editing} onClose={() => setEditing(null)} onSaved={reload} />}
     </AnketaFrame>
   );
 }

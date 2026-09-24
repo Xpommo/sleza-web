@@ -59,7 +59,7 @@ export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, o
                 ссылке всегда — иначе бывший клиент становится нарушителем из-за
                 нерабочей ссылки на нашей стороне (решение 24.08). */}
             <ul className="mt-3 space-y-2 rounded-xl bg-danger/[0.06] p-4 text-[13px] leading-5 text-ink/75">
-              <li>· Виджет исчезнет с {site.domain} — cookie-баннер и подвал со ссылками</li>
+              <li>· Виджет исчезнет с {site.domain} — куки-баннер и подвал со ссылками</li>
               <li>· Документы останутся в текущей версии: следить за изменениями закона и переписывать их мы перестанем</li>
             </ul>
             <div className="mt-6 flex flex-wrap gap-3">

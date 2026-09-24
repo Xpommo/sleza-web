@@ -34,7 +34,9 @@ function fromAnketa(a) {
   };
 }
 
-export default function RequisitesModal({ onClose, onSaved }) {
+// track={false} — правка из анкеты (шаг 5): документы ещё не опубликованы,
+// и новой версии в истории у них быть не должно.
+export default function RequisitesModal({ onClose, onSaved, track = true }) {
   const dialog = useRef(null);
   useDialog(dialog, onClose);
   const [initial] = useState(() => fromAnketa(siteAnketa(loadAnketa())));
@@ -70,7 +72,7 @@ export default function RequisitesModal({ onClose, onSaved }) {
         contacts: { ...a.contacts, companyMail: v.companyMail, companyPhone: v.companyPhone },
         // Реквизиты стоят в документе «Реквизиты владельца» — правка
         // выпускает его новую версию, и она видна в истории изменений.
-        docEdits: [...(a.docEdits || []), { at: Date.now(), doc: '01', what: 'Изменились реквизиты' }],
+        ...(track && { docEdits: [...(a.docEdits || []), { at: Date.now(), doc: '01', what: 'Изменились реквизиты' }] }),
       });
     }
     onSaved?.(changed);
