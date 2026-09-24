@@ -76,16 +76,12 @@ export default function SettingsClient() {
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-3xl">
           <header>
-            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Настройки</h1>
-            {/* Реквизиты компании правятся в «Документах» сайта, у документа
-                «Реквизиты владельца» (решение 23.09) — как и было в макете. */}
-            <p className="mt-3 text-[15px] leading-6 text-ink/65">
-              Ваши контакты и вход в кабинет — общие для всех сайтов. Данные компании для документов задаются отдельно у
-              каждого сайта — в его «Документах».
-            </p>
+            {/* Без поясняющей строки (владелец 24.09). Реквизиты компании
+                правятся в «Документах» сайта — об этом отвечает FAQ «Поддержки». */}
+            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px] lg:sr-only">Настройки</h1>
           </header>
 
-          <h2 className="mt-9 text-lg font-bold tracking-[-0.02em]">Контакты</h2>
+          <h2 className="mt-9 text-lg font-bold tracking-[-0.02em] lg:mt-0">Контакты</h2>
           <Card>
             {editing ? (
               <div className="space-y-4">

@@ -102,7 +102,7 @@ export default function SiteWidgetClient() {
 
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
-          <SiteHeader title="Виджет" domain={site.domain} context="что видят посетители сайта">
+          <SiteHeader title="Виджет" domain={site.domain}>
             {site.installed && !site.expired && <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/65">Проверили сегодня — вот что видят посетители {site.domain}.</p>}
           </SiteHeader>
 

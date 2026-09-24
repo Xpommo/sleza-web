@@ -397,14 +397,17 @@ export function SettingsSidebar({ user = CURRENT_USER }) {
 // Заголовок раздела сайта — одна схема на все разделы (как в макете): H1 —
 // имя раздела, под ним строка контекста с доменом. Раньше у «Обзора» H1 был
 // домен, а у остальных — имя раздела, и структура менялась от вкладки к вкладке.
-export function SiteHeader({ title, domain, context, children }) {
+// Заголовок раздела — только на телефоне (владелец 24.09): на компьютере где
+// вы находитесь, показывает сайдбар, и крупное «Документы» повторяло пункт
+// меню. На телефоне сайдбара нет, а «Подписка», «Настройки» и «Поддержка»
+// в нижнем меню все под «Ещё» — без заголовка не понять, где ты. Скринридеру
+// заголовок остаётся всегда (lg:sr-only). Домен — тоже только на телефоне:
+// на компьютере он стоит в сайдбаре над меню.
+export function SiteHeader({ title, domain, children }) {
   return (
     <header>
-      <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">{title}</h1>
-      <p className="mt-2 text-[15px] text-ink/60">
-        <span className="font-semibold text-ink/80">{domain}</span>
-        {context && <> · {context}</>}
-      </p>
+      <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px] lg:sr-only">{title}</h1>
+      <p className="mt-2 text-[15px] font-semibold text-ink/80 lg:hidden">{domain}</p>
       {children}
     </header>
   );

@@ -194,20 +194,17 @@ export default function SitesClient() {
       <section className="flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           <header>
-            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Мои сайты</h1>
-            <p className="mt-3 text-[15px] leading-6 text-ink/60">
-              У каждого сайта свои документы, виджет, тариф и год подписки.
-            </p>
+            {/* Без поясняющих строк (владелец 24.09): страница начинается с дела. */}
+            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px] lg:sr-only">Мои сайты</h1>
           </header>
 
           {any ? (
             <>
-              <div className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between lg:mt-0">
                 <div>
                   <p className="text-sm font-semibold text-ink/70">
                     {sites.length} {plural(sites.length, 'сайт', 'сайта', 'сайтов')}
                   </p>
-                  <p className="mt-1 text-xs text-ink/60">Документы и виджет — внутри карточки сайта</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <button

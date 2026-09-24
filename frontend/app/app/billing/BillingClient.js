@@ -1044,7 +1044,7 @@ export default function BillingClient() {
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-4xl">
           <header>
-            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Подписка</h1>
+            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px] lg:sr-only">Подписка</h1>
             <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/65">{lead}</p>
           </header>
 

@@ -75,7 +75,7 @@ export default function SiteDocumentsClient() {
 
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
-          <SiteHeader title="Документы" domain={site.domain} context="версии и причины изменений">
+          <SiteHeader title="Документы" domain={site.domain}>
             <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/60">
               {live
                 ? 'Открыты по постоянным адресам — ссылки в подвале сайта не ломаются. Когда меняется закон, мы переписываем текст и поднимаем версию.'

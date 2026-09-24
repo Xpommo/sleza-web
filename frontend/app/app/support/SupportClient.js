@@ -21,7 +21,7 @@ const FAQ = [
   ],
   [
     'Как обновить реквизиты компании?',
-    'В разделе «Документы» сайта, в строке «Реквизиты владельца», нажмите карандаш — поправите поля сами. Документ и подвал сайта обновятся вместе с ними. Реквизиты для счёта — отдельные, они в «Подписке».',
+    'В разделе «Документы» сайта, в блоке «Что можно изменить», нажмите «Изменить» у «Реквизитов владельца» — поправите поля сами. Документ и подвал сайта обновятся вместе с ними. Реквизиты для счёта — отдельные, они в «Подписке».',
   ],
   ['Могу я добавить второй сайт?', 'Да — на «Мои сайты» нажмите «Добавить сайт». Документы, виджет, тариф и год подписки у каждого сайта свои: оплата его года спишется с того же баланса, в его дату.'],
   [
@@ -96,11 +96,11 @@ export default function SupportClient() {
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-3xl">
           <header>
-            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">Поддержка</h1>
-            <p className="mt-3 text-[15px] leading-6 text-ink/65">Частые вопросы про личный кабинет — и форма, если нужен ответ от нас.</p>
+            {/* Без поясняющей строки (владелец 24.09): она повторяла «Частые вопросы». */}
+            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px] lg:sr-only">Поддержка</h1>
           </header>
 
-          <h2 className="mb-4 mt-9 text-lg font-bold tracking-[-0.02em]">Частые вопросы</h2>
+          <h2 className="mb-4 mt-9 text-lg font-bold tracking-[-0.02em] lg:mt-0">Частые вопросы</h2>
           <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
             {FAQ.map(([q, a], i) => (
               <Faq key={q} id={`faq-${i}`} q={q} a={a} open={openQ === i} onToggle={() => setOpenQ(openQ === i ? null : i)} />
