@@ -35,8 +35,8 @@ const SCREENS = [
     ['Виджет', '/app/site/widget'],
   ]],
   ['Аккаунт', [
-    ['Оплата', '/app/billing'],
-    ['Бухгалтерия', '/app/accounting'],
+    ['Баланс и платежи', '/app/billing'],
+    ['Документы об оплате', '/app/accounting'],
     ['Настройки', '/app/settings'],
     ['Поддержка', '/app/support'],
   ]],
@@ -83,7 +83,7 @@ const PRESETS = [
     { key: 'beta', domain: 'beta-kids.ru', company: 'ИП Иванова М. С.', tariff: 'Тариф У', trialStartedAt: Date.now() - 200 * DAY, paidAt: Date.now() - 195 * DAY, cancelled: false },
     { key: 'gamma', domain: 'gamma-shop.ru', company: 'ООО «Гамма»', tariff: 'Тариф Х', trialStartedAt: Date.now() - 120 * DAY, paidAt: Date.now() - 115 * DAY, leaving: true, leavingAt: Date.now() - 2 * DAY },
     { key: 'delta', domain: 'delta-clinic.ru', company: 'ООО «Дельта»', tariff: 'Тариф Z', trialStartedAt: Date.now() - DAY, cancelled: false },
-  ] }), '/app/billing'],
+  ] }), '/app/sites?view=table'],
   ['Оплачено, автопродление выключено', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, cancelled: true, cancelledAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
   // Выключенное автопродление — продление вручную; уход — «Отключить сайт»
   // в «⋯» «Оплаты» (владелец 24.09).
@@ -141,7 +141,8 @@ export default function MaketBar() {
     // Полная перезагрузка, а не router.push: экраны читают анкету при
     // монтировании. Префикс пути (basePath на GitHub Pages) берём из адреса.
     const base = window.location.pathname.replace(/\/app(\/.*)?$/, '');
-    window.location.assign(`${base}${to}/`);
+    const [path, query] = to.split('?');
+    window.location.assign(`${base}${path}/${query ? `?${query}` : ''}`);
   }
 
   if (hidden) {

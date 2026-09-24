@@ -172,14 +172,14 @@ export default function SiteOverviewClient() {
         : b.leaving
           ? button('Вернуть в подписку', comeBack, false)
           : lastDay && b.cancelled
-            ? button('Оплатить год', () => go('/app/billing?pay=current'))
+            ? button('Оплатить год', () => go('/app/sites?view=table&pay=current'))
             : lastDay && short
               ? button('Пополнить', () => go('/app/billing?topup=1'))
               : null,
     };
   } else if (state === 'paid') {
     // Продление вручную: за месяц до конца срока — жёлтым и «Продлить на
-    // год», раньше — просто факт (как «Скоро» в «Оплате»).
+    // год», раньше — просто факт (как «Скоро» в таблице сайтов).
     const end = new Date(b.paidAt);
     end.setFullYear(end.getFullYear() + (b.paidYears || 1));
     const renewSoon = b.cancelled && !b.leaving && end.getTime() - now < 30 * DAY;
@@ -194,7 +194,7 @@ export default function SiteOverviewClient() {
       action: b.leaving
         ? button('Вернуть в подписку', comeBack, false)
         : renewSoon
-          ? button('Продлить на год', () => go('/app/billing?pay=current'))
+          ? button('Продлить на год', () => go('/app/sites?view=table&pay=current'))
           : !a.installed
             ? button('Поставить код на сайт', () => go('/app/start/code'))
             : null,
@@ -204,14 +204,14 @@ export default function SiteOverviewClient() {
       value: 'Ждём оплату',
       tone: 'warn',
       facts: [`счёт № ${b.invoice?.no}`, 'обычно 1–3 рабочих дня'],
-      action: button('Открыть счёт', () => go('/app/billing?pay=current')),
+      action: button('Открыть счёт', () => go('/app/sites?view=table&pay=current')),
     };
   } else if (state === 'expired') {
     sub = {
       value: 'Остановлена',
       tone: 'danger',
       facts: [`пробный период закончился ${formatDate(a.trialStartedAt + TRIAL_MS)}`, 'виджет снят с сайта'],
-      action: button('Оплатить год', () => go('/app/billing?pay=current')),
+      action: button('Оплатить год', () => go('/app/sites?view=table&pay=current')),
     };
   } else {
     sub = {
@@ -223,7 +223,7 @@ export default function SiteOverviewClient() {
         : button('Поставить код на сайт', () => go('/app/start/code')),
     };
   }
-  const subLink = state === 'trial' && !tariff ? ['Выбрать тариф', '/app/billing?tariff=current'] : ['Тариф и оплата', '/app/billing'];
+  const subLink = state === 'trial' && !tariff ? ['Выбрать тариф', '/app/sites?view=table&tariff=current'] : ['Тариф и оплата', '/app/sites?view=table'];
 
   // 2. Все ли документы актуальны и когда обновлены.
   const madeAt = a.trialStartedAt || now;

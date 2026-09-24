@@ -10,17 +10,15 @@ import { SITE_ID } from '../../../lib/docPackage';
 import { Field } from '../start/_shared/AnketaChrome';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
-import { accountSites, formatRub } from '../site/_shared/sites';
-import { formatDate } from '../site/_shared/subscription';
-import { BTN_OUTLINE, LINK, Panel, Row } from '../billing/BillingBits';
+import { accountSites } from '../site/_shared/sites';
+import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, Panel, Row } from '../billing/BillingBits';
 
-// «Бухгалтерия» (владелец 24.09): то, что нужно бухгалтеру, — отдельно, чтобы
-// «Оплата» осталась про баланс и сайты. Появляется после первого пополнения,
-// как раньше блок «Для бухгалтерии»; до него здесь пусто.
+// «Баланс и платежи» → вкладка «Документы» (владелец 24.09; до того — раздел
+// «Бухгалтерия»): куда присылать чеки, счета и акты, и сами акты. История
+// операций — на вкладке «Платежи»: это движение по балансу.
 // Акт — на оплаченный год сайта (списание с баланса), не на пополнение.
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const FIRST = 8;
 
 export default function AccountingClient() {
   const router = useRouter();
@@ -29,9 +27,6 @@ export default function AccountingClient() {
   const [email, setEmail] = useState('');
   const [editing, setEditing] = useState(false);
   const [err, setErr] = useState(null);
-  const [all, setAll] = useState(false);
-  // «Посмотреть историю счетов» в «⋯» сайта в «Оплате» — история только его.
-  const [siteFilter, setSiteFilter] = useState(null);
 
   useEffect(() => {
     const saved = loadAnketa();
@@ -42,7 +37,6 @@ export default function AccountingClient() {
     setA(saved);
     setUser(accountUser(CURRENT_USER));
     setEmail(saved.billing?.actsEmail || '');
-    setSiteFilter(new URLSearchParams(window.location.search).get('site'));
   }, [router]);
 
   if (!a) return null;
@@ -51,8 +45,6 @@ export default function AccountingClient() {
   const ops = b.ops || [];
   const started = Boolean(b.method || ops.length);
   const paidSites = accountSites(a).filter((s) => s.period && (s.kind === 'paid' || s.kind === 'off-soon'));
-  const list = [...ops].reverse().filter((op) => !siteFilter || op.site === siteFilter);
-  const shown = siteFilter || all ? list : list.slice(0, FIRST);
 
   function save() {
     if (!EMAIL_RE.test(email)) {
@@ -67,17 +59,17 @@ export default function AccountingClient() {
 
   return (
     <main className="min-h-screen bg-warm text-ink lg:flex">
-      <AccountSidebar active="Бухгалтерия" user={user} />
+      <AccountSidebar active={MONEY_TITLE} user={user} />
 
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-4xl">
-          <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px] lg:sr-only">Бухгалтерия</h1>
+          <MoneyHeader tab="Документы" />
 
           {!started ? (
-            <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7 lg:mt-0">
+            <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
               <p className="text-sm text-ink/70">Чеки, счета и акты появятся здесь после первого пополнения баланса.</p>
               <Link href="/app/billing" className={`mt-3 inline-block ${LINK}`}>
-                Перейти в «Оплату» →
+                Пополнить баланс →
               </Link>
             </section>
           ) : (
@@ -111,36 +103,6 @@ export default function AccountingClient() {
                   </div>
                 </Row>
               </Panel>
-
-              {/* Однострочным списком: у агента операций десятки (владелец 23.09). */}
-              {ops.length > 0 && (
-                <Panel title={siteFilter ? `История операций · ${siteFilter}` : 'История операций'}>
-                  {siteFilter && (
-                    <button type="button" onClick={() => setSiteFilter(null)} className={`mb-1 ${LINK}`}>
-                      Показать всю
-                    </button>
-                  )}
-                  <ul className="divide-y divide-line">
-                    {shown.map((op) => (
-                      <li key={`${op.at}-${op.kind}-${op.site || ''}`} className="flex items-baseline gap-3 py-2 text-[13px]">
-                        <span className="w-20 shrink-0 text-ink/60">{formatDate(op.at)}</span>
-                        <span className="min-w-0 flex-1 break-words text-ink/80">
-                          {op.kind === 'topup' ? `Пополнение ${op.method === 'Картой' ? 'картой' : 'по счёту'}` : `Оплата года · ${op.site}`}
-                        </span>
-                        <span className={`shrink-0 font-semibold ${op.kind === 'topup' ? 'text-ok' : 'text-ink'}`}>
-                          {op.kind === 'topup' ? '+' : '−'}
-                          {formatRub(op.amount)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  {!siteFilter && list.length > FIRST && (
-                    <button type="button" onClick={() => setAll(!all)} className={`mt-1 ${LINK}`}>
-                      {all ? 'Свернуть' : `Вся история — ${list.length}`}
-                    </button>
-                  )}
-                </Panel>
-              )}
 
               <Panel title="Акты">
                 {paidSites.length > 0 ? (

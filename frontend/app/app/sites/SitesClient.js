@@ -12,6 +12,7 @@ import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
 import { paidPeriod, subState, trialEnds } from '../site/_shared/subscription';
 import { MAIN, accountSites, addSite, cardStatus, openSite, siteView } from '../site/_shared/sites';
+import BillingClient from '../billing/BillingClient';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
@@ -33,12 +34,12 @@ function anketaProgress(a) {
 function siteStatus(a, now = Date.now()) {
   const sub = subState(a, now);
   const open = { action: 'Открыть сайт', href: '/app/site' };
-  // Отключают сайт в «Оплате» — туда и ведёт карточка (решение 23.09).
-  if (sub === 'expired') return { tone: 'warn', label: 'Пробный период закончился', meta: 'виджет отключён', action: 'Оплатить', href: '/app/billing?pay=current' };
+  // Отключают сайт в «Моих сайтах», вид «Таблица» (владелец 24.09).
+  if (sub === 'expired') return { tone: 'warn', label: 'Пробный период закончился', meta: 'виджет отключён', action: 'Оплатить', href: '/app/sites?view=table&pay=current' };
   if (sub === 'pending') return { tone: 'info', label: 'Счёт выставлен', meta: 'оплата обычно проходит за 1–3 рабочих дня', ...open };
   if (sub === 'paid') {
     const to = paidPeriod(a.billing.paidAt, a.billing.paidYears).to;
-    // Отключают сайт в «⋯» «Оплаты»; выключенное автопродление — не уход,
+    // Отключают сайт в «⋯» строки в виде «Таблица»; выключенное автопродление — не уход,
     // а продление вручную: карточка та же, что у оплаченного (владелец 24.09).
     if (a.billing.leaving) return { tone: 'warn', label: 'Сайт отключается', meta: `работает до ${to}`, ...open };
     // Те же слова, что в баннере «Обзора»: оплачено, но документы ещё не на сайте.
@@ -74,7 +75,6 @@ const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring
 // «Поддержка» — постоянный пункт, а не запрятанный в меню аккаунта.
 
 const PRIMARY_BTN = `mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`;
-const ROW_BTN = `rounded-lg border border-line px-3 py-2 text-xs font-bold transition hover:border-brand hover:text-brand ${RING}`;
 
 function plural(n, one, few, many) {
   const m10 = n % 10;
@@ -178,12 +178,23 @@ export default function SitesClient() {
   useEffect(() => {
     setUser(accountUser(CURRENT_USER));
     setSites(listSites(loadAnketa()));
+    // Оплата сайта с «Обзора» и из карточки ведёт сюда, в таблицу, где год
+    // оплачивают в строке сайта (владелец 24.09).
+    const q = new URLSearchParams(window.location.search);
+    if (q.get('view') === 'table' || q.get('pay') || q.get('tariff')) setView('table');
   }, []);
 
   // Настоящий сайт становится открытым (его анкета и кабинет), демо —
   // открывается поверх основного.
   function open(site) {
     openSite(site.key);
+    // «Оплатить» из карточки — та же страница, вид «Таблица» с оплатой этого
+    // сайта: адрес меняем сразу, таблица читает его при появлении.
+    if (site.status.href.startsWith('/app/sites?')) {
+      window.history.replaceState(null, '', `${window.location.pathname}?${site.status.href.split('?')[1]}`);
+      setView('table');
+      return;
+    }
     router.push(site.status.href);
   }
 
@@ -242,37 +253,11 @@ export default function SitesClient() {
                   ))}
                 </div>
               ) : (
-                <div className="mt-6 overflow-hidden rounded-2xl border border-line bg-white">
-                  <table className="w-full text-left text-sm">
-                    <thead className="border-b border-line text-xs text-ink/60">
-                      <tr>
-                        <th className="px-5 py-3 font-semibold">Сайт</th>
-                        <th className="px-5 py-3 font-semibold">Состояние</th>
-                        <th className="px-5 py-3 font-semibold">Анкета</th>
-                        <th className="px-5 py-3" />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sites.map((x, i) => (
-                        <tr key={x.key} className={i ? 'border-t border-line' : ''}>
-                          <td className="px-5 py-4">
-                            <p className="font-bold">{x.domain}</p>
-                            {x.company && <p className="mt-0.5 text-xs text-ink/60">{x.company}</p>}
-                          </td>
-                          <td className="px-5 py-4">
-                            <p className="font-semibold text-ink/80">{x.status.label}</p>
-                            <p className="mt-0.5 text-xs text-ink/60">{x.demo ? x.demoMeta : x.status.meta}</p>
-                          </td>
-                          <td className="px-5 py-4 text-ink/70">{x.finished ? 'пройдена' : `${x.steps} из ${x.total}`}</td>
-                          <td className="px-5 py-4 text-right">
-                            <button type="button" onClick={() => open(x)} className={ROW_BTN}>
-                              {x.status.action} →
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                // «Таблица» — сайты и их подписка: тариф, статус, автопродление,
+                // «⋯», оплата года прямо в строке (владелец 24.09, по образцу
+                // регистраторов: за что платим — у самого сайта).
+                <div className="mt-6">
+                  <BillingClient mode="sites" />
                 </div>
               )}
             </>
@@ -303,7 +288,7 @@ export default function SitesClient() {
           </div>
           )}
           <p className="mt-6 text-center text-xs text-ink/60">
-            {any ? (anyFinished ? 'Оплата списывается с баланса в «Оплате»; автопродление выключается у каждого сайта отдельно.' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
+            {any ? (anyFinished && view === 'cards' ? 'Тариф, автопродление и оплата года каждого сайта — в виде «Таблица».' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
           </p>
         </div>
       </section>

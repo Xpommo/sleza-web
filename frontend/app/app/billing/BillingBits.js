@@ -1,9 +1,10 @@
 'use client';
 
-// Общие куски «Оплаты» и «Бухгалтерии» (владелец 24.09 — акты, история и почта
+// Общие куски «Баланса и платежей» (вкладки «Платежи» и «Документы») (владелец 24.09 — акты, история и почта
 // для документов вынесены из «Оплаты» в свой раздел): карточка-панель и строка
 // «подпись — значение — Изменить», как в «Настройках».
 
+import Link from 'next/link';
 import { RING } from '../site/_shared/SiteChrome';
 
 export const BTN_OUTLINE = `rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
@@ -48,5 +49,38 @@ export function Row({ label, value, note, action, onAction, open, actions, child
       </div>
       {open && children && <div className="mt-4 sm:pl-40">{children}</div>}
     </div>
+  );
+}
+
+// «Баланс и платежи» — один раздел про деньги аккаунта, две вкладки
+// (владелец 24.09, по образцу хостингов: у Timeweb Cloud — «Баланс и
+// платежи» с вкладкой «Документы»). За что платим — сайты, их тариф,
+// автопродление и оплата года — в «Моих сайтах», вид «Таблица».
+export const MONEY_TITLE = 'Баланс и платежи';
+const MONEY_TABS = [
+  ['Платежи', '/app/billing'],
+  ['Документы', '/app/accounting'],
+];
+
+export function MoneyHeader({ tab, children }) {
+  return (
+    <header>
+      <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px] lg:sr-only">{MONEY_TITLE}</h1>
+      <nav aria-label={MONEY_TITLE} className="mt-6 flex gap-7 border-b border-line lg:mt-0">
+        {MONEY_TABS.map(([label, href]) => (
+          <Link
+            key={label}
+            href={href}
+            aria-current={tab === label ? 'page' : undefined}
+            className={`-mb-px rounded-t border-b-2 pb-3 text-sm font-bold transition ${RING} ${
+              tab === label ? 'border-ink text-ink' : 'border-transparent text-ink/60 hover:text-ink'
+            }`}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
+      {children}
+    </header>
   );
 }

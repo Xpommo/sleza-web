@@ -234,7 +234,7 @@ Three warm neutrals do almost all the work; blue is spent on action and choice; 
 - **Amber Caution** (`#b87900` for fills, borders and dots; **Amber Ink** `#8a5a00`, `warn-ink`, for text): needs attention soon (the last day of the trial, auto-renew off, money short for a debit within a month, a field to review). Amber text is always `warn-ink`: `#b87900` as text on its tint was 3.2:1. Also the yellow edit frame (`border-warn/40 bg-warn/[0.06]`) around a found-by-INN card being changed.
 - **Rust Alert** (`#d63816`): blocked, overdue, field error, destructive confirmation.
 
-**The Near-Term Warning Rule.** Amber means "act soon" or "this site is set to switch off" (auto-renew off). For money it is spent only on a debit the balance won't cover within about a month (`SOON` in «Оплата»), and for a trial only on its last day (`warnWithin`): a trial is good news and carries no warning color before then, on «Обзор» and in «Оплата» alike. A shortfall is named once: in the balance card (a site row repeats it only when there are several sites, to show which one). A balance short for a debit a year away is not a warning at all, and neither is a shortfall the bound card will cover (auto top-up on).
+**The Near-Term Warning Rule.** Amber means "act soon" or "this site is set to switch off" (auto-renew off). For money it is spent only on a debit the balance won't cover within about a month (`SOON` in the sites table), and for a trial only on its last day (`warnWithin`): a trial is good news and carries no warning color before then, on «Обзор» and in the sites table alike. A shortfall is named once: in the balance card (a site row repeats it only when there are several sites, to show which one). A balance short for a debit a year away is not a warning at all, and neither is a shortfall the bound card will cover (auto top-up on).
 
 **The Tint-Not-Fill Rule.** A status color is shown as text on its own 10% tint (pill or notice), never as a solid fill behind white text. The only solid fills in the system are blue (action/choice) and ink (you are here).
 
@@ -246,7 +246,7 @@ Three warm neutrals do almost all the work; blue is spent on action and choice; 
 **Character:** Onest is a friendly, slightly geometric grotesque that stays legible at 12–14px in Cyrillic; tight negative tracking on headings gives it the weight of a letterhead. JetBrains Mono appears small and uppercase-spaced, like the typed fields on a form.
 
 ### Hierarchy
-- **Display** (700, 28px mobile / 36px from `sm`, tracking −0.045em): the one H1 per screen. On «Обзор» it is the site's domain; on the other sections («Документы», «Оплата», «Бухгалтерия»…) it is visible on phones only (`lg:sr-only` on desktop, see **The Sidebar-Says-Where Rule**).
+- **Display** (700, 28px mobile / 36px from `sm`, tracking −0.045em): the one H1 per screen. On «Обзор» it is the site's domain; on the other sections («Документы», «Мои сайты», «Баланс и платежи»…) it is visible on phones only (`lg:sr-only` on desktop, see **The Sidebar-Says-Where Rule**).
 - **Headline** (700, 20px, tracking −0.02em): a question in the anketa (`SectionHead`). The question itself is the heading; no hint line under it.
 - **Title** (700, 18px, tracking −0.02em): card titles, block heads with an icon tile (`BlockHead`), modal titles.
 - **Body lead** (400, 15px / 24px): the lead paragraph under an H1 (capped at `max-w-2xl`), input text.
@@ -261,14 +261,14 @@ Three warm neutrals do almost all the work; blue is spent on action and choice; 
 
 ## Layout
 
-Every cabinet screen, including the anketa, uses one chrome: a white sidebar at 270px on the left (sticky, full height, hairline right border) and the content column on the warm desk. The content column has side padding 20 / 40 / 56 / 80px across `base` / `sm` / `lg` / `xl` breakpoints and is capped per screen: `max-w-4xl` (896px) for «Оплата» and «Бухгалтерия», `max-w-5xl` (1024px) for «Обзор» and «Документы», 1000px for anketa steps.
+Every cabinet screen, including the anketa, uses one chrome: a white sidebar at 270px on the left (sticky, full height, hairline right border) and the content column on the warm desk. The content column has side padding 20 / 40 / 56 / 80px across `base` / `sm` / `lg` / `xl` breakpoints and is capped per screen: `max-w-4xl` (896px) for «Баланс и платежи», `max-w-5xl` (1024px) for «Обзор» and «Документы», 1000px for anketa steps.
 
 - **Below `lg` (1024px)** the sidebar collapses to a top strip with the logo and the account avatar, and navigation moves to a fixed bottom tab bar (ink pill marks the active tab). In the anketa the tab bar is replaced by a funnel bar (step progress and «Назад»); its step list opens as a floating sheet above it.
 - **Tables** (documents, sites in the subscription) are CSS grids with fixed column templates from `sm` up; below `sm` each row restacks into a card with the actions indented under the title (`pl-[52px]`, aligned past the 40px icon tile).
 - **Choice tiles** always sit in two columns from `sm` up, so edges line up from block to block.
 - **Vertical rhythm:** 16px between fields, 24–28px card padding, 40px between major sections, one H1 header block with a 12px gap to the lead.
 
-**The Sidebar-Says-Where Rule.** On desktop the active sidebar item is the page title; a big section heading that repeats it is noise, so it is visually hidden (kept for screen readers). On phones the heading stays: there is no sidebar, and «Оплата», «Бухгалтерия», «Настройки», «Поддержка» share the «Ещё» tab. A page opens with its content or a line that reports state — never with an explanatory sentence about what the page is for.
+**The Sidebar-Says-Where Rule.** On desktop the active sidebar item is the page title; a big section heading that repeats it is noise, so it is visually hidden (kept for screen readers). On phones the heading stays: there is no sidebar, and «Баланс и платежи», «Настройки», «Поддержка» share the «Ещё» tab. A page opens with its content or a line that reports state — never with an explanatory sentence about what the page is for.
 
 **The One-Chrome Rule.** The anketa and the cabinet share the same sidebar, tab bar and focus language. A step of the anketa must look like part of the product, not a wizard bolted onto it. Step numbering is continuous within the funnel (a second site skips «Ваш профиль», so its funnel has 5 steps, numbered 1–5).
 
@@ -340,7 +340,7 @@ Confident and few.
 ### Answer provenance (step 5)
 - Under an expanded document preview: «Изменить ответ:» followed by one small bordered chip per source answer (12px semibold, Hairline border, blue on hover). A chip opens a modal with exactly that one question and its usual controls (`AnswerModal`); saving updates the preview in place. Never send the client back into the anketa to change one answer.
 
-### Data Table (`DocRowList`, sites in «Оплата»)
+### Data Table (`DocRowList`, sites in «Мои сайты» → «Таблица»)
 - One 16px-radius white container; a Desk-70% head band with Label typography; rows 16px × 24px with Hairline dividers and a Desk-60% hover.
 - Each row leads with a 40px blue-tint icon tile. The row title is itself the link (blue on hover, underlined), so no separate «Открыть» button is needed.
 - Row actions: at most one icon action inline; anything more goes into a «⋯» menu (Menu shadow, 12px radius, closes on Escape and outside click). Repeated icon actions get a full spoken name (`name` prop: «Скопировать ссылку на «Политика…»»), while the tooltip stays short.
@@ -354,7 +354,7 @@ Confident and few.
 - **Sidebar domain label:** mono 10.5px uppercase above the site's section list; «← Мои сайты» as a text link above it.
 - **Mobile tab bar:** fixed bottom, 11px semibold labels, active icon on an ink pill (48 × 32px).
 
-- **Account nav:** «Мои сайты», «Оплата» (was «Подписка» until 24.09), «Бухгалтерия» (receipts, operations history, acts — only after the first top-up). No balance row in the desktop sidebar (tried above the account block, removed 24.09 as redundant): on desktop the balance lives in «Оплата». On phones a **«Баланс» row** (wallet icon, label, amount in bold ink, links to «Оплата») opens the account menu and the «Ещё» sheet, above a divider, only after the first top-up and always neutral in color — never an amount beside «Оплата», which read as a debt due.
+- **Account nav (owner 24.09, modelled on domain registrars and hosting panels):** «Мои сайты» — what we pay for; its «Таблица» view is the subscription table (tariff, status, auto-renew switch, «⋯») with a visible blue text action «Оплатить год» / «Продлить на год» under the status badge, and the year is paid inside the row: enough on the balance → «Списать N ₽», short → the top-up form for the missing sum right there («Оплатить N ₽» by card, or an invoice). «Баланс и платежи» — what and how much, two tabs in the step-6 tab style (`MoneyHeader`): «Платежи» (balance, «Пополнить», «Способ оплаты», operations history) and «Документы» (e-mail for receipts and acts, acts). No balance row in the desktop sidebar (tried, removed as redundant); on phones the amount sits at the right of the «Баланс и платежи» menu item — beside a balance it reads as a balance, beside «Оплата» it read as a debt due.
 ### Modal
 - 45% ink scrim, panel 480–560px wide, 16px radius, Sheet, 24–28px padding, 18px bold title with a close icon, actions bottom-left: primary blue button, then a text «Отмена».
 - Behavior through `useDialog` (`site/_shared/SiteChrome.js`): focus moves into the dialog on open, Tab cycles inside it, Escape closes it, and focus returns to the control that opened it. Multi-step dialogs pass their step so focus lands back in the dialog after a step changes; a conditionally rendered dialog (step 6 «Пока не видим код») passes its open flag the same way.
