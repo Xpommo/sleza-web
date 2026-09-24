@@ -10,40 +10,13 @@ import { signIn } from '../start/_shared/anketaState';
 // Что продукт делает — теми же словами, что и в утверждённом макете.
 // Это не перечень документов: список названий ничего не обещает, а эти
 // пять строк называют работу, которую мы берём на себя.
-// Вместо перечня обещаний — сам результат: лист документа с данными
-// компании, выделенными так же, как на шаге 5 (владелец 24.09: абзацы и
-// списки белым по чёрному читались «портянкой»). Лист — картинка, а не текст
-// для чтения: скринридеру — одна подпись.
-function DocSheet() {
-  const mark = 'rounded bg-brand/10 px-1 font-semibold text-ink';
-  return (
-    <div role="img" aria-label="Пример документа из пакета: политика обработки персональных данных с данными вашей компании" className="relative mt-12 hidden w-[400px] max-w-full lg:block">
-      {/* Второй лист под первым — это пакет, а не один документ. */}
-      <div className="absolute inset-0 translate-x-5 translate-y-4 rotate-[4deg] rounded-2xl bg-white/[0.08]" />
-      <div className="relative -rotate-2 rounded-2xl bg-white p-6 text-ink shadow-[0_30px_60px_-24px_rgba(0,0,0,0.7)]">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/60">152-ФЗ · версия 2 · 24.09.2026</p>
-        <p className="mt-2 text-lg font-bold leading-6 tracking-[-0.02em]">Политика обработки персональных данных</p>
-        <div className="mt-4 space-y-1.5 text-[12px] leading-6 text-ink/60">
-          <p>
-            Оператор — <span className={mark}>ООО «Ваша компания»</span>
-          </p>
-          <p>
-            Собираем: <span className={mark}>имя, телефон, почта</span>
-          </p>
-          <p>
-            Цель: <span className={mark}>запись на занятие</span>
-          </p>
-        </div>
-        <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
-          <span className="font-mono text-[11px] text-ink/60">ваш-сайт.ru/privacy</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-ok/10 px-2.5 py-1 text-[11px] font-bold text-ok">
-            <span className="h-1.5 w-1.5 rounded-full bg-ok" /> Действует
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
+const BENEFITS = [
+  ['Собираем документы под вашу компанию', 'Заполните анкету о сайте и компании — остальное сделаем по вашим данным и вашей сфере деятельности.'],
+  ['Ставим виджет на сайт', 'Одна строка кода: показывает куки-баннер, ставит внизу страниц подвал со ссылками на документы и реквизиты, следит, чтобы эти ссылки работали.'],
+  ['Маркируем упоминания по реестрам', 'Виджет сверяется с реестрами иностранных агентов, экстремистских и террористических организаций и сам маркирует такие упоминания на ваших страницах.'],
+  ['Следим, что всё на месте', 'Проверяем виджет и документы на сайте сами — вам этого делать не нужно.'],
+  ['Переписываем документы при изменении закона', 'Пришлём письмо, когда обновим.'],
+];
 
 // Два отдельных согласия, а не одно на всё: объединять согласие на
 // обработку данных с принятием оферты нельзя — это та самая связка,
@@ -105,15 +78,34 @@ export default function RegisterClient() {
         <BrandMark dark />
 
         {/* my-auto — по центру свободного места под знаком: с justify-between
-            блок прижимался к знаку, когда текст не помещался по высоте. */}
+            на 1280×800 знак прилипал к заголовку (владелец 24.09, «поехал»). */}
         <div className="relative my-14 max-w-[560px] lg:my-auto lg:py-10">
           <h1 className="text-balance text-[38px] font-bold leading-[1.06] tracking-[-0.045em] sm:text-[44px]">
             Документы для сайта — готовим и держим в порядке
           </h1>
-          <p className="mt-5 max-w-[440px] text-[16px] leading-6 text-white/65">
-            Ответьте на вопросы о сайте — документы и <span className="whitespace-nowrap">куки-баннер</span> соберём сами.
+          {/* Утверждение о законодательстве, а не о нашей ответственности:
+              «защита» и обещание исхода проверки здесь не употребляются. */}
+          <p className="mt-5 text-[15px] leading-6 text-white/65">
+            Требования к сайту разбросаны по нескольким федеральным законам, и за каждое есть свой штраф. Собираем их в
+            один пакет документов и одну строку кода.
           </p>
-          <DocSheet />
+
+          {/* Без линий между пунктами: это один перечень, а линейки дробили
+              его на пять плашек (п.12 ревью Ивана — «три полоски»). Пункты
+              разделяет воздух: внутри пункта тесно, между пунктами свободно. */}
+          <ul className="mt-10 space-y-6">
+            {BENEFITS.map(([title, text]) => (
+              <li key={title} className="flex gap-4">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-soft/20 text-brand-soft">
+                  <CheckIcon size={12} />
+                </span>
+                <div>
+                  <p className="text-sm font-bold">{title}</p>
+                  <p className="mt-1 text-[13px] leading-5 text-white/55">{text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
 
       </section>
