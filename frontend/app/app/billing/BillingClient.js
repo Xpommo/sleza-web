@@ -388,11 +388,24 @@ export default function BillingClient() {
       setPayerMode('Другие реквизиты');
     } else if (b.method === 'По счёту') setPayerMode('Реквизиты компании');
     // «Оплатить год» с «Обзора» и из «Моих сайтов» открывает оплату сайта.
-    const want = new URLSearchParams(window.location.search).get('pay');
+    const q = new URLSearchParams(window.location.search);
+    const want = q.get('pay');
     if (want) {
       const key = want === 'current' ? currentSiteKey() : want;
       if (accountSites(saved).some((x) => x.key === key)) setOpen({ key, panel: 'renew' });
     }
+    // «Выбрать тариф» с «Обзора» — сразу выбор тарифа в строке сайта.
+    const pick = q.get('tariff');
+    if (pick) {
+      const key = pick === 'current' ? currentSiteKey() : pick;
+      if (accountSites(saved).some((x) => x.key === key)) {
+        setTariffPick(null);
+        setOpen({ key, panel: 'tariff' });
+      }
+    }
+    // «Пополнить» с «Обзора» (последний день пробного периода) — сразу
+    // пополнение, на недостающую до года сумму.
+    if (q.get('topup')) openTopup(Math.max(PRICE - balanceOf(saved), 0) || PRICE);
     const id = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(id);
   }, [router]);
