@@ -10,16 +10,40 @@ import { signIn } from '../start/_shared/anketaState';
 // Что продукт делает — теми же словами, что и в утверждённом макете.
 // Это не перечень документов: список названий ничего не обещает, а эти
 // пять строк называют работу, которую мы берём на себя.
-// По строке на обещание, без абзацев под каждым (владелец 24.09): белым по
-// чёрному пять пунктов с пояснениями сливались в сплошной текст. Смысл
-// пояснений сложен в сами строки.
-const BENEFITS = [
-  'Документы под вашу компанию — по ответам анкеты',
-  'Куки-баннер и подвал со ссылками — одной строкой кода',
-  'Маркируем упоминания иноагентов и запрещённых организаций',
-  'Сами проверяем, что виджет и документы на месте',
-  'Обновляем документы, когда меняется закон, и пишем вам',
-];
+// Вместо перечня обещаний — сам результат: лист документа с данными
+// компании, выделенными так же, как на шаге 5 (владелец 24.09: абзацы и
+// списки белым по чёрному читались «портянкой»). Лист — картинка, а не текст
+// для чтения: скринридеру — одна подпись.
+function DocSheet() {
+  const mark = 'rounded bg-brand/10 px-1 font-semibold text-ink';
+  return (
+    <div role="img" aria-label="Пример документа из пакета: политика обработки персональных данных с данными вашей компании" className="relative mt-12 hidden w-[400px] max-w-full lg:block">
+      {/* Второй лист под первым — это пакет, а не один документ. */}
+      <div className="absolute inset-0 translate-x-5 translate-y-4 rotate-[4deg] rounded-2xl bg-white/[0.08]" />
+      <div className="relative -rotate-2 rounded-2xl bg-white p-6 text-ink shadow-[0_30px_60px_-24px_rgba(0,0,0,0.7)]">
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/60">152-ФЗ · версия 2 · 24.09.2026</p>
+        <p className="mt-2 text-lg font-bold leading-6 tracking-[-0.02em]">Политика обработки персональных данных</p>
+        <div className="mt-4 space-y-1.5 text-[12px] leading-6 text-ink/60">
+          <p>
+            Оператор — <span className={mark}>ООО «Ваша компания»</span>
+          </p>
+          <p>
+            Собираем: <span className={mark}>имя, телефон, почта</span>
+          </p>
+          <p>
+            Цель: <span className={mark}>запись на занятие</span>
+          </p>
+        </div>
+        <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
+          <span className="font-mono text-[11px] text-ink/60">ваш-сайт.ru/privacy</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-ok/10 px-2.5 py-1 text-[11px] font-bold text-ok">
+            <span className="h-1.5 w-1.5 rounded-full bg-ok" /> Действует
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Два отдельных согласия, а не одно на всё: объединять согласие на
 // обработку данных с принятием оферты нельзя — это та самая связка,
@@ -86,34 +110,16 @@ export default function RegisterClient() {
           <h1 className="text-balance text-[38px] font-bold leading-[1.06] tracking-[-0.045em] sm:text-[44px]">
             Документы для сайта — готовим и держим в порядке
           </h1>
-          {/* Утверждение о законодательстве, а не о нашей ответственности:
-              «защита» и обещание исхода проверки здесь не употребляются. */}
-          <p className="mt-5 text-[15px] leading-6 text-white/65">
-            Требования к сайту разбросаны по нескольким федеральным законам, и за каждое есть свой штраф. Собираем их в
-            один пакет документов и одну строку кода.
+          <p className="mt-5 max-w-[440px] text-[16px] leading-6 text-white/65">
+            Ответьте на вопросы о сайте — документы и <span className="whitespace-nowrap">куки-баннер</span> соберём сами.
           </p>
-
-          {/* Без линий между пунктами: это один перечень, а линейки дробили
-              его на пять плашек (п.12 ревью Ивана — «три полоски»). */}
-          <ul className="mt-9 space-y-3.5">
-            {BENEFITS.map((line) => (
-              <li key={line} className="flex items-start gap-3 text-pretty text-[15px] font-semibold leading-6 text-white/90">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.12] text-white">
-                  <CheckIcon size={12} />
-                </span>
-                {line}
-              </li>
-            ))}
-          </ul>
+          <DocSheet />
         </div>
 
       </section>
 
-      <section className="flex min-h-screen items-center justify-center px-6 py-12 sm:px-12 lg:px-[6vw]">
+      <section className="flex items-start justify-center px-6 py-10 sm:px-12 lg:min-h-screen lg:items-center lg:px-[6vw] lg:py-12">
         <div className="w-full max-w-[430px]">
-          <div className="mb-10 lg:hidden">
-            <BrandMark />
-          </div>
 
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-brand">Добро пожаловать</p>
           <h2 className="text-[38px] font-bold tracking-[-0.045em] text-ink">Регистрация</h2>
