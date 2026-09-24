@@ -468,10 +468,32 @@ export default function BillingClient() {
     setOpen(then ? { key: site.key, panel: then } : null);
   }
 
+  // Сменить способ — одно нажатие (владелец 24.09: было «Изменить → По счёту →
+  // Изменить → Реквизиты компании → Свернуть → Свернуть»). По счёту плательщик
+  // сразу — реквизиты компании из анкеты, как при открытии страницы, а не
+  // «Реквизиты не заполнены». Строка сворачивается сама, когда больше ничего не
+  // нужно; «Картой» без привязанной карты — остаётся открытой: нужны поля карты.
   function pickMethod(m) {
     setMethod(m);
     setPayMethod(m);
     saveBilling({ method: m });
+    if (m === 'По счёту' && !payerMode) setPayerMode('Реквизиты компании');
+    if (m === 'По счёту' || b.card) setMethodOpen(false);
+  }
+
+  // Плательщик — так же: выбрал — строка свернулась. «Другие реквизиты» без
+  // заполненных — сразу окно реквизитов (как в пополнении по счёту); после
+  // сохранения строка свернётся там же. Реквизиты компании снимают другие —
+  // как при выставлении счёта (topupByInvoice).
+  function pickPayer(mode) {
+    setPayerMode(mode);
+    if (mode === 'Реквизиты компании') {
+      saveBilling({ payerOther: null });
+      setPayerOpen(false);
+    } else if (otherPayer) {
+      saveBilling({ payerOther: otherPayer });
+      setPayerOpen(false);
+    } else setPayerModal(true);
   }
 
   function openTopup(sum = PRICE, forKey = null) {
@@ -1213,7 +1235,7 @@ export default function BillingClient() {
                       onAction={() => setPayerOpen(!payerOpen)}
                     >
                       <div className="space-y-3">
-                        <Segmented options={['Реквизиты компании', 'Другие реквизиты']} value={payerMode} onChange={setPayerMode} />
+                        <Segmented options={['Реквизиты компании', 'Другие реквизиты']} value={payerMode} onChange={pickPayer} />
                         <p className="text-[13px] leading-5 text-ink/60">
                           {payerMode === 'Реквизиты компании'
                             ? 'Возьмём данные компании с шага «Реквизиты». В подвал сайта они и так идут — здесь они нужны только для счёта.'
