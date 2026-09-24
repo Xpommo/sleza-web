@@ -7,7 +7,7 @@ import { ArrowRightIcon, CheckIcon, CopyIcon } from '../../../components/app/App
 import { IconAction } from '../../../components/app/DocRows';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS, docUrl, editEvents } from '../../../lib/docPackage';
-import { accountSites, balanceOf, currentSiteKey, saveSiteFields, setSiteCancelled, siteAnketa } from './_shared/sites';
+import { accountSites, balanceOf, currentSiteKey, saveSiteFields, setSiteLeaving, siteAnketa } from './_shared/sites';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { RING, SiteSidebar } from './_shared/SiteChrome';
 import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEndAt, trialEnds } from './_shared/subscription';
@@ -23,7 +23,7 @@ const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'cod
 const BTN = `inline-flex h-11 w-fit items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
 const DAY = 24 * 3600 * 1000;
 const CONSENT = DOCUMENTS.find((d) => d.id === '12');
-const TONE ={ warn: 'text-warn-ink', danger: 'text-danger', ok: 'text-ok', muted: 'text-ink/60', none: 'text-ink' };
+const TONE = { warn: 'text-warn-ink', danger: 'text-danger', ok: 'text-ok', muted: 'text-ink/60', none: 'text-ink' };
 
 function plural(n, one, few, many) {
   const m10 = n % 10;
@@ -119,10 +119,11 @@ export default function SiteOverviewClient() {
     </button>
   );
 
-  // «Включить автопродление» включает только автосписание с баланса в дату
-  // продления — ни оплаты, ни перехода (владелец 24.09).
-  function enableRenew() {
-    setSiteCancelled(currentSiteKey(), false);
+  // Отключённый сайт возвращают отсюда же, одним нажатием: продление — как
+  // было до отключения. «Включить автопродление» здесь больше нет (владелец
+  // 24.09): выключенное автопродление — не уход, а продление вручную.
+  function comeBack() {
+    setSiteLeaving(currentSiteKey(), false);
     setA(siteAnketa(loadAnketa()));
   }
 
@@ -164,24 +165,39 @@ export default function SiteOverviewClient() {
       facts: [
         'Пробный период',
         !a.installed ? 'код пока не найден' : lastDay ? 'последний день' : `осталось ${left} ${plural(left, 'день', 'дня', 'дней')}`,
-        b.cancelled ? 'автопродление выключено' : tariff ? `дальше ${tariff}` : 'тариф не выбран',
+        b.leaving ? 'дальше сайт отключится' : b.cancelled ? 'продление вручную' : tariff ? `дальше ${tariff}` : 'тариф не выбран',
       ],
       action: !a.installed
         ? button('Проверить код на сайте', () => go('/app/start/code'))
-        : lastDay && short && !b.cancelled
-          ? button('Пополнить', () => go('/app/billing?topup=1'))
-          : null,
+        : b.leaving
+          ? button('Вернуть в подписку', comeBack, false)
+          : lastDay && b.cancelled
+            ? button('Оплатить год', () => go('/app/billing?pay=current'))
+            : lastDay && short
+              ? button('Пополнить', () => go('/app/billing?topup=1'))
+              : null,
     };
   } else if (state === 'paid') {
+    // Продление вручную: за месяц до конца срока — жёлтым и «Продлить на
+    // год», раньше — просто факт (как «Скоро» в «Подписке»).
+    const end = new Date(b.paidAt);
+    end.setFullYear(end.getFullYear() + (b.paidYears || 1));
+    const renewSoon = b.cancelled && !b.leaving && end.getTime() - now < 30 * DAY;
     sub = {
       value: `до ${period.to}`,
-      tone: 'none',
-      facts: [tariff, b.cancelled ? 'автопродление выключено' : 'автопродление включено', !a.installed && 'ждём код на сайте'],
-      action: b.cancelled
-        ? button('Включить автопродление', enableRenew, false)
-        : !a.installed
-          ? button('Поставить код на сайт', () => go('/app/start/code'))
-          : null,
+      tone: renewSoon ? 'warn' : 'none',
+      facts: [
+        tariff,
+        b.leaving ? 'дальше сайт отключится' : b.cancelled ? 'продление вручную' : 'автопродление включено',
+        !a.installed && 'ждём код на сайте',
+      ],
+      action: b.leaving
+        ? button('Вернуть в подписку', comeBack, false)
+        : renewSoon
+          ? button('Продлить на год', () => go('/app/billing?pay=current'))
+          : !a.installed
+            ? button('Поставить код на сайт', () => go('/app/start/code'))
+            : null,
     };
   } else if (state === 'pending') {
     sub = {
@@ -238,7 +254,8 @@ export default function SiteOverviewClient() {
   const events = [
     a.tasksDone?.consentLink && [a.tasksDone.consentLink, 'Ссылка на согласие добавлена в формы сайта — отметили вы', 'bg-ok'],
     b.paidAt && [b.paidAt, `Подписка оплачена — до ${period.to}`, 'bg-ok'],
-    b.cancelled && b.paidAt && [b.cancelledAt || now, `Автопродление выключено — сайт работает до ${period.to}`, 'bg-warn'],
+    b.cancelled && b.cancelledAt && [b.cancelledAt, 'Автопродление выключено — продлевать будете вручную', 'bg-brand'],
+    b.leaving && [b.leavingAt || now, `Сайт отключается — работает до ${period ? period.to : trialEnds(a)}, дальше продлевать не будем`, 'bg-warn'],
     b.invoice && !b.paidAt && [b.invoice.at, `Выставлен счёт № ${b.invoice.no}`, 'bg-warn'],
     state === 'expired' && [a.trialStartedAt + TRIAL_MS, 'Пробный период закончился — виджет снят с сайта', 'bg-danger'],
     a.trialStartedAt && [a.trialStartedAt, a.installed ? 'Код найден на сайте, пробный период запущен' : 'Пробный период запущен, ждём код на сайте', 'bg-brand'],

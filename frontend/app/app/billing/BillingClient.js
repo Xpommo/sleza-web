@@ -14,7 +14,7 @@ import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
 import SiteOffModal from './SiteOffModal';
 import {
   accountSites, balanceOf, currentSiteKey, debitShortfall, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite, payYearFromBalance,
-  setSiteCancelled, setSiteTariff, topUpBalance,
+  setSiteCancelled, setSiteLeaving, setSiteTariff, topUpBalance,
 } from '../site/_shared/sites';
 import { PRICE, TARIFFS, TRIAL_DAYS, formatDate, paidPeriod, trialEndAt, trialEnds } from '../site/_shared/subscription';
 
@@ -125,7 +125,7 @@ function badgeOf(site) {
     case 'paid':
       return ['ok', `Оплачено до ${site.period.to}`];
     case 'off-soon':
-      return ['beige', `До ${site.period.to} · Без продления`];
+      return ['beige', `До ${site.until} · Без продления`];
     case 'trial':
       return ['info', `Бесплатно до ${site.trialTo}`];
     case 'expired':
@@ -164,13 +164,22 @@ function RowMenu({ site, hasHistory, onPick }) {
   }, [open]);
   const end = endsAt(site);
   const urgent = ['trial', 'expired', 'pending'].includes(site.kind) || (end && end - Date.now() < SOON);
+  // «Отключить сайт» — здесь, отдельно от автопродления (владелец 24.09):
+  // выключенное автопродление — продление вручную, а не уход. Отключённый
+  // сайт возвращают тем же меню.
   const items =
     site.kind === 'not-ready'
       ? [[site.label === 'код не установлен' ? 'Поставить код' : 'Продолжить анкету', 'go', true]]
-      : [
-          ['Продлить на 1 год', 'renew', urgent],
-          ['Посмотреть историю счетов', 'history', false, !hasHistory],
-        ];
+      : site.kind === 'off-soon'
+        ? [
+            ['Вернуть в подписку', 'back', true],
+            ['Посмотреть историю счетов', 'history', false, !hasHistory],
+          ]
+        : [
+            ['Продлить на 1 год', 'renew', urgent],
+            ['Посмотреть историю счетов', 'history', false, !hasHistory],
+            ...(site.kind === 'paid' || site.kind === 'trial' ? [['Отключить сайт', 'off', false]] : []),
+          ];
   return (
     <div className="relative justify-self-end">
       <button
@@ -219,7 +228,7 @@ function RowMenu({ site, hasHistory, onPick }) {
 function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, children }) {
   const [tone, text] = badgeOf(site);
   const live = site.kind !== 'not-ready';
-  const debit = !site.cancelled ? nextDebit(site) : null;
+  const debit = nextDebit(site);
   const trial = site.kind === 'trial';
   const tariff = trial ? 'Пробный период' : live ? site.tariff || '—' : '—';
   // Тариф — на виду, в своей колонке, а не в «⋯» (владелец 24.09): там его
@@ -252,7 +261,21 @@ function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, children 
   // Автопродление включено, а денег на списание нет — жёлтым, с суммой:
   // серое «спишем» при пустом балансе читалось как «всё в порядке». Дата
   // уже стоит в плашке статуса — здесь только сколько не хватит.
+  // Автопродление выключено — продлевают вручную, из «⋯». Жёлтым — когда до
+  // конца срока меньше месяца (у пробного — последний день), как нехватка.
+  const end = site.kind === 'paid' ? endsAt(site) : site.kind === 'trial' && site.trialStartedAt ? trialEndAt(site) : null;
+  const manualLine =
+    site.cancelled && end && (
+      end - Date.now() < warnWithin(site) ? (
+        <p className="mt-1 text-[12px] font-semibold text-warn-ink">
+          {site.kind === 'trial' ? `Оплатите год вручную до ${site.trialTo}` : `Продлите вручную до ${site.period?.to}`}
+        </p>
+      ) : (
+        <p className="mt-1 text-[12px] text-ink/60">продление вручную</p>
+      )
+    );
   const debitLine =
+    manualLine ||
     noTariffLine ||
     (debit &&
     (short ? (
@@ -263,7 +286,9 @@ function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, children 
       </p>
     )));
   const nextTariff = site.nextTariff && site.period && <p className="mt-0.5 text-[12px] text-ink/60">с {site.period.renew} — {site.nextTariff}</p>;
-  const sw = live && <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />;
+  // У отключённого сайта продлевать нечего — переключателя нет.
+  const autoable = live && site.kind !== 'off-soon';
+  const sw = autoable && <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />;
   const menu = <RowMenu site={site} hasHistory={hasHistory} onPick={onPick} />;
   return (
     <div id={`site-${site.key}`} className="scroll-mt-6 border-b border-line last:border-0">
@@ -303,7 +328,7 @@ function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, children 
             <span className="block font-semibold text-ink/75">{tariff}</span>
             {tariffAction}
           </span>
-          {live && (
+          {autoable && (
             <label className="flex items-center gap-2 font-semibold text-ink/65">
               Автопродление {sw}
             </label>
@@ -326,7 +351,7 @@ export default function BillingClient() {
   // Ничего не отмечено, пока клиент не выбрал: оплату с «Обзора» раньше
   // открывала панель с уже отмеченным «Тарифом Х».
   const [tariffPick, setTariffPick] = useState(null);
-  const [off, setOff] = useState(null); // { site, step } — выключение автопродления
+  const [off, setOff] = useState(null); // { site, step } — «Отключить сайт»
 
   // Пополнение баланса. topupFor — сайт, год которого оплатим сразу после
   // пополнения («Оплатить год», когда на балансе не хватило).
@@ -647,7 +672,7 @@ export default function BillingClient() {
     ? {
         'not-ready': 'Подписка начнётся с пробного периода, когда код встанет на сайт.',
         trial: main.cancelled
-          ? `Пробный период — до ${main.trialTo}. Автопродление выключено — после этой даты сайт отключится.`
+          ? `Пробный период — до ${main.trialTo}. Автопродление выключено — оплатите год вручную до этой даты, иначе сайт отключится.`
           : !main.tariff
             ? balance >= PRICE || autoCard
               ? `Пробный период — до ${main.trialTo}. Выберите тариф — потом год оплатится сам, без перерыва.`
@@ -659,8 +684,8 @@ export default function BillingClient() {
                 : `Пробный период — до ${main.trialTo}. Пополните баланс на ${PRICE_TEXT} — тогда год оплатится сам, без перерыва.`,
         expired: 'Пробный период закончился — оплатите год, чтобы включить сайт снова.',
         pending: 'Счёт выставлен — отметим оплату, как только поступят деньги, обычно 1–3 рабочих дня.',
-        paid: main.period && `Оплачено до ${main.period.to}.`,
-        'off-soon': main.period && `Автопродление выключено — сайт работает до ${main.period.to}.`,
+        paid: main.period && (main.cancelled ? `Оплачено до ${main.period.to}. Автопродление выключено — продлевать будете вручную.` : `Оплачено до ${main.period.to}.`),
+        'off-soon': `Сайт отключается — работает до ${main.until}, дальше продлевать не будем.`,
       }[main.kind]
     : `${sites.length} ${plural(sites.length, 'сайт', 'сайта', 'сайтов')} — у каждого свой год; оплата списывается с баланса в дату продления каждого.`;
 
@@ -1154,13 +1179,17 @@ export default function BillingClient() {
                         } else if (id === 'history') {
                           setHistoryFor(site.domain);
                           setTimeout(() => document.getElementById('history')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                        } else if (id === 'off') setOff({ site, step: 1 });
+                        else if (id === 'back') {
+                          setSiteLeaving(site.key, false);
+                          reload();
                         } else toggle(site, id);
                       }}
+                      // Автопродление — одним нажатием в обе стороны, без окна:
+                      // выключенное значит «продлевать вручную», не «уйти».
                       onAuto={(on) => {
-                        if (on) {
-                          setSiteCancelled(site.key, false);
-                          reload();
-                        } else setOff({ site, step: 1 });
+                        setSiteCancelled(site.key, !on);
+                        reload();
                       }}
                     >
                     {open?.panel === 'tariff' ? tariffPanel(site) : renewPanel(site)}
@@ -1354,7 +1383,7 @@ export default function BillingClient() {
           onStep={(n) => setOff({ ...off, step: n })}
           onClose={() => setOff(null)}
           onConfirm={() => {
-            setSiteCancelled(off.site.key, true);
+            setSiteLeaving(off.site.key, true);
             reload();
             setOff(null);
           }}

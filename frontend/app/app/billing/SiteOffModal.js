@@ -1,10 +1,11 @@
 'use client';
 
-// Выключение автопродления — в «Подписке», переключателем в строке сайта.
-// Это и есть «отключить сайт» (партнёрская программа, 14.09): сайт работает
-// до конца оплаченного срока или пробного периода, дальше не продлевается.
-// Два шага, как решено 10.09: сначала «Может, получится помочь?» — ровно один
-// раз, с честно названной кнопкой, потом последствия.
+// «Отключить сайт» — в «Подписке», в меню «⋯» строки сайта: сайт работает до
+// конца оплаченного срока или пробного периода, дальше не продлевается.
+// Выключенное автопродление — не это (владелец 24.09): оно значит «продлевать
+// вручную», и окна у него нет. Два шага, как решено 10.09: сначала «Может,
+// получится помочь?» — ровно один раз, с честно названной кнопкой, потом
+// последствия.
 
 import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -24,7 +25,7 @@ export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, o
       <div className="mt-16 w-full max-w-[460px] rounded-2xl border border-line bg-white p-6 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <h3 id="off-title" className="text-lg font-bold tracking-[-0.03em]">
-            {step === 1 ? 'Может, получится помочь?' : `Выключить автопродление ${site.domain}?`}
+            {step === 1 ? 'Может, получится помочь?' : `Отключить ${site.domain}?`}
           </h3>
           <button type="button" onClick={onClose} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>
             <CloseIcon size={18} />
@@ -34,14 +35,19 @@ export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, o
           <>
             <p className="mt-3 text-[13px] leading-5 text-ink/65">
               Если виджет мешает вёрстке или документы не подходят под ваш случай — напишите, разберёмся.
-              {paid ? ` Выключить успеете всегда: сайт оплачен до ${paidUntil}.` : ''}
+              {paid ? ` Отключить успеете всегда: сайт оплачен до ${paidUntil}.` : ''}
+            </p>
+            {/* Кто пришёл сюда, чтобы не было автоматических списаний, —
+                уходить для этого не нужно. */}
+            <p className="mt-2 text-[13px] leading-5 text-ink/65">
+              Не хотите автоматических списаний — выключите автопродление: сайт останется в подписке, продлите его вручную.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <button type="button" onClick={() => router.push('/app/support')} className={BTN}>
                 Написать в поддержку
               </button>
               <button type="button" onClick={() => onStep(2)} className={`rounded-xl px-3 py-3 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`}>
-                Всё равно выключить
+                Всё равно отключить
               </button>
             </div>
           </>
@@ -68,10 +74,10 @@ export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, o
                 onClick={onConfirm}
                 className={`rounded-xl border border-danger/30 px-5 py-3 text-sm font-bold text-danger hover:bg-danger/[0.05] ${RING}`}
               >
-                Да, выключить
+                Да, отключить
               </button>
               <button type="button" onClick={onClose} className={BTN}>
-                Оставить автопродление
+                Не отключать
               </button>
             </div>
           </>

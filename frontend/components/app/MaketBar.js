@@ -80,10 +80,13 @@ const PRESETS = [
   // платит за свой год отдельно. Три сайта — демо-строки.
   ['Несколько сайтов (агент)', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, siteTariff: 'Тариф Х', billing: { ...CARD, paidAt: Date.now() - HOUR, actsEmail: 'buh@alfa-school.ru', invoiceSeq: 150, balance: 24000, ops: [{ at: Date.now() - 2 * DAY, kind: 'topup', amount: 60000, method: 'По счёту' }, { at: Date.now() - HOUR, kind: 'debit', amount: 12000, site: 'alfa-school.ru' }] }, extraSites: [
     { key: 'beta', domain: 'beta-kids.ru', company: 'ИП Иванова М. С.', tariff: 'Тариф У', trialStartedAt: Date.now() - 200 * DAY, paidAt: Date.now() - 195 * DAY, cancelled: false },
-    { key: 'gamma', domain: 'gamma-shop.ru', company: 'ООО «Гамма»', tariff: 'Тариф Х', trialStartedAt: Date.now() - 120 * DAY, paidAt: Date.now() - 115 * DAY, cancelled: true },
+    { key: 'gamma', domain: 'gamma-shop.ru', company: 'ООО «Гамма»', tariff: 'Тариф Х', trialStartedAt: Date.now() - 120 * DAY, paidAt: Date.now() - 115 * DAY, leaving: true, leavingAt: Date.now() - 2 * DAY },
     { key: 'delta', domain: 'delta-clinic.ru', company: 'ООО «Дельта»', tariff: 'Тариф Z', trialStartedAt: Date.now() - DAY, cancelled: false },
   ] }), '/app/billing'],
   ['Оплачено, автопродление выключено', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, cancelled: true, cancelledAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
+  // Выключенное автопродление — продление вручную; уход — «Отключить сайт»
+  // в «⋯» «Подписки» (владелец 24.09).
+  ['Оплачено, сайт отключается', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, leaving: true, leavingAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
 ];
 
 function readUi() {

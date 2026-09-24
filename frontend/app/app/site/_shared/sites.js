@@ -73,7 +73,7 @@ export function siteAnketa(a = loadAnketa()) {
     siteTariff: s.tariff,
     siteNextTariff: s.nextTariff || null,
     docEdits: s.docEdits || [],
-    billing: { ...a.billing, paidAt: s.paidAt, paidYears: s.paidYears || 1, invoice: s.invoice, cancelled: s.cancelled, paidAmount: PRICE },
+    billing: { ...a.billing, paidAt: s.paidAt, paidYears: s.paidYears || 1, invoice: s.invoice, cancelled: s.cancelled, leaving: s.leaving, leavingAt: s.leavingAt, paidAmount: PRICE },
   };
 }
 
@@ -108,12 +108,17 @@ function describe(a, s, now) {
   const v = asAnketa(a, s);
   const state = subState(v, now);
   const period = v.billing?.paidAt ? paidPeriod(v.billing.paidAt, v.billing.paidYears) : null;
-  // «Отключить» = выключить автопродление (партнёрская программа, 14.09):
-  // сайт работает до конца оплаченного срока, дальше не продлевается. До
-  // оплаты выключенное автопродление ничего не меняет сейчас — пробный
-  // период идёт как шёл.
-  if (s.cancelled && state === 'paid') {
-    return { kind: 'off-soon', label: `до ${period.to} · без продления`, tone: 'warn', period };
+  // Два разных желания — два флага (владелец 24.09):
+  // - leaving — «Отключить сайт» (меню «⋯» в «Подписке»): сайт работает до
+  //   конца оплаченного срока или пробного периода, дальше не продлевается;
+  // - cancelled — выключенное автопродление: не уход, а продление вручную.
+  //   В партнёрской программе (14.09) автопродление выключают, «чтобы не
+  //   списывалось лишнее», а ручное продление — «механизм для партнёра».
+  //   Раньше это был один флаг, и выключение автопродления вело в окно «Может,
+  //   получится помочь?» с последствиями ухода.
+  if (s.leaving && (state === 'paid' || state === 'trial')) {
+    const until = state === 'paid' ? period.to : trialEnds(v);
+    return { kind: 'off-soon', label: `до ${until} · без продления`, tone: 'warn', period, until };
   }
   if (state === 'notstarted') {
     return (v.stepsDone || 0) >= 4
@@ -139,6 +144,8 @@ export function accountSites(a, now = Date.now()) {
           tariff: mainTariff(a),
           nextTariff: a.siteNextTariff || null,
           cancelled: Boolean(b.cancelled),
+          leaving: Boolean(b.leaving),
+          leavingAt: b.leavingAt || null,
           invoice: b.invoice || null,
           paidAt: b.paidAt || null,
           paidYears: b.paidYears || 1,
@@ -164,7 +171,7 @@ export function accountSites(a, now = Date.now()) {
 const ACCOUNT_KEYS = ['role', 'personName', 'personEmail', 'personPhone', 'authVia', 'messengers', 'tickets', 'extraSites', 'billing'];
 // В billing сайту принадлежат только его оплата и счёт; способ оплаты, карта,
 // плательщик, почта для актов и нумерация счетов — аккаунту.
-const SITE_BILLING = ['paidAt', 'paidYears', 'paidAmount', 'invoice', 'cancelled', 'cancelledAt', 'tariff'];
+const SITE_BILLING = ['paidAt', 'paidYears', 'paidAmount', 'invoice', 'cancelled', 'cancelledAt', 'leaving', 'leavingAt', 'tariff'];
 
 function accountPart(a) {
   const out = {};
@@ -198,6 +205,8 @@ function stash(a) {
     invoice: b.invoice || null,
     cancelled: Boolean(b.cancelled),
     cancelledAt: b.cancelledAt || null,
+    leaving: Boolean(b.leaving),
+    leavingAt: b.leavingAt || null,
     docEdits: a.docEdits || [],
     fields,
   };
@@ -224,6 +233,8 @@ export function siteView(a, s) {
       invoice: s.invoice,
       cancelled: s.cancelled,
       cancelledAt: s.cancelledAt,
+      leaving: s.leaving,
+      leavingAt: s.leavingAt,
     },
   };
 }
@@ -267,9 +278,9 @@ export function addSite() {
 // поэтому показываем ближайшую, а не «общую».
 // Ближайшее списание с баланса автопродлением: у оплаченного — дата
 // продления, у сайта в пробном периоде — его конец. Выключенное
-// автопродление не списывает.
+// автопродление и отключённый сайт не списывают.
 function debitAt(s) {
-  if (s.cancelled) return null;
+  if (s.cancelled || s.leaving) return null;
   if (s.kind === 'paid' && s.paidAt) {
     const d = new Date(s.paidAt);
     d.setFullYear(d.getFullYear() + (s.paidYears || 1));
@@ -327,6 +338,7 @@ export function setSiteTariff(key, tariff, paid) {
   );
 }
 
+// Автопродление — только способ продлевать: выключенное не отключает сайт.
 export function setSiteCancelled(key, cancelled) {
   patchSite(
     key,
@@ -335,11 +347,22 @@ export function setSiteCancelled(key, cancelled) {
   );
 }
 
+// «Отключить сайт» / «Вернуть в подписку». Автопродление при этом не
+// трогаем: вернувшийся сайт продлевается так же, как до отключения.
+export function setSiteLeaving(key, leaving) {
+  const at = leaving ? Date.now() : null;
+  patchSite(
+    key,
+    (a) => ({ billing: { ...a.billing, leaving, leavingAt: at } }),
+    () => ({ leaving, leavingAt: at }),
+  );
+}
+
 // Оплата сайта: его год подписки начинается сейчас, со своей датой продления.
 export function paySite(key) {
   patchSite(
     key,
-    (a) => ({ billing: { ...a.billing, paidAt: Date.now(), paidAmount: PRICE, invoice: null, cancelled: false } }),
+    (a) => ({ billing: { ...a.billing, paidAt: Date.now(), paidAmount: PRICE, invoice: null, cancelled: false, leaving: false } }),
     () => ({ paidAt: Date.now(), invoice: null }),
   );
 }
@@ -429,7 +452,7 @@ export function issueSiteInvoice(key, payer) {
 // в баннере «Обзора»: одно состояние — одно имя.
 const CARD = {
   paid: 'Документы актуальны',
-  'off-soon': 'Автопродление выключено',
+  'off-soon': 'Сайт отключается',
   off: 'Сайт отключён',
   pending: 'Счёт выставлен',
   expired: 'Пробный период закончился',

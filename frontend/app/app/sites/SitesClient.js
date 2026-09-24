@@ -38,12 +38,15 @@ function siteStatus(a, now = Date.now()) {
   if (sub === 'pending') return { tone: 'info', label: 'Счёт выставлен', meta: 'оплата обычно проходит за 1–3 рабочих дня', ...open };
   if (sub === 'paid') {
     const to = paidPeriod(a.billing.paidAt, a.billing.paidYears).to;
-    if (a.billing.cancelled) return { tone: 'warn', label: 'Автопродление выключено', meta: `работает до ${to}`, ...open };
+    // Отключают сайт в «⋯» «Подписки»; выключенное автопродление — не уход,
+    // а продление вручную: карточка та же, что у оплаченного (владелец 24.09).
+    if (a.billing.leaving) return { tone: 'warn', label: 'Сайт отключается', meta: `работает до ${to}`, ...open };
     // Те же слова, что в баннере «Обзора»: оплачено, но документы ещё не на сайте.
     if (!a.installed) return { tone: 'warn', label: 'Оплачено, ждём код на сайте', meta: `оплачено до ${to}`, action: 'Поставить код на сайт', href: STEP_URLS[5] };
     return { tone: 'ok', label: 'Документы актуальны', meta: `оплачено до ${to}`, ...open };
   }
   if (sub === 'trial') {
+    if (a.billing?.leaving) return { tone: 'warn', label: 'Сайт отключается', meta: `работает до ${trialEnds(a)}`, ...open };
     const left = `бесплатно до ${trialEnds(a)}`;
     // Пробный период уже запущен, а код ещё не нашли: проверка идёт до 15
     // минут, и кабинет сайта уже открыт — туда и ведём, а не обратно в анкету.
