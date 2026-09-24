@@ -621,7 +621,10 @@ export default function BillingClient() {
                 : `Пробный период — до ${main.trialTo}. Пополните баланс на ${PRICE_TEXT} — тогда год оплатится сам, без перерыва.`,
         expired: 'Пробный период закончился — оплатите год, чтобы включить сайт снова.',
         pending: 'Счёт выставлен — отметим оплату, как только поступят деньги, обычно 1–3 рабочих дня.',
-        paid: main.period && (main.cancelled ? `Оплачено до ${main.period.to}. Автопродление выключено — продлевать будете вручную.` : `Оплачено до ${main.period.to}.`),
+        // У оплаченного сайта лида нет (владелец 24.09): «Оплачено до …» и
+        // «продление вручную» уже стоят в его строке таблицы. Остальные лиды
+        // говорят, что делать дальше, — это плашкой не сказано.
+        paid: null,
         'off-soon': `Сайт отключается — работает до ${main.until}, дальше продлевать не будем.`,
       }[main.kind]
     : `${sites.length} ${plural(sites.length, 'сайт', 'сайта', 'сайтов')} — у каждого свой год; оплата списывается с баланса в дату продления каждого.`;
@@ -1029,7 +1032,7 @@ export default function BillingClient() {
         <div className="mx-auto max-w-4xl">
           <header>
             <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px] lg:sr-only">Оплата</h1>
-            <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/65">{lead}</p>
+            {lead && <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/65">{lead}</p>}
           </header>
 
           {notReady ? (
@@ -1049,7 +1052,7 @@ export default function BillingClient() {
           ) : (
             <>
               {/* Баланс — первым: из него оплачивается год каждого сайта. */}
-              <section id="balance" className="mt-6 scroll-mt-6 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
+              <section id="balance" className={`mt-6 scroll-mt-6 ${lead ? '' : 'lg:mt-0'} rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6`}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <p className="text-[13px] font-semibold text-ink/60">Баланс</p>
