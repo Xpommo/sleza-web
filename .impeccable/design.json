@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-23T18:28:46.000Z",
+  "generatedAt": "2026-09-24T08:52:57.000Z",
   "title": "Design System: Слеза Белый Сайт",
   "extensions": {
     "colorMeta": {
@@ -512,7 +512,7 @@
       },
       {
         "name": "The Near-Term Warning Rule",
-        "body": "Amber means \"act soon\" or \"this site is set to switch off\" (auto-renew off). For money it is spent only on a debit the balance won't cover within about a month (`SOON` in «Подписка»), and for a trial only on its last day (`warnWithin`): a trial is good news and stays blue, on «Обзор» and in «Подписка» alike, while the next move («Оплатить год», «Пополнить») is still the blue button. A shortfall is named once: in the balance card (a site row repeats it only when there are several sites, to show which one). A balance short for a debit a year away is not a warning at all.",
+        "body": "Amber means \"act soon\" or \"this site is set to switch off\" (auto-renew off). For money it is spent only on a debit the balance won't cover within about a month (`SOON` in «Подписка»), and for a trial only on its last day (`warnWithin`): a trial is good news and carries no warning color before then, on «Обзор» and in «Подписка» alike. A shortfall is named once: in the balance card (a site row repeats it only when there are several sites, to show which one). A balance short for a debit a year away is not a warning at all, and neither is a shortfall the bound card will cover (auto top-up on).",
         "section": "colors"
       },
       {
@@ -529,6 +529,11 @@
         "name": "The Named-Scale Rule",
         "body": "Sizes come from the scale above (10, 10.5, 11, 12, 13, 14, 15, 18, 20, 28, 36px). Half-pixel sizes (12.5, 13.5, 14.5px) are legacy drift in older screens, not options for new work.",
         "section": "typography"
+      },
+      {
+        "name": "The Sidebar-Says-Where Rule",
+        "body": "On desktop the active sidebar item is the page title; a big section heading that repeats it is noise, so it is visually hidden (kept for screen readers). On phones the heading stays: there is no sidebar, and «Подписка», «Настройки», «Поддержка» share the «Ещё» tab. A page opens with its content or a line that reports state — never with an explanatory sentence about what the page is for.",
+        "section": "layout"
       },
       {
         "name": "The One-Chrome Rule",
@@ -572,6 +577,8 @@
       "**Don't** introduce half-pixel font sizes or new radii outside 6 / 8 / 12 / 16px and pill.",
       "**Don't** reach for Filed Paper (`#faf8f4`) on new screens; the page is Desk, content is Sheet.",
       "**Don't** preselect an answer in the anketa, including a segmented control; the client chooses.",
+      "**Don't** write «cookie» in interface or document text; it is «куки» («Куки-баннер», «Политика обработки куки»).",
+      "**Don't** open a page with an explanatory sentence («что сейчас с сайтом…», «Частые вопросы про…»); keep only lines that report state.",
       "**Don't** warn about something more than a month away, or paint a running trial amber before its last day (**The Near-Term Warning Rule**)."
     ]
   }

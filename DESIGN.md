@@ -246,7 +246,7 @@ Three warm neutrals do almost all the work; blue is spent on action and choice; 
 **Character:** Onest is a friendly, slightly geometric grotesque that stays legible at 12–14px in Cyrillic; tight negative tracking on headings gives it the weight of a letterhead. JetBrains Mono appears small and uppercase-spaced, like the typed fields on a form.
 
 ### Hierarchy
-- **Display** (700, 28px mobile / 36px from `sm`, tracking −0.045em): the one H1 per screen («Обзор», «Подписка», «Документы»).
+- **Display** (700, 28px mobile / 36px from `sm`, tracking −0.045em): the one H1 per screen. On «Обзор» it is the site's domain; on the other sections («Документы», «Подписка»…) it is visible on phones only (`lg:sr-only` on desktop, see **The Sidebar-Says-Where Rule**).
 - **Headline** (700, 20px, tracking −0.02em): a question in the anketa (`SectionHead`). The question itself is the heading; no hint line under it.
 - **Title** (700, 18px, tracking −0.02em): card titles, block heads with an icon tile (`BlockHead`), modal titles.
 - **Body lead** (400, 15px / 24px): the lead paragraph under an H1 (capped at `max-w-2xl`), input text.
@@ -267,6 +267,8 @@ Every cabinet screen, including the anketa, uses one chrome: a white sidebar at 
 - **Tables** (documents, sites in the subscription) are CSS grids with fixed column templates from `sm` up; below `sm` each row restacks into a card with the actions indented under the title (`pl-[52px]`, aligned past the 40px icon tile).
 - **Choice tiles** always sit in two columns from `sm` up, so edges line up from block to block.
 - **Vertical rhythm:** 16px between fields, 24–28px card padding, 40px between major sections, one H1 header block with a 12px gap to the lead.
+
+**The Sidebar-Says-Where Rule.** On desktop the active sidebar item is the page title; a big section heading that repeats it is noise, so it is visually hidden (kept for screen readers). On phones the heading stays: there is no sidebar, and «Подписка», «Настройки», «Поддержка» share the «Ещё» tab. A page opens with its content or a line that reports state — never with an explanatory sentence about what the page is for.
 
 **The One-Chrome Rule.** The anketa and the cabinet share the same sidebar, tab bar and focus language. A step of the anketa must look like part of the product, not a wizard bolted onto it. Step numbering is continuous within the funnel (a second site skips «Ваш профиль», so its funnel has 5 steps, numbered 1–5).
 
@@ -379,4 +381,5 @@ Confident and few.
 - **Don't** reach for Filed Paper (`#faf8f4`) on new screens; the page is Desk, content is Sheet.
 - **Don't** preselect an answer in the anketa, including a segmented control; the client chooses.
 - **Don't** write «cookie» in interface or document text; it is «куки» («Куки-баннер», «Политика обработки куки»).
+- **Don't** open a page with an explanatory sentence («что сейчас с сайтом…», «Частые вопросы про…»); keep only lines that report state.
 - **Don't** warn about something more than a month away, or paint a running trial amber before its last day (**The Near-Term Warning Rule**).
