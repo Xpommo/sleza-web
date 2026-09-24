@@ -24,8 +24,12 @@ import { PRICE, TARIFFS, formatDate, paidPeriod, subState, trialEndAt, trialEnds
 export const MAIN = 'main';
 const CURRENT = 'current_site_v1';
 
+// Тариф выбирает клиент — в «Подписке», пока идёт пробный период (владелец
+// 24.09). До выбора его нет: «Тариф Х · 12 000 ₽» в «Обзоре» сразу после
+// установки выглядел решённым за клиента. Оплаченный сайт без записи о
+// тарифе (старые состояния макета) — на первом тарифе.
 function mainTariff(a) {
-  return a.siteTariff || a.billing?.tariff || TARIFFS[0];
+  return a.siteTariff || a.billing?.tariff || (a.billing?.paidAt ? TARIFFS[0] : null);
 }
 
 // ─── какой сайт открыт в кабинете ────────────────────────────────────────
@@ -436,7 +440,7 @@ export function cardStatus(site) {
   const meta = site.kind === 'off-soon' ? `работает ${site.label}` : site.label;
   // В пробный период тариф ещё не действует — рядом с «Пробный период» его
   // название путало.
-  return { label: CARD[site.kind], meta: site.kind === 'trial' ? meta : `${meta} · ${site.tariff}`, tone: site.tone === 'muted' ? 'warn' : site.tone };
+  return { label: CARD[site.kind], meta: site.kind === 'trial' || !site.tariff ? meta : `${meta} · ${site.tariff}`, tone: site.tone === 'muted' ? 'warn' : site.tone };
 }
 
 export function formatRub(n) {

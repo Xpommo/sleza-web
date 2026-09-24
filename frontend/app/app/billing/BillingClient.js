@@ -16,7 +16,7 @@ import {
   accountSites, balanceOf, currentSiteKey, debitShortfall, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite, payYearFromBalance,
   setSiteCancelled, setSiteTariff, topUpBalance,
 } from '../site/_shared/sites';
-import { PRICE, TARIFFS, TRIAL_DAYS, formatDate, paidPeriod, trialEnds } from '../site/_shared/subscription';
+import { PRICE, TARIFFS, TRIAL_DAYS, formatDate, paidPeriod, trialEndAt, trialEnds } from '../site/_shared/subscription';
 
 // «Подписка» аккаунта — модель баланса (партнёрская программа, 14.09;
 // владелец 23.09: «платят нам за ПО»):
@@ -169,7 +169,6 @@ function RowMenu({ site, hasHistory, onPick }) {
       ? [[site.label === 'код не установлен' ? 'Поставить код' : 'Продолжить анкету', 'go', true]]
       : [
           ['Продлить на 1 год', 'renew', urgent],
-          ['Сменить тариф', 'tariff'],
           ['Посмотреть историю счетов', 'history', false, !hasHistory],
         ];
   return (
@@ -221,20 +220,48 @@ function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, children 
   const [tone, text] = badgeOf(site);
   const live = site.kind !== 'not-ready';
   const debit = !site.cancelled ? nextDebit(site) : null;
-  const tariff = site.kind === 'trial' ? 'Пробный период' : live ? site.tariff : '—';
+  const trial = site.kind === 'trial';
+  const tariff = trial ? 'Пробный период' : live ? site.tariff || '—' : '—';
+  // Тариф — на виду, в своей колонке, а не в «⋯» (владелец 24.09): там его
+  // не находили и не могли выбрать нужный.
+  const tariffBtn = (label) => (
+    <button
+      type="button"
+      onClick={() => onPick('tariff')}
+      aria-expanded={open === 'tariff'}
+      className={`rounded text-[12px] font-bold text-brand hover:text-ink ${RING}`}
+    >
+      {label}
+    </button>
+  );
+  const tariffAction = !live || site.kind === 'expired' || site.kind === 'pending'
+    ? null
+    : trial && !site.tariff
+      ? <p className="mt-0.5">{tariffBtn('Выбрать тариф')}</p>
+      : trial
+        ? <p className="mt-0.5 text-[12px] text-ink/60">дальше — {site.tariff} · {tariffBtn('Сменить')}</p>
+        : <p className="mt-0.5">{tariffBtn('Сменить')}</p>;
+  // Без тарифа продлевать нечего: сначала выбор — жёлтым только в последний
+  // день пробного периода, как и нехватка денег.
+  const noTariffLine = debit && trial && !site.tariff && (
+    <p className={`mt-1 text-[12px] ${site.trialStartedAt && trialEndAt(site) - Date.now() <= DAY ? 'font-semibold text-warn-ink' : 'text-ink/60'}`}>
+      Чтобы продлить {debit}, выберите тариф
+    </p>
+  );
   const badge = <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-[12px] font-bold ${BADGE[tone]}`}>{text}</span>;
   // Автопродление включено, а денег на списание нет — жёлтым, с суммой:
   // серое «спишем» при пустом балансе читалось как «всё в порядке». Дата
   // уже стоит в плашке статуса — здесь только сколько не хватит.
   const debitLine =
-    debit &&
+    noTariffLine ||
+    (debit &&
     (short ? (
       <p className="mt-1 text-[12px] font-semibold text-warn-ink">Не хватает {formatRub(short)} на год</p>
     ) : (
       <p className="mt-1 text-[12px] text-ink/60">
         {debit} спишем {PRICE_TEXT}
       </p>
-    ));
+    )));
   const nextTariff = site.nextTariff && site.period && <p className="mt-0.5 text-[12px] text-ink/60">с {site.period.renew} — {site.nextTariff}</p>;
   const sw = live && <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />;
   const menu = <RowMenu site={site} hasHistory={hasHistory} onPick={onPick} />;
@@ -249,6 +276,7 @@ function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, children 
         <div className="min-w-0">
           <p className="truncate text-[14px] font-semibold text-ink/80">{tariff}</p>
           {nextTariff}
+          {tariffAction}
         </div>
         <div className="min-w-0">
           {badge}
@@ -271,7 +299,10 @@ function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, children 
           {debitLine}
         </div>
         <div className="mt-3 flex items-center justify-between gap-3 text-[13px]">
-          <span className="font-semibold text-ink/75">{tariff}</span>
+          <span className="min-w-0">
+            <span className="block font-semibold text-ink/75">{tariff}</span>
+            {tariffAction}
+          </span>
           {live && (
             <label className="flex items-center gap-2 font-semibold text-ink/65">
               Автопродление {sw}
@@ -292,7 +323,9 @@ export default function BillingClient() {
 
   // Раскрытая панель в строке сайта: { key, panel: 'tariff' | 'renew' }.
   const [open, setOpen] = useState(null);
-  const [tariffPick, setTariffPick] = useState(TARIFFS[0]);
+  // Ничего не отмечено, пока клиент не выбрал: оплату с «Обзора» раньше
+  // открывала панель с уже отмеченным «Тарифом Х».
+  const [tariffPick, setTariffPick] = useState(null);
   const [off, setOff] = useState(null); // { site, step } — выключение автопродления
 
   // Пополнение баланса. topupFor — сайт, год которого оплатим сразу после
@@ -314,6 +347,8 @@ export default function BillingClient() {
   const [cardExp, setCardExp] = useState('');
   const [cardCvc, setCardCvc] = useState('');
   const [cardErr, setCardErr] = useState({});
+  // Согласие на автосписания — отдельной галочкой, по умолчанию снято.
+  const [cardAuto, setCardAuto] = useState(false);
 
   const [payerOpen, setPayerOpen] = useState(false);
   const [payerMode, setPayerMode] = useState(null);
@@ -366,6 +401,9 @@ export default function BillingClient() {
 
   const b = a.billing || {};
   const balance = balanceOf(a);
+  // Автопополнение (владелец 24.09): не хватает к продлению — недостающее
+  // спишем с привязанной карты сами; клиенту об этом помнить не нужно.
+  const autoCard = Boolean(b.card?.auto);
   const sites = accountSites(a, now).map((s) => ({ ...s, trialTo: s.trialStartedAt ? trialEnds(s) : '' }));
   const main = sites[0];
   const single = sites.length === 1;
@@ -380,7 +418,7 @@ export default function BillingClient() {
   // несколько и надо показать, какому не хватает.
   const short = debitShortfall(sites, balance);
   const soonShort = sites.filter((s) => short[s.key] && short[s.key].at - now < SOON);
-  const warnShort = sites
+  const warnShort = (autoCard ? [] : sites)
     .filter((s) => short[s.key] && short[s.key].at - now < warnWithin(s))
     .map((s) => short[s.key])
     .sort((x, y) => x.at - y.at);
@@ -403,14 +441,18 @@ export default function BillingClient() {
       setOpen(null);
       return;
     }
-    if (panel === 'tariff') setTariffPick(site.nextTariff || site.tariff);
+    // Не выбран — ничего не отмечено: тариф выбирает клиент.
+    if (panel === 'tariff' || panel === 'renew') setTariffPick(site.nextTariff || site.tariff || null);
     setOpen({ key: site.key, panel });
   }
 
-  function pickTariff(site) {
+  // then='renew' — тариф выбирали перед оплатой: после выбора та же строка
+  // показывает оплату года.
+  function pickTariff(site, then) {
+    if (!tariffPick) return;
     setSiteTariff(site.key, tariffPick, site.kind === 'paid');
     reload();
-    setOpen(null);
+    setOpen(then ? { key: site.key, panel: then } : null);
   }
 
   function pickMethod(m) {
@@ -483,7 +525,7 @@ export default function BillingClient() {
     const errs = cardErrors();
     setCardErr(errs);
     if (Object.keys(errs).length) return;
-    saveBilling({ method: 'Картой', card: { last4: cardNo.replace(/\D/g, '').slice(-4), exp: cardExp } });
+    saveBilling({ method: 'Картой', card: { last4: cardNo.replace(/\D/g, '').slice(-4), exp: cardExp, auto: cardAuto } });
     setCardNo('');
     setCardExp('');
     setCardCvc('');
@@ -505,7 +547,7 @@ export default function BillingClient() {
     if (!ok || !email) return;
     const patch = { method: 'Картой', actsEmail: email };
     if (!b.card) {
-      patch.card = { last4: cardNo.replace(/\D/g, '').slice(-4), exp: cardExp };
+      patch.card = { last4: cardNo.replace(/\D/g, '').slice(-4), exp: cardExp, auto: cardAuto };
       setCardNo('');
       setCardExp('');
       setCardCvc('');
@@ -571,9 +613,15 @@ export default function BillingClient() {
         'not-ready': 'Подписка начнётся с пробного периода, когда код встанет на сайт.',
         trial: main.cancelled
           ? `Пробный период — до ${main.trialTo}. Автопродление выключено — после этой даты сайт отключится.`
-          : balance >= PRICE
-            ? `Пробный период — до ${main.trialTo}. Потом спишем с баланса ${PRICE_TEXT} за год.`
-            : `Пробный период — до ${main.trialTo}. Пополните баланс на ${PRICE_TEXT} — тогда год оплатится сам, без перерыва.`,
+          : !main.tariff
+            ? balance >= PRICE || autoCard
+              ? `Пробный период — до ${main.trialTo}. Выберите тариф — потом год оплатится сам, без перерыва.`
+              : `Пробный период — до ${main.trialTo}. Выберите тариф и пополните баланс на ${PRICE_TEXT} — тогда год оплатится сам, без перерыва.`
+            : balance >= PRICE
+              ? `Пробный период — до ${main.trialTo}. Потом спишем с баланса ${PRICE_TEXT} за год.`
+              : autoCard
+                ? `Пробный период — до ${main.trialTo}. Потом спишем ${PRICE_TEXT} за год — недостающее с карты ···· ${b.card.last4}.`
+                : `Пробный период — до ${main.trialTo}. Пополните баланс на ${PRICE_TEXT} — тогда год оплатится сам, без перерыва.`,
         expired: 'Пробный период закончился — оплатите год, чтобы включить сайт снова.',
         pending: 'Счёт выставлен — отметим оплату, как только поступят деньги, обычно 1–3 рабочих дня.',
         paid: main.period && `Оплачено до ${main.period.to}.`,
@@ -675,38 +723,52 @@ export default function BillingClient() {
 
   function cardFields() {
     return (
-      <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
-        <Field
-          label="Номер карты"
-          required
-          inputMode="numeric"
-          placeholder="0000 0000 0000 0000"
-          value={cardNo}
-          onChange={(e) => setCardNo(e.target.value.replace(/[^\d ]/g, '').slice(0, 19))}
-          error={cardErr.no}
-        />
-        <Field
-          label="Срок"
-          required
-          inputMode="numeric"
-          placeholder="ММ/ГГ"
-          value={cardExp}
-          onChange={(e) => {
-            const d = e.target.value.replace(/\D/g, '').slice(0, 4);
-            setCardExp(d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d);
-          }}
-          error={cardErr.exp}
-        />
-        <Field
-          label="CVC"
-          required
-          inputMode="numeric"
-          placeholder="000"
-          value={cardCvc}
-          onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
-          error={cardErr.cvc}
-        />
-      </div>
+      <>
+        <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
+          <Field
+            label="Номер карты"
+            required
+            inputMode="numeric"
+            placeholder="0000 0000 0000 0000"
+            value={cardNo}
+            onChange={(e) => setCardNo(e.target.value.replace(/[^\d ]/g, '').slice(0, 19))}
+            error={cardErr.no}
+          />
+          <Field
+            label="Срок"
+            required
+            inputMode="numeric"
+            placeholder="ММ/ГГ"
+            value={cardExp}
+            onChange={(e) => {
+              const d = e.target.value.replace(/\D/g, '').slice(0, 4);
+              setCardExp(d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d);
+            }}
+            error={cardErr.exp}
+          />
+          <Field
+            label="CVC"
+            required
+            inputMode="numeric"
+            placeholder="000"
+            value={cardCvc}
+            onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
+            error={cardErr.cvc}
+          />
+        </div>
+        <label className="mt-4 flex items-start gap-3 text-[13px] leading-5 text-ink/70">
+          <input
+            type="checkbox"
+            checked={cardAuto}
+            onChange={(e) => setCardAuto(e.target.checked)}
+            className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-brand"
+          />
+          <span>
+            <b className="font-semibold text-ink">Автопополнение:</b> если к продлению на балансе не хватит, спишем
+            недостающее с этой карты. Отключить можно в любой момент.
+          </span>
+        </label>
+      </>
     );
   }
 
@@ -876,14 +938,56 @@ export default function BillingClient() {
     );
   }
 
+  // Выбор тарифа — в строке сайта. Тариф не применяется по клику: случайное
+  // нажатие по соседней карточке меняло бы оплачиваемый тариф.
+  function tariffPanel(site, then) {
+    return (
+      <>
+        {then && <p className="mb-3 text-[15px] font-bold">Сначала выберите тариф для {site.domain}</p>}
+        <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={`Тариф ${site.domain}`}>
+          {TARIFFS.map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="radio"
+              aria-checked={tariffPick === t}
+              onClick={() => setTariffPick(t)}
+              className={`rounded-xl border px-4 py-3 text-left transition ${RING} ${
+                tariffPick === t ? 'border-brand bg-white ring-2 ring-brand/10' : 'border-line bg-white hover:border-line-2'
+              }`}
+            >
+              <span className="block text-sm font-bold">{t}</span>
+              <span className="mt-0.5 block text-[12px] text-ink/60">{PRICE_TEXT} в год</span>
+            </button>
+          ))}
+        </div>
+        <p className="mt-3 text-[12px] text-ink/60">
+          {site.kind === 'paid'
+            ? `Новый тариф начнёт действовать с продления ${site.period.renew} — текущий год уже оплачен.`
+            : 'Состав тарифов ещё утверждается — цена пока одна.'}
+        </p>
+        <div className="mt-4 flex gap-3">
+          <button type="button" onClick={() => pickTariff(site, then)} disabled={!tariffPick} className={`${then ? PRIMARY_SM : BTN_OUTLINE} disabled:cursor-not-allowed disabled:opacity-50`}>
+            {then ? 'Выбрать и продолжить' : 'Выбрать этот тариф'}
+          </button>
+          <button type="button" onClick={() => setOpen(null)} className={BTN_TEXT}>
+            Отмена
+          </button>
+        </div>
+      </>
+    );
+  }
+
   // Оплатить год / продлить ещё на год — с баланса, в строке сайта.
   function renewPanel(site) {
+    // Без тарифа платить не за что: сначала выбор, потом та же панель оплаты.
+    if (!site.tariff) return tariffPanel(site, 'renew');
     const enough = balance >= PRICE;
     // Тем же глаголом, что нажали: «Оплатить год» с «Обзора» раньше
     // открывало панель без заголовка с одной «Пополнить» внутри.
     const title = (
       <p className="mb-1.5 text-[15px] font-bold">
-        {site.kind === 'paid' || site.kind === 'off-soon' ? `Продлить ${site.domain} на год` : `Оплатить год ${site.domain}`} — {PRICE_TEXT}
+        {site.kind === 'paid' || site.kind === 'off-soon' ? `Продлить ${site.domain} на год` : `Оплатить год ${site.domain}`} — {site.tariff}, {PRICE_TEXT}
       </p>
     );
     const what =
@@ -955,9 +1059,14 @@ export default function BillingClient() {
                     <p className="mt-1 text-[28px] font-bold leading-none tracking-[-0.03em]">{formatRub(balance)}</p>
                     <p className="mt-2 text-[13px] leading-5 text-ink/60">
                       {renewal
-                        ? `Ближайшее списание — ${renewal.date} · ${renewal.site.domain} · ${PRICE_TEXT}`
+                        ? `Ближайшее списание — ${renewal.date} · ${renewal.site.domain} · ${renewal.site.tariff ? PRICE_TEXT : 'после выбора тарифа'}`
                         : 'С баланса оплачивается год каждого сайта — в его дату продления.'}
                     </p>
+                    {autoCard && shortSum > 0 && renewal?.site.tariff && (
+                      <p className="mt-1 text-[13px] leading-5 text-ink/60">
+                        Не хватает {formatRub(shortSum)} — спишем с карты ···· {b.card.last4} в день продления.
+                      </p>
+                    )}
                     {warnSum > 0 && (
                       <p className="mt-3 w-fit rounded-lg bg-warn/10 px-3 py-2 text-[13px] font-semibold leading-5 text-warn-ink">
                         Не хватает {formatRub(warnSum)} — пополните до {formatDate(warnShort[0].at)}
@@ -967,7 +1076,7 @@ export default function BillingClient() {
                   {/* Главная — только когда пополнить действительно нужно и
                       ниже не открыта оплата сайта со своей синей кнопкой. */}
                   {!topupOpen && (
-                    <button type="button" onClick={() => openTopup(shortSum || PRICE)} className={shortSum > 0 && open?.panel !== 'renew' ? PRIMARY_SM : SECONDARY_SM}>
+                    <button type="button" onClick={() => openTopup(shortSum || PRICE)} className={shortSum > 0 && !autoCard && open?.panel !== 'renew' ? PRIMARY_SM : SECONDARY_SM}>
                       Пополнить
                     </button>
                   )}
@@ -999,7 +1108,7 @@ export default function BillingClient() {
                     <SiteTableRow
                       key={site.key}
                       site={site}
-                      short={!single && short[site.key] && short[site.key].at - now < warnWithin(site) ? short[site.key].amount : null}
+                      short={!single && !autoCard && short[site.key] && short[site.key].at - now < warnWithin(site) ? short[site.key].amount : null}
                       open={open?.key === site.key ? open.panel : null}
                       hasHistory={ops.some((op) => op.kind === 'debit' && op.site === site.domain)}
                       onPick={(id) => {
@@ -1019,43 +1128,7 @@ export default function BillingClient() {
                         } else setOff({ site, step: 1 });
                       }}
                     >
-                    {open?.panel === 'tariff' ? (
-                      <>
-                        {/* Тариф не применяется по клику: случайное нажатие по
-                            соседней кнопке меняло бы оплачиваемый тариф. */}
-                        <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={`Тариф ${site.domain}`}>
-                          {TARIFFS.map((t) => (
-                            <button
-                              key={t}
-                              type="button"
-                              role="radio"
-                              aria-checked={tariffPick === t}
-                              onClick={() => setTariffPick(t)}
-                              className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition ${RING} ${
-                                tariffPick === t ? 'border-brand bg-white ring-2 ring-brand/10' : 'border-line bg-white hover:border-line-2'
-                              }`}
-                            >
-                              {t}
-                            </button>
-                          ))}
-                        </div>
-                        <p className="mt-3 text-[12px] text-ink/60">
-                          {site.kind === 'paid'
-                            ? `Новый тариф начнёт действовать с продления ${site.period.renew} — текущий год уже оплачен.`
-                            : 'Состав тарифов ещё утверждается — цена пока одна.'}
-                        </p>
-                        <div className="mt-4 flex gap-3">
-                          <button type="button" onClick={() => pickTariff(site)} className={BTN_OUTLINE}>
-                            Выбрать этот тариф
-                          </button>
-                          <button type="button" onClick={() => setOpen(null)} className={BTN_TEXT}>
-                            Отмена
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      renewPanel(site)
-                    )}
+                    {open?.panel === 'tariff' ? tariffPanel(site) : renewPanel(site)}
                     </SiteTableRow>
                   ))}
                 </div>
@@ -1069,7 +1142,7 @@ export default function BillingClient() {
                   <Row
                     label="Способ"
                     value={method === 'Картой' ? (b.card ? `Карта ···· ${b.card.last4}` : 'Картой') : 'По счёту'}
-                    note={method === 'Картой' ? (b.card ? `до ${b.card.exp}` : 'карта не привязана') : 'счёт на почту, оплата переводом'}
+                    note={method === 'Картой' ? (b.card ? `до ${b.card.exp}${b.card.auto ? ' · автопополнение' : ''}` : 'карта не привязана') : 'счёт на почту, оплата переводом'}
                     action="Изменить"
                     open={methodOpen}
                     onAction={() => setMethodOpen(!methodOpen)}
@@ -1081,6 +1154,19 @@ export default function BillingClient() {
                         <button type="button" onClick={bindCard} className={`mt-4 ${PRIMARY_SM}`}>
                           Привязать карту
                         </button>
+                      </div>
+                    )}
+                    {b.card && (
+                      <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 text-[13px] leading-5">
+                        <span>
+                          <b className="font-semibold">Автопополнение</b> — если к продлению не хватит, спишем недостающее с
+                          карты ···· {b.card.last4}
+                        </span>
+                        <Switch
+                          checked={Boolean(b.card.auto)}
+                          onChange={(on) => saveBilling({ card: { ...b.card, auto: on } })}
+                          label="Автопополнение с карты"
+                        />
                       </div>
                     )}
                     {b.card && (
