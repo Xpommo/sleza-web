@@ -12,68 +12,29 @@ import { SITE_ID, operatorName } from '../../../lib/docPackage';
 import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
 import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
 import SiteOffModal from './SiteOffModal';
+import { BTN_OUTLINE, LINK, Panel, Row } from './BillingBits';
 import {
   accountSites, balanceOf, currentSiteKey, debitShortfall, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite, payYearFromBalance,
   setSiteCancelled, setSiteLeaving, setSiteTariff, topUpBalance,
 } from '../site/_shared/sites';
 import { PRICE, TARIFFS, TRIAL_DAYS, formatDate, paidPeriod, trialEndAt, trialEnds } from '../site/_shared/subscription';
 
-// «Подписка» аккаунта — модель баланса (партнёрская программа, 14.09;
+// «Оплата» аккаунта (до 24.09 — «Подписка») — модель баланса (партнёрская программа, 14.09;
 // владелец 23.09: «платят нам за ПО»):
 // - баланс один — у пользователя; пополняют его картой или по счёту;
 // - у каждого сайта свой тариф, свой год и своя дата продления; оплата года
 //   списывается с баланса — автопродлением в эту дату (включено по умолчанию,
 //   выключается у каждого сайта) или вручную, в любой момент: «Оплатить год»
 //   до оплаты, «Продлить ещё на год» после — к сроку добавляется 12 месяцев;
-// - выключенное автопродление — это и есть «отключить сайт»: работает до
-//   конца оплаченного срока, дальше не продлевается;
+// - выключенное автопродление — продление вручную, не уход; уйти — «Отключить
+//   сайт» в «⋯» строки: работает до конца срока, дальше не продлевается
+//   (владелец 24.09);
+// - чеки, история операций и акты — в «Бухгалтерии» (владелец 24.09).
 // - способ пополнения, плательщик и почта для документов не выбраны заранее
 //   (владелец 23.09) — их выбирают при первом пополнении.
 
 const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
 const PRICE_TEXT = formatRub(PRICE);
-
-function Panel({ title, aside, children }) {
-  return (
-    <section className="mt-5 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-bold tracking-[-0.02em]">{title}</h2>
-        {aside && <span className="text-[13px] text-ink/60">{aside}</span>}
-      </div>
-      <div>{children}</div>
-    </section>
-  );
-}
-
-// action — текстовая кнопка («Изменить»), раскрывает правку под строкой;
-// actions — иконки (открыть / скопировать), как в «Документах».
-function Row({ label, value, note, action, onAction, open, actions, children }) {
-  return (
-    <div className="border-t border-line py-4 first:border-t-0">
-      <div className="flex items-start gap-4">
-        <div className="min-w-0 flex-1 sm:flex sm:gap-4">
-          <span className="block text-[12px] text-ink/60 sm:w-36 sm:shrink-0 sm:pt-0.5 sm:text-[13px]">{label}</span>
-          <div className="mt-0.5 min-w-0 sm:mt-0">
-            <p className="text-sm font-bold">{value}</p>
-            {note && <p className="mt-0.5 break-words text-[12px] leading-4 text-ink/60">{note}</p>}
-          </div>
-        </div>
-        {actions && <div className="flex shrink-0 items-center gap-1">{actions}</div>}
-        {action && (
-          <button
-            type="button"
-            onClick={onAction}
-            aria-expanded={children ? open : undefined}
-            className={`shrink-0 rounded-lg px-2 py-1 text-[13px] font-semibold text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
-          >
-            {open ? 'Свернуть' : action}
-          </button>
-        )}
-      </div>
-      {open && children && <div className="mt-4 sm:pl-40">{children}</div>}
-    </div>
-  );
-}
 
 function plural(n, one, few, many) {
   const m10 = n % 10;
@@ -100,9 +61,7 @@ const SOON = 30 * DAY;
 // последний день, как баннер «Обзора» и письмо-напоминание (владелец 23.09:
 // пробный период — хорошая новость); у оплаченного сайта — за месяц.
 const warnWithin = (site) => (site.kind === 'trial' ? DAY : SOON);
-const BTN_OUTLINE = `rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
 const BTN_TEXT = `rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
-const LINK = `rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`;
 
 // Таблица сайтов (владелец 23.09: «перегружено и выбивается из общего») —
 // в том же виде, что список в «Документах»: шапка моно-капсами, строки через
@@ -383,13 +342,7 @@ export default function BillingClient() {
   const [payerModal, setPayerModal] = useState(false);
 
   const [whatOpen, setWhatOpen] = useState(false);
-  const [actsEmail, setActsEmail] = useState('');
-  const [actsEditing, setActsEditing] = useState(false);
-  const [actsErr, setActsErr] = useState(null);
   const [copied, setCopied] = useState(null);
-  const [opsAll, setOpsAll] = useState(false);
-  // «Посмотреть историю счетов» из меню сайта — история только этого сайта.
-  const [historyFor, setHistoryFor] = useState(null);
 
   useEffect(() => {
     const saved = loadAnketa();
@@ -404,10 +357,7 @@ export default function BillingClient() {
       setMethod(b.method);
       setPayMethod(b.method);
     }
-    if (b.actsEmail) {
-      setActsEmail(b.actsEmail);
-      setDocsEmail(b.actsEmail);
-    }
+    if (b.actsEmail) setDocsEmail(b.actsEmail);
     if (b.payerOther) {
       setOtherPayer(b.payerOther);
       setPayerMode('Другие реквизиты');
@@ -462,7 +412,6 @@ export default function BillingClient() {
     .sort((x, y) => x.at - y.at);
   const shortSum = soonShort.reduce((sum, s) => sum + short[s.key].amount, 0);
   const warnSum = warnShort.reduce((sum, x) => sum + x.amount, 0);
-  const paidSites = sites.filter((s) => s.period && (s.kind === 'paid' || s.kind === 'off-soon'));
   const ops = b.ops || [];
 
   function reload() {
@@ -614,7 +563,6 @@ export default function BillingClient() {
     }
     saveAnketa({ billing: { ...loadAnketa().billing, ...patch } });
     setMethod('Картой');
-    setActsEmail(email);
     topUpBalance(sum, 'Картой');
     if (topupFor) payYearFromBalance(topupFor);
     closeTopup();
@@ -640,20 +588,9 @@ export default function BillingClient() {
     setPayErr(null);
     saveAnketa({ billing: { ...loadAnketa().billing, method: 'По счёту', actsEmail: email, ...(payerMode === 'Реквизиты компании' ? { payerOther: null } : {}) } });
     setMethod('По счёту');
-    setActsEmail(email);
     issueTopupInvoice(sum, currentPayer);
     closeTopup();
     reload();
-  }
-
-  function saveActs() {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(actsEmail)) {
-      setActsErr('Нужна почта вида name@site.ru — на неё придут чеки и акты.');
-      return;
-    }
-    setActsErr(null);
-    saveBilling({ actsEmail });
-    setActsEditing(false);
   }
 
   function copy(key, text) {
@@ -1086,12 +1023,12 @@ export default function BillingClient() {
 
   return (
     <main className="min-h-screen bg-warm text-ink lg:flex">
-      <AccountSidebar active="Подписка" user={user} />
+      <AccountSidebar active="Оплата" user={user} />
 
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-4xl">
           <header>
-            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px] lg:sr-only">Подписка</h1>
+            <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px] lg:sr-only">Оплата</h1>
             <p className="mt-3 max-w-2xl text-[15px] leading-6 text-ink/65">{lead}</p>
           </header>
 
@@ -1177,8 +1114,8 @@ export default function BillingClient() {
                           openSite(site.key);
                           router.push(STEP_URLS[Math.min(site.stepsDone || 0, 5)]);
                         } else if (id === 'history') {
-                          setHistoryFor(site.domain);
-                          setTimeout(() => document.getElementById('history')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                          // История — в «Бухгалтерии», отфильтрованная по сайту.
+                          router.push(`/app/accounting?site=${encodeURIComponent(site.domain)}`);
                         } else if (id === 'off') setOff({ site, step: 1 });
                         else if (id === 'back') {
                           setSiteLeaving(site.key, false);
@@ -1277,94 +1214,6 @@ export default function BillingClient() {
                         )}
                       </div>
                     </Row>
-                  )}
-                </Panel>
-              )}
-
-              {/* Для бухгалтерии: куда слать чеки и акты, история операций и
-                  акты за оплаченные годы. Появляется после первого пополнения. */}
-              {(b.actsEmail || ops.length > 0) && (
-                <Panel title="Для бухгалтерии">
-                  <Row
-                    label="Чеки, счета, акты"
-                    value={b.actsEmail || 'почта не указана'}
-                    note="сюда приходят документы об оплате"
-                    action="Изменить"
-                    open={actsEditing}
-                    onAction={() => setActsEditing(!actsEditing)}
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                      <div className="flex-1">
-                        <Field
-                          label="Почта для документов"
-                          type="email"
-                          placeholder={`buh@${a.domain}`}
-                          value={actsEmail}
-                          onChange={(e) => {
-                            setActsEmail(e.target.value);
-                            setActsErr(null);
-                          }}
-                          error={actsErr}
-                        />
-                      </div>
-                      <button type="button" onClick={saveActs} className={`sm:mt-[30px] ${BTN_OUTLINE}`}>
-                        Сохранить
-                      </button>
-                    </div>
-                  </Row>
-                  {/* История и акты — однострочными списками: у агента операций
-                      и актов десятки, строка «подпись — значение — пояснение»
-                      на каждую растягивала блок (владелец 23.09). */}
-                  {ops.length > 0 && (
-                    <div id="history" className="scroll-mt-6 border-t border-line py-4">
-                      <p className="mb-1 flex flex-wrap items-baseline gap-x-3 text-[13px] text-ink/60">
-                        История{historyFor ? ` · ${historyFor}` : ''}
-                        {historyFor && (
-                          <button type="button" onClick={() => setHistoryFor(null)} className={LINK}>
-                            Показать всю
-                          </button>
-                        )}
-                      </p>
-                      <ul className="divide-y divide-line">
-                        {(historyFor
-                          ? [...ops].reverse().filter((op) => op.site === historyFor)
-                          : opsAll
-                            ? [...ops].reverse()
-                            : [...ops].reverse().slice(0, 4)
-                        ).map((op) => (
-                          <li key={`${op.at}-${op.kind}-${op.site || ''}`} className="flex items-baseline gap-3 py-2 text-[13px]">
-                            <span className="w-20 shrink-0 text-ink/60">{formatDate(op.at)}</span>
-                            <span className="min-w-0 flex-1 break-words text-ink/80">
-                              {op.kind === 'topup' ? `Пополнение ${op.method === 'Картой' ? 'картой' : 'по счёту'}` : `Оплата года · ${op.site}`}
-                            </span>
-                            <span className={`shrink-0 font-semibold ${op.kind === 'topup' ? 'text-ok' : 'text-ink'}`}>
-                              {op.kind === 'topup' ? '+' : '−'}
-                              {formatRub(op.amount)}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                      {!historyFor && ops.length > 4 && (
-                        <button type="button" onClick={() => setOpsAll(!opsAll)} className={`mt-1 ${LINK}`}>
-                          {opsAll ? 'Свернуть' : `Вся история — ${ops.length}`}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  {paidSites.length > 0 && (
-                    <div className="border-t border-line pt-4">
-                      <p className="mb-1 text-[13px] text-ink/60">Акты</p>
-                      <ul className="divide-y divide-line">
-                        {paidSites.map((s) => (
-                          <li key={s.key} className="flex items-center gap-3 py-1.5 text-[13px]">
-                            <span className="min-w-0 flex-1 truncate text-ink/80">
-                              {s.domain} · {s.period.from} – {s.period.to}
-                            </span>
-                            <IconAction label={`Открыть акт ${s.domain}`} icon={ExternalIcon} href={`https://cdn.sleza.media/${SITE_ID}/act-${s.key}-${s.period.years}.pdf`} />
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
                   )}
                 </Panel>
               )}

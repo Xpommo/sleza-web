@@ -89,7 +89,7 @@ export default function RequisitesModal({ onClose, onSaved, track = true }) {
             </h3>
             <p className="mt-2 text-[13px] leading-5 text-ink/60">
               Попадают в документ «Реквизиты владельца» и в подвал сайта. Реквизиты для счёта — отдельные, они в
-              «Подписке».
+              «Оплате».
             </p>
           </div>
           <button type="button" onClick={onClose} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>

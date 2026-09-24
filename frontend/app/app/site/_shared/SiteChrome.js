@@ -8,7 +8,8 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  ArrowLeftIcon, BillingIcon, ChevronDownIcon, DocsIcon, LogoutIcon, MonitorIcon, ProjectsIcon, SettingsIcon, SupportIcon,
+  ArrowLeftIcon, BillingIcon, ChevronDownIcon, DocsIcon, LogoutIcon, MonitorIcon, ProjectsIcon, ReceiptIcon, SettingsIcon, SupportIcon,
+  WalletIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { accountUser, loadAnketa, rememberReturn, returnPath, userLabel } from '../../start/_shared/anketaState';
@@ -24,21 +25,46 @@ export function TearMark({ size = 28 }) {
   );
 }
 
-// Разделы сайта. Подписки среди них нет — решение владельца 18 сентября:
-// «Подписка» живёт в аккаунтном меню, рядом с «Мои сайты». С 23.09 тариф и
-// год подписки у каждого сайта свои, но оплачивают, меняют тариф и
-// отключают все сайты в одном месте — в строках «Подписки»; общие там
-// способ оплаты, плательщик и почта для актов.
+// Разделы сайта. Оплаты среди них нет — решение владельца 18 сентября:
+// она живёт в аккаунтном меню, рядом с «Мои сайты». С 23.09 тариф и год
+// подписки у каждого сайта свои, но оплачивают, меняют тариф и отключают все
+// сайты в одном месте — в строках «Оплаты»; общие там баланс, способ
+// пополнения и плательщик. С 24.09 раздел называется «Оплата» (был
+// «Подписка»), а чеки, история и акты — в своём разделе «Бухгалтерия».
 export const SITE_NAV = [
   { label: 'Обзор', Icon: ProjectsIcon, href: '/app/site' },
   { label: 'Документы', Icon: DocsIcon, href: '/app/site/documents' },
   { label: 'Виджет', Icon: MonitorIcon, href: '/app/site/widget' },
 ];
 
+// «Бухгалтерия» — только после первого пополнения (paid): до него там
+// пусто, как раньше пусто было в блоке «Для бухгалтерии».
 export const ACCOUNT_NAV = [
   { label: 'Мои сайты', Icon: ProjectsIcon, href: '/app/sites' },
-  { label: 'Подписка', Icon: BillingIcon, href: '/app/billing' },
+  { label: 'Оплата', Icon: BillingIcon, href: '/app/billing' },
+  { label: 'Бухгалтерия', Icon: ReceiptIcon, href: '/app/accounting', paid: true },
 ];
+
+const rub = (n) => `${n.toLocaleString('ru-RU')} ₽`;
+
+// Баланс аккаунта и «Бухгалтерия» — после первого пополнения (способ
+// пополнения выбран или есть операции), как раньше блоки «Пополнение» и «Для
+// бухгалтерии»: до него «0 ₽» в углу ничего не сообщает и читается как долг.
+// Сумму перечитываем на каждое сохранение анкеты — пополнили в «Оплате»,
+// и строка в сайдбаре сразу показывает новую.
+export function useMoney() {
+  const [money, setMoney] = useState(null);
+  useEffect(() => {
+    const read = () => {
+      const b = loadAnketa().billing || {};
+      setMoney(b.method || (b.ops || []).length ? { balance: b.balance || 0 } : null);
+    };
+    read();
+    window.addEventListener('anketa:saved', read);
+    return () => window.removeEventListener('anketa:saved', read);
+  }, []);
+  return money;
+}
 
 export { accountUser, CURRENT_USER };
 
@@ -134,19 +160,45 @@ function BackButton() {
 const MENU_ITEM = `flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-left text-[14px] font-semibold text-ink/70 transition hover:bg-warm hover:text-ink ${RING}`;
 
 // Пункты меню аккаунта. full — на телефоне, где сайдбара нет: там это
-// единственный путь в «Мои сайты», «Подписку» и «Поддержку» (лист «Ещё»
+// единственный путь в «Мои сайты», «Оплату» и «Поддержку» (лист «Ещё»
 // живого макета). На широком экране они уже стоят в сайдбаре, и в меню
 // остаются только Настройки и Выход.
 // «Выйти» ведёт туда, откуда входят, и ничего не сбрасывает: следующий вход
 // показывает тот же кабинет (макет, FIXLOG d736f60 — «Выйти» не мёртвая).
+// На телефоне баланс — первой строкой меню, с подписью «Баланс», как в углу
+// сайдбара: сумма справа у «Оплаты» читалась как долг «к оплате» (владелец
+// 24.09).
 function MenuItems({ full, onPick }) {
   const router = useRouter();
+  const money = useMoney();
   const items = [
-    ...(full ? [['Мои сайты', ProjectsIcon, '/app/sites'], ['Подписка', BillingIcon, '/app/billing'], ['Поддержка', SupportIcon, '/app/support']] : []),
+    ...(full
+      ? [
+          ['Мои сайты', ProjectsIcon, '/app/sites'],
+          ['Оплата', BillingIcon, '/app/billing'],
+          ...(money ? [['Бухгалтерия', ReceiptIcon, '/app/accounting']] : []),
+          ['Поддержка', SupportIcon, '/app/support'],
+        ]
+      : []),
     ['Настройки', SettingsIcon, '/app/settings'],
   ];
   return (
     <>
+      {full && money && (
+        <>
+          <Link
+            href="/app/billing"
+            role="menuitem"
+            aria-label={`Баланс ${rub(money.balance)} — открыть «Оплату»`}
+            className={MENU_ITEM}
+            onClick={onPick}
+          >
+            <WalletIcon size={16} /> Баланс
+            <span className="ml-auto text-[14px] font-bold text-ink">{rub(money.balance)}</span>
+          </Link>
+          <div className="mx-1 my-1 h-px bg-line" />
+        </>
+      )}
       {items.map(([label, Icon, href]) => (
         <Link key={href} href={href} role="menuitem" className={MENU_ITEM} onClick={onPick}>
           <Icon size={16} /> {label}
@@ -310,6 +362,7 @@ function MoreIcon() {
 // знак и аватар с меню; навигацию несут нижние панели.
 export function SidebarShell({ user, children, supportActive, bottomBar }) {
   useRememberReturn();
+  const money = useMoney();
   return (
     <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-5 py-4 lg:sticky lg:top-0 lg:h-[calc(100vh-var(--cookie-banner-h,0px))] lg:w-[270px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:pb-8 lg:pt-8">
       <div className="flex items-center gap-2.5">
@@ -332,6 +385,18 @@ export function SidebarShell({ user, children, supportActive, bottomBar }) {
         >
           <SupportIcon size={17} /> Поддержка
         </Link>
+        {/* Баланс — у аккаунта, в углу с ним (владелец 24.09): он общий на все
+            сайты. Цвет нейтральный — о нехватке говорят «Оплата» и «Обзор». */}
+        {money && (
+          <Link
+            href="/app/billing"
+            aria-label={`Баланс ${rub(money.balance)} — открыть «Оплату»`}
+            className={`mb-5 flex items-center gap-3 px-2 text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
+          >
+            <WalletIcon size={17} /> Баланс
+            <span className="ml-auto font-bold text-ink">{rub(money.balance)}</span>
+          </Link>
+        )}
         <AccountMenu user={user} />
       </div>
       {bottomBar}
@@ -358,7 +423,7 @@ export function SiteSidebar({ domain, active, user = CURRENT_USER }) {
 
 // Меню аккаунта — без «← Мои сайты» и без разделов сайта.
 // Таббар сайта на аккаунтных экранах — только когда сайт есть (в макете
-// «Подписка», «Поддержка» и «Настройки» подсвечивают в нём «Ещё»). В «Моих
+// «Оплата», «Поддержка» и «Настройки» подсвечивают в нём «Ещё»). В «Моих
 // сайтах» его нет: там сайт ещё не выбран.
 function useHasSite() {
   const [has, setHas] = useState(false);
@@ -370,11 +435,12 @@ function useHasSite() {
 // навигацией аккаунта: из неё переходят сразу в нужный раздел (макет, 25.08).
 export function AccountSidebar({ active, user = CURRENT_USER, supportActive }) {
   const hasSite = useHasSite();
+  const money = useMoney();
   return (
     <SidebarShell user={user} supportActive={supportActive} bottomBar={hasSite && active !== 'Мои сайты' ? <SiteTabbar /> : null}>
       {supportActive && <BackButton />}
       <div className={supportActive ? 'mt-7 border-t border-line pt-6' : 'mt-10'}>
-        <NavList items={ACCOUNT_NAV} active={active} label="Основная навигация" />
+        <NavList items={ACCOUNT_NAV.filter((x) => !x.paid || money || active === x.label)} active={active} label="Основная навигация" />
       </div>
     </SidebarShell>
   );
@@ -399,7 +465,7 @@ export function SettingsSidebar({ user = CURRENT_USER }) {
 // домен, а у остальных — имя раздела, и структура менялась от вкладки к вкладке.
 // Заголовок раздела — только на телефоне (владелец 24.09): на компьютере где
 // вы находитесь, показывает сайдбар, и крупное «Документы» повторяло пункт
-// меню. На телефоне сайдбара нет, а «Подписка», «Настройки» и «Поддержка»
+// меню. На телефоне сайдбара нет, а «Оплата», «Настройки» и «Поддержка»
 // в нижнем меню все под «Ещё» — без заголовка не понять, где ты. Скринридеру
 // заголовок остаётся всегда (lg:sr-only). Домен — тоже только на телефоне:
 // на компьютере он стоит в сайдбаре над меню.

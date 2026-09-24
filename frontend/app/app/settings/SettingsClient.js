@@ -12,7 +12,7 @@ import { RING, SettingsSidebar } from '../site/_shared/SiteChrome';
 // Настройки аккаунта (живой макет, s-settings). Два раздела — контакты и
 // вход. Пароля нет: вход по коду из письма или через мессенджер (17.09).
 // «Реквизиты владельца» здесь не живут с 9.09 — они принадлежат сайту и у
-// второго сайта могут быть другими; почта для актов — в «Подписке».
+// второго сайта могут быть другими; почта для актов — в «Бухгалтерии».
 
 const BTN_SECONDARY = `shrink-0 rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:bg-warm hover:text-ink ${RING}`;
 

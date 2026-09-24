@@ -150,7 +150,7 @@ export default function CodeClient() {
   const [probes, setProbes] = useState(0);
   const [found, setFound] = useState(false);
   const [failOpen, setFailOpen] = useState(false);
-  // Окно «Пока не видим код» — как окна «Подписки»: фокус внутрь, Tab по
+  // Окно «Пока не видим код» — как окна «Оплаты»: фокус внутрь, Tab по
   // кругу, Escape закрывает (failOpen перезапускает хук при открытии).
   const failRef = useRef(null);
   useDialog(failRef, () => setFailOpen(false), failOpen);

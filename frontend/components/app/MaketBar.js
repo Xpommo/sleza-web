@@ -35,7 +35,8 @@ const SCREENS = [
     ['Виджет', '/app/site/widget'],
   ]],
   ['Аккаунт', [
-    ['Подписка', '/app/billing'],
+    ['Оплата', '/app/billing'],
+    ['Бухгалтерия', '/app/accounting'],
     ['Настройки', '/app/settings'],
     ['Поддержка', '/app/support'],
   ]],
@@ -85,7 +86,7 @@ const PRESETS = [
   ] }), '/app/billing'],
   ['Оплачено, автопродление выключено', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, cancelled: true, cancelledAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
   // Выключенное автопродление — продление вручную; уход — «Отключить сайт»
-  // в «⋯» «Подписки» (владелец 24.09).
+  // в «⋯» «Оплаты» (владелец 24.09).
   ['Оплачено, сайт отключается', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, leaving: true, leavingAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
 ];
 

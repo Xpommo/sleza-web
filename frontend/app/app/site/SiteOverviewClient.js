@@ -179,7 +179,7 @@ export default function SiteOverviewClient() {
     };
   } else if (state === 'paid') {
     // Продление вручную: за месяц до конца срока — жёлтым и «Продлить на
-    // год», раньше — просто факт (как «Скоро» в «Подписке»).
+    // год», раньше — просто факт (как «Скоро» в «Оплате»).
     const end = new Date(b.paidAt);
     end.setFullYear(end.getFullYear() + (b.paidYears || 1));
     const renewSoon = b.cancelled && !b.leaving && end.getTime() - now < 30 * DAY;

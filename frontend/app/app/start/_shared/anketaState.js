@@ -53,15 +53,23 @@ export function replaceAnketa(next) {
   if (typeof window === 'undefined') return;
   try {
     window.sessionStorage.setItem(KEY, JSON.stringify(next));
+    announce();
   } catch {
     /* без хранилища прототип держит один сайт, как раньше */
   }
+}
+
+// Сохранение сообщает о себе событием: строка баланса в сайдбаре живёт вне
+// экрана, который пополняет баланс, и без него показывала бы старую сумму.
+function announce() {
+  window.dispatchEvent(new Event('anketa:saved'));
 }
 
 export function saveAnketa(patch) {
   if (typeof window === 'undefined') return;
   try {
     window.sessionStorage.setItem(KEY, JSON.stringify({ ...loadAnketa(), ...patch }));
+    announce();
   } catch {
     // приватный режим или переполнение — анкета продолжает работать,
     // просто следующий шаг покажет полный набор целей вместо суженного
