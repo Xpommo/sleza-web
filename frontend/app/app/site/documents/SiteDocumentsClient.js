@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CheckIcon, ClockIcon, CopyIcon, DocsIcon, LinkIcon } from '../../../../components/app/AppIcons';
+import { CheckIcon, CopyIcon, DocsIcon, LinkIcon } from '../../../../components/app/AppIcons';
 import { DocRow, DocRowList, IconAction } from '../../../../components/app/DocRows';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { DOCUMENTS, SITE_ID, docOrigin, docUrl, editEvents } from '../../../../lib/docPackage';
@@ -75,21 +75,12 @@ export default function SiteDocumentsClient() {
 
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
-          <SiteHeader title="Документы" domain={site.domain}>
-            <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/60">
-              {live
-                ? 'Открыты по постоянным адресам — ссылки в подвале сайта не ломаются. Когда меняется закон, мы переписываем текст и поднимаем версию.'
-                : 'Собраны по вашим ответам. Откроются по постоянным адресам, как только на сайте появится код.'}
-            </p>
-            {/* Раньше жило в «Виджете» между блоками, где его никто не видел
-                (владелец 24.09); по смыслу — про документы, их версии и даты. */}
-            <p className="mt-3 flex max-w-2xl items-start gap-2.5 text-[14px] font-semibold leading-6 text-ink/80">
-              <ClockIcon size={17} className="mt-[3px] shrink-0 text-brand" />
-              Публикуем и датируем сами — если понадобится доказать, что было опубликовано и когда, ответ уже в системе, не в голове.
-            </p>
-          </SiteHeader>
+          {/* Без вводной строки (владелец 24.09): про постоянные адреса говорит
+              карточка пакета, про «откроется после установки» — строка версии у
+              каждого документа, про версии и даты — «История изменений». */}
+          <SiteHeader title="Документы" domain={site.domain} />
 
-          <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+          <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7 lg:mt-0">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
                 <DocsIcon size={19} />
@@ -191,6 +182,13 @@ export default function SiteDocumentsClient() {
 
           <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
             <h2 className="text-lg font-bold tracking-[-0.02em]">История изменений</h2>
+            {/* «Публикуем и датируем сами» стояло под заголовком страницы
+                (владелец 24.09: не наверху — это про версии). Здесь его
+                подтверждает сама история; строка «Здесь будет видно каждую
+                следующую версию…» влилась в неё. */}
+            <p className="mt-1 text-[13px] leading-5 text-ink/60">
+              Каждую версию публикуем и датируем сами — по этой истории видно, какая версия была на сайте и с какого дня.
+            </p>
             {/* Линия соединяет записи, только когда их больше одной. */}
             <div className={`relative mt-6 space-y-6 ${site.edits.length ? 'before:absolute before:bottom-2 before:left-[7px] before:top-2 before:w-px before:bg-line' : ''}`}>
               {editEvents(site.edits).reverse().map((e) => (
@@ -214,9 +212,6 @@ export default function SiteDocumentsClient() {
                 </div>
               </div>
             </div>
-            <p className="mt-6 border-t border-line pt-5 text-[13px] leading-5 text-ink/60">
-              Здесь будет видно каждую следующую версию и причину, по которой мы её выпустили.
-            </p>
           </section>
 
           {!live && (
