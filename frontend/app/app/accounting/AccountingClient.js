@@ -48,7 +48,7 @@ export default function AccountingClient() {
 
   function save() {
     if (!EMAIL_RE.test(email)) {
-      setErr('Нужна почта вида name@site.ru — на неё придут чеки и акты.');
+      setErr('Нужен e-mail вида name@site.ru: на него придут чеки и акты.');
       return;
     }
     setErr(null);
@@ -58,12 +58,12 @@ export default function AccountingClient() {
   }
 
   return (
-    <main className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen bg-warm text-ink lg:flex">
       <AccountSidebar active={MONEY_TITLE} user={user} />
 
-      <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
+      <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-4xl">
-          <MoneyHeader tab="Документы" />
+          <MoneyHeader tab="Акты и чеки" />
 
           {!started ? (
             <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
@@ -77,7 +77,7 @@ export default function AccountingClient() {
               <Panel title="Куда присылать документы">
                 <Row
                   label="Чеки, счета, акты"
-                  value={b.actsEmail || 'почта не указана'}
+                  value={b.actsEmail || 'e-mail не указан'}
                   note="сюда приходят документы об оплате"
                   action="Изменить"
                   open={editing}
@@ -86,7 +86,7 @@ export default function AccountingClient() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                     <div className="flex-1">
                       <Field
-                        label="Почта для документов"
+                        label="E-mail для документов"
                         type="email"
                         placeholder={`buh@${a.domain}`}
                         value={email}
@@ -123,7 +123,7 @@ export default function AccountingClient() {
             </>
           )}
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }

@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   BuildingIcon, ChevronIcon, GridIcon, ListIcon, PlusIcon,
-  ClockIcon, OkIcon, ProjectsIcon, SupportIcon, WarnIcon,
+  ClockIcon, OkIcon, SupportIcon, WarnIcon,
 } from '../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
-import { paidPeriod, subState, trialEnds } from '../site/_shared/subscription';
+import { graceEnds, inGrace, paidPeriod, subState, trialEnds } from '../site/_shared/subscription';
 import { MAIN, accountSites, addSite, cardStatus, openSite, siteView } from '../site/_shared/sites';
 import BillingClient from '../billing/BillingClient';
 
@@ -31,12 +31,16 @@ function anketaProgress(a) {
 // они сказаны в той же форме, а не своим отдельным языком.
 // tone: ok — всё работает и оплачено; info — идёт, ничего не сломано;
 // warn — нужно действие.
-function siteStatus(a, now = Date.now()) {
+function siteStatus(a, now = Date.now(), invoice = null) {
   const sub = subState(a, now);
   const open = { action: 'Открыть сайт', href: '/app/site' };
   // Отключают сайт в «Моих сайтах», вид «Таблица» (владелец 24.09).
-  if (sub === 'expired') return { tone: 'warn', label: 'Пробный период закончился', meta: 'виджет отключён', action: 'Оплатить', href: '/app/sites?view=table&pay=current' };
-  if (sub === 'pending') return { tone: 'info', label: 'Счёт выставлен', meta: 'оплата обычно проходит за 1–3 рабочих дня', ...open };
+  if (sub === 'expired') {
+    // Льготные дни (владелец 25.09): сайт ещё работает, но платить пора.
+    const meta = !inGrace(a, now, invoice) ? 'виджет отключён' : invoice ? 'работает, пока ждём оплату счёта' : `работает до ${graceEnds(a)}`;
+    return { tone: 'warn', label: 'Пробный период закончился', meta, action: 'Оплатить', href: '/app/sites?view=table&pay=current' };
+  }
+  if (sub === 'pending') return { tone: 'info', label: 'Счёт выставлен', meta: `счёт № ${a.billing?.invoice?.no || ''}`, ...open };
   if (sub === 'paid') {
     const to = paidPeriod(a.billing.paidAt, a.billing.paidYears).to;
     // Отключают сайт в «⋯» строки в виде «Таблица»; выключенное автопродление — не уход,
@@ -62,7 +66,7 @@ function siteStatus(a, now = Date.now()) {
 }
 
 const TONE = {
-  ok: ['border-ok/25 bg-ok/10 text-ok', OkIcon],
+  ok: ['border-ok/25 bg-ok/10 text-ok-ink', OkIcon],
   info: ['border-brand/20 bg-brand/[0.06] text-brand', ClockIcon],
   warn: ['border-warn/30 bg-warn/10 text-warn-ink', WarnIcon],
 };
@@ -74,7 +78,11 @@ const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring
 // принадлежат конкретному сайту и появляются внутри него, а не здесь.
 // «Поддержка» — постоянный пункт, а не запрятанный в меню аккаунта.
 
-const PRIMARY_BTN = `mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`;
+const PRIMARY_BTN = `mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
+// «Открыть сайт» — не следующий шаг, а вход: белой кнопкой. Синяя — только
+// у карточки, где ждут действия (аудит 24.09: при нескольких сайтах на
+// странице было 3–4 синие кнопки при правиле «одна синяя на экран»).
+const OPEN_BTN = `mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-white text-sm font-bold text-ink shadow-sm transition hover:border-line-2 hover:bg-warm ${RING}`;
 
 function plural(n, one, few, many) {
   const m10 = n % 10;
@@ -98,7 +106,8 @@ function listSites(a) {
     return {
       ...s,
       inn: view.inn || '',
-      status: siteStatus(view),
+      status: siteStatus(view, Date.now(), a.billing?.topupInvoice),
+      ready: (view.stepsDone || 0) >= 5,
       steps: progress - skip,
       total: 6 - skip,
       finished: progress >= 6 || Boolean(view.trialStartedAt),
@@ -145,9 +154,11 @@ function SiteCard({ site, onOpen }) {
                 пять — профиль уже пройден на первом. */}
             {!site.finished && (
               <div className="flex items-center justify-between">
-                <dt className="text-ink/60">Прогресс анкеты</dt>
+                {/* Анкета пройдена, остался код: «5 из 6» читалось как
+                    «не дозаполнил» (разбор 25.09). */}
+                <dt className="text-ink/60">{site.ready ? 'Анкета' : 'Прогресс анкеты'}</dt>
                 <dd className="font-semibold text-ink/75">
-                  {site.steps} из {site.total}
+                  {site.ready ? 'заполнена, осталось поставить код' : `${site.steps} из ${site.total}`}
                 </dd>
               </div>
             )}
@@ -160,7 +171,7 @@ function SiteCard({ site, onOpen }) {
         </>
       )}
 
-      <button type="button" onClick={onOpen} className={PRIMARY_BTN}>
+      <button type="button" onClick={onOpen} className={site.status.action === 'Открыть сайт' ? OPEN_BTN : PRIMARY_BTN}>
         {site.status.action} <ChevronIcon size={16} />
       </button>
     </article>
@@ -202,10 +213,10 @@ export default function SitesClient() {
   const anyFinished = sites.some((x) => !x.demo && x.finished);
 
   return (
-    <main className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen bg-warm text-ink lg:flex">
       <AccountSidebar active="Мои сайты" user={user} />
 
-      <section className="flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
+      <main id="content" tabIndex={-1} className="outline-none flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           <header>
             {/* Без поясняющих строк (владелец 24.09): страница начинается с дела. */}
@@ -228,14 +239,14 @@ export default function SitesClient() {
                   >
                     <PlusIcon size={16} /> Добавить сайт
                   </button>
-                  <div className="flex h-10 items-center rounded-lg border border-line bg-white p-1 shadow-sm">
+                  <div className="flex h-12 items-center rounded-lg border border-line bg-white p-1 shadow-sm sm:h-10">
                     {[['cards', 'Карточки', GridIcon], ['table', 'Таблица', ListIcon]].map(([id, label, Icon]) => (
                       <button
                         key={id}
                         type="button"
                         onClick={() => setView(id)}
                         aria-pressed={view === id}
-                        className={`flex h-8 items-center gap-2 rounded-md px-3 text-xs transition ${RING} ${
+                        className={`flex h-10 items-center gap-2 rounded-md px-3 text-xs transition sm:h-8 ${RING} ${
                           view === id ? 'bg-ink font-bold text-white' : 'font-semibold text-ink/60 hover:text-ink'
                         }`}
                       >
@@ -263,16 +274,12 @@ export default function SitesClient() {
             </>
           ) : (
           <div className="mt-8 flex min-h-[340px] items-center justify-center rounded-2xl border border-line bg-white p-8 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.3)] sm:p-12">
+            {/* Без значка над заголовком (владелец 25.09): плитка с плюсом
+                выглядела второй кнопкой «Добавить сайт». */}
             <div className="flex max-w-md flex-col items-center text-center">
-              <div className="relative mb-7 flex h-20 w-20 items-center justify-center rounded-3xl border border-brand/15 bg-brand/[0.06] text-brand">
-                <ProjectsIcon size={30} />
-                <span className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white shadow-sm">
-                  <PlusIcon size={17} />
-                </span>
-              </div>
-              <h2 className="text-[22px] font-bold tracking-[-0.035em] sm:text-[26px]">Пока нет ни одного сайта</h2>
+              <h2 className="text-[20px] font-bold tracking-[-0.02em]">Пока нет ни одного сайта</h2>
               <p className="mt-4 max-w-sm text-[15px] leading-6 text-ink/60">
-                Добавьте сайт — спросим о нём и о компании, по ответам подготовим документы.
+                Ответьте на вопросы о сайте и компании. Это около 7 минут, понадобится ИНН. По ответам соберём документы для сайта.
               </p>
               {/* Одна форма главного действия на экране: раньше «Добавить
                   сайт» существовала в трёх видах и менялась от того, как
@@ -280,7 +287,7 @@ export default function SitesClient() {
               <button
                 type="button"
                 onClick={() => router.push(addSite())}
-                className={`mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a1acc] ${RING}`}
+                className={`mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover ${RING}`}
               >
                 <PlusIcon size={17} /> Добавить сайт
               </button>
@@ -288,10 +295,10 @@ export default function SitesClient() {
           </div>
           )}
           <p className="mt-6 text-center text-xs text-ink/60">
-            {any ? (anyFinished && view === 'cards' ? 'Тариф, автопродление и оплата года каждого сайта — в виде «Таблица».' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
+            {any ? (anyFinished && view === 'cards' ? 'Тариф, автопродление и оплату года каждого сайта смотрите в виде «Таблица».' : null) : 'Документы и виджет появятся здесь после того, как сайт будет добавлен.'}
           </p>
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }

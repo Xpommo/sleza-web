@@ -30,8 +30,8 @@ export default function LoginClient() {
           <BrandMark />
         </div>
 
-        <h1 className="text-[34px] font-bold tracking-[-0.045em] text-ink sm:text-[38px]">Вход в кабинет</h1>
-        <p className="mt-3 text-[15px] leading-6 text-ink/60">Выберите, чем удобнее войти — пароль не нужен.</p>
+        <h1 className="text-[28px] font-bold tracking-[-0.045em] text-ink sm:text-[36px]">Вход в кабинет</h1>
+        <p className="mt-3 text-[15px] leading-6 text-ink/60">Выберите, чем удобнее войти. Пароль не нужен.</p>
 
         <div className="mt-8 space-y-3">
           <AuthButton icon={<TelegramIcon />} onClick={() => enter('Telegram')}>
@@ -58,7 +58,7 @@ export default function LoginClient() {
 
         {/* Своих политики и оферты у продукта пока нет — ссылки в «#», как у
             галочек регистрации (открытый вопрос владельцу, HANDOFF). */}
-        <p className="mt-8 border-t border-line pt-6 text-center text-[12px] text-ink/40">
+        <p className="mt-8 border-t border-line pt-6 text-center text-[12px] text-ink/60">
           <Link href="#" className="hover:text-ink">
             Политика обработки персональных данных
           </Link>{' '}

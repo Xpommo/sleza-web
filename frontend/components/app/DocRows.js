@@ -7,7 +7,9 @@
 // Плитками было хуже: названия длинные, глаз читает их колонкой сверху вниз,
 // а не прыжками по сетке.
 
+import { useEffect } from 'react';
 import { ChevronDownIcon, DocsIcon } from './AppIcons';
+import { announce } from '../../lib/announce';
 
 const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 const COLS = 'sm:grid-cols-[minmax(0,1fr)_150px_140px]';
@@ -70,7 +72,7 @@ export function DocRow({ doc, note, status, meta, href, action = 'Посмотр
           <span className="flex flex-col gap-1">
             <span
               className={`w-fit rounded-full px-3 py-1.5 text-[11px] font-bold ${
-                status.tone === 'warn' ? 'bg-warn/10 text-warn-ink' : 'bg-ok/10 text-ok'
+                status.tone === 'warn' ? 'bg-warn/10 text-warn-ink' : 'bg-ok/10 text-ok-ink'
               }`}
             >
               {status.label}
@@ -125,6 +127,10 @@ export function DocRow({ doc, note, status, meta, href, action = 'Посмотр
 // кнопок («Скопировать ссылку» ×6 не различить на слух); подсказка — короткая.
 export function IconAction({ label, name, why, icon: Icon, onClick, href, disabled, done }) {
   const spoken = name || label;
+  // «Скопировано» — не только галочкой и подсказкой, но и для скринридера.
+  useEffect(() => {
+    if (done) announce(done);
+  }, [done]);
   const cls = `group/ia relative flex h-9 w-9 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink/60 ${RING}`;
   const tip = (
     <span
@@ -143,7 +149,7 @@ export function IconAction({ label, name, why, icon: Icon, onClick, href, disabl
     );
   }
   return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-label={disabled && why ? `${spoken} — ${why}` : spoken} className={cls}>
+    <button type="button" onClick={onClick} disabled={disabled} aria-label={disabled && why ? `${spoken}. ${why}` : spoken} className={cls}>
       <Icon size={17} className={done ? 'text-ok' : ''} />
       {tip}
     </button>

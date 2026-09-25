@@ -19,7 +19,7 @@
 //   поверх основного (siteAnketa), ответы анкеты у них общие с основным.
 
 import { loadAnketa, replaceAnketa, saveAnketa } from '../../start/_shared/anketaState';
-import { PRICE, TARIFFS, formatDate, paidPeriod, subState, trialEndAt, trialEnds } from './subscription';
+import { PRICE, TARIFFS, formatDate, graceEnds, inGrace, paidPeriod, subState, trialEndAt, trialEnds } from './subscription';
 
 export const MAIN = 'main';
 const CURRENT = 'current_site_v1';
@@ -127,7 +127,13 @@ function describe(a, s, now) {
   }
   if (state === 'paid') return { kind: 'paid', label: `оплачено до ${period.to}`, tone: 'ok', period };
   if (state === 'pending') return { kind: 'pending', label: 'ждёт оплаты по счёту', tone: 'info', period };
-  if (state === 'expired') return { kind: 'expired', label: 'пробный период закончился', tone: 'warn', period };
+  if (state === 'expired') {
+    // Льготные дни после пробного: сайт ещё работает (владелец 25.09).
+    const invoice = a.billing?.topupInvoice;
+    const grace = inGrace(v, now, invoice);
+    const label = !grace ? 'виджет снят с сайта' : invoice ? 'работает, пока ждём оплату счёта' : `работает до ${graceEnds(v)}`;
+    return { kind: 'expired', label, tone: grace ? 'warn' : 'danger', period, grace, graceTo: graceEnds(v) };
+  }
   return { kind: 'trial', label: `бесплатно до ${trialEnds(v)}`, tone: 'info', period };
 }
 

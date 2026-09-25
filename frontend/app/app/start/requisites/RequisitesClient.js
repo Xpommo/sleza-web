@@ -16,7 +16,8 @@ import {
   UserIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { RING, AnketaFrame, Field, PhoneField, Segmented, BlockHead, SectionHead } from '../_shared/AnketaChrome';
+import { announce } from '../../../../lib/announce';
+import { RING, AnketaFrame, Field, PhoneField, Segmented, BlockHead, SectionHead, focusFirstError } from '../_shared/AnketaChrome';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 import { digitsOnly, ownerLabels, validateRequisites } from '../_shared/requisitesRules';
 import { EMAIL_RE, formatPhone } from '../../../../lib/validate';
@@ -82,7 +83,7 @@ function EditCard({ note, onDone, children }) {
         <button
           type="button"
           onClick={onDone}
-          className={`mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+          className={`mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
         >
           <CheckIcon size={15} /> Готово
         </button>
@@ -176,6 +177,12 @@ export default function RequisitesClient() {
   const [companyPhoneError, setCompanyPhoneError] = useState(null);
   const [postAddress, setPostAddress] = useState('');
   const [pdContact, setPdContact] = useState('');
+  // «Та же, что почта компании» — галочкой, осознанно (разбор текстов 25.09);
+  // молча почту компании сюда по-прежнему не подставляем (владелец 23.09).
+  const [pdSame, setPdSame] = useState(false);
+  useEffect(() => {
+    if (pdSame) setPdContact(companyMail);
+  }, [pdSame, companyMail]);
   const [restored, setRestored] = useState(false);
 
   // Возврат на шаг («Назад», F5, «Продолжить анкету» из списка сайтов)
@@ -200,7 +207,8 @@ export default function RequisitesClient() {
       setCorr(a.bank.corr || '');
     }
     if (a.license) {
-      setLicense(a.license.has ?? null);
+      // Старые ответы «Да / Нет / В процессе» — в новые слова (владелец 25.09).
+      setLicense({ Да: 'Есть', Нет: 'Не нужна', 'В процессе': 'Оформляем' }[a.license.has] ?? a.license.has ?? null);
       setLicenseNo(a.license.no || '');
       setLicenseDate(a.license.date || '');
       setLicenseOrg(a.license.org || '');
@@ -220,6 +228,7 @@ export default function RequisitesClient() {
       setCompanyPhone(formatPhone(a.contacts.companyPhone || ''));
       setPostAddress(a.contacts.postAddress || '');
       setPdContact(a.contacts.pdContact || '');
+      setPdSame(Boolean(a.contacts.pdSame));
     }
   }, []);
 
@@ -232,7 +241,7 @@ export default function RequisitesClient() {
       itAccredNo: itAccred === 'Есть' ? itAccredNo : '',
       softRegistryNo: softRegistry === 'Есть' ? softRegistryNo : '',
       mediaReg: sphere === 'media' ? { has: media, no: mediaNo, date: mediaDate, org: mediaOrg } : null,
-      contacts: { companyMail, companyPhone, postAddress, pdContact },
+      contacts: { companyMail, companyPhone, postAddress, pdContact, pdSame },
     };
   }
 
@@ -245,7 +254,7 @@ export default function RequisitesClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restored, owner, inn, name, ogrn, kpp, address, account, bank, bik, corr,
       license, licenseNo, licenseDate, licenseOrg, itAccred, softRegistry, itAccredNo, softRegistryNo, media, mediaNo, mediaDate, mediaOrg,
-      companyMail, companyPhone, postAddress, pdContact]);
+      companyMail, companyPhone, postAddress, pdContact, pdSame]);
   const [pdContactError, setPdContactError] = useState(null);
   const [pdWhy, setPdWhy] = useState(false);
   const [contactsWhy, setContactsWhy] = useState(false);
@@ -289,6 +298,7 @@ export default function RequisitesClient() {
     }
     const found = INN_LOOKUP[who] || {};
     setInnFound(true);
+    if (found.name) announce(`Нашли по ИНН: ${found.name}. Проверьте данные.`);
     // Заполняем пустые поля и те, что подставили сами в прошлый раз; то,
     // что человек поправил руками, не трогаем (решение макета 8.09).
     const last = lastFill.current;
@@ -380,7 +390,7 @@ export default function RequisitesClient() {
     };
 
     if (!owner) {
-      setOwnerError('Выберите, кто владеет сайтом — от этого зависит, какие реквизиты спрашивать.');
+      setOwnerError('Выберите, кто владеет сайтом: от этого зависит, какие реквизиты спрашивать.');
       return;
     }
 
@@ -403,10 +413,10 @@ export default function RequisitesClient() {
     if (!e.bik && (e.bank || e.corr)) setBankEdit(true);
 
     if (showMedia) {
-      if (!media) fail(setMediaError, 'Ответьте, зарегистрирован ли сайт как СМИ — от этого зависит, что показать в подвале.');
+      if (!media) fail(setMediaError, 'Ответьте, зарегистрирован ли сайт как СМИ: от этого зависит, что показать в подвале.');
       else setMediaError(null);
       if (media === 'Да') {
-        if (!mediaNo.trim()) fail(setMediaNoError, 'Укажите номер свидетельства — он публикуется вместе с реквизитами.');
+        if (!mediaNo.trim()) fail(setMediaNoError, 'Укажите номер свидетельства: он публикуется вместе с реквизитами.');
         else setMediaNoError(null);
         if (!mediaOrg.trim()) fail(setMediaOrgError, 'Укажите, кто зарегистрировал СМИ.');
         else setMediaOrgError(null);
@@ -414,32 +424,35 @@ export default function RequisitesClient() {
     }
 
     if (licenseSphere) {
-      if (!license) fail(setLicenseError, 'Ответьте про лицензию — без ответа мы не знаем, указывать ли её в документах.');
+      if (!license) fail(setLicenseError, 'Ответьте про лицензию: без ответа мы не знаем, указывать ли её в документах.');
       else setLicenseError(null);
-      if (license === 'Да') {
-        if (!licenseNo.trim()) fail(setLicenseNoError, 'Укажите номер лицензии — он публикуется вместе с реквизитами.');
+      if (license === 'Есть') {
+        if (!licenseNo.trim()) fail(setLicenseNoError, 'Укажите номер лицензии: он публикуется вместе с реквизитами.');
         else setLicenseNoError(null);
-        if (!licenseOrg.trim()) fail(setLicenseOrgError, 'Укажите орган, выдавший лицензию — этого требует ЗоЗПП ст.9 ч.2.');
+        if (!licenseOrg.trim()) fail(setLicenseOrgError, 'Укажите орган, выдавший лицензию: этого требует ЗоЗПП ст.9 ч.2.');
         else setLicenseOrgError(null);
       }
     }
 
     if (showIt && itAccred === 'Есть') {
-      if (!itAccredNo.trim()) fail(setItAccredNoError, 'Укажите номер записи — покажем его в реквизитах на сайте.');
+      if (!itAccredNo.trim()) fail(setItAccredNoError, 'Укажите номер записи: покажем его в реквизитах на сайте.');
       else setItAccredNoError(null);
     }
     if (showIt && softRegistry === 'Есть') {
-      if (!softRegistryNo.trim()) fail(setSoftRegistryNoError, 'Укажите номер записи в реестре — покажем его в реквизитах на сайте.');
+      if (!softRegistryNo.trim()) fail(setSoftRegistryNoError, 'Укажите номер записи в реестре: покажем его в реквизитах на сайте.');
       else setSoftRegistryNoError(null);
     }
 
     put(setCompanyMailError, 'companyMail');
     put(setCompanyPhoneError, 'companyPhone');
     if (!EMAIL_RE.test(pdContact.trim())) {
-      fail(setPdContactError, pdContact.trim() ? 'Нужна почта вида name@site.ru — на неё клиенты пришлют отзыв согласия.' : 'Укажите почту — без неё в политике и согласии не будет способа отозвать согласие.');
+      fail(setPdContactError, pdContact.trim() ? 'Нужен e-mail вида name@site.ru: на него клиенты пришлют отзыв согласия.' : 'Укажите e-mail: без него в политике и согласии не будет способа отозвать согласие.');
     } else setPdContactError(null);
 
-    if (!ok) return;
+    if (!ok) {
+      focusFirstError();
+      return;
+    }
 
     saveAnketa(answers());
     markStepDone(4);
@@ -447,7 +460,7 @@ export default function RequisitesClient() {
   }
 
   return (
-    <AnketaFrame current={3} title="Реквизиты" lead={<>Данные компании — встанут в документы и в «Реквизиты» в подвале сайта.</>}>
+    <AnketaFrame current={3} title="Реквизиты" lead={<>Данные компании встанут в документы и в «Реквизиты» в подвале сайта.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {/* «Кто владеет сайтом» подрядчик читал как вопрос о себе и отвечал
@@ -457,7 +470,7 @@ export default function RequisitesClient() {
               <div className="mt-5">
                 <Segmented options={OWNERS} value={owner} onChange={pickOwner} ariaLabelledby="h-owner" />
               </div>
-              {ownerError && <p className="mt-2 text-[12px] font-semibold text-danger">{ownerError}</p>}
+              {ownerError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{ownerError}</p>}
 
               {/* До выбора формы — только сам вопрос: двадцать полей сразу
                   пугали, а половина из них зависит от ответа (владелец 24.09). */}
@@ -494,7 +507,7 @@ export default function RequisitesClient() {
                   номером висела бы чужая компания. */}
               {!regEdit && inn.length === innLength && name && address ? (
                 <FoundCard
-                  note={name === lastFill.current.name && address === lastFill.current.address ? 'Нашли по ИНН — проверьте' : 'Проверьте, что всё верно'}
+                  note={name === lastFill.current.name && address === lastFill.current.address ? 'Нашли по ИНН, проверьте' : 'Проверьте, что всё верно'}
                   title={name}
                   lines={[
                     [owner !== 'Самозанятый' && ogrn && `${isOoo ? 'ОГРН' : 'ОГРНИП'} ${ogrn}`, isOoo && kpp && `КПП ${kpp}`].filter(Boolean).join(' · '),
@@ -598,14 +611,14 @@ export default function RequisitesClient() {
                   id="h-bank"
                   icon={BankIcon}
                   title="Банковские реквизиты"
-                  why="Встанут в «Реквизиты владельца» на вашем сайте — по ним ваши клиенты платят вам по счёту."
+                  note="Необязательно"
+                  why="Если укажете, покажем их в «Реквизитах владельца» на вашем сайте: по ним клиенты смогут платить вам по счёту."
                   whyOpen={bankWhy}
                   onWhy={() => setBankWhy(!bankWhy)}
                 />
                 <div className="mt-5 grid gap-5 md:grid-cols-2">
                   <Field
                     label="БИК"
-                    required
                     placeholder="9 цифр"
                     icon={InfoIcon}
                     badge={bankManual ? null : 'Банк подставим по БИК'}
@@ -619,9 +632,10 @@ export default function RequisitesClient() {
                   />
                   <Field
                     label="Расчётный счёт"
-                    required
-                    /* У самозанятого счёт обычно личный (40817…), а не расчётный. */
-                    placeholder={owner === 'Самозанятый' ? '40817810...' : '40702810...'}
+                    /* Счета начинаются по-разному: у ООО 40702…, у ИП 40802…, у
+                       самозанятого обычно личный 40817… (разбор 25.09: 40702 у ИП
+                       бухгалтер замечает сразу). */
+                    placeholder={owner === 'Самозанятый' ? '40817810...' : owner === 'ИП' ? '40802810...' : '40702810...'}
                     icon={BankIcon}
                     inputMode="numeric"
                     name="account"
@@ -636,7 +650,7 @@ export default function RequisitesClient() {
                 </div>
                 {!bankEdit && bik.length === 9 && bank && corr ? (
                   <FoundCard
-                    note={bank === lastBank.current.bank && corr === lastBank.current.corr ? 'Нашли по БИК — проверьте' : 'Проверьте, что всё верно'}
+                    note={bank === lastBank.current.bank && corr === lastBank.current.corr ? 'Нашли по БИК, проверьте' : 'Проверьте, что всё верно'}
                     title={bank}
                     lines={[`Корреспондентский счёт ${corr}`]}
                     onEdit={() => setBankEdit(true)}
@@ -644,7 +658,7 @@ export default function RequisitesClient() {
                 ) : (
                   bankEdit && (
                     <EditCard
-                      note={bik.length === 9 && !BIK_LOOKUP[bik] && !bank ? 'Не нашли банк по БИК — заполните вручную' : 'Редактирование'}
+                      note={bik.length === 9 && !BIK_LOOKUP[bik] && !bank ? 'Не нашли банк по БИК, заполните вручную' : 'Редактирование'}
                       onDone={bik.length === 9 ? doneBank : null}
                     >
                         <Field
@@ -717,7 +731,7 @@ export default function RequisitesClient() {
                         ? 'Если деятельность лицензируется, на сайте должны быть номер лицензии, срок её действия и кто её выдал.'
                         : showMedia
                           ? 'У зарегистрированного СМИ на сайте должны быть номер свидетельства, дата регистрации и кто зарегистрировал.'
-                          : 'Если есть — номера записей покажем в «Реквизитах» на сайте: для заказчиков это подтверждение статуса.'
+                          : 'Если есть, номера записей покажем в «Реквизитах» на сайте: для заказчиков это подтверждение статуса.'
                     }
                     whyOpen={licenseWhy}
                     onWhy={() => setLicenseWhy(!licenseWhy)}
@@ -728,10 +742,13 @@ export default function RequisitesClient() {
                       <p className="mb-3 text-sm font-bold text-ink-2">
                         {/* Сфера — в самом вопросе: строка «Вы указали сферу…» под
                             заголовком снята, и «этот вид деятельности» повис бы. */}
-                        Есть лицензия для сферы «{licenseSphere}»? <span className="text-brand">*</span>
+                        Лицензия для сферы «{licenseSphere}» <span className="text-brand">*</span>
                       </p>
+                      {/* «Не нужна», а не «Нет» и без КоАП (владелец 25.09): лицензия
+                          нужна не всем в сфере, репетитору-ИП, например, нет, а
+                          предупреждение о нарушении называло его нарушителем. */}
                       <Segmented
-                        options={['Да', 'Нет', 'В процессе']}
+                        options={['Есть', 'Не нужна', 'Оформляем']}
                         value={license}
                         onChange={(v) => {
                           setLicense(v);
@@ -739,9 +756,9 @@ export default function RequisitesClient() {
                         }}
                         ariaLabelledby="h-license"
                       />
-                      {licenseError && <p className="mt-2 text-[12px] font-semibold text-danger">{licenseError}</p>}
+                      {licenseError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{licenseError}</p>}
 
-                      {license === 'Да' && (
+                      {license === 'Есть' && (
                         <div className="mt-5 grid gap-5 md:grid-cols-2">
                           <Field
                             label="Номер лицензии"
@@ -779,10 +796,9 @@ export default function RequisitesClient() {
                         </div>
                       )}
 
-                      {license === 'Нет' && (
-                        <p className="mt-3 rounded-xl bg-warn/10 px-4 py-3 text-[13px] leading-5 text-ink/70">
-                          Деятельность без лицензии там, где она требуется, — самостоятельное нарушение (КоАП ст.14.1).
-                          Документы соберём, но сведений о лицензии в них не будет.
+                      {license === 'Оформляем' && (
+                        <p className="mt-3 text-[13px] leading-5 text-ink/60">
+                          Соберём документы без сведений о лицензии и добавим их, когда лицензия появится.
                         </p>
                       )}
                     </div>
@@ -802,7 +818,7 @@ export default function RequisitesClient() {
                         }}
                         ariaLabelledby="h-media"
                       />
-                      {mediaError && <p className="mt-2 text-[12px] font-semibold text-danger">{mediaError}</p>}
+                      {mediaError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{mediaError}</p>}
                       {media === 'Да' && (
                         <div className="mt-5 grid gap-5 md:grid-cols-2">
                           <Field
@@ -895,13 +911,13 @@ export default function RequisitesClient() {
                 id="h-contacts"
                 icon={PhoneIcon}
                 title="Контакты для посетителей сайта"
-                why="Почту закон требует показывать на сайте, по телефону с компанией связываются клиенты и партнёры."
+                why="E-mail закон требует показывать на сайте, по телефону с компанией связываются клиенты и партнёры."
                 whyOpen={contactsWhy}
                 onWhy={() => setContactsWhy(!contactsWhy)}
               />
               <div className="mt-5 grid gap-5 md:grid-cols-2">
                 <Field
-                  label="Почта компании"
+                  label="E-mail компании"
                   required
                   placeholder="info@alfa-school.ru"
                   icon={MailIcon}
@@ -912,7 +928,7 @@ export default function RequisitesClient() {
                     setCompanyMailError(null);
                   }}
                   onBlur={() => {
-                    if (companyMail.trim() && !EMAIL_RE.test(companyMail.trim())) setCompanyMailError('Нужна почта вида name@site.ru — её увидят в реквизитах на сайте.');
+                    if (companyMail.trim() && !EMAIL_RE.test(companyMail.trim())) setCompanyMailError('Нужен e-mail вида name@site.ru: его увидят в реквизитах на сайте.');
                   }}
                   error={companyMailError}
                 />
@@ -933,22 +949,27 @@ export default function RequisitesClient() {
 
               {/* Не контакт для подвала, а адрес для документов: куда клиент
                   пришлёт отзыв согласия или запрос о своих данных (152-ФЗ ст.9,
-                  ст.14). Заполняется отдельно и осознанно — почту компании сюда
-                  не подставляем, автозаполнение браузера выключено (владелец
-                  23.09). Отдельный блок: в «Контактах» он читался как ещё один
+                  ст.14). Заполняется осознанно: почту компании сюда не
+                  подставляем сами, только по галочке «Та же, что почта
+                  компании»; автозаполнение браузера выключено (владелец 23.09,
+                  разбор текстов 25.09). Отдельный блок: в «Контактах» он читался как ещё один
                   контакт для посетителей. */}
               <BlockHead
                 id="h-pd"
                 icon={ShieldCheckIcon}
                 title="Запросы о персональных данных"
-                why="Адрес будет в политике и в согласии: по нему клиент отзывает согласие или спрашивает, какие данные о нём хранятся."
+                why="Этот адрес впишем в политику и согласие. На него клиенты пишут, чтобы отозвать согласие или узнать, что вы о них храните. На запрос о данных нужно ответить в течение 10 рабочих дней, поэтому укажите e-mail, который читаете."
                 whyOpen={pdWhy}
                 onWhy={() => setPdWhy(!pdWhy)}
               />
               <div className="mt-5 grid gap-5 md:grid-cols-2">
+                {/* Подпись короткая: что это за почта, говорят заголовок блока и
+                    «Зачем» (разбор текстов 25.09). Для экранного диктора — полное
+                    имя, оно начинается с видимого «Почта». */}
                 <Field
                   className="md:col-span-2"
-                  label="Почта, на которую клиенты пришлют отзыв согласия или запрос о своих данных"
+                  label="E-mail"
+                  aria-label="E-mail для запросов о персональных данных"
                   required
                   placeholder="pd@alfa-school.ru"
                   icon={MailIcon}
@@ -956,16 +977,33 @@ export default function RequisitesClient() {
                   autoComplete="off"
                   name="pd-requests"
                   value={pdContact}
+                  readOnly={pdSame}
                   onChange={(e) => {
                     setPdContact(e.target.value);
                     setPdContactError(null);
                   }}
                   onBlur={() => {
-                    if (pdContact.trim() && !EMAIL_RE.test(pdContact.trim())) setPdContactError('Нужна почта вида name@site.ru — на неё клиенты пришлют отзыв согласия.');
+                    if (pdContact.trim() && !EMAIL_RE.test(pdContact.trim())) setPdContactError('Нужен e-mail вида name@site.ru: на него клиенты пришлют отзыв согласия.');
                   }}
                   error={pdContactError}
                 />
               </div>
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={pdSame}
+                onClick={() => {
+                  setPdSame(!pdSame);
+                  setPdContact(pdSame ? '' : companyMail);
+                  setPdContactError(null);
+                }}
+                className={`mt-3 inline-flex items-center gap-2.5 rounded-lg py-1 text-[13px] font-semibold text-ink/75 ${RING}`}
+              >
+                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${pdSame ? 'border-brand bg-brand' : 'border-line-2 bg-white'}`}>
+                  {pdSame && <CheckIcon size={13} className="text-white" />}
+                </span>
+                Тот же, что e-mail компании
+              </button>
               </>
               )}
             </section>
@@ -985,7 +1023,7 @@ export default function RequisitesClient() {
                 data-funnel-next
                 type="button"
                 onClick={handleNext}
-                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
+                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
               >
                 Далее <ArrowRightIcon size={17} />
               </button>

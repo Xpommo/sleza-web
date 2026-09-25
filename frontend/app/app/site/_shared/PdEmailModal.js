@@ -23,14 +23,14 @@ export default function PdEmailModal({ onClose, onSaved }) {
   function save() {
     const v = value.trim();
     if (!EMAIL_RE.test(v)) {
-      setError(v ? 'Нужна почта вида name@site.ru — на неё клиенты пришлют отзыв согласия.' : 'Укажите почту — без неё в политике и согласии не будет способа отозвать согласие.');
+      setError(v ? 'Нужен e-mail вида name@site.ru: на него клиенты пришлют отзыв согласия.' : 'Укажите e-mail: без него в политике и согласии не будет способа отозвать согласие.');
       return;
     }
     const changed = v !== initial;
     if (changed) {
       const a = siteAnketa(loadAnketa());
       const at = Date.now();
-      const what = 'Изменилась почта для запросов о персональных данных';
+      const what = 'Изменился e-mail для запросов о персональных данных';
       saveSiteFields({
         contacts: { ...a.contacts, pdContact: v },
         docEdits: [...(a.docEdits || []), { at, doc: '03', what }, { at, doc: '12', what }],
@@ -46,19 +46,19 @@ export default function PdEmailModal({ onClose, onSaved }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 id="pd-title" className="text-lg font-bold tracking-[-0.03em]">
-              Почта для запросов о персональных данных
+              E-mail для запросов о персональных данных
             </h3>
             <p className="mt-2 text-[13px] leading-5 text-ink/60">
-              Стоит в политике и в согласии: по ней клиенты отзывают согласие и спрашивают, какие данные о них хранятся.
+              Этот адрес стоит в политике и согласии. На него клиенты пишут, чтобы отозвать согласие или узнать, что вы о них храните. На запрос о данных нужно ответить в течение 10 рабочих дней, поэтому укажите e-mail, который читаете.
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
             <CloseIcon size={18} />
           </button>
         </div>
         <div className="mt-5">
           <Field
-            label="Почта"
+            label="E-mail"
             required
             placeholder="pd@alfa-school.ru"
             icon={MailIcon}
@@ -77,7 +77,7 @@ export default function PdEmailModal({ onClose, onSaved }) {
           <button
             type="button"
             onClick={save}
-            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
           >
             Сохранить
           </button>

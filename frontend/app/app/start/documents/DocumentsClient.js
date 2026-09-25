@@ -8,9 +8,9 @@ import {
   CheckIcon,
 } from '../../../../components/app/AppIcons';
 import { DocRow, DocRowList } from '../../../../components/app/DocRows';
-import { CookieBannerPreview, FooterPreview, WIDGET_DEFAULTS, widgetSettings } from '../../../../components/app/WidgetPreviews';
+import { CookieBannerPreview, FooterPreview, ThemeSwitch, WIDGET_DEFAULTS, widgetSettings } from '../../../../components/app/WidgetPreviews';
 import { RING, AnketaFrame } from '../_shared/AnketaChrome';
-import { loadAnketa, markStepDone } from '../_shared/anketaState';
+import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 import { DOCUMENTS, MARK, docOrigin, docPreview } from '../../../../lib/docPackage';
 import RequisitesModal from '../../site/_shared/RequisitesModal';
 import AnswerModal, { QUESTION_TITLES } from './AnswerModal';
@@ -51,7 +51,7 @@ export default function DocumentsClient() {
   }, []);
 
   return (
-    <AnketaFrame current={4} title="Пакет документов" lead={<>Пять документов для <span className="font-semibold text-ink">{domain}</span> собраны по вашим ответам — в тексте они выделены. Целиком документы появятся на сайте после установки кода.</>}>
+    <AnketaFrame current={4} title="Пакет документов" lead={<>Пять документов для <span className="font-semibold text-ink">{domain}</span> готовы. Ваши ответы в тексте выделены, проверьте их. На сайте документы появятся, когда поставите код.</>}>
 
             <section className="mb-7">
               <DocRowList withStatus={false}>
@@ -94,9 +94,25 @@ export default function DocumentsClient() {
                   Подсказка про тему — одна на раздел, а не под каждым превью. */}
               <div className="mb-6">
                 <h2 className="text-xl font-bold tracking-[-0.02em]">Вот что появится на сайте</h2>
-                {(widget.bannerTheme === 'Авто' || widget.footerTheme === 'Авто') && (
-                  <p className="mt-1 text-sm text-ink/60">Цвета подстроятся под тему браузера посетителя — здесь показан тёмный вариант.</p>
-                )}
+                {/* Тема — переключателем прямо над превью, и она же сохраняется
+                    в настройки «Виджета» (разбор текстов 25.09: владельца
+                    волнует, впишется ли виджет в его дизайн). */}
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <span id="step5-theme" className="text-sm text-ink/60">Тема</span>
+                  <ThemeSwitch
+                    value={widget.bannerTheme === widget.footerTheme ? widget.bannerTheme : null}
+                    onChange={(t) => {
+                      const next = { ...widget, bannerTheme: t, footerTheme: t };
+                      setWidget(next);
+                      saveAnketa({ widget: next });
+                    }}
+                    labelledby="step5-theme"
+                  />
+                </div>
+                <p className="mt-2 text-sm text-ink/60">
+                  {(widget.bannerTheme === 'Авто' || widget.footerTheme === 'Авто') && 'Подстроится под тему браузера посетителя, здесь показан тёмный вариант. '}
+                  Тему и показ баннера и подвала можно поменять потом в разделе «Виджет».
+                </p>
               </div>
 
               <h3 className="mb-3 text-[15px] font-bold">Куки-баннер</h3>
@@ -109,14 +125,14 @@ export default function DocumentsClient() {
               <div className="rounded-xl border border-line-2 bg-paper p-4">
                 <p className="text-[14px] leading-6">
                   …в интервью для издания «Пример»
-                  <span title="Маркировано Слезой" className="ml-0.5 align-super text-[10px] font-bold text-brand">
+                  <span title="Маркировка по реестрам" className="ml-0.5 align-super text-[10px] font-bold text-brand">
                     ✱
                   </span>{' '}
                   сказал, что…
                 </p>
                 <p className="mt-2 text-[12px] leading-4 text-ink/60">
-                  Сами сверим страницы с реестрами регулятора — иностранные агенты, экстремистские и террористические
-                  организации — и промаркируем упоминания. Реестры меняются, следить за ними не придётся.
+                  Сами сверим страницы с официальными реестрами Минюста и Росфинмониторинга (иностранные агенты,
+                  экстремистские и террористические организации) и промаркируем упоминания. Реестры меняются, следить за ними не придётся.
                 </p>
               </div>
             </section>
@@ -139,7 +155,7 @@ export default function DocumentsClient() {
                   markStepDone(5);
                   router.push('/app/start/code');
                 }}
-                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
+                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
               >
                 Поставить код на сайт <ArrowRightIcon size={17} />
               </button>

@@ -6,13 +6,14 @@ import { ArrowRightIcon, CheckIcon, ChevronDownIcon, CopyIcon, ExternalIcon, Mor
 import { IconAction } from '../../../components/app/DocRows';
 import { Switch } from '../../../components/app/WidgetPreviews';
 import { CURRENT_USER } from '../../../lib/appMock';
-import { Field, Segmented } from '../start/_shared/AnketaChrome';
+import { Field, Segmented, focusFirstError } from '../start/_shared/AnketaChrome';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { SITE_ID, operatorName } from '../../../lib/docPackage';
-import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
+import { AccountSidebar, RING, usePopup } from '../site/_shared/SiteChrome';
 import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
 import SiteOffModal from './SiteOffModal';
 import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, Panel, Row } from './BillingBits';
+import { announce } from '../../../lib/announce';
 import {
   accountSites, balanceOf, currentSiteKey, debitShortfall, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite, payYearFromBalance,
   setSiteCancelled, setSiteLeaving, setSiteTariff, topUpBalance,
@@ -45,14 +46,14 @@ function plural(n, one, few, many) {
 }
 
 const TONE = {
-  ok: 'bg-ok/10 text-ok',
+  ok: 'bg-ok/10 text-ok-ink',
   info: 'bg-brand/[0.07] text-brand',
   warn: 'bg-warn/10 text-warn-ink',
   muted: 'bg-warm text-ink/60',
 };
 
-const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
-const PRIMARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
+const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
+const PRIMARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
 const SECONDARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold text-ink shadow-sm transition hover:border-line-2 ${RING}`;
 // «Скоро» для денег — месяц: так же решает, синяя ли «Продлить на 1 год».
 const DAY = 24 * 3600 * 1000;
@@ -71,10 +72,10 @@ const BTN_TEXT = `rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover
 const SITE_COLS = 'sm:grid-cols-[minmax(0,1.6fr)_minmax(0,0.9fr)_minmax(0,1.5fr)_112px_40px]';
 
 const BADGE = {
-  ok: 'bg-ok/10 text-ok',
+  ok: 'bg-ok/10 text-ok-ink',
   info: 'bg-brand/[0.07] text-brand',
   warn: 'bg-warn/10 text-warn-ink',
-  danger: 'bg-danger/10 text-danger',
+  danger: 'bg-danger/10 text-danger-ink',
   beige: 'bg-warm text-ink/70 ring-1 ring-inset ring-line',
   muted: 'bg-warm text-ink/60',
 };
@@ -88,7 +89,7 @@ function badgeOf(site) {
     case 'trial':
       return ['info', `Бесплатно до ${site.trialTo}`];
     case 'expired':
-      return ['danger', 'Пробный период закончился'];
+      return [site.grace ? 'warn' : 'danger', 'Пробный период закончился'];
     case 'pending':
       return ['warn', 'Ждёт оплаты по счёту'];
     default:
@@ -110,17 +111,8 @@ function endsAt(site) {
 function RowMenu({ site, hasHistory, onPick }) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef(null);
-  useEffect(() => {
-    if (!open) return undefined;
-    const onKey = (e) => {
-      if (e.key === 'Escape') {
-        setOpen(false);
-        btnRef.current?.focus();
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+  const menuRef = useRef(null);
+  usePopup(open, setOpen, btnRef, menuRef);
   // «Отключить сайт» — здесь, отдельно от автопродления (владелец 24.09):
   // выключенное автопродление — продление вручную, а не уход. Отключённый
   // сайт возвращают тем же меню.
@@ -155,15 +147,17 @@ function RowMenu({ site, hasHistory, onPick }) {
       {open && <div className="fixed inset-0 z-30" aria-hidden="true" onClick={() => setOpen(false)} />}
       {open && (
         <div
+          ref={menuRef}
           role="menu"
           aria-label={`Действия · ${site.domain}`}
-          className="absolute right-0 top-[calc(100%+4px)] z-40 w-64 rounded-xl border border-line bg-white p-1.5 shadow-[0_18px_40px_-18px_rgba(17,17,16,0.35)]"
+          className="absolute right-0 top-[calc(100%+4px)] z-40 w-80 max-w-[calc(100vw-32px)] rounded-xl border border-line bg-white p-1.5 shadow-[0_18px_40px_-18px_rgba(17,17,16,0.35)]"
         >
           {items.map(([label, id, hl, disabled]) => (
             <button
               key={id}
               type="button"
               role="menuitem"
+              tabIndex={-1}
               disabled={disabled}
               onClick={() => {
                 setOpen(false);
@@ -174,7 +168,7 @@ function RowMenu({ site, hasHistory, onPick }) {
               } ${RING}`}
             >
               {label}
-              {disabled && <span className="ml-auto text-[12px] font-normal">пока нет</span>}
+              {disabled && <span className="ml-auto shrink-0 whitespace-nowrap text-[12px] font-normal">пока нет</span>}
             </button>
           ))}
         </div>
@@ -183,7 +177,7 @@ function RowMenu({ site, hasHistory, onPick }) {
   );
 }
 
-function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, onOpenSite, children }) {
+function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick, onAuto, onOpenSite, children }) {
   // Название — ссылка в кабинет сайта (так таблица живёт в «Моих сайтах»).
   const name = onOpenSite ? (
     <button type="button" onClick={onOpenSite} className={`max-w-full truncate rounded text-left text-[15px] font-bold hover:text-brand hover:underline ${RING}`}>
@@ -204,7 +198,8 @@ function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, onOpenSit
       type="button"
       onClick={() => onPick('tariff')}
       aria-expanded={open === 'tariff'}
-      className={`rounded text-[12px] font-bold text-brand hover:text-ink ${RING}`}
+      // На телефоне — область нажатия 44px, вид тот же (аудит 24.09: 51×18).
+      className={`inline-flex min-h-11 items-center rounded text-[12px] font-bold text-brand hover:text-ink sm:min-h-0 ${RING}`}
     >
       {label}
     </button>
@@ -214,7 +209,7 @@ function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, onOpenSit
     : trial && !site.tariff
       ? <p className="mt-0.5">{tariffBtn('Выбрать тариф')}</p>
       : trial
-        ? <p className="mt-0.5 text-[12px] text-ink/60">дальше — {site.tariff} · {tariffBtn('Сменить')}</p>
+        ? <p className="mt-0.5 text-[12px] text-ink/60">дальше {site.tariff} · {tariffBtn('Сменить')}</p>
         : <p className="mt-0.5">{tariffBtn('Сменить')}</p>;
   // Без тарифа продлевать нечего: сначала выбор — жёлтым только в последний
   // день пробного периода, как и нехватка денег.
@@ -240,12 +235,22 @@ function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, onOpenSit
         <p className="mt-1 text-[12px] text-ink/60">продление вручную</p>
       )
     );
+  // «Спишем» — только когда есть откуда: на балансе хватает или привязана
+  // карта с автопополнением. Иначе «оплатите до …» (разбор 25.09: «карту я не
+  // привязывал, откуда спишете?»), при выставленном счёте — «ждём оплату».
+  // Жёлтое «Не хватает» — по-прежнему только в последние дни (владелец 23.09).
+  const expiredLine = site.kind === 'expired' && (
+    <p className={`mt-1 text-[12px] ${site.grace ? 'font-semibold text-warn-ink' : 'text-ink/60'}`}>{site.label}</p>
+  );
   const debitLine =
+    expiredLine ||
     manualLine ||
     noTariffLine ||
     (debit &&
     (short ? (
       <p className="mt-1 text-[12px] font-semibold text-warn-ink">Не хватает {formatRub(short)} на год</p>
+    ) : unfunded ? (
+      <p className="mt-1 text-[12px] text-ink/60">{invoice ? 'ждём оплату счёта' : `оплатите год до ${debit}`}</p>
     ) : (
       <p className="mt-1 text-[12px] text-ink/60">
         {debit} спишем {PRICE_TEXT}
@@ -261,13 +266,13 @@ function SiteTableRow({ site, open, hasHistory, short, onPick, onAuto, onOpenSit
         type="button"
         onClick={() => onPick('renew')}
         aria-expanded={open === 'renew'}
-        className={`rounded text-[12px] font-bold text-brand hover:text-ink ${RING}`}
+        className={`inline-flex min-h-11 items-center rounded text-[12px] font-bold text-brand hover:text-ink sm:min-h-0 ${RING}`}
       >
         {payLabel}
       </button>
     </p>
   );
-  const nextTariff = site.nextTariff && site.period && <p className="mt-0.5 text-[12px] text-ink/60">с {site.period.renew} — {site.nextTariff}</p>;
+  const nextTariff = site.nextTariff && site.period && <p className="mt-0.5 text-[12px] text-ink/60">{site.nextTariff} с {site.period.renew}</p>;
   // У отключённого сайта продлевать нечего — переключателя нет.
   const autoable = live && site.kind !== 'off-soon';
   const sw = autoable && <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />;
@@ -375,6 +380,8 @@ export default function BillingClient({ mode = 'money' }) {
 
   const [whatOpen, setWhatOpen] = useState(false);
   const [copied, setCopied] = useState(null);
+  // Итог оплаты года в строке сайта: { key } — панель «Оплачено до …».
+  const [paidDone, setPaidDone] = useState(null);
   const [opsAll, setOpsAll] = useState(false);
   // «Посмотреть историю счетов» в «⋯» сайта — история только его.
   const [historyFor, setHistoryFor] = useState(null);
@@ -450,7 +457,13 @@ export default function BillingClient({ mode = 'money' }) {
   // в «Обзоре»); warnShort — пора предупредить жёлтым. Называем нехватку один
   // раз — в карточке баланса; строка сайта повторяет её, только когда сайтов
   // несколько и надо показать, какому не хватает.
-  const short = debitShortfall(sites, balance);
+  // Выставленный счёт на пополнение — деньги уже в пути: нехватку считаем с
+  // ним (разбор 24.09: «Не хватает — пополните» и синяя «Пополнить» стояли
+  // прямо над «Счёт № … — ждём оплату» и вели ко второй оплате).
+  const pendingTopup = b.topupInvoice ? b.topupInvoice.amount || PRICE : 0;
+  const short = debitShortfall(sites, balance + pendingTopup);
+  // Без счёта в пути: за какие сайты платить пока нечем.
+  const unfundedMap = debitShortfall(sites, balance);
   const soonShort = sites.filter((s) => short[s.key] && short[s.key].at - now < SOON);
   const warnShort = (autoCard ? [] : sites)
     .filter((s) => short[s.key] && short[s.key].at - now < warnWithin(s))
@@ -493,6 +506,13 @@ export default function BillingClient({ mode = 'money' }) {
     // Тариф выбран по пути к оплате — в таблице сайтов сразу форма доплаты,
     // как после «Оплатить год».
     if (sitesMode && then === 'renew' && balance < PRICE && !b.topupInvoice) openTopup(PRICE - balance, site.key);
+    focusPanel(site.key);
+  }
+
+  // Нажатая кнопка размонтируется вместе с панелью (выбор тарифа, оплата) —
+  // фокус на начало новой панели, иначе он падал на body (аудит 24.09).
+  function focusPanel(key) {
+    setTimeout(() => document.querySelector(`#site-${CSS.escape(key)} [data-panel-start]`)?.focus(), 60);
   }
 
   // Сменить способ — одно нажатие (владелец 24.09: было «Изменить → По счёту →
@@ -545,15 +565,25 @@ export default function BillingClient({ mode = 'money' }) {
   function payYear(site) {
     if (payYearFromBalance(site.key)) {
       reload();
-      setOpen(null);
+      showPaid(site.key);
     } else openTopup(PRICE - balance, site.key);
+  }
+
+  // После оплаты — не тишина, а итог в той же строке (разбор 24.09): срок,
+  // куда придут чек и акт. Фокус переходит на итог — скринридер прочтёт его
+  // сам; live-область здесь дала бы второе прочтение того же текста.
+  function showPaid(key) {
+    const fresh = accountSites(loadAnketa()).find((x) => x.key === key);
+    setPaidDone({ key, to: fresh?.period?.to });
+    setOpen({ key, panel: 'done' });
+    focusPanel(key);
   }
 
   function checkAmount() {
     const sum = Number(String(amount).replace(/\D/g, ''));
     const min = topupFor ? PRICE - balance : 100;
     if (!sum || sum < min) {
-      setAmountErr(topupFor ? `Нужно не меньше ${formatRub(min)} — столько не хватает на год сайта.` : 'Укажите сумму — от 100 ₽.');
+      setAmountErr(topupFor ? `Нужно не меньше ${formatRub(min)}: столько не хватает на год сайта.` : 'Укажите сумму от 100 ₽.');
       return null;
     }
     setAmountErr(null);
@@ -566,7 +596,7 @@ export default function BillingClient({ mode = 'money' }) {
   function checkDocsEmail() {
     const v = docsEmail.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
-      setDocsErr(v ? 'Нужна почта вида name@site.ru.' : 'Укажите, куда прислать документы об оплате.');
+      setDocsErr(v ? 'Нужен e-mail вида name@site.ru.' : 'Укажите, куда прислать документы об оплате.');
       return null;
     }
     setDocsErr(null);
@@ -578,7 +608,7 @@ export default function BillingClient({ mode = 'money' }) {
     const [mm] = cardExp.split('/');
     const errs = {};
     if (digits.length !== 16) errs.no = 'Номер карты — 16 цифр.';
-    if (!/^\d{2}\/\d{2}$/.test(cardExp) || +mm < 1 || +mm > 12) errs.exp = 'Срок действия — в формате ММ/ГГ.';
+    if (!/^\d{2}\/\d{2}$/.test(cardExp) || +mm < 1 || +mm > 12) errs.exp = 'Укажите срок действия в формате ММ/ГГ.';
     if (!/^\d{3}$/.test(cardCvc)) errs.cvc = 'CVC — 3 цифры на обороте карты.';
     return errs;
   }
@@ -609,7 +639,10 @@ export default function BillingClient({ mode = 'money' }) {
       if (Object.keys(errs).length) ok = false;
     }
     const email = checkDocsEmail();
-    if (!ok || !email) return;
+    if (!ok || !email) {
+      focusFirstError();
+      return;
+    }
     const patch = { method: 'Картой', actsEmail: email };
     if (!b.card) {
       patch.card = { last4: cardNo.replace(/\D/g, '').slice(-4), exp: cardExp, auto: cardAuto };
@@ -620,9 +653,11 @@ export default function BillingClient({ mode = 'money' }) {
     saveAnketa({ billing: { ...loadAnketa().billing, ...patch } });
     setMethod('Картой');
     topUpBalance(sum, 'Картой');
-    if (topupFor) payYearFromBalance(topupFor);
+    const paidFor = topupFor && payYearFromBalance(topupFor) ? topupFor : null;
     closeTopup();
     reload();
+    if (paidFor && sitesMode) showPaid(paidFor);
+    else announce(`Баланс пополнен на ${formatRub(sum)}.`);
   }
 
   const currentPayer = payerMode === 'Реквизиты компании' ? null : otherPayer;
@@ -640,11 +675,15 @@ export default function BillingClient({ mode = 'money' }) {
       return;
     }
     const email = checkDocsEmail();
-    if (!sum || !email) return;
+    if (!sum || !email) {
+      focusFirstError();
+      return;
+    }
     setPayErr(null);
     saveAnketa({ billing: { ...loadAnketa().billing, method: 'По счёту', actsEmail: email, ...(payerMode === 'Реквизиты компании' ? { payerOther: null } : {}) } });
     setMethod('По счёту');
     issueTopupInvoice(sum, currentPayer);
+    announce(`Счёт № ${loadAnketa().billing?.topupInvoice?.no || ''} на ${formatRub(sum)} выставлен. Пришлём его на ${email}.`);
     const forKey = topupFor;
     closeTopup();
     reload();
@@ -663,44 +702,55 @@ export default function BillingClient({ mode = 'money' }) {
     .join(' · ');
 
   // Лид: одна фраза о состоянии. При нескольких сайтах состояние у каждого
-  // своё — лид говорит, как устроена оплата.
-  const lead = single
+  // своё — лид говорит, как устроена оплата. Выставленный счёт на пополнение
+  // стоит в карточке баланса прямо под лидом — второй раз его не называем, а
+  // «пополните баланс» при счёте в пути было бы неправдой: лида нет.
+  const lead = b.topupInvoice && single
+    ? null
+    : single
     ? {
         'not-ready': 'Подписка начнётся с пробного периода, когда код встанет на сайт.',
         trial: main.cancelled
-          ? `Пробный период — до ${main.trialTo}. Автопродление выключено — оплатите год вручную до этой даты, иначе сайт отключится.`
+          ? `Пробный период до ${main.trialTo}. Автопродление выключено. Оплатите год вручную до этой даты, иначе сайт отключится.`
           : !main.tariff
             ? balance >= PRICE || autoCard
-              ? `Пробный период — до ${main.trialTo}. Выберите тариф — потом год оплатится сам, без перерыва.`
-              : `Пробный период — до ${main.trialTo}. Выберите тариф и пополните баланс на ${PRICE_TEXT} — тогда год оплатится сам, без перерыва.`
+              ? `Пробный период до ${main.trialTo}. Выберите тариф, и дальше год оплатится сам, без перерыва.`
+              : `Пробный период до ${main.trialTo}. Выберите тариф и пополните баланс на ${PRICE_TEXT}, и дальше год оплатится сам, без перерыва.`
             : balance >= PRICE
-              ? `Пробный период — до ${main.trialTo}. Потом спишем с баланса ${PRICE_TEXT} за год.`
+              ? `Пробный период до ${main.trialTo}. Потом спишем с баланса ${PRICE_TEXT} за год.`
               : autoCard
-                ? `Пробный период — до ${main.trialTo}. Потом спишем ${PRICE_TEXT} за год — недостающее с карты ···· ${b.card.last4}.`
-                : `Пробный период — до ${main.trialTo}. Пополните баланс на ${PRICE_TEXT} — тогда год оплатится сам, без перерыва.`,
-        expired: 'Пробный период закончился — оплатите год, чтобы включить сайт снова.',
-        pending: 'Счёт выставлен — отметим оплату, как только поступят деньги, обычно 1–3 рабочих дня.',
+                ? `Пробный период до ${main.trialTo}. Потом спишем ${PRICE_TEXT} за год, недостающее возьмём с карты ···· ${b.card.last4}.`
+                : `Пробный период до ${main.trialTo}. Пополните баланс на ${PRICE_TEXT}, и дальше год оплатится сам, без перерыва.`,
+        expired: main.grace
+          ? `Пробный период закончился. Сайт работает до ${main.graceTo}: оплатите год, чтобы он не отключился.`
+          : 'Пробный период закончился. Оплатите год, чтобы включить сайт снова.',
+        pending: 'Счёт выставлен. Отметим оплату, как только поступят деньги.',
         // У оплаченного сайта лида нет (владелец 24.09): «Оплачено до …» и
         // «продление вручную» уже стоят в его строке таблицы. Остальные лиды
         // говорят, что делать дальше, — это плашкой не сказано.
         paid: null,
-        'off-soon': `Сайт отключается — работает до ${main.until}, дальше продлевать не будем.`,
+        'off-soon': `Сайт отключается: работает до ${main.until}, дальше продлевать не будем.`,
       }[main.kind]
-    : `${sites.length} ${plural(sites.length, 'сайт', 'сайта', 'сайтов')} — у каждого свой год; оплата списывается с баланса в дату продления каждого.`;
+    : `${sites.length} ${plural(sites.length, 'сайт', 'сайта', 'сайтов')}: у каждого свой год, оплата списывается с баланса в дату продления каждого.`;
 
   // «Что входит»: рамка зависит от состояния, один список на разные
   // ситуации врал бы в части из них.
-  const common = ['Готовый пакет документов под ваш сайт', 'Виджет: куки-баннер и подвал, из которого открываются документы и реквизиты', 'Документы по постоянным адресам — ссылки не ломаются'];
+  const common = ['Готовый пакет документов под ваш сайт', 'Виджет: куки-баннер и подвал, из которого открываются документы и реквизиты', 'Документы по постоянным адресам: ссылки не ломаются'];
   const frames =
     main.kind === 'paid' || !single
       ? [['Что работает по подписке', ['Пакет документов под ваш сайт, собранный по вашим ответам', 'Виджет: куки-баннер и подвал, из которого открываются документы и реквизиты', 'Маркировка упоминаний по реестрам на ваших страницах', 'Переписываем документы при изменении закона и присылаем письмо', 'Проверяем, что виджет и документы на сайте на месте']]]
-      : main.kind === 'expired'
+      : main.kind === 'expired' && main.grace
         ? [
-            ['Сейчас отключено', ['Виджет снят с сайта — куки-баннер и подвал не показываются', 'Документы в кабинете открываются только на просмотр']],
+            [`Работает до ${main.graceTo}`, common],
+            ['Оплата продлевает', ['Виджет и документы не прервутся', 'Следим за законом и обновляем документы сами', 'Уведомления, если что-то изменилось']],
+          ]
+        : main.kind === 'expired'
+        ? [
+            ['Сейчас отключено', ['Виджет снят с сайта: куки-баннер и подвал не показываются', 'Документы в кабинете открываются только на просмотр']],
             ['Оплата включит снова', ['Виджет и документы заработают как прежде', 'Следим за законом и обновляем документы сами', 'Уведомления, если что-то изменилось']],
           ]
         : [
-            [a.installed ? `Уже работает — бесплатно до ${a.trialStartedAt ? trialEnds(a) : ''}` : `Включится, как только код встанет на сайт, — ${TRIAL_DAYS} дней бесплатно`, common],
+            [a.installed ? `Уже работает, бесплатно до ${a.trialStartedAt ? trialEnds(a) : ''}` : `Включится на ${TRIAL_DAYS} дней бесплатно, как только код встанет на сайт`, common],
             ['Оплата продлевает', ['Доступ не прерывается после пробного периода', 'Следим за законом и обновляем документы сами', 'Уведомления, если что-то изменилось']],
           ];
 
@@ -735,7 +785,7 @@ export default function BillingClient({ mode = 'money' }) {
               </div>
             ))}
             <p className="rounded-xl bg-warm p-4 text-ink/65">
-              <b className="text-ink">Оплата раз в год — но это подписка, не разовая покупка:</b> меняется закон, вместе с
+              <b className="text-ink">Оплата раз в год, но это подписка, а не разовая покупка:</b> меняется закон, вместе с
               ним должны меняться и документы. Разовый пакет устареет сам по себе, без предупреждения.
             </p>
           </div>
@@ -771,7 +821,7 @@ export default function BillingClient({ mode = 'money' }) {
             }}
             className={`mt-2 ${LINK}`}
           >
-            Вставить мою почту — {a.personEmail}
+            Вставить мой e-mail {a.personEmail}
           </button>
         )}
       </div>
@@ -841,7 +891,7 @@ export default function BillingClient({ mode = 'money' }) {
         ) : (
           <>
             {cardFields()}
-            <p className="mt-3 text-[12px] text-ink/60">Карта привяжется к аккаунту — ею можно будет пополнять баланс и дальше.</p>
+            <p className="mt-3 text-[12px] text-ink/60">Карта привяжется к аккаунту, и ею можно будет пополнять баланс дальше.</p>
           </>
         )}
         {docsEmailField('Куда прислать чек и акт')}
@@ -886,7 +936,7 @@ export default function BillingClient({ mode = 'money' }) {
             )}
           </p>
         )}
-        {payErr && <p className="mt-2 text-[12px] font-semibold text-danger">{payErr}</p>}
+        {payErr && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{payErr}</p>}
         {docsEmailField('Куда прислать счёт и акт')}
         <button type="button" onClick={topupByInvoice} className={`mt-5 ${PRIMARY}`}>
           Выставить счёт на {sumText}
@@ -899,15 +949,18 @@ export default function BillingClient({ mode = 'money' }) {
   // документы. Ничего не выбрано заранее (владелец 23.09).
   function topupPanel() {
     const forSite = topupFor && sites.find((s) => s.key === topupFor);
-    const chips = [[PRICE, 'год одного сайта'], ...(sites.length > 1 ? [[PRICE * sites.length, `все ${sites.length} ${plural(sites.length, 'сайт', 'сайта', 'сайтов')} на год`]] : [])];
+    const chips = [[PRICE, 'за год одного сайта'], ...(sites.length > 1 ? [[PRICE * sites.length, `за год всех ${sites.length} сайтов`]] : [])];
     return (
       <>
-        {forSite && (
+        {/* Оплата года сайта — сумма известна, вводить её не нужно (разбор
+            24.09: «Оплатить год» открывало «Сумма, ₽» и «Как пополняете?»).
+            Что есть на балансе — спишем, остальное доплатить здесь. */}
+        {forSite && balance > 0 && (
           <p className="mb-4 rounded-lg bg-brand/[0.06] px-3 py-2.5 text-[13px] leading-5 text-ink/75">
-            На балансе {formatRub(balance)} — не хватает {formatRub(PRICE - balance)} на год {forSite.domain}. После пополнения
-            картой оплатим его сразу.
+            Спишем с баланса {formatRub(balance)}, доплатить нужно {formatRub(PRICE - balance)}.
           </p>
         )}
+        {!forSite && (
         <div className="grid gap-3 sm:grid-cols-[minmax(0,260px)_1fr] sm:items-end">
           <Field
             label="Сумма, ₽"
@@ -934,13 +987,14 @@ export default function BillingClient({ mode = 'money' }) {
                   Number(amount) === sum ? 'border-brand bg-brand/[0.06] text-brand' : 'border-line bg-white text-ink/70 hover:border-line-2'
                 }`}
               >
-                {formatRub(sum)} — {note}
+                {formatRub(sum)} {note}
               </button>
             ))}
           </div>
         </div>
-        <p id="how-h" className="mb-2 mt-6 text-sm font-bold">
-          Как пополняете?
+        )}
+        <p id="how-h" className={`mb-2 text-sm font-bold ${forSite ? '' : 'mt-6'}`}>
+          {forSite ? 'Как оплачиваете?' : 'Как пополняете?'}
         </p>
         <Segmented options={['Картой', 'По счёту']} value={payMethod} onChange={setPayMethod} ariaLabelledby="how-h" />
         {payMethod && <div className="mt-5 border-t border-line pt-5">{payMethod === 'Картой' ? cardPart() : invoicePart()}</div>}
@@ -961,10 +1015,10 @@ export default function BillingClient({ mode = 'money' }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-bold">
-              Счёт № {inv.no} на {formatRub(inv.amount || PRICE)} — ждём оплату
+              Ждём оплату счёта № {inv.no} на {formatRub(inv.amount || PRICE)}
             </p>
             <p className="mt-0.5 text-[12px] leading-4 text-ink/60">
-              на {inv.payer?.name || operatorName(a)} · пополним баланс, как только поступят деньги, обычно 1–3 рабочих дня
+              на {inv.payer?.name || operatorName(a)} · пополним баланс, как только поступят деньги
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -979,7 +1033,7 @@ export default function BillingClient({ mode = 'money' }) {
         </div>
         {overdue && (
           <p className="mt-3 rounded-lg bg-warn/10 p-3 text-[12px] leading-4 text-ink/70">
-            Счёт выставлен больше 3 дней назад и не оплачен. Если перевод завис в банке — напишите в поддержку.
+            Счёт выставлен больше 3 дней назад и не оплачен. Если перевод завис в банке, напишите в поддержку.
           </p>
         )}
         {changed && payerMode && (
@@ -991,7 +1045,7 @@ export default function BillingClient({ mode = 'money' }) {
             }}
             className={`mt-4 ${BTN_OUTLINE}`}
           >
-            Сформировать заново — на {payerName}
+            Сформировать заново на {payerName}
           </button>
         )}
       </div>
@@ -1023,8 +1077,8 @@ export default function BillingClient({ mode = 'money' }) {
         </div>
         <p className="mt-3 text-[12px] text-ink/60">
           {site.kind === 'paid'
-            ? `Новый тариф начнёт действовать с продления ${site.period.renew} — текущий год уже оплачен.`
-            : 'Состав тарифов ещё утверждается — цена пока одна.'}
+            ? `Новый тариф начнёт действовать с продления ${site.period.renew}: текущий год уже оплачен.`
+            : 'Состав тарифов ещё утверждается, поэтому цена пока одна.'}
         </p>
         <div className="mt-4 flex gap-3">
           <button type="button" onClick={() => pickTariff(site, then)} disabled={!tariffPick} className={`${then ? PRIMARY_SM : BTN_OUTLINE} disabled:cursor-not-allowed disabled:opacity-50`}>
@@ -1038,7 +1092,29 @@ export default function BillingClient({ mode = 'money' }) {
     );
   }
 
-  // Оплатить год / продлить ещё на год — с баланса, в строке сайта.
+  // Итог оплаты: срок и где документы — то, что директор хочет услышать.
+  // Пробный период здесь не упоминается: оплаченный год уже стоит в сроке,
+  // а «начнётся после пробного» сказано до оплаты.
+  function donePanel(site) {
+    const to = paidDone?.key === site.key ? paidDone.to : site.period?.to;
+    return (
+      <div data-panel-start tabIndex={-1} className={`flex flex-wrap items-center justify-between gap-3 rounded-lg outline-none ${RING}`}>
+        <p className="flex items-start gap-2.5 text-[14px] leading-5">
+          <CheckIcon size={18} className="mt-px shrink-0 text-ok-ink" />
+          <span>
+            <b className="font-bold">Оплачено до {to}.</b>{' '}
+            <span className="text-ink/70">
+              Чек и акт придут на {b.actsEmail || 'e-mail для документов'}, акт также будет в «Балансе и платежах» → «Акты и чеки».
+            </span>
+          </span>
+        </p>
+        <button type="button" onClick={() => setOpen(null)} className={BTN_TEXT}>
+          Готово
+        </button>
+      </div>
+    );
+  }
+
   function renewPanel(site) {
     // Без тарифа платить не за что: сначала выбор, потом та же панель оплаты.
     if (!site.tariff) return tariffPanel(site, 'renew');
@@ -1046,25 +1122,42 @@ export default function BillingClient({ mode = 'money' }) {
     // Тем же глаголом, что нажали: «Оплатить год» с «Обзора» раньше
     // открывало панель без заголовка с одной «Пополнить» внутри.
     const title = (
-      <p className="mb-1.5 text-[15px] font-bold">
-        {site.kind === 'paid' || site.kind === 'off-soon' ? `Продлить ${site.domain} на год` : `Оплатить год ${site.domain}`} — {site.tariff}, {PRICE_TEXT}
+      <p data-panel-start tabIndex={-1} className={`mb-1.5 rounded text-[15px] font-bold outline-none ${RING}`}>
+        {site.kind === 'paid' || site.kind === 'off-soon' ? `Продлить ${site.domain} на год` : `Оплатить год ${site.domain}`}: {site.tariff}, {PRICE_TEXT}
       </p>
     );
     const what =
       site.kind === 'trial'
-        ? `Год ${site.domain} начнётся после пробного периода — пробные дни не сгорают.`
+        ? `Год ${site.domain} начнётся после пробного периода, так что пробные дни не сгорают.`
         : site.kind === 'paid' || site.kind === 'off-soon'
           ? `Срок продлится до ${paidPeriod(site.paidAt, (site.paidYears || 1) + 1).to}.`
-          : `${site.domain} включится сегодня — на год.`;
+          : site.grace
+            ? `Год ${site.domain} начнётся сегодня.`
+            : `${site.domain} включится сегодня на год.`;
+    // Что будет через год — до оплаты, а не после (разбор 24.09; HANDOFF:
+    // «не сказано до оплаты картой, что через год спишется 12 000 ₽»).
+    const next = (
+      <p className="mt-1 text-[13px] leading-5 text-ink/60">
+        {site.cancelled
+          ? 'Автопродление выключено. Следующий год оплатите вручную.'
+          : `В конце срока спишем с баланса ${PRICE_TEXT} за следующий год. Автопродление выключается в строке сайта.`}
+      </p>
+    );
     return enough ? (
       <>
         {title}
         <p className="text-[13px] leading-5 text-ink/70">
           Спишем {PRICE_TEXT} с баланса ({formatRub(balance)}). {what}
         </p>
-        <button type="button" onClick={() => payYear(site)} className={`mt-4 ${PRIMARY}`}>
-          Списать {PRICE_TEXT}
-        </button>
+        {next}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => payYear(site)} className={PRIMARY}>
+            Списать {PRICE_TEXT}
+          </button>
+          <button type="button" onClick={() => setOpen(null)} className={BTN_TEXT}>
+            Отмена
+          </button>
+        </div>
       </>
     ) : sitesMode ? (
       // В таблице сайтов — доплата здесь же: счёт уже выставлен — он на виду,
@@ -1072,6 +1165,7 @@ export default function BillingClient({ mode = 'money' }) {
       <>
         {title}
         <p className="text-[13px] leading-5 text-ink/70">{what}</p>
+        {next}
         {b.topupInvoice ? (
           invoiceView(b.topupInvoice)
         ) : topupOpen && topupFor === site.key ? (
@@ -1086,7 +1180,7 @@ export default function BillingClient({ mode = 'money' }) {
       <>
         {title}
         <p className="text-[13px] leading-5 text-ink/70">
-          На балансе {formatRub(balance)} — не хватает {formatRub(PRICE - balance)} на год. {what}
+          На балансе {formatRub(balance)}, на год не хватает {formatRub(PRICE - balance)}. {what}
         </p>
         <button type="button" onClick={() => openTopup(PRICE - balance, site.key)} className={`mt-4 ${PRIMARY}`}>
           Пополнить на {formatRub(PRICE - balance)}
@@ -1121,6 +1215,8 @@ export default function BillingClient({ mode = 'money' }) {
             router.push(site.kind === 'not-ready' ? STEP_URLS[Math.min(site.stepsDone || 0, 5)] : '/app/site');
           }}
           short={(sitesMode || !single) && !autoCard && short[site.key] && short[site.key].at - now < warnWithin(site) ? short[site.key].amount : null}
+          unfunded={!autoCard && Boolean(unfundedMap[site.key])}
+          invoice={Boolean(b.topupInvoice)}
           open={open?.key === site.key ? open.panel : null}
           hasHistory={ops.some((op) => op.kind === 'debit' && op.site === site.domain)}
           onPick={(id) => {
@@ -1144,7 +1240,7 @@ export default function BillingClient({ mode = 'money' }) {
             reload();
           }}
         >
-        {open?.panel === 'tariff' ? tariffPanel(site) : renewPanel(site)}
+        {open?.panel === 'tariff' ? tariffPanel(site) : open?.panel === 'done' ? donePanel(site) : renewPanel(site)}
         </SiteTableRow>
       ))}
     </div>
@@ -1193,10 +1289,10 @@ export default function BillingClient({ mode = 'money' }) {
   }
 
   return (
-    <main className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen bg-warm text-ink lg:flex">
       <AccountSidebar active={MONEY_TITLE} user={user} />
 
-      <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
+      <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-4xl">
           <MoneyHeader tab="Платежи">
             {lead && <p className="mt-5 max-w-2xl text-[15px] leading-6 text-ink/65">{lead}</p>}
@@ -1209,7 +1305,7 @@ export default function BillingClient({ mode = 'money' }) {
               </h2>
               <p className="mt-3 text-sm leading-6 text-ink/65">
                 {(a.stepsDone || 0) >= 4
-                  ? `Пакет готов. Как только код встанет на сайт, включим документы и виджет — ${TRIAL_DAYS} дней бесплатно.`
+                  ? `Пакет готов. Как только код встанет на сайт, включим документы и виджет на ${TRIAL_DAYS} дней бесплатно.`
                   : 'Документы собираем по ответам анкеты.'}
               </p>
               <button type="button" onClick={() => router.push(STEP_URLS[Math.min(a.stepsDone || 0, 5)])} className={`mt-5 ${PRIMARY}`}>
@@ -1226,17 +1322,17 @@ export default function BillingClient({ mode = 'money' }) {
                     <p className="mt-1 text-[28px] font-bold leading-none tracking-[-0.03em]">{formatRub(balance)}</p>
                     <p className="mt-2 text-[13px] leading-5 text-ink/60">
                       {renewal
-                        ? `Ближайшее списание — ${renewal.date} · ${renewal.site.domain} · ${renewal.site.tariff ? PRICE_TEXT : 'после выбора тарифа'}`
-                        : 'С баланса оплачивается год каждого сайта — в его дату продления.'}
+                        ? `Ближайшее списание: ${renewal.date} · ${renewal.site.domain} · ${renewal.site.tariff ? PRICE_TEXT : 'после выбора тарифа'}`
+                        : 'С баланса оплачивается год каждого сайта в его дату продления.'}
                     </p>
                     {autoCard && shortSum > 0 && renewal?.site.tariff && (
                       <p className="mt-1 text-[13px] leading-5 text-ink/60">
-                        Не хватает {formatRub(shortSum)} — спишем с карты ···· {b.card.last4} в день продления.
+                        Не хватает {formatRub(shortSum)}. Спишем их с карты ···· {b.card.last4} в день продления.
                       </p>
                     )}
                     {warnSum > 0 && (
                       <p className="mt-3 w-fit rounded-lg bg-warn/10 px-3 py-2 text-[13px] font-semibold leading-5 text-warn-ink">
-                        Не хватает {formatRub(warnSum)} — пополните до {formatDate(warnShort[0].at)}
+                        Не хватает {formatRub(warnSum)}. Пополните до {formatDate(warnShort[0].at)}
                       </p>
                     )}
                   </div>
@@ -1260,7 +1356,7 @@ export default function BillingClient({ mode = 'money' }) {
                   <Row
                     label="Способ"
                     value={method === 'Картой' ? (b.card ? `Карта ···· ${b.card.last4}` : 'Картой') : 'По счёту'}
-                    note={method === 'Картой' ? (b.card ? `до ${b.card.exp}${b.card.auto ? ' · автопополнение' : ''}` : 'карта не привязана') : 'счёт на почту, оплата переводом'}
+                    note={method === 'Картой' ? (b.card ? `до ${b.card.exp}${b.card.auto ? ' · автопополнение' : ''}` : 'карта не привязана') : 'счёт на e-mail, оплата переводом'}
                     action="Изменить"
                     open={methodOpen}
                     onAction={() => setMethodOpen(!methodOpen)}
@@ -1277,7 +1373,7 @@ export default function BillingClient({ mode = 'money' }) {
                     {b.card && (
                       <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 text-[13px] leading-5">
                         <span>
-                          <b className="font-semibold">Автопополнение</b> — если к продлению не хватит, спишем недостающее с
+                          <b className="font-semibold">Автопополнение:</b> если к продлению не хватит, спишем недостающее с
                           карты ···· {b.card.last4}
                         </span>
                         <Switch
@@ -1321,8 +1417,8 @@ export default function BillingClient({ mode = 'money' }) {
                         <Segmented options={['Реквизиты компании', 'Другие реквизиты']} value={payerMode} onChange={pickPayer} />
                         <p className="text-[13px] leading-5 text-ink/60">
                           {payerMode === 'Реквизиты компании'
-                            ? 'Возьмём данные компании с шага «Реквизиты». В подвал сайта они и так идут — здесь они нужны только для счёта.'
-                            : 'Нужно, когда счёт оплачивает другая компания — не та, чьи реквизиты стоят в подвале сайта.'}
+                            ? 'Возьмём данные компании с шага «Реквизиты». В подвал сайта они идут и так, а здесь нужны только для счёта.'
+                            : 'Нужно, когда счёт оплачивает другая компания, не та, чьи реквизиты стоят в подвале сайта.'}
                         </p>
                         {payerMode === 'Другие реквизиты' && (
                           <button type="button" onClick={() => setPayerModal(true)} className={BTN_OUTLINE}>
@@ -1367,7 +1463,7 @@ export default function BillingClient({ mode = 'money' }) {
                   </ul>
                   {!historyFor && ops.length > 6 && (
                     <button type="button" onClick={() => setOpsAll(!opsAll)} className={`mt-1 ${LINK}`}>
-                      {opsAll ? 'Свернуть' : `Вся история — ${ops.length}`}
+                      {opsAll ? 'Свернуть' : `Вся история (${ops.length})`}
                     </button>
                   )}
                 </Panel>
@@ -1375,9 +1471,9 @@ export default function BillingClient({ mode = 'money' }) {
             </>
           )}
         </div>
-      </section>
+      </main>
 
       {dialogs}
-    </main>
+    </div>
   );
 }

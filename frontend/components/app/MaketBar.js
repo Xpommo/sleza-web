@@ -36,7 +36,7 @@ const SCREENS = [
   ]],
   ['Аккаунт', [
     ['Баланс и платежи', '/app/billing'],
-    ['Документы об оплате', '/app/accounting'],
+    ['Акты и чеки', '/app/accounting'],
     ['Настройки', '/app/settings'],
     ['Поддержка', '/app/support'],
   ]],
@@ -58,7 +58,7 @@ const REQ = {
 const CARD = { method: 'Картой', card: { last4: '2323', exp: '11/28' } };
 
 const PRESETS = [
-  ['Пусто — сайтов нет', () => ({}), '/app/sites'],
+  ['Пусто, сайтов нет', () => ({}), '/app/sites'],
   ['Анкета: пройден шаг 1', () => ({ ...PERSON, stepsDone: 1 }), '/app/start/site'],
   ['Анкета: пройден шаг 2', () => ({ ...PERSON, ...SITE, stepsDone: 2 }), '/app/start/clients'],
   ['Анкета: пройден шаг 3', () => ({ ...PERSON, ...SITE, ...CLIENTS, stepsDone: 3 }), '/app/start/requisites'],
@@ -69,7 +69,9 @@ const PRESETS = [
   // (владелец 24.09). В остальных состояниях его нет, как в данных демо-сайта.
   ['Пробный период, на сайте Google Analytics', () => ({ ...PERSON, ...SITE, analytics: ['metrika', 'ga'], ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 2 * HOUR }), '/app/site'],
   // Пробный период — 5 дней с момента, когда код найден (решение 23.09).
-  ['Пробный период закончился', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 6 * 24 * HOUR }), '/app/site'],
+  // Мягкий уход (владелец 25.09): после пробного 3 льготных дня сайт работает.
+  ['Пробный закончился, льготные дни', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 6 * 24 * HOUR }), '/app/site'],
+  ['Пробный закончился, сайт отключён', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 9 * 24 * HOUR }), '/app/site'],
   // Модель баланса (партнёрская программа, 14.09): пополняют баланс, оплата
   // года каждого сайта списывается с него.
   ['Пробный период, баланс пополнен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 2 * HOUR, billing: { ...CARD, actsEmail: 'buh@alfa-school.ru', balance: 12000, ops: [{ at: Date.now() - HOUR, kind: 'topup', amount: 12000, method: 'Картой' }] } }), '/app/billing'],
@@ -176,7 +178,7 @@ export default function MaketBar() {
                   writeUi({ ...readUi(), hidden: true, open: false });
                 }}
                 className="rounded px-2 py-1 text-[11px] text-white/50 hover:text-white"
-                title="Спрятать совсем — вернуть можно точкой в углу"
+                title="Спрятать совсем. Вернуть можно точкой в углу"
               >
                 спрятать
               </button>
@@ -223,7 +225,7 @@ export default function MaketBar() {
             </div>
           ))}
           <p className="mt-3 text-[11px] leading-4 text-white/40">
-            Экраны сайта и подписки без добавленного сайта уводят в «Мои сайты» — сначала выберите состояние.
+            Экраны сайта и подписки без добавленного сайта уводят в «Мои сайты». Сначала выберите состояние.
           </p>
         </div>
       ) : (

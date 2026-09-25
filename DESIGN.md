@@ -12,11 +12,13 @@ colors:
   brand-soft: "#5f5fff"
   brand-tint: "rgba(31,31,230,0.08)"
   ok: "#1a7a52"
+  ok-ink: "#15613f"
   ok-tint: "rgba(26,122,82,0.10)"
   warn: "#b87900"
   warn-ink: "#8a5a00"
   warn-tint: "rgba(184,121,0,0.10)"
   danger: "#d63816"
+  danger-ink: "#b02a0c"
   danger-tint: "rgba(214,56,22,0.10)"
   line: "#e8e4dd"
   line-2: "#dcd6cc"
@@ -155,7 +157,7 @@ components:
     padding: "12px 24px"
   badge-ok:
     backgroundColor: "{colors.ok-tint}"
-    textColor: "{colors.ok}"
+    textColor: "{colors.ok-ink}"
     rounded: "{rounded.full}"
     padding: "6px 12px"
   badge-warn:
@@ -165,7 +167,7 @@ components:
     padding: "6px 12px"
   badge-danger:
     backgroundColor: "{colors.danger-tint}"
-    textColor: "{colors.danger}"
+    textColor: "{colors.danger-ink}"
     rounded: "{rounded.full}"
     padding: "6px 12px"
   badge-info:
@@ -230,13 +232,13 @@ Three warm neutrals do almost all the work; blue is spent on action and choice; 
 - **Hairline** (`#e8e4dd`, `line`) / **Crease** (`#dcd6cc`, `line-2`): Hairline is every border and row divider at rest; Crease is the hover border of inputs and tiles and the border of the unchecked check marker.
 
 ### Status (never decorative)
-- **Ledger Green** (`#1a7a52`): working, paid, done.
+- **Ledger Green** (`#1a7a52`): working, paid, done. Text on its 10% tint is **Ledger Ink** `#15613f` (`ok-ink`, 5.8:1): plain `ok` there was 4.14:1 over Desk.
 - **Amber Caution** (`#b87900` for fills, borders and dots; **Amber Ink** `#8a5a00`, `warn-ink`, for text): needs attention soon (the last day of the trial, auto-renew off, money short for a debit within a month, a field to review). Amber text is always `warn-ink`: `#b87900` as text on its tint was 3.2:1. Also the yellow edit frame (`border-warn/40 bg-warn/[0.06]`) around a found-by-INN card being changed.
-- **Rust Alert** (`#d63816`): blocked, overdue, field error, destructive confirmation.
+- **Rust Alert** (`#d63816`): blocked, overdue, field error, destructive confirmation. On white it is 4.73:1 (field errors are fine); text on its tint is **Rust Ink** `#b02a0c` (`danger-ink`, 5.7:1) — plain `danger` there was 4.09:1. Large figures («Остановлена», 28px) keep `danger`.
 
 **The Near-Term Warning Rule.** Amber means "act soon" or "this site is set to switch off" (auto-renew off). For money it is spent only on a debit the balance won't cover within about a month (`SOON` in the sites table), and for a trial only on its last day (`warnWithin`): a trial is good news and carries no warning color before then, on «Обзор» and in the sites table alike. A shortfall is named once: in the balance card (a site row repeats it only when there are several sites, to show which one). A balance short for a debit a year away is not a warning at all, and neither is a shortfall the bound card will cover (auto top-up on).
 
-**The Tint-Not-Fill Rule.** A status color is shown as text on its own 10% tint (pill or notice), never as a solid fill behind white text. The only solid fills in the system are blue (action/choice) and ink (you are here).
+**The Tint-Not-Fill Rule.** A status color is shown as text on its own 10% tint (pill or notice), never as a solid fill behind white text. The text is always the `*-ink` of that status (`warn-ink`, `danger-ink`, `ok-ink`), never the fill color itself. The only solid fills in the system are blue (action/choice) and ink (you are here).
 
 ## Typography
 
@@ -299,14 +301,15 @@ Soft, consistent rounding sized to the element's job:
 ### Buttons
 Confident and few.
 - **Shape:** 12px radius, 48px tall (h-12), 20–24px horizontal padding, 14px bold.
-- **Primary:** Seal Blue fill, white text, sheet shadow; hover darkens to `#1a1acc`. One per view.
+- **Primary:** Seal Blue fill, white text, sheet shadow; hover darkens to `brand-hover` (`#1a1acc`), no lift. One per view: in «Мои сайты» each site card's «Открыть сайт» is the white secondary, so the only blue is «Добавить сайт».
 - **Secondary:** white fill, Hairline border, Ink text, sheet shadow; hover moves the border to Crease (or to blue with blue text, where the secondary action is itself a next step).
 - **Text:** no fill, Muted Ink semibold; hover to Ink. «Отмена», «Назад», low-emphasis actions.
+- **Hit area:** anything tappable is at least 44px on phones — a small text action gets `min-h-11` (dropped from `sm`), a modal's close icon sits in a 44px square pulled back with a negative margin so the header doesn't grow.
 - **Icon action** (`IconAction`): 36px square, 8px radius, Muted Ink icon at 17px; hover warms the background and turns the icon blue. Always has `aria-label` and a small ink tooltip; a disabled one explains why in the tooltip.
 - **Focus (all):** `ring-2 ring-brand ring-offset-2`, outline removed. The earlier `ring-4 ring-brand/15` was about 1.3:1 and invisible on nav items and links; a focus ring must stay visible (3:1 or more).
 
 ### Status Badges
-- **Style:** pill, 11px bold, 6px × 12px padding, status color on its 10% tint (`ok`, `warn` with `warn-ink` text, `danger`), `info` in blue on brand tint (trial), `beige` neutral on Desk with an inset Hairline ring, `muted` on Desk.
+- **Style:** pill, 11px bold, 6px × 12px padding, status color on its 10% tint, text in that status's ink (`ok-ink`, `warn-ink`, `danger-ink`), `info` in blue on brand tint (trial), `beige` neutral on Desk with an inset Hairline ring, `muted` on Desk.
 - **Rule:** a badge column exists only when statuses differ between rows. If every row would say «Готово», drop the column (`withStatus={false}`).
 
 ### Cards / Containers
@@ -314,14 +317,15 @@ Confident and few.
 - **Padding:** 24px, 28px from `sm`.
 - **Overview card:** title (18px bold), key–value rows, and a footer link pinned to the bottom with `mt-auto` behind a Hairline divider, so cards in one row align.
 - **Notices:** 12px radius; neutral on Desk, attention as `warn-ink` text on amber tint, the found-by-INN edit frame as an amber 40% border over a 6% amber fill with a real blue «Готово» button.
-- **Client tasks (Обзор):** «Сделайте на сайте сами» — a white card between the answer cards and the changes list, shown only while tasks remain (owner 24.09): things we can't do on the client's site (the consent link in forms, removing Google Analytics). A row = 14px bold imperative title with the law in mono beside it, one 13px/60% sentence of why, an optional mono link with an `IconAction` copy, and a white «Сделано» button on the right (below the text on phones). No blue fill here: the one blue button belongs to the subscription card.
-- **Answer cards (Обзор):** the overview is two answer cards, the client's tasks while there are any, and a changes list, no banner and no explanatory copy. A card = 13px label («Подписка», «Документы»), the answer at 28px bold (`до 29.09.2026`, `Актуальны`), one line of facts joined by « · » at 14px/60% ink, the state's one action as a primary button only when it is needed, and a footer link pinned to the bottom. The answer takes the status color only when it must: `warn-ink` on the trial's last day and while waiting for payment, `danger` when stopped, `ok` for current documents. The page title is the site's domain, never the section name already shown in the menu.
+- **Client tasks (Обзор):** «Сделайте на сайте сами» — a white card between the answer cards and the changes list, shown only while tasks remain (owner 24.09): things we can't do on the client's site (the consent link in forms, removing Google Analytics). A switched-off cookie banner or footer on a live site is listed first, with a white «Открыть «Виджет»» link instead of «Сделано»: it is the one task that undoes what the subscription is for. A row = 14px bold imperative title with the law in mono beside it, one 13px/60% sentence of why, an optional mono link with an `IconAction` copy, and a white «Сделано» button on the right (below the text on phones). No blue fill here: the one blue button belongs to the subscription card.
+- **Answer cards (Обзор):** the overview is two answer cards, the client's tasks while there are any, and a changes list, no banner and no explanatory copy. A card = 13px label («Подписка», «Документы»), the answer at 28px bold (`до 29.09.2026`, `Актуальны`), one line of facts joined by « · » at 14px/60% ink, the state's one action as a primary button only when it is needed, and a footer link pinned to the bottom. The answer takes the status color only when it must: `warn-ink` on the trial's last day, in the grace days after it and while waiting for payment, `danger` only when the widget is actually off (`widgetStopped`), `ok` for current documents. The page title is the site's domain, never the section name already shown in the menu.
 
 ### Inputs / Fields
 - **Style:** 52px tall, 12px radius, Sheet fill, Hairline border, sheet shadow, 15px medium text, placeholder at 35% ink.
 - **Label:** 13px bold Soft Ink above the field; required star in blue.
 - **Focus:** border turns blue plus `ring-4 ring-brand/10` (the blue 1px border carries the contrast). Hover: border to Crease.
-- **Error:** danger border plus 12px semibold danger text under the field (`role="alert"`, so a screen reader announces it). Color is never the only signal.
+- **Error:** danger border plus 12px semibold danger text under the field (`role="alert"`, so a screen reader announces it). Color is never the only signal. A group of tiles gets the same `role="alert"` line under it. A failed «Далее» / «Оплатить» calls `focusFirstError()` (`AnketaChrome.js`): the first invalid field or the first tile of the failed group is scrolled into view and focused — on phones the errors otherwise sat off-screen.
+- **Status announcements:** anything that changes state without moving the page («Скопировано», «Баланс пополнен», «Счёт выставлен», «Обращение отправлено», «Нашли по ИНН») is also spoken through `announce()` (`lib/announce.js`, one polite live region). A control that unmounts on success hands focus to the new panel (`data-panel-start`) or message, never to body; when focus lands on the message itself («Оплачено до …», «Код найден»), it is not announced a second time.
 - **Phone:** one mask everywhere (`PhoneField`): «+7 » inserted on focus, formatted, capped at 11 digits.
 
 ### Choice Tile (`Tile`)
@@ -333,6 +337,7 @@ Confident and few.
 - Desk track with 4px padding and 12px radius; a blue thumb (8px radius, sheet shadow) slides under the chosen option with a 300ms transition. Options are 14px bold, unselected at 80% ink (not faded: an answer is still expected). With no value chosen, no thumb is shown. The client makes the choice; we never preselect.
 
 ### Tabs (step 6 «Кто поставит код?»)
+- «Баланс и платежи» uses the same look for «Платежи / Документы», but those are links to two addresses (`nav` + `aria-current="page"`, `MoneyHeader`), not a `tablist`: arrow keys belong only to tabs that switch views on one page.
 - For switching between two views of the same task, not for answers: 14px bold labels, 28px apart, over a Hairline rule; the active tab is Ink with a 2px Ink underline (where you are), inactive at 60% ink. One tab is always open. Arrow keys move between tabs (`role="tablist"`/`tab`/`tabpanel`).
 
 **The Answer-or-View Rule.** A Segmented control asks for an answer that ends up in the documents, so it starts empty and fills blue when chosen. Tabs switch what you see, so one is always open and they never fill. If a choice changes nothing but the view, it's tabs.
@@ -355,8 +360,13 @@ Confident and few.
 - **Mobile tab bar:** fixed bottom, 11px semibold labels, active icon on an ink pill (48 × 32px).
 
 - **Account nav (owner 24.09, modelled on domain registrars and hosting panels):** «Мои сайты» — what we pay for; its «Таблица» view is the subscription table (tariff, status, auto-renew switch, «⋯») with a visible blue text action «Оплатить год» / «Продлить на год» under the status badge, and the year is paid inside the row: enough on the balance → «Списать N ₽», short → the top-up form for the missing sum right there («Оплатить N ₽» by card, or an invoice). «Баланс и платежи» — what and how much, two tabs in the step-6 tab style (`MoneyHeader`): «Платежи» (balance, «Пополнить», «Способ оплаты», operations history) and «Документы» (e-mail for receipts and acts, acts). No balance row in the desktop sidebar (tried, removed as redundant); on phones the amount sits at the right of the «Баланс и платежи» menu item — beside a balance it reads as a balance, beside «Оплата» it read as a debt due.
+### Menus and sheets
+- The row «⋯» menu, the account menu, the phone «Ещё» sheet and the anketa «Шаги» sheet share `usePopup` (`SiteChrome.js`): focus moves to the first item on open, Escape closes and returns focus to the button, focus leaving closes. Menus (`role="menu"`) add arrows, Home/End and close on Tab; sheets let Tab walk inside.
+- Every screen's first Tab stop is a «К содержимому» skip link (visible on focus only) to `main#content`; the sidebar sits outside `<main>`.
+
 ### Modal
-- 45% ink scrim, panel 480–560px wide, 16px radius, Sheet, 24–28px padding, 18px bold title with a close icon, actions bottom-left: primary blue button, then a text «Отмена».
+- 45% ink scrim, panel 480–560px wide, 16px radius, Sheet, 24–28px padding, 18px bold title with a close icon (44px hit area, `ink/60`), actions bottom-left: primary blue button, then a text «Отмена».
+- Switching off something the subscription watches (the cookie banner, the footer, the site itself) always asks first, in this modal: what the visitor stops seeing and when turning it off makes sense.
 - Behavior through `useDialog` (`site/_shared/SiteChrome.js`): focus moves into the dialog on open, Tab cycles inside it, Escape closes it, and focus returns to the control that opened it. Multi-step dialogs pass their step so focus lands back in the dialog after a step changes; a conditionally rendered dialog (step 6 «Пока не видим код») passes its open flag the same way.
 
 ## Do's and Don'ts
@@ -370,7 +380,7 @@ Confident and few.
 - **Do** render domains, codes, law references and the install snippet in JetBrains Mono; keep money and prose in Onest.
 - **Do** turn a document or site title into the link itself instead of adding an «Открыть» button.
 - **Do** use tabs (Ink underline) to switch views and Segmented (blue fill) only for answers (**The Answer-or-View Rule**).
-- **Do** keep readable text at 60% ink or darker, and amber text in `warn-ink`.
+- **Do** keep readable text at 60% ink or darker, and status text on a tint in its `*-ink` (`warn-ink`, `danger-ink`, `ok-ink`).
 - **Do** make every collapsed panel `inert` and every overlay a `useDialog` dialog.
 
 ### Don't:

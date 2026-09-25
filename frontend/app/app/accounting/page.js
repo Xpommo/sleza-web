@@ -4,7 +4,7 @@ import AccountingClient from './AccountingClient';
 // документов и акты за оплаченные годы сайтов. Вкладка «Платежи» —
 // /app/billing.
 export const metadata = {
-  title: 'Документы об оплате — Слеза Белый Сайт',
+  title: 'Акты и чеки — Слеза Белый Сайт',
   robots: { index: false, follow: false },
 };
 

@@ -1,22 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CheckIcon, ChevronDownIcon, CopyIcon, WarnIcon } from '../../../../components/app/AppIcons';
+import { CheckIcon, ChevronDownIcon, CloseIcon, CopyIcon, WarnIcon } from '../../../../components/app/AppIcons';
 import { CookieBannerPreview, FooterPreview, Switch, ThemeSwitch, widgetSettings } from '../../../../components/app/WidgetPreviews';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { SITE_ID } from '../../../../lib/docPackage';
 import { accountUser, loadAnketa, saveAnketa } from '../../start/_shared/anketaState';
-import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
-import { subState } from '../_shared/subscription';
+import { RING, SiteHeader, SiteSidebar, useDialog } from '../_shared/SiteChrome';
+import { widgetStopped } from '../_shared/subscription';
 import { siteAnketa } from '../_shared/sites';
 
 const SNIPPET = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID}" async></script>`;
 
 // Баннер и подвал — две карточки, а не одна «функция виджета»: у них
 // разная юридическая роль. Подвал — постоянная публикация документов
-// (152-ФЗ ст.18.1 ч.2), баннер — разовый запрос согласия на куки.
+// (152-ФЗ ст.18.1 ч.2), баннер — уведомление о куки при первом заходе.
 // Выключают их по отдельности, когда у клиента уже стоит свой баннер
 // или свой подвал на конструкторе.
 function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onTheme, notLive, children }) {
@@ -61,6 +61,53 @@ function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onThe
   );
 }
 
+// Выключить баннер или подвал — одним нажатием было слишком легко (разбор
+// 24.09): это то, за чем подписка и следит. Подтверждение — окном, как
+// «Отключить сайт»: что перестанет видеть посетитель и когда это нужно.
+const OFF = {
+  banner: {
+    title: 'Выключить куки-баннер',
+    text: 'Посетители перестанут видеть уведомление о куки. Выключайте, если на сайте уже стоит свой баннер.',
+  },
+  footer: {
+    title: 'Выключить подвал сайта',
+    text: 'Ссылки на документы и реквизиты перестанут показываться внизу страниц. Выключайте, если они уже есть в подвале вашего сайта.',
+  },
+};
+
+function OffDialog({ kind, domain, onClose, onConfirm }) {
+  const ref = useRef(null);
+  useDialog(ref, onClose, kind);
+  const c = OFF[kind];
+  return (
+    <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="off-widget-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none">
+      <div className="mt-16 w-full max-w-[460px] rounded-2xl border border-line bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <h3 id="off-widget-title" className="text-lg font-bold tracking-[-0.03em]">
+            {c.title} на {domain}?
+          </h3>
+          <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
+            <CloseIcon size={18} />
+          </button>
+        </div>
+        <p className="mt-3 text-[13px] leading-5 text-ink/65">{c.text}</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={onConfirm}
+            className={`rounded-xl border border-danger/30 px-5 py-3 text-sm font-bold text-danger hover:bg-danger/[0.05] ${RING}`}
+          >
+            Да, выключить
+          </button>
+          <button type="button" onClick={onClose} className={`rounded-xl border border-line bg-white px-5 py-3 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`}>
+            Оставить
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SiteWidgetClient() {
   const router = useRouter();
   const [site, setSite] = useState(null);
@@ -68,6 +115,7 @@ export default function SiteWidgetClient() {
   const [w, setW] = useState(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [confirmOff, setConfirmOff] = useState(null); // 'banner' | 'footer'
 
   useEffect(() => {
     const a = siteAnketa(loadAnketa());
@@ -76,7 +124,7 @@ export default function SiteWidgetClient() {
       return;
     }
     setUser(accountUser(CURRENT_USER));
-    setSite({ domain: a.domain, installed: Boolean(a.installed), expired: subState(a) === 'expired' });
+    setSite({ domain: a.domain, installed: Boolean(a.installed), stopped: widgetStopped(a, Date.now(), loadAnketa().billing?.topupInvoice) });
     setW(widgetSettings(a));
   }, [router]);
 
@@ -95,15 +143,15 @@ export default function SiteWidgetClient() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const notLive = !site.installed ? 'Появится на сайте, когда встанет код' : site.expired ? 'Снят с сайта — пробный период закончился' : null;
+  const notLive = !site.installed ? 'Появится на сайте, когда встанет код' : site.stopped ? 'Снят с сайта: пробный период закончился' : null;
   return (
-    <main className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen bg-warm text-ink lg:flex">
       <SiteSidebar domain={site.domain} active="Виджет" user={user} />
 
-      <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
+      <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           <SiteHeader title="Виджет" domain={site.domain}>
-            {site.installed && !site.expired && <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/65">Проверили сегодня — вот что видят посетители {site.domain}.</p>}
+            {site.installed && !site.stopped && <p className="mt-4 max-w-2xl text-[15px] leading-6 text-ink/65">Проверили сегодня. Вот что видят посетители {site.domain}.</p>}
           </SiteHeader>
 
           {!site.installed && (
@@ -117,7 +165,7 @@ export default function SiteWidgetClient() {
               </div>
               <Link
                 href="/app/start/code"
-                className={`inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                className={`inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
               >
                 Инструкция по установке
               </Link>
@@ -128,12 +176,12 @@ export default function SiteWidgetClient() {
             title="Куки-баннер"
             themeId="h-banner"
             on={w.bannerOn}
-            onToggle={(v) => update({ bannerOn: v })}
+            onToggle={(v) => (v ? update({ bannerOn: true }) : setConfirmOff('banner'))}
             theme={w.bannerTheme}
             onTheme={(t) => update({ bannerTheme: t })}
             notLive={notLive}
-            offNote="Баннер выключен — посетители его не видят."
-            offWarning="Посетители не увидят запрос согласия перед использованием куки."
+            offNote="Баннер выключен, и посетители его не видят."
+            offWarning="Посетители не видят уведомление о куки."
           >
             <CookieBannerPreview theme={w.bannerTheme} />
           </Block>
@@ -142,14 +190,17 @@ export default function SiteWidgetClient() {
             title="Подвал сайта"
             themeId="h-footer"
             on={w.footerOn}
-            onToggle={(v) => update({ footerOn: v })}
+            onToggle={(v) => (v ? update({ footerOn: true }) : setConfirmOff('footer'))}
             theme={w.footerTheme}
             onTheme={(t) => update({ footerTheme: t })}
             notLive={notLive}
-            offNote="Подвал сайта выключен — ссылки на документы и реквизиты не показываются."
+            offNote="Подвал сайта выключен, и ссылки на документы и реквизиты не показываются."
             offWarning="Ссылки на документы и реквизиты компании перестанут быть постоянно доступны посетителям. 152-ФЗ ст.18.1 ч.2 требует, чтобы политика обработки персональных данных была опубликована и открывалась без ограничений."
           >
             <FooterPreview theme={w.footerTheme} />
+            <p className="mt-3 text-[12px] leading-5 text-ink/60">
+              «Куки» и «Маркировку» посетитель отключить не может: согласие на куки он даёт в баннере, а маркировка обязательна по закону.
+            </p>
           </Block>
 
 
@@ -188,7 +239,18 @@ export default function SiteWidgetClient() {
             </div>
           </section>
         </div>
-      </section>
-    </main>
+      </main>
+      {confirmOff && (
+        <OffDialog
+          kind={confirmOff}
+          domain={site.domain}
+          onClose={() => setConfirmOff(null)}
+          onConfirm={() => {
+            update(confirmOff === 'banner' ? { bannerOn: false } : { footerOn: false });
+            setConfirmOff(null);
+          }}
+        />
+      )}
+    </div>
   );
 }

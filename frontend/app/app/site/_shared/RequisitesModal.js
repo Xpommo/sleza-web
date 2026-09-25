@@ -88,11 +88,11 @@ export default function RequisitesModal({ onClose, onSaved, track = true }) {
               Реквизиты владельца
             </h3>
             <p className="mt-2 text-[13px] leading-5 text-ink/60">
-              Попадают в документ «Реквизиты владельца» и в подвал сайта. Реквизиты для счёта — отдельные, они в
+              Попадают в документ «Реквизиты владельца» и в подвал сайта. Реквизиты для счёта отдельные, они в
               «Балансе и платежах».
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
             <CloseIcon size={18} />
           </button>
         </div>
@@ -110,7 +110,7 @@ export default function RequisitesModal({ onClose, onSaved, track = true }) {
           </div>
           <Field label={L.address} required placeholder={L.addressPlaceholder} {...bind('address')} />
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Почта компании" required type="email" placeholder="info@site.ru" {...bind('companyMail')} />
+            <Field label="E-mail компании" required type="email" placeholder="info@site.ru" {...bind('companyMail')} />
             <PhoneField
               label="Телефон компании"
               required
@@ -122,19 +122,21 @@ export default function RequisitesModal({ onClose, onSaved, track = true }) {
               error={err.companyPhone}
             />
           </div>
-          <Field label="Расчётный счёт" required inputMode="numeric" placeholder="40702810..." {...bind('account', { digits: 20 })} />
+          {/* Банк необязателен, как на шаге «Реквизиты» (владелец 25.09). */}
+          <p className="text-[12px] font-semibold text-ink/60">Банковские реквизиты, необязательно</p>
+          <Field label="Расчётный счёт" inputMode="numeric" placeholder={v.owner === 'Самозанятый' ? '40817810...' : v.owner === 'ИП' ? '40802810...' : '40702810...'} {...bind('account', { digits: 20 })} />
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Банк" required placeholder="ПАО «Сбербанк»" {...bind('bank')} />
-            <Field label="БИК" required inputMode="numeric" placeholder="9 цифр" {...bind('bik', { digits: 9 })} />
+            <Field label="Банк" placeholder="ПАО «Сбербанк»" {...bind('bank')} />
+            <Field label="БИК" inputMode="numeric" placeholder="9 цифр" {...bind('bik', { digits: 9 })} />
           </div>
-          <Field label="Корреспондентский счёт" required inputMode="numeric" placeholder="30101810..." {...bind('corr', { digits: 20 })} />
+          <Field label="Корреспондентский счёт" inputMode="numeric" placeholder="30101810..." {...bind('corr', { digits: 20 })} />
         </div>
 
         <div className="mt-7 flex flex-wrap gap-3">
           <button
             type="button"
             onClick={save}
-            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
           >
             Сохранить
           </button>

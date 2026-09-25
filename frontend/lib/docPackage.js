@@ -35,7 +35,7 @@ export const DOCUMENTS = [
     title: 'Согласие на обработку персональных данных',
     law: '152-ФЗ',
     preview: (v) =>
-      `Настоящим я свободно, своей волей и в своём интересе даю согласие на обработку моих персональных данных (${v.fields}) Оператору — ${v.operator} — в целях: ${v.purposes}…`,
+      `Настоящим я свободно, своей волей и в своём интересе даю согласие на обработку моих персональных данных (${v.fields}) Оператору ${v.operator} в целях: ${v.purposes}…`,
   },
   {
     id: '13',
@@ -56,7 +56,7 @@ const PURPOSE_TEXT = {
   promo: 'информирование об акциях и новых предложениях',
 };
 const FIELD_TEXT = {
-  name: 'имя или фамилия, имя, отчество',
+  name: 'имя (или фамилия, имя и отчество)',
   phone: 'номер телефона',
   email: 'адрес электронной почты',
   messenger: 'аккаунт в мессенджере',
@@ -81,9 +81,9 @@ export function sitePurposes(a) {
 
 // Каналы в согласии на рекламу — из того, что сайт собирает: писать клиенту
 // можно только туда, куда он оставил контакт. Раньше каналы были одни на всех.
-const CHANNEL_TEXT = { phone: 'по телефону (звонки и SMS)', messenger: 'в мессенджерах', email: 'на почту' };
+const CHANNEL_TEXT = { phone: 'по телефону (звонки и SMS)', messenger: 'в мессенджерах', email: 'на электронную почту' };
 // Короткие названия — для строки под документом, не для текста документа.
-const CHANNEL_SHORT = { phone: 'телефон (звонки и SMS)', messenger: 'мессенджеры', email: 'почта' };
+const CHANNEL_SHORT = { phone: 'телефон (звонки и SMS)', messenger: 'мессенджеры', email: 'e-mail' };
 export function adChannels(a, short = false) {
   const names = short ? CHANNEL_SHORT : CHANNEL_TEXT;
   return ['phone', 'messenger', 'email'].filter((f) => (a.pdFields || []).includes(f)).map((f) => names[f]);
@@ -113,8 +113,8 @@ export function docPreview(doc, a) {
     ogrn: a.ogrn && a.owner !== 'Самозанятый' ? `${ogrnLabel} ${mark(a.ogrn)}` : '',
     address: mark(a.address),
     purposes: purposes ? mark(purposes) : 'по ответам шага «Данные клиентов»',
-    fields: fields ? mark(fields) : 'состав — по ответам анкеты',
-    channels: channels ? mark(channels) : 'по телефону, в мессенджерах и на почту',
+    fields: fields ? mark(fields) : 'состав по ответам анкеты',
+    channels: channels ? mark(channels) : 'по телефону, в мессенджерах и на электронную почту',
   });
 }
 
@@ -148,8 +148,8 @@ export function docOrigin(doc, a) {
         line: n.length
           ? `Названы счётчики: ${n.join(', ')}.`
           : analytics.includes('none')
-            ? 'Счётчиков нет — описаны только технические куки.'
-            : 'Счётчики — по ответу «Счётчики на сайте».',
+            ? 'Счётчиков нет, поэтому описаны только технические куки.'
+            : 'Счётчики названы по ответу «Счётчики на сайте».',
         why: 'Собрано по ответу «Счётчики на сайте»',
         step: '/app/start/site',
         sources: ['analytics'],
@@ -158,7 +158,7 @@ export function docOrigin(doc, a) {
     case '03': {
       const purposes = sitePurposes(a).map((v) => purposeLabel(v, a.sphere)).filter(Boolean).map(lower);
       return {
-        line: purposes.length ? `Названы цели: ${purposes.join(', ')}.` : 'Цели — по ответу «Цели сбора контактов».',
+        line: purposes.length ? `Названы цели: ${purposes.join(', ')}.` : 'Цели названы по ответу «Цели сбора контактов».',
         why: 'Собрано по ответам «Сфера деятельности» и «Цели сбора контактов»',
         step: '/app/start/clients',
         // Сфера задаёт только варианты целей; в документ идут сами цели.
@@ -172,7 +172,7 @@ export function docOrigin(doc, a) {
       const noForms = features.length > 0 && features.every((v) => v === 'none');
       return {
         line: noForms
-          ? 'Форм на сайте нет — согласие понадобится, когда форма появится.'
+          ? 'Форм на сайте нет. Согласие понадобится, когда форма появится.'
           : `${f.length ? `Названы данные: ${f.join(', ')}. ` : ''}Ссылку на согласие добавьте в формы сайта.`,
         why: 'Собрано по ответам «Какие данные собираете» и «Цели сбора контактов»',
         step: '/app/start/clients',
@@ -185,13 +185,13 @@ export function docOrigin(doc, a) {
       return {
         line:
           a.callsBase === false
-            ? 'Документ в пакете на случай звонков и сообщений клиентам о новинках — это тоже реклама.'
+            ? 'Документ в пакете на случай звонков и сообщений клиентам о новинках: они тоже считаются рекламой.'
             : a.callsBase
               ? ch.length
                 ? `Названы каналы: ${andList(ch)}.`
-                : 'Названы все каналы — телефона, почты и мессенджера в формах нет.'
+                : 'Названы все каналы: телефона, e-mail и мессенджера в формах нет.'
               : 'Понадобится, когда начнёте рассказывать клиентам об акциях.',
-        why: 'Собрано по ответам «Какие данные собираете» и «Рассказываете клиентам об акциях и новинках?»',
+        why: 'Собрано по ответам «Какие данные собираете» и «Пишете или звоните клиентам об акциях»',
         step: '/app/start/clients',
         sources: ['pdFields', 'promo'],
       };
@@ -215,7 +215,7 @@ export function editEvents(edits = []) {
     return {
       ...g,
       title: `${names}, ${g.docs.length > 1 ? 'новые версии' : 'новая версия'}`,
-      text: `Обновили ${g.docs.length > 1 ? 'документы' : 'документ'} ${names} — ${lower(g.what || '')}`,
+      text: `Обновили ${g.docs.length > 1 ? 'документы' : 'документ'} ${names}: ${lower(g.what || '')}`,
     };
   });
 }

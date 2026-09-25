@@ -200,3 +200,8 @@ export const WalletIcon = (p) => (
 export const ReceiptIcon = (p) => (
   <Svg {...p}><path d="M6 3h12v18l-2.5-1.6L13 21l-2.5-1.6L8 21l-2-1.3z" /><path d="M9 8h6M9 12h6M9 16h3" /></Svg>
 );
+
+// Замок у обязательных пунктов подвала — вместо эмодзи 🔒 (аудит 24.09).
+export const LockIcon = (p) => (
+  <Svg {...p}><rect x="5" y="10.5" width="14" height="10" rx="2" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" /></Svg>
+);

@@ -52,14 +52,18 @@ export function Row({ label, value, note, action, onAction, open, actions, child
   );
 }
 
-// «Баланс и платежи» — один раздел про деньги аккаунта, две вкладки
+// «Баланс и платежи» — один раздел про деньги аккаунта, две вкладки. Вид —
+// как у вкладок шага 6 (CodeClient), но это ссылки на разные адреса с
+// aria-current, а не tablist: стрелки нужны только вкладкам на одной странице.
 // (владелец 24.09, по образцу хостингов: у Timeweb Cloud — «Баланс и
 // платежи» с вкладкой «Документы»). За что платим — сайты, их тариф,
 // автопродление и оплата года — в «Моих сайтах», вид «Таблица».
 export const MONEY_TITLE = 'Баланс и платежи';
 const MONEY_TABS = [
   ['Платежи', '/app/billing'],
-  ['Документы', '/app/accounting'],
+  // «Акты и чеки», не «Документы»: на телефоне было два разных «Документы»
+  // (сайта и бухгалтерские), их путали (владелец 25.09).
+  ['Акты и чеки', '/app/accounting'],
 ];
 
 export function MoneyHeader({ tab, children }) {
@@ -72,7 +76,7 @@ export function MoneyHeader({ tab, children }) {
             key={label}
             href={href}
             aria-current={tab === label ? 'page' : undefined}
-            className={`-mb-px rounded-t border-b-2 pb-3 text-sm font-bold transition ${RING} ${
+            className={`-mb-px rounded-t-md border-b-2 pb-3 pt-1 text-sm font-bold transition-colors ${RING} ${
               tab === label ? 'border-ink text-ink' : 'border-transparent text-ink/60 hover:text-ink'
             }`}
           >

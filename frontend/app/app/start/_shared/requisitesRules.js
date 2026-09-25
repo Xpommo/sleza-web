@@ -28,24 +28,38 @@ export function ownerLabels(owner) {
 export function validateRequisites(v) {
   const L = ownerLabels(v.owner);
   const e = {};
-  if (digitsOnly(v.inn).length !== (v.owner ? L.innLength : 0) || !v.inn) {
+  // Пустое поле — «Укажите …», а не «проверьте, не пропущена ли часть
+  // номера»: человек ничего не вводил (разбор 25.09).
+  if (!digitsOnly(v.inn)) e.inn = 'Укажите ИНН.';
+  else if (digitsOnly(v.inn).length !== (v.owner ? L.innLength : 0)) {
     e.inn = 'ИНН — 10 цифр для организации или 12 для ИП/самозанятого. Сейчас введено другое количество.';
   }
   if (!String(v.name || '').trim()) {
-    e.name = L.isOoo ? 'Укажите наименование — оно попадёт в документы и в реквизиты на сайте.' : 'Укажите ФИО — оно попадёт в документы и в реквизиты на сайте.';
+    e.name = L.isOoo ? 'Укажите наименование: оно попадёт в документы и в реквизиты на сайте.' : 'Укажите ФИО: оно попадёт в документы и в реквизиты на сайте.';
   }
-  if (v.owner && L.ogrn && digitsOnly(v.ogrn).length !== L.ogrnLength) {
+  if (v.owner && L.ogrn && !digitsOnly(v.ogrn)) e.ogrn = `Укажите ${L.ogrn}.`;
+  else if (v.owner && L.ogrn && digitsOnly(v.ogrn).length !== L.ogrnLength) {
     e.ogrn = L.isOoo ? 'ОГРН — 13 цифр. Проверьте, не пропущена ли часть номера.' : 'ОГРНИП — 15 цифр. Проверьте, не пропущена ли часть номера.';
   }
-  if (L.isOoo && digitsOnly(v.kpp).length !== 9) e.kpp = 'КПП — 9 цифр.';
-  if (!String(v.address || '').trim()) e.address = 'Укажите адрес — он попадёт в реквизиты на сайте.';
-  if (digitsOnly(v.account).length !== 20) e.account = 'Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.';
-  if (!String(v.bank || '').trim()) e.bank = 'Укажите банк — в нём открыт расчётный счёт из поля выше.';
-  if (digitsOnly(v.bik).length !== 9) e.bik = 'БИК — 9 цифр.';
-  if (digitsOnly(v.corr).length !== 20) e.corr = 'Корреспондентский счёт — 20 цифр. Проверьте, не пропущена ли часть номера.';
-  if (!EMAIL_RE.test(String(v.companyMail || '').trim())) e.companyMail = 'Нужна почта вида name@site.ru — её увидят в реквизитах на сайте.';
+  if (L.isOoo && !digitsOnly(v.kpp)) e.kpp = 'Укажите КПП.';
+  else if (L.isOoo && digitsOnly(v.kpp).length !== 9) e.kpp = 'КПП — 9 цифр.';
+  if (!String(v.address || '').trim()) e.address = 'Укажите адрес: он попадёт в реквизиты на сайте.';
+  // Банковские реквизиты необязательны (владелец 25.09): закон не требует их
+  // на сайте, а обязательный счёт был главной точкой отвала («зачем им мой
+  // счёт?»). Начал заполнять — тогда нужны все четыре поля.
+  const bankAny = [v.account, v.bik, v.bank, v.corr].some((x) => String(x || '').trim());
+  if (bankAny) {
+    if (!digitsOnly(v.account)) e.account = 'Укажите расчётный счёт.';
+    else if (digitsOnly(v.account).length !== 20) e.account = 'Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.';
+    if (!String(v.bank || '').trim()) e.bank = 'Укажите банк: в нём открыт расчётный счёт из поля выше.';
+    if (!digitsOnly(v.bik)) e.bik = 'Укажите БИК.';
+    else if (digitsOnly(v.bik).length !== 9) e.bik = 'БИК — 9 цифр.';
+    if (!digitsOnly(v.corr)) e.corr = 'Укажите корреспондентский счёт.';
+    else if (digitsOnly(v.corr).length !== 20) e.corr = 'Корреспондентский счёт — 20 цифр. Проверьте, не пропущена ли часть номера.';
+  }
+  if (!EMAIL_RE.test(String(v.companyMail || '').trim())) e.companyMail = 'Нужен e-mail вида name@site.ru: его увидят в реквизитах на сайте.';
   const phone = normalizePhone(v.companyPhone);
-  if (phone.length <= 1) e.companyPhone = 'Укажите телефон — он попадёт в реквизиты на сайте.';
-  else if (phone.length < 11) e.companyPhone = 'Номер неполный — после +7 нужно 10 цифр.';
+  if (phone.length <= 1) e.companyPhone = 'Укажите телефон: он попадёт в реквизиты на сайте.';
+  else if (phone.length < 11) e.companyPhone = 'Номер неполный: после +7 нужно 10 цифр.';
   return e;
 }

@@ -12,7 +12,7 @@ import { RING, SettingsSidebar } from '../site/_shared/SiteChrome';
 // Настройки аккаунта (живой макет, s-settings). Два раздела — контакты и
 // вход. Пароля нет: вход по коду из письма или через мессенджер (17.09).
 // «Реквизиты владельца» здесь не живут с 9.09 — они принадлежат сайту и у
-// второго сайта могут быть другими; почта для актов — в «Балансе и платежах» → «Документы».
+// второго сайта могут быть другими; почта для актов — в «Балансе и платежах» → «Акты и чеки».
 
 const BTN_SECONDARY = `shrink-0 rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:bg-warm hover:text-ink ${RING}`;
 
@@ -45,8 +45,8 @@ export default function SettingsClient() {
 
   function save() {
     const e = {};
-    if (!form.name.trim()) e.name = 'Укажите имя — так будем обращаться в письмах.';
-    if (!EMAIL_RE.test(form.email.trim())) e.email = 'Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.';
+    if (!form.name.trim()) e.name = 'Укажите имя: так будем обращаться в письмах.';
+    if (!EMAIL_RE.test(form.email.trim())) e.email = 'Нужен e-mail вида name@site.ru: сюда будем писать об обновлениях документов.';
     if (phoneIncomplete(form.phone)) e.phone = phoneIncomplete(form.phone);
     setErr(e);
     if (Object.keys(e).length) return;
@@ -70,10 +70,10 @@ export default function SettingsClient() {
   });
 
   return (
-    <main className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen bg-warm text-ink lg:flex">
       <SettingsSidebar user={user} />
 
-      <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
+      <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-3xl">
           <header>
             {/* Без поясняющей строки (владелец 24.09). Реквизиты компании
@@ -86,12 +86,12 @@ export default function SettingsClient() {
             {editing ? (
               <div className="space-y-4">
                 <Field label="Имя" required autoComplete="name" {...bind('name')} />
-                <Field label="Почта" required type="email" autoComplete="email" {...bind('email')} />
+                <Field label="E-mail" required type="email" autoComplete="email" {...bind('email')} />
                 {/* Формулировка та же, что на шаге «Ваш профиль», — иначе
                     название одного поля разъезжается между экранами. */}
                 <div>
                   <PhoneField
-                    label="Телефон на случай, если письма не дойдут"
+                    label="Телефон, необязательно"
                     value={form.phone}
                     onValue={(p) => {
                       setForm((f) => ({ ...f, phone: p }));
@@ -99,13 +99,13 @@ export default function SettingsClient() {
                     }}
                     error={err.phone}
                   />
-                  <p className="mt-2 text-[12px] text-ink/60">Необязательно — позвоним, только если письма перестанут доходить.</p>
+                  <p className="mt-2 text-[12px] text-ink/60">Позвоним, только если с сайтом что-то срочное.</p>
                 </div>
                 <div className="flex flex-wrap gap-3 pt-1">
                   <button
                     type="button"
                     onClick={save}
-                    className={`inline-flex h-11 items-center justify-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                    className={`inline-flex h-11 items-center justify-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
                   >
                     Сохранить
                   </button>
@@ -123,7 +123,7 @@ export default function SettingsClient() {
                   {user.email ? (
                     <p className="mt-1 break-all font-mono text-[13px] text-ink/60">{user.email}</p>
                   ) : (
-                    <p className="mt-1 text-[13px] text-ink/60">Почта не указана</p>
+                    <p className="mt-1 text-[13px] text-ink/60">E-mail не указан</p>
                   )}
                   <p className="mt-0.5 text-[13px] text-ink/60">{phone || 'Телефон не указан'}</p>
                 </div>
@@ -143,17 +143,17 @@ export default function SettingsClient() {
             {user.email ? (
               <>
                 <p className="mt-1 break-all font-mono text-[13px] text-ink/60">{user.email}</p>
-                <p className="mt-0.5 text-[13px] text-ink/60">Пароль не нужен — присылаем код на эту почту</p>
+                <p className="mt-0.5 text-[13px] text-ink/60">Пароль не нужен: присылаем код на этот e-mail</p>
               </>
             ) : (
-              <p className="mt-1 text-[13px] text-ink/60">Заработает, когда укажете почту в контактах</p>
+              <p className="mt-1 text-[13px] text-ink/60">Заработает, когда укажете e-mail в контактах</p>
             )}
 
             <div className="my-5 h-px bg-line" />
 
             <h3 className="text-[15px] font-bold">Мессенджеры</h3>
             <p className="mt-1 text-[13px] leading-5 text-ink/60">
-              Вход в один тап и уведомления туда же — о продлении, оплате и статусе виджета. Можно подключить несколько, здесь
+              Вход в один тап и уведомления туда же: о продлении, оплате и статусе виджета. Можно подключить несколько, здесь
               же и отвязать.
             </p>
             {/* Список, а не «подключить один»: Telegram — для себя, MAX — для
@@ -168,13 +168,13 @@ export default function SettingsClient() {
                     <span className="text-sm font-bold">{name}</span>
                     {on ? (
                       <>
-                        <span className="ml-auto rounded-full bg-ok/10 px-2.5 py-1 text-[11px] font-bold text-ok">подключён</span>
+                        <span className="ml-auto rounded-full bg-ok/10 px-2.5 py-1 text-[11px] font-bold text-ok-ink">подключён</span>
                         <button
                           type="button"
                           onClick={() => toggleMessenger(name, false)}
                           title="Отвязать аккаунт"
                           aria-label={`Отвязать ${name}`}
-                          className={`flex h-10 w-10 items-center justify-center rounded-lg text-ink/35 transition hover:bg-danger/10 hover:text-danger ${RING}`}
+                          className={`flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-danger/10 hover:text-danger ${RING}`}
                         >
                           <CloseIcon size={16} />
                         </button>
@@ -190,7 +190,7 @@ export default function SettingsClient() {
             </div>
           </Card>
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }

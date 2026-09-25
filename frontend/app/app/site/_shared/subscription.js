@@ -24,6 +24,33 @@ export function subState(a, now = Date.now()) {
   return now > a.trialStartedAt + TRIAL_MS ? 'expired' : 'trial';
 }
 
+// Мягкий уход (владелец 25.09, по внешнему разбору: «ощущение, что меня держат
+// в заложниках»). Пробный период кончился без оплаты — виджет и документы
+// снимаем не сразу, а через GRACE_DAYS дней; пока выставлен счёт на
+// пополнение и деньги не пришли, не снимаем совсем. Состояние при этом
+// «expired»: платить уже пора, меняется только момент, когда сайт отключится.
+export const GRACE_DAYS = 3;
+const GRACE_MS = GRACE_DAYS * 24 * 3600 * 1000;
+
+export function graceEndAt(a) {
+  return a.trialStartedAt ? a.trialStartedAt + TRIAL_MS + GRACE_MS : null;
+}
+
+// Последний день, когда сайт ещё работает без оплаты.
+export function graceEnds(a) {
+  return formatDate(graceEndAt(a) - 1);
+}
+
+// invoice — выставленный счёт на пополнение (он на аккаунте, не на сайте).
+export function inGrace(a, now = Date.now(), invoice = null) {
+  return subState(a, now) === 'expired' && (Boolean(invoice) || now < graceEndAt(a));
+}
+
+// Виджет снят с сайта: пробный период и льготные дни прошли, оплаты нет.
+export function widgetStopped(a, now = Date.now(), invoice = null) {
+  return subState(a, now) === 'expired' && !inGrace(a, now, invoice);
+}
+
 export function formatDate(ms) {
   return new Date(ms).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }

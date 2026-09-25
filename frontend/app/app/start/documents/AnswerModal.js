@@ -18,7 +18,7 @@ export const QUESTION_TITLES = {
   analytics: 'Счётчики на сайте',
   purposes: 'Цели сбора контактов',
   pdFields: 'Какие данные собираете',
-  promo: 'Рассказываете клиентам об акциях и новинках?',
+  promo: 'Пишете или звоните клиентам об акциях (рассылки, SMS, сообщения в мессенджерах)?',
 };
 
 const toggle = (list, value) => (list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -46,14 +46,14 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
   function save() {
     let patch;
     if (kind === 'analytics') {
-      if (!analytics.length) return setError('Отметьте счётчики или «Ничего из этого нет» — от этого зависит политика обработки куки.');
-      if (analytics.includes('other') && !analyticsOther.trim()) return setOtherError('Напишите, какой счётчик стоит, — его нужно указать в политике обработки куки.');
+      if (!analytics.length) return setError('Отметьте счётчики или «Ничего из этого нет»: от этого зависит политика обработки куки.');
+      if (analytics.includes('other') && !analyticsOther.trim()) return setOtherError('Напишите, какой счётчик стоит: его нужно указать в политике обработки куки.');
       patch = { analytics, analyticsOther: analytics.includes('other') ? analyticsOther.trim() : '' };
     } else if (kind === 'purposes') {
-      if (!purposes.length) return setError('Отметьте хотя бы одну цель — без неё согласие не составить.');
+      if (!purposes.length) return setError('Отметьте хотя бы одну цель: без неё согласие не составить.');
       patch = { purposes };
     } else if (kind === 'pdFields') {
-      if (!fields.length) return setError('Отметьте хотя бы одно — без состава данных политику и согласие составить нельзя.');
+      if (!fields.length) return setError('Отметьте хотя бы одно: без состава данных политику и согласие составить нельзя.');
       patch = { pdFields: fields };
     } else if (kind === 'promo') {
       if (!promo) return setError('Ответьте «Да» или «Нет».');
@@ -78,7 +78,7 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
           <h3 id="answer-title" className="text-lg font-bold tracking-[-0.02em]">
             {QUESTION_TITLES[kind]}
           </h3>
-          <button type="button" onClick={onClose} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
             <CloseIcon size={18} />
           </button>
         </div>
@@ -154,7 +154,7 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
               />
               {promo === 'Нет' && (
                 <p className="mt-3 text-[13px] leading-5 text-ink/60">
-                  Звонок или сообщение клиенту о новинке — тоже реклама, даже от менеджера: если такое бывает, ответьте «Да».
+                  Звонок или сообщение клиенту о новинке тоже считается рекламой, даже от менеджера: если такое бывает, ответьте «Да».
                   Согласие на рекламу в пакете будет при любом ответе.
                 </p>
               )}
@@ -172,7 +172,7 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
           <button
             type="button"
             onClick={save}
-            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
           >
             Сохранить
           </button>

@@ -40,7 +40,10 @@ export const ANALYTICS = [
   { value: 'none', label: 'Ничего из этого нет', exclusive: true },
 ];
 
+// «Форма заявки» — первой: самая частая форма на сайте, а без неё человек не
+// понимал, куда отнести обычное «Оставьте заявку» (разбор 25.09).
 export const FEATURES = [
+  { value: 'form', label: 'Форма заявки или обратной связи' },
   { value: 'order', label: 'Оплата и оформление заказа на сайте' },
   { value: 'cabinet', label: 'Личный кабинет' },
   { value: 'chat', label: 'Чаты, всплывающие формы, обратный звонок' },
@@ -56,7 +59,9 @@ export const PURPOSES = [
   { value: 'order', label: 'Оформить и передать заказ' },
   { value: 'property', label: 'Показать объект, записать на просмотр' },
   { value: 'consult', label: 'Проконсультировать по услуге' },
-  { value: 'contract', label: 'Заключить и исполнить договор' },
+  // Подпись — словами владельца бизнеса (разбор текстов 25.09); в документе
+  // цель по-прежнему «заключение и исполнение договора».
+  { value: 'contract', label: 'Оформить договор или заказ' },
   { value: 'payment', label: 'Принять оплату онлайн' },
   { value: 'inquiry', label: 'Ответить на обращение' },
 ];
@@ -114,7 +119,7 @@ export const PURPOSE_MAP = {
 export const PD_FIELDS = [
   { value: 'name', label: 'Имя или ФИО' },
   { value: 'phone', label: 'Телефон' },
-  { value: 'email', label: 'Почта' },
+  { value: 'email', label: 'E-mail' },
   { value: 'messenger', label: 'Мессенджер' },
   { value: 'address', label: 'Адрес доставки' },
   { value: 'birth', label: 'Дата рождения' },

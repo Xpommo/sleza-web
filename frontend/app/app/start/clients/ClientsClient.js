@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ArrowRightIcon } from '../../../../components/app/AppIcons';
-import { RING, AnketaFrame, SectionHead, Tile } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, SectionHead, Tile, focusFirstError } from '../_shared/AnketaChrome';
 import { PD_FIELDS, PURPOSES, PURPOSE_MAP, purposeLabel } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
@@ -71,7 +71,7 @@ export default function ClientsClient() {
     let ok = true;
 
     if (fields.length === 0) {
-      setFieldsError('Отметьте хотя бы одно — без состава данных политику и согласие составить нельзя.');
+      setFieldsError('Отметьте хотя бы одно: без состава данных политику и согласие составить нельзя.');
       ok = false;
     } else {
       setFieldsError(null);
@@ -79,27 +79,30 @@ export default function ClientsClient() {
 
     // Проверяем только видимые цели: набор зависит от сферы.
     if (purposes.length === 0) {
-      setPurposeError('Отметьте хотя бы одну цель — без них в политике нечего описывать.');
+      setPurposeError('Отметьте хотя бы одну цель: без них в политике нечего описывать.');
       ok = false;
     } else {
       setPurposeError(null);
     }
 
     if (!promo) {
-      setPromoError('Ответьте «Да» или «Нет» — от ответа зависят согласие и политика.');
+      setPromoError('Ответьте «Да» или «Нет»: от ответа зависят согласие и политика.');
       ok = false;
     } else {
       setPromoError(null);
     }
 
-    if (!ok) return;
+    if (!ok) {
+      focusFirstError();
+      return;
+    }
     saveAnketa(answers());
     markStepDone(3);
     router.push('/app/start/requisites');
   }
 
   return (
-    <AnketaFrame current={2} title="Данные клиентов" lead={<>Как вы работаете с контактами клиентов — от этого зависят согласия у форм на сайте.</>}>
+    <AnketaFrame current={2} title="Данные клиентов" lead={<>От того, какие контакты вы собираете и зачем, зависит текст политики и согласий.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               <div className="border-b border-line pb-7">
@@ -109,7 +112,7 @@ export default function ClientsClient() {
                   required
                   whyOpen={fieldsWhy}
                   onWhy={() => setFieldsWhy(!fieldsWhy)}
-                  why="Состав данных — обязательная часть политики и согласия, поэтому перечисляем его точно."
+                  why="Закон требует перечислить в согласии всё, что вы собираете. Отметьте всё, даже то, что спрашиваете редко."
                 />
                 <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-fields">
                   {PD_FIELDS.map((f) => (
@@ -125,7 +128,7 @@ export default function ClientsClient() {
                     />
                   ))}
                 </div>
-                {fieldsError && <p className="mt-3 text-[12px] font-semibold text-danger">{fieldsError}</p>}
+                {fieldsError && <p role="alert" className="mt-3 text-[12px] font-semibold text-danger">{fieldsError}</p>}
               </div>
 
               <div className="border-b border-line py-7">
@@ -135,7 +138,7 @@ export default function ClientsClient() {
                   required
                   whyOpen={purposeWhy}
                   onWhy={() => setPurposeWhy(!purposeWhy)}
-                  why="Цель обработки — обязательная часть согласия: отмеченное впишем в согласие и в политику."
+                  why="Закон требует указать, зачем вы собираете контакты. Отмеченное впишем в согласие и политику."
                 />
                 <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-purpose">
                   {visiblePurposes.map((p) => (
@@ -151,17 +154,17 @@ export default function ClientsClient() {
                     />
                   ))}
                 </div>
-                {purposeError && <p className="mt-3 text-[12px] font-semibold text-danger">{purposeError}</p>}
+                {purposeError && <p role="alert" className="mt-3 text-[12px] font-semibold text-danger">{purposeError}</p>}
               </div>
 
               <div className="pt-7">
                 <SectionHead
                   id="h-promo"
-                  title="Рассказываете клиентам об акциях и новинках?"
+                  title="Пишете или звоните клиентам об акциях (рассылки, SMS, сообщения в мессенджерах)?"
                   required
                   whyOpen={promoWhy}
                   onWhy={() => setPromoWhy(!promoWhy)}
-                  why="Звонить и писать клиентам об акциях можно только с их согласия — если рассказываете, впишем эту цель в согласие и политику."
+                  why="Для рассылок и звонков об акциях нужно отдельное согласие клиента. Если ответите «Да», назовём в нём ваши каналы связи."
                 />
                 <div className="mt-5 inline-flex rounded-xl border border-line bg-warm p-1" role="group" aria-labelledby="h-promo">
                   {['Да', 'Нет'].map((item) => (
@@ -186,11 +189,11 @@ export default function ClientsClient() {
                     согласие (владелец 24.09). Подсвечиваем именно этот случай. */}
                 {promo === 'Нет' && (
                   <p className="mt-3 max-w-2xl text-[13px] leading-5 text-ink/60">
-                    Звонок или сообщение клиенту о новинке — тоже реклама, даже от менеджера: если такое бывает, ответьте
+                    Звонок или сообщение клиенту о новинке тоже считается рекламой, даже от менеджера: если такое бывает, ответьте
                     «Да». Согласие на рекламу в пакете будет при любом ответе.
                   </p>
                 )}
-                {promoError && <p className="mt-3 text-[12px] font-semibold text-danger">{promoError}</p>}
+                {promoError && <p role="alert" className="mt-3 text-[12px] font-semibold text-danger">{promoError}</p>}
               </div>
             </section>
 
@@ -209,7 +212,7 @@ export default function ClientsClient() {
                 data-funnel-next
                 type="button"
                 onClick={handleNext}
-                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
+                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
               >
                 Далее <ArrowRightIcon size={17} />
               </button>

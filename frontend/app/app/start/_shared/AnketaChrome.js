@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, InfoIcon } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { formatPhone, normalizePhone } from '../../../../lib/validate';
 import { accountUser, loadAnketa } from './anketaState';
-import { SidebarShell, TearMark, useBottomBar } from '../../site/_shared/SiteChrome';
+import { SidebarShell, TearMark, useBottomBar, usePopup } from '../../site/_shared/SiteChrome';
 
 // Общий каркас всех шести шагов анкеты «Слеза Белый Сайт». Названия шагов
 // согласованы отдельно: каждое описывает содержимое, не процесс
@@ -18,6 +18,37 @@ export const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visib
 
 // Знак — тот же, что в кабинете и на входе: раньше анкета носила фонарик
 // сканера, и переход «Мои сайты → анкета» выглядел как переход в другой сервис.
+// После неудачного «Далее» — к первой ошибке: прокрутить и поставить фокус
+// (разбор 24.09: на телефоне 4 из 5 ошибок оставались за экраном, а фокус —
+// на «Далее»). Ошибка поля — само поле (у него aria-invalid); ошибка группы
+// плиток — первая плитка группы перед сообщением; на экран — и начало группы,
+// и сообщение под ней, а если длинный список не влезает (телефон) — само
+// сообщение: иначе прокрутка к первой плитке снова прятала текст ошибки под
+// списком. Ждём кадр: ошибки рисуются после setState.
+export function focusFirstError() {
+  setTimeout(() => {
+    const root = document.querySelector('main') || document.body;
+    const el = root.querySelector('[aria-invalid="true"], [role="alert"]');
+    if (!el) return;
+    let target = el;
+    if (el.getAttribute('role') === 'alert') {
+      const prev = el.previousElementSibling;
+      const control = prev && (prev.matches('input, select, textarea, button') ? prev : prev.querySelector('input, select, textarea, button'));
+      if (control) target = control;
+      else el.setAttribute('tabindex', '-1');
+    }
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    if (target !== el) {
+      const top = el.previousElementSibling.getBoundingClientRect().top;
+      const bottom = el.getBoundingClientRect().bottom;
+      const room = window.innerHeight - 160; // шапка и нижняя панель на телефоне
+      const y = bottom - top <= room ? top - (window.innerHeight - (bottom - top)) / 2 : bottom - window.innerHeight / 2;
+      window.scrollTo({ top: window.scrollY + y, behavior });
+    } else target.scrollIntoView({ block: 'center', behavior });
+    target.focus({ preventScroll: true });
+  }, 60);
+}
+
 export function Logo() {
   return (
     <div className="flex items-center gap-2.5">
@@ -94,7 +125,7 @@ export function Progress({ current, first = 0 }) {
               <CheckIcon size={14} />
             </span>
           ) : (
-            <span className={`hidden text-[11px] font-bold xl:block ${i === current ? 'text-brand' : 'text-ink/35'}`}>
+            <span className={`hidden text-[11px] font-bold xl:block ${i === current ? 'text-brand' : 'text-ink/60'}`}>
               {i + 1 - first}
             </span>
           )}
@@ -134,7 +165,10 @@ export function Sidebar({ current, first = 0, bottomBar }) {
 function FunnelBar({ current, first = 0, nextLabel }) {
   const [sheet, setSheet] = useState(false);
   const [done, setDone] = useState(0);
+  const sheetBtn = useRef(null);
+  const sheetRef = useRef(null);
   useBottomBar();
+  usePopup(sheet, setSheet, sheetBtn, sheetRef, { menu: false });
   useEffect(() => setDone(loadAnketa().stepsDone || 0), [sheet]);
   const press = (sel) => document.querySelector(sel)?.click();
   const side = `flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold transition active:scale-95 ${RING}`;
@@ -142,7 +176,7 @@ function FunnelBar({ current, first = 0, nextLabel }) {
     <>
       {sheet && <div className="fixed inset-0 z-40 bg-ink/20 lg:hidden" aria-hidden="true" onClick={() => setSheet(false)} />}
       {sheet && (
-        <div className="fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-white p-4 shadow-xl lg:hidden">
+        <div ref={sheetRef} className="fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-white p-4 shadow-xl lg:hidden">
           <p className="px-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/60">Шаги анкеты</p>
           <div className="-mt-2">
             <StepList current={current} first={first} onPick={() => setSheet(false)} />
@@ -165,7 +199,7 @@ function FunnelBar({ current, first = 0, nextLabel }) {
             <ArrowLeftIcon size={18} />
             Назад
           </button>
-          <button type="button" onClick={() => setSheet(!sheet)} aria-expanded={sheet} className={`${side} text-ink/70`}>
+          <button ref={sheetBtn} type="button" onClick={() => setSheet(!sheet)} aria-expanded={sheet} className={`${side} text-ink/70`}>
             {/* Без цифры: номер шага уже стоит над заголовком экрана, здесь его
                 заменяет полоса прогресса — дублировать незачем (правка владельца). */}
             <span className="flex h-8 w-12 items-center justify-center rounded-full bg-ink text-white">
@@ -206,7 +240,7 @@ export function AnketaFrame({ current, title, lead, nextLabel = 'Далее', ch
   return (
     <div className="min-h-screen bg-warm text-ink lg:flex">
       <Sidebar current={current} first={first} bottomBar={<FunnelBar current={current} first={first} nextLabel={nextLabel} />} />
-      <main className="min-w-0 flex-1">
+      <main id="content" tabIndex={-1} className="min-w-0 flex-1 outline-none">
         <div className="mx-auto max-w-[1000px] px-5 py-8 sm:px-8 sm:py-10 lg:px-14 lg:py-12">
           <header className="mb-8">
             <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-brand">
@@ -351,7 +385,7 @@ export function Segmented({ options, value, onChange, ariaLabelledby }) {
 // Без строки-пояснения под заголовком — ни здесь, ни в SectionHead (владелец
 // 23.09): она стояла у одних вопросов и не стояла у других, и шаг читался
 // рваным. Заголовок понятен сам, объяснение — только в «Зачем это нужно».
-export function BlockHead({ id, icon: Icon, title, why, whyOpen, onWhy }) {
+export function BlockHead({ id, icon: Icon, title, note, why, whyOpen, onWhy }) {
   return (
     <div>
       <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-4">
@@ -363,6 +397,7 @@ export function BlockHead({ id, icon: Icon, title, why, whyOpen, onWhy }) {
             <h2 id={id} className="text-lg font-bold tracking-tight">
               {title}
             </h2>
+            {note && <p className="mt-0.5 text-[12px] text-ink/60">{note}</p>}
           </div>
         </div>
         {why && <WhyButton open={whyOpen} onClick={onWhy} />}
@@ -401,9 +436,10 @@ export function Tile({ title, description, selected, onClick, compact = false, r
     <button
       type="button"
       onClick={onClick}
-      role={radio ? 'radio' : undefined}
-      aria-checked={radio ? selected : undefined}
-      aria-pressed={radio ? undefined : selected}
+      // Множественный выбор — чекбокс для экранного диктора, одиночный —
+      // radio (разбор 25.09: плитки читались как безымянные кнопки).
+      role={radio ? 'radio' : 'checkbox'}
+      aria-checked={selected}
       className={`flex gap-3 rounded-xl border p-4 text-left transition-all ${RING} ${
         compact ? 'min-h-[58px] items-center' : 'min-h-[78px] items-start'
       } ${selected ? 'border-brand bg-brand/[0.05] ring-2 ring-brand/10' : 'border-line bg-white hover:border-line-2 hover:bg-warm'}`}

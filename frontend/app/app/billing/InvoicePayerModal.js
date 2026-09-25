@@ -19,7 +19,7 @@ function validate(v) {
   const e = {};
   if (!v.name.trim()) e.name = 'Укажите, кто оплачивает счёт.';
   if (!/^\d{10}(\d{2})?$/.test(v.inn)) e.inn = 'ИНН — 10 или 12 цифр.';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) e.email = 'Нужна почта вида name@site.ru — на неё придёт счёт.';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) e.email = 'Нужен e-mail вида name@site.ru: на него придёт счёт.';
   if (phoneIncomplete(v.phone)) e.phone = phoneIncomplete(v.phone);
   return e;
 }
@@ -57,7 +57,7 @@ export default function InvoicePayerModal({ initial, onClose, onSave }) {
           <h3 id="payer-title" className="text-lg font-bold tracking-[-0.03em]">
             Реквизиты для счёта
           </h3>
-          <button type="button" onClick={onClose} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
             <CloseIcon size={18} />
           </button>
         </div>
@@ -90,7 +90,7 @@ export default function InvoicePayerModal({ initial, onClose, onSave }) {
           <button
             type="button"
             onClick={save}
-            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
           >
             Сохранить
           </button>

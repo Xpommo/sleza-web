@@ -10,7 +10,7 @@ import {
   GlobeIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { RING, AnketaFrame, Field, Tile, SectionHead, useFirstStep } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, Field, Tile, SectionHead, useFirstStep, focusFirstError } from '../_shared/AnketaChrome';
 import { ANALYTICS, FEATURES, PLATFORMS, SPHERES } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
@@ -116,7 +116,7 @@ export default function SiteClient() {
 
     const dom = normalizeDomain(domain);
     if (!DOMAIN_RE.test(dom)) {
-      setDomainError('Похоже, это не адрес сайта — нужен вида alfa-school.ru.');
+      setDomainError('Похоже, это не адрес сайта. Нужен адрес вида alfa-school.ru.');
       ok = false;
     } else {
       setDomain(dom);
@@ -124,23 +124,23 @@ export default function SiteClient() {
     }
 
     if (sphere === 'other' && !sphereOther.trim()) {
-      setSphereOtherError('Напишите, чем вы занимаетесь — от этого зависят оговорки в документах.');
+      setSphereOtherError('Напишите, чем вы занимаетесь: от этого зависят оговорки в документах.');
       ok = false;
     } else {
       setSphereOtherError(null);
     }
     if (!sphere) {
-      setSphereError('Выберите сферу деятельности — от неё зависят формулировки в документах и список целей на следующем шаге.');
+      setSphereError('Выберите сферу деятельности: от неё зависят формулировки в документах и список целей на следующем шаге.');
       ok = false;
     } else {
       setSphereError(null);
     }
 
     if (!platform) {
-      setPlatformError('Выберите платформу — от неё зависит инструкция по установке на последнем шаге.');
+      setPlatformError('Выберите платформу: от неё зависит инструкция по установке на последнем шаге.');
       ok = false;
     } else if (platform === 'Другое' && !platformOther.trim()) {
-      setPlatformOtherError('Напишите, на чём сделан сайт — от этого зависит инструкция по установке.');
+      setPlatformOtherError('Напишите, на чём сделан сайт: от этого зависит инструкция по установке.');
       ok = false;
     } else {
       setPlatformError(null);
@@ -148,26 +148,29 @@ export default function SiteClient() {
     }
 
     if (analytics.length === 0) {
-      setAnalyticsError('Отметьте счётчики или «Ничего из этого нет» — от этого зависит политика обработки куки.');
+      setAnalyticsError('Отметьте счётчики или «Ничего из этого нет»: от этого зависит политика обработки куки.');
       ok = false;
     } else {
       setAnalyticsError(null);
     }
     if (analytics.includes('other') && !analyticsOther.trim()) {
-      setAnalyticsOtherError('Напишите, какой счётчик стоит, — его нужно указать в политике обработки куки.');
+      setAnalyticsOtherError('Напишите, какой счётчик стоит: его нужно указать в политике обработки куки.');
       ok = false;
     } else {
       setAnalyticsOtherError(null);
     }
 
     if (features.length === 0) {
-      setFeaturesError('Отметьте, что есть на сайте, или «Ничего из этого нет» — от этого зависит согласие на обработку данных.');
+      setFeaturesError('Отметьте, что есть на сайте, или «Ничего из этого нет»: от этого зависит согласие на обработку данных.');
       ok = false;
     } else {
       setFeaturesError(null);
     }
 
-    if (!ok) return;
+    if (!ok) {
+      focusFirstError();
+      return;
+    }
 
     saveAnketa({ domain: dom, sphere, sphereOther, platform, platformOther, analytics, analyticsOther, features });
 
@@ -183,7 +186,7 @@ export default function SiteClient() {
   }
 
   return (
-    <AnketaFrame current={1} title="О сайте" lead={<>Адрес, сфера, платформа, счётчики и формы на сайте. Пять вопросов.</>}>
+    <AnketaFrame current={1} title="О сайте" lead={<>По ответам на пять вопросов соберём документы под ваш сайт. Около 2 минут.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {/* Адрес и сфера — такими же вопросами с заголовком, как остальные
@@ -231,7 +234,7 @@ export default function SiteClient() {
                   required
                   whyOpen={sphereWhy}
                   onWhy={() => setSphereWhy(!sphereWhy)}
-                  why="По сфере подберём варианты на шаге «Данные клиентов» — для чего вы собираете контакты: у школы это запись на занятие, у магазина — заказ."
+                  why="От сферы зависят формулировки в документах: у школы это запись на занятие, у магазина — заказ."
                 />
                 <span className="relative mt-5 block">
                   <select
@@ -258,7 +261,7 @@ export default function SiteClient() {
                   <BriefcaseIcon size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" />
                   <ChevronDownIcon size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink/35" />
                 </span>
-                {sphereError && <p className="mt-1.5 text-[12px] font-semibold text-danger">{sphereError}</p>}
+                {sphereError && <p role="alert" className="mt-1.5 text-[12px] font-semibold text-danger">{sphereError}</p>}
                 <div
                   aria-hidden={sphere !== 'other'}
                   // inert — чтобы Tab не заходил в скрытое поле: набранное там
@@ -297,7 +300,7 @@ export default function SiteClient() {
                   required
                   whyOpen={platformWhy}
                   onWhy={() => setPlatformWhy(!platformWhy)}
-                  why="В конце покажем по шагам, как подключить документы на вашей платформе."
+                  why="Покажем, куда именно вставить код на вашей платформе."
                 />
                 {/* Два столбца, как у всех карточек анкеты (владелец 23.09): в
                     четыре в ряд края не совпадали со счётчиками и формами ниже. */}
@@ -320,7 +323,7 @@ export default function SiteClient() {
                     />
                   </div>
                 )}
-                {platformError && <p className="mt-2 text-[12px] font-semibold text-danger">{platformError}</p>}
+                {platformError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{platformError}</p>}
               </div>
 
               <div className="my-6 h-px bg-line" />
@@ -353,6 +356,15 @@ export default function SiteClient() {
                     />
                   ))}
                 </div>
+                {/* Предупреждаем в момент выбора, а не только потом в кабинете
+                    (разбор 25.09): иначе выглядело так, будто сервис сам вписал
+                    в политику то, что затем велит убрать. */}
+                {analytics.includes('ga') && (
+                  <p className="mt-3 rounded-lg bg-warn/10 px-3 py-2.5 text-[13px] leading-5 text-warn-ink">
+                    Google Analytics сохраняет данные посетителей на серверах за рубежом. С 1 июля 2025 года это запрещено, даже если он назван в
+                    политике. Пока он стоит на сайте, назовём его в «Политике обработки куки», а в кабинете напомним убрать.
+                  </p>
+                )}
                 {analytics.includes('other') && (
                   <div className="mt-3">
                     <Field
@@ -367,7 +379,7 @@ export default function SiteClient() {
                     />
                   </div>
                 )}
-                {analyticsError && <p className="mt-2 text-[12px] font-semibold text-danger">{analyticsError}</p>}
+                {analyticsError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{analyticsError}</p>}
               </div>
 
               <div className="my-6 h-px bg-line" />
@@ -381,7 +393,7 @@ export default function SiteClient() {
                   required
                   whyOpen={featuresWhy}
                   onWhy={() => setFeaturesWhy(!featuresWhy)}
-                  why="Нужно для документа «Согласие на обработку персональных данных» — оно требуется там, где сайт собирает контакты."
+                  why="Где сайт собирает контакты, нужно согласие на обработку данных. Отметьте всё, что есть на сайте."
                 />
                 <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-features">
                   {FEATURES.map((o) => (
@@ -397,7 +409,7 @@ export default function SiteClient() {
                     />
                   ))}
                 </div>
-                {featuresError && <p className="mt-2 text-[12px] font-semibold text-danger">{featuresError}</p>}
+                {featuresError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{featuresError}</p>}
               </div>
             </section>
 
@@ -416,7 +428,7 @@ export default function SiteClient() {
                 data-funnel-next
                 type="button"
                 onClick={handleNext}
-                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
+                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
               >
                 Далее <ArrowRightIcon size={16} />
               </button>

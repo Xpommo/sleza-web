@@ -16,7 +16,7 @@ const BTN = `rounded-xl border border-line bg-white px-5 py-3 text-sm font-bold 
 
 export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, onConfirm }) {
   const dialog = useRef(null);
-  useDialog(dialog, onClose, step);
+  useDialog(dialog, onClose, step, () => document.querySelector(`[aria-label="Действия · ${site.domain}"]`));
   const router = useRouter();
   const paid = site.kind === 'paid';
   const trial = site.kind === 'trial';
@@ -27,20 +27,20 @@ export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, o
           <h3 id="off-title" className="text-lg font-bold tracking-[-0.03em]">
             {step === 1 ? 'Может, получится помочь?' : `Отключить ${site.domain}?`}
           </h3>
-          <button type="button" onClick={onClose} aria-label="Закрыть" className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
             <CloseIcon size={18} />
           </button>
         </div>
         {step === 1 ? (
           <>
             <p className="mt-3 text-[13px] leading-5 text-ink/65">
-              Если виджет мешает вёрстке или документы не подходят под ваш случай — напишите, разберёмся.
+              Если виджет мешает вёрстке или документы не подходят под ваш случай, напишите, разберёмся.
               {paid ? ` Отключить успеете всегда: сайт оплачен до ${paidUntil}.` : ''}
             </p>
             {/* Кто пришёл сюда, чтобы не было автоматических списаний, —
                 уходить для этого не нужно. */}
             <p className="mt-2 text-[13px] leading-5 text-ink/65">
-              Не хотите автоматических списаний — выключите автопродление: сайт останется в подписке, продлите его вручную.
+              Если не хотите автоматических списаний, выключите автопродление: сайт останется в подписке, продлите его вручную.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <button type="button" onClick={() => router.push('/app/support')} className={BTN}>
@@ -56,7 +56,7 @@ export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, o
             <p className="mt-3 text-[13px] leading-5 text-ink/65">
               Продлевать {site.domain} не будем, остальные сайты это не затронет.
               {paid
-                ? ` До ${paidUntil} всё работает как сейчас — этот период оплачен. После этой даты:`
+                ? ` До ${paidUntil} всё работает как сейчас: этот период оплачен. После этой даты:`
                 : trial
                   ? ` До ${paidUntil} идёт пробный период. После него:`
                   : ' Пока год не оплачен, сайт не включится:'}
@@ -65,7 +65,7 @@ export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, o
                 ссылке всегда — иначе бывший клиент становится нарушителем из-за
                 нерабочей ссылки на нашей стороне (решение 24.08). */}
             <ul className="mt-3 space-y-2 rounded-xl bg-danger/[0.06] p-4 text-[13px] leading-5 text-ink/75">
-              <li>· Виджет исчезнет с {site.domain} — куки-баннер и подвал со ссылками</li>
+              <li>· Виджет с куки-баннером и подвалом со ссылками исчезнет с {site.domain}</li>
               <li>· Документы останутся в текущей версии: следить за изменениями закона и переписывать их мы перестанем</li>
             </ul>
             <div className="mt-6 flex flex-wrap gap-3">

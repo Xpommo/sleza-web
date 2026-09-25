@@ -11,7 +11,7 @@ import { accountUser, loadAnketa } from '../../start/_shared/anketaState';
 import PdEmailModal from '../_shared/PdEmailModal';
 import RequisitesModal from '../_shared/RequisitesModal';
 import { siteAnketa } from '../_shared/sites';
-import { subState } from '../_shared/subscription';
+import { widgetStopped } from '../_shared/subscription';
 import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
 
 const PACKAGE_URL = `cdn.sleza.media/${SITE_ID}`;
@@ -40,7 +40,7 @@ export default function SiteDocumentsClient() {
       domain: a.domain,
       installed: Boolean(a.installed),
       answers: a,
-      expired: subState(a) === 'expired',
+      stopped: widgetStopped(a, Date.now(), loadAnketa().billing?.topupInvoice),
       madeAt: a.trialStartedAt || Date.now(),
       edits: a.docEdits || [],
     });
@@ -55,7 +55,7 @@ export default function SiteDocumentsClient() {
 
   // После пробного периода без оплаты документы остаются видимыми (просмотр
   // честный, не шантаж), а копирование ссылок гаснет (макет, HANDOFF 6.15 п.8).
-  const canCopy = live && !site.expired;
+  const canCopy = live && !site.stopped;
 
   function copyDoc(doc) {
     navigator.clipboard?.writeText(`https://${docUrl(doc)}`).catch(() => {});
@@ -70,10 +70,10 @@ export default function SiteDocumentsClient() {
   }
 
   return (
-    <main className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen bg-warm text-ink lg:flex">
       <SiteSidebar domain={site.domain} active="Документы" user={user} />
 
-      <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
+      <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           {/* Без вводной строки (владелец 24.09): про постоянные адреса говорит
               карточка пакета, про «откроется после установки» — строка версии у
@@ -88,7 +88,7 @@ export default function SiteDocumentsClient() {
               <div>
                 <h2 className="text-lg font-bold tracking-[-0.02em]">Все документы сайта</h2>
                 <p className="mt-1 text-sm text-ink/60">
-                  {live ? 'Один адрес на весь пакет — его же открывает подвал' : 'Адрес закрепим за сайтом — он не изменится'}
+                  {live ? 'Один адрес на весь пакет, его же открывает подвал' : 'Адрес закрепим за сайтом, и он не изменится'}
                 </p>
               </div>
             </div>
@@ -113,7 +113,12 @@ export default function SiteDocumentsClient() {
             <div className="mb-5 flex items-end justify-between gap-4">
               {/* Заголовок раздела — той же ступени, что на остальных экранах
                   кабинета (18px): здесь был свой, крупнее, с кикером сверху. */}
-              <h2 className="text-lg font-bold tracking-[-0.02em]">Актуальные документы</h2>
+              {/* У остановленной подписки «Актуальные» спорило с «Сняты с сайта»
+                  на «Обзоре» (разбор 25.09). */}
+              <div>
+                <h2 className="text-lg font-bold tracking-[-0.02em]">{site.stopped ? 'Документы сайта' : 'Актуальные документы'}</h2>
+                {site.stopped && <p className="mt-1 text-[13px] text-ink/60">Сняты с сайта, вернутся после оплаты.</p>}
+              </div>
               <span className="shrink-0 text-xs font-semibold text-ink/60">{DOCUMENTS.length} документов</span>
             </div>
             {/* Зашёл за документом — взял его одним нажатием: «Открыть» и
@@ -160,12 +165,12 @@ export default function SiteDocumentsClient() {
             <div className="mt-4 divide-y divide-line">
               {[
                 ['Реквизиты владельца', [site.answers.companyName, site.answers.inn && `ИНН ${site.answers.inn}`].filter(Boolean).join(' · '), 'Изменить реквизиты', () => setReqOpen(true)],
-                ['Почта для запросов о персональных данных', site.answers.contacts?.pdContact || 'не указана', 'Изменить почту для запросов', () => setPdOpen(true)],
+                ['E-mail для запросов о персональных данных', site.answers.contacts?.pdContact || 'не указан', 'Изменить e-mail для запросов', () => setPdOpen(true)],
               ].map(([label, value, aria, onClick]) => (
                 <div key={label} className="flex items-center justify-between gap-4 py-3.5">
                   <div className="min-w-0">
                     <p className="text-sm font-bold">{label}</p>
-                    <p className="mt-0.5 truncate text-[12px] text-ink/60">{value}</p>
+                    <p className="mt-0.5 break-words text-[12px] text-ink/60">{value}</p>
                   </div>
                   <button
                     type="button"
@@ -187,7 +192,7 @@ export default function SiteDocumentsClient() {
                 подтверждает сама история; строка «Здесь будет видно каждую
                 следующую версию…» влилась в неё. */}
             <p className="mt-1 text-[13px] leading-5 text-ink/60">
-              Каждую версию публикуем и датируем сами — по этой истории видно, какая версия была на сайте и с какого дня.
+              Каждую версию публикуем и датируем сами. По этой истории видно, какая версия была на сайте и с какого дня.
             </p>
             {/* Линия соединяет записи, только когда их больше одной. */}
             <div className={`relative mt-6 space-y-6 ${site.edits.length ? 'before:absolute before:bottom-2 before:left-[7px] before:top-2 before:w-px before:bg-line' : ''}`}>
@@ -198,7 +203,7 @@ export default function SiteDocumentsClient() {
                     <p className="text-sm font-bold">
                       {formatDate(e.at)} · {e.title}
                     </p>
-                    <p className="mt-1 text-sm leading-5 text-ink/60">{e.what} — поправили в кабинете.</p>
+                    <p className="mt-1 text-sm leading-5 text-ink/60">{e.what}. Поправили в кабинете.</p>
                   </div>
                 </div>
               ))}
@@ -219,14 +224,14 @@ export default function SiteDocumentsClient() {
               <p className="text-sm text-ink/60">Документы включатся на сайте сразу после установки кода.</p>
               <Link
                 href="/app/start/code"
-                className={`inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                className={`inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
               >
                 Поставить код на сайт
               </Link>
             </div>
           )}
         </div>
-      </section>
+      </main>
       {pdOpen && (
         <PdEmailModal
           onClose={() => setPdOpen(false)}
@@ -245,6 +250,6 @@ export default function SiteDocumentsClient() {
           }}
         />
       )}
-    </main>
+    </div>
   );
 }

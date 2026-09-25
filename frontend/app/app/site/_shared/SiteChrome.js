@@ -99,13 +99,17 @@ const SIDE_SCREENS = ['/app/settings', '/app/support'];
 // возвращается на кнопку, которая окно открыла. step — у окон с шагами:
 // нажатая кнопка шага исчезает, и фокус снова ставится на окно.
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-export function useDialog(ref, onClose, step) {
+// fallback — куда вернуть фокус, если кнопки, открывшей окно, уже нет
+// (пункт меню «⋯» закрывается вместе с меню — фокус падал на body).
+export function useDialog(ref, onClose, step, fallback) {
   const close = useRef(onClose);
   close.current = onClose;
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
-    const back = document.activeElement;
+    // Окно, открытое из пункта меню, застаёт фокус на body: пункт уже
+    // исчез вместе с меню. Тогда при закрытии — запасная цель (кнопка меню).
+    const back = document.activeElement === document.body ? null : document.activeElement;
     const items = () => [...el.querySelectorAll(FOCUSABLE)].filter((x) => x.offsetParent !== null);
     el.focus();
     function onKey(e) {
@@ -131,7 +135,8 @@ export function useDialog(ref, onClose, step) {
     el.addEventListener('keydown', onKey);
     return () => {
       el.removeEventListener('keydown', onKey);
-      back?.focus?.();
+      const target = back && back.isConnected ? back : fallback?.();
+      target?.focus?.();
     };
   }, [ref, step]);
 }
@@ -182,7 +187,7 @@ function MenuItems({ full, onPick }) {
   return (
     <>
       {items.map(([label, Icon, href, aside]) => (
-        <Link key={href} href={href} role="menuitem" className={MENU_ITEM} onClick={onPick}>
+        <Link key={href} href={href} role="menuitem" tabIndex={-1} className={MENU_ITEM} onClick={onPick}>
           <Icon size={16} /> {label}
           {aside && <span className="ml-auto text-[13px] font-bold text-ink">{aside}</span>}
         </Link>
@@ -191,6 +196,7 @@ function MenuItems({ full, onPick }) {
       <button
         type="button"
         role="menuitem"
+        tabIndex={-1}
         className={MENU_ITEM}
         onClick={() => {
           onPick();
@@ -203,13 +209,55 @@ function MenuItems({ full, onPick }) {
   );
 }
 
-function useEscape(open, close) {
+// Меню и нижние листы (аудит 24.09: role="menu" без стрелок, меню оставалось
+// открытым после Tab; листы «Ещё» и «Шаги» были недоступны с клавиатуры, «Шаги»
+// не закрывались по Escape). Одно поведение на четыре места: при открытии фокус
+// на первый пункт; Escape закрывает и возвращает фокус на кнопку; уход фокуса
+// закрывает. menu: стрелки, Home/End и закрытие по Tab (образец APG «Menu
+// Button»); лист: Tab ходит внутри.
+export function usePopup(open, setOpen, btnRef, panelRef, { menu = true } = {}) {
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => e.key === 'Escape' && close();
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, close]);
+    if (!open) return undefined;
+    const panel = panelRef.current;
+    if (!panel) return undefined;
+    const items = () => [...panel.querySelectorAll(menu ? '[role="menuitem"]:not([disabled])' : 'a[href], button:not([disabled])')];
+    items()[0]?.focus();
+    function onKey(e) {
+      const list = items();
+      const i = list.indexOf(document.activeElement);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false);
+        btnRef.current?.focus();
+      } else if (!menu) {
+        return;
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        list[(i + 1) % list.length]?.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        list[(i - 1 + list.length) % list.length]?.focus();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        list[0]?.focus();
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        list[list.length - 1]?.focus();
+      } else if (e.key === 'Tab') {
+        setOpen(false);
+      }
+    }
+    function onFocusOut(e) {
+      const to = e.relatedTarget;
+      if (to && !panel.contains(to) && to !== btnRef.current) setOpen(false);
+    }
+    panel.addEventListener('keydown', onKey);
+    panel.addEventListener('focusout', onFocusOut);
+    return () => {
+      panel.removeEventListener('keydown', onKey);
+      panel.removeEventListener('focusout', onFocusOut);
+    };
+  }, [open, setOpen, btnRef, panelRef, menu]);
 }
 
 // Меню аккаунта на аватаре (живой макет, .acct-menu). compact — одна
@@ -218,11 +266,9 @@ function useEscape(open, close) {
 export function AccountMenu({ user, compact = false }) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef(null);
+  const menuRef = useRef(null);
   const who = userLabel(user);
-  useEscape(open, () => {
-    setOpen(false);
-    btnRef.current?.focus();
-  });
+  usePopup(open, setOpen, btnRef, menuRef);
 
   return (
     <div className="relative">
@@ -257,6 +303,7 @@ export function AccountMenu({ user, compact = false }) {
 
       {open && (
         <div
+          ref={menuRef}
           role="menu"
           aria-label="Меню аккаунта"
           className={`absolute z-40 rounded-xl border border-line bg-white p-1.5 shadow-[0_18px_40px_-18px_rgba(17,17,16,0.35)] ${
@@ -292,14 +339,16 @@ export function useBottomBar() {
 // экране вставал сверху стопкой и съедал пол-экрана до содержимого.
 export function SiteTabbar({ active }) {
   const [more, setMore] = useState(false);
+  const moreBtn = useRef(null);
+  const moreRef = useRef(null);
   useBottomBar();
-  useEscape(more, () => setMore(false));
+  usePopup(more, setMore, moreBtn, moreRef);
   const tab = (on) => `flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold transition ${RING} ${on ? 'text-ink' : 'text-ink/60'}`;
   return (
     <>
       {more && <div className="fixed inset-0 z-40 bg-ink/20 lg:hidden" aria-hidden="true" onClick={() => setMore(false)} />}
       {more && (
-        <div role="menu" aria-label="Ещё" className="fixed inset-x-3 bottom-[calc(72px+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-white p-2 shadow-xl lg:hidden">
+        <div ref={moreRef} role="menu" aria-label="Ещё" className="fixed inset-x-3 bottom-[calc(72px+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-white p-2 shadow-xl lg:hidden">
           <MenuItems full onPick={() => setMore(false)} />
         </div>
       )}
@@ -317,7 +366,7 @@ export function SiteTabbar({ active }) {
             {label}
           </Link>
         ))}
-        <button type="button" onClick={() => setMore(!more)} aria-expanded={more} className={tab(more || !active)}>
+        <button ref={moreBtn} type="button" onClick={() => setMore(!more)} aria-haspopup="menu" aria-expanded={more} className={tab(more || !active)}>
           <span className={`flex h-8 w-12 items-center justify-center rounded-full ${more || !active ? 'bg-ink text-white' : ''}`}>
             <MoreIcon />
           </span>
@@ -347,8 +396,20 @@ export function SidebarShell({ user, children, supportActive, bottomBar }) {
   useRememberReturn();
   return (
     <aside className="flex w-full shrink-0 flex-col border-b border-line bg-white px-5 py-4 lg:sticky lg:top-0 lg:h-[calc(100vh-var(--cookie-banner-h,0px))] lg:w-[270px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:pb-8 lg:pt-8">
+      {/* Первая остановка Tab — сразу к содержимому, мимо меню (аудит 24.09:
+          до контента было 7 нажатий). Видна только в фокусе. */}
+      <a
+        href="#content"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById('content')?.focus();
+        }}
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2.5 focus:text-sm focus:font-bold focus:text-white"
+      >
+        К содержимому
+      </a>
       <div className="flex items-center gap-2.5">
-        <Link href="/app/sites" className={`flex items-center gap-2.5 rounded-lg ${RING}`} aria-label="Слеза Белый Сайт — мои сайты">
+        <Link href="/app/sites" className={`flex items-center gap-2.5 rounded-lg ${RING}`} aria-label="Слеза Белый Сайт: мои сайты">
           <TearMark />
           <span className="text-[17px] font-bold tracking-[-0.035em]">Слеза Белый Сайт</span>
         </Link>

@@ -7,15 +7,17 @@ import { CheckIcon } from '../../../components/app/AppIcons';
 import { AuthButton, BrandMark, MailCodeLogin, MaxIcon, RING, TelegramIcon } from '../../../components/app/AuthBits';
 import { signIn } from '../start/_shared/anketaState';
 
-// Что продукт делает — теми же словами, что и в утверждённом макете.
-// Это не перечень документов: список названий ничего не обещает, а эти
-// пять строк называют работу, которую мы берём на себя.
+// Что продукт делает — текст владельца (25.09). Это не перечень документов:
+// список названий ничего не обещает, а эти пять строк называют работу,
+// которую мы берём на себя. Не обещаем того, что не контролируем (владелец
+// 25.09): ни «защищены от штрафов», ни «сайт всегда соответствует ФЗ» —
+// GA, ERID и ссылку на согласие в формах клиент делает сам.
 const BENEFITS = [
-  ['Собираем документы под вашу компанию', 'Заполните анкету о сайте и компании — остальное сделаем по вашим данным и вашей сфере деятельности.'],
-  ['Ставим виджет на сайт', 'Одна строка кода: показывает куки-баннер, ставит внизу страниц подвал со ссылками на документы и реквизиты, следит, чтобы эти ссылки работали.'],
-  ['Маркируем упоминания по реестрам', 'Виджет сверяется с реестрами иностранных агентов, экстремистских и террористических организаций и сам маркирует такие упоминания на ваших страницах.'],
-  ['Следим, что всё на месте', 'Проверяем виджет и документы на сайте сами — вам этого делать не нужно.'],
-  ['Переписываем документы при изменении закона', 'Пришлём письмо, когда обновим.'],
+  ['Создаём документы с учётом специфики вашего бизнеса', 'Ответьте на несколько вопросов о компании. На основе ваших ответов мы подготовим полный пакет документов, соответствующий вашей сфере деятельности.'],
+  ['Установка за 1 минуту', 'Просто добавьте одну строку кода. Виджет автоматически разместит куки-баннер, подвал с реквизитами и документами, а также будет следить за актуальностью ссылок.'],
+  ['Автоматическая маркировка по реестрам', 'Виджет в фоновом режиме сверяется с реестрами иноагентов, экстремистских и террористических организаций и сам помечает нужные упоминания на ваших страницах.'],
+  ['Постоянный мониторинг', 'Мы автоматически проверяем наличие виджета и актуальность документов на вашем сайте. Вам не нужно об этом беспокоиться.'],
+  ['Автообновление при смене законов', 'Если законодательство изменится, мы автоматически исправим документы и уведомим вас об этом. Документы на сайте всегда в актуальной редакции.'],
 ];
 
 // Два отдельных согласия, а не одно на всё: объединять согласие на
@@ -23,22 +25,35 @@ const BENEFITS = [
 // которую мы сами называем нарушением ч.1 ст.9 152-ФЗ.
 // Галочка — отдельная кнопка, текст со ссылкой рядом: ссылку нельзя класть
 // внутрь кнопки, иначе клики конфликтуют и согласие не ставится.
-function Consent({ checked, onToggle, label, children }) {
+// Текст рядом тоже ставит галочку (аудит 24.09: цель была 18×18, клик по
+// тексту ничего не делал), кроме самой ссылки. Имя для скринридера — из
+// видимого текста (WCAG 2.5.3), маркер — квадрат 20px/6px, как в плитках.
+function Consent({ id, checked, invalid, onToggle, children }) {
   return (
     <div className="flex items-start gap-3 text-[12px] leading-5 text-ink/60">
       <button
+        id={id}
         type="button"
         onClick={onToggle}
         role="checkbox"
         aria-checked={checked}
-        aria-label={label}
-        className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-all ${RING} ${
-          checked ? 'border-brand bg-brand text-white' : 'border-line-2 bg-white hover:border-brand/50'
+        aria-labelledby={`${id}-text`}
+        aria-invalid={invalid || undefined}
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${RING} ${
+          checked ? 'border-brand bg-brand text-white' : invalid ? 'border-danger bg-danger/[0.06]' : 'border-line-2 bg-white hover:border-brand/50'
         }`}
       >
-        {checked && <CheckIcon size={11} />}
+        {checked && <CheckIcon size={12} />}
       </button>
-      <span>{children}</span>
+      <span
+        id={`${id}-text`}
+        onClick={(e) => {
+          if (!e.target.closest('a')) onToggle();
+        }}
+        className="cursor-pointer select-none py-px"
+      >
+        {children}
+      </span>
     </div>
   );
 }
@@ -54,11 +69,14 @@ export default function RegisterClient() {
     if (!pd || !terms) {
       setError(
         !pd && !terms
-          ? 'Отметьте оба пункта — без согласия на обработку данных и принятия оферты зарегистрировать аккаунт нельзя.'
+          ? 'Отметьте оба пункта ниже: без согласия на обработку данных и принятия оферты зарегистрировать аккаунт нельзя.'
           : !pd
-            ? 'Нужно согласие на обработку персональных данных — без него аккаунт не создать.'
-            : 'Нужно принять условия оферты — это договор с сервисом.',
+            ? 'Отметьте ниже согласие на обработку персональных данных: без него аккаунт не создать.'
+            : 'Отметьте ниже, что принимаете условия оферты: это договор с сервисом.',
       );
+      // Фокус — на галочку, которой не хватает: ошибка стоит над кнопками
+      // входа (правка владельца 8.09), а сами галочки — под ними.
+      document.getElementById(!pd ? 'consent-pd' : 'consent-terms')?.focus();
       return false;
     }
     setError(null);
@@ -80,14 +98,17 @@ export default function RegisterClient() {
         {/* my-auto — по центру свободного места под знаком: с justify-between
             на 1280×800 знак прилипал к заголовку (владелец 24.09, «поехал»). */}
         <div className="relative my-14 max-w-[560px] lg:my-auto lg:py-10">
-          <h1 className="text-balance text-[38px] font-bold leading-[1.06] tracking-[-0.045em] sm:text-[44px]">
+          <h1 className="text-balance text-[28px] font-bold leading-[1.1] tracking-[-0.045em] sm:text-[36px]">
             Документы для сайта — готовим и держим в порядке
           </h1>
           {/* Утверждение о законодательстве, а не о нашей ответственности:
-              «защита» и обещание исхода проверки здесь не употребляются. */}
+              «защита» и обещание исхода проверки здесь не употребляются.
+              Сжато из тезиса владельца (25.09); было «Собираем их в один
+              пакет», где «их» относилось к требованиям, а не к документам.
+              Цифры 7 и 12 — из тезиса, под ними нужен список. */}
           <p className="mt-5 text-[15px] leading-6 text-white/65">
-            Требования к сайту разбросаны по нескольким федеральным законам, и за каждое есть свой штраф. Собираем их в
-            один пакет документов и одну строку кода.
+            Требования к сайтам описаны в 7 федеральных законах, за нарушения предусмотрено 12 составов КоАП. Мы готовим
+            документы под ваш бизнес, подключаем их к сайту одной строкой кода и обновляем вслед за законом.
           </p>
 
           {/* Без линий между пунктами: это один перечень, а линейки дробили
@@ -112,17 +133,17 @@ export default function RegisterClient() {
 
       <section className="flex items-start justify-center px-6 py-10 sm:px-12 lg:min-h-screen lg:items-center lg:px-[6vw] lg:py-12">
         <div className="w-full max-w-[430px]">
-
-          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-brand">Добро пожаловать</p>
-          <h2 className="text-[38px] font-bold tracking-[-0.045em] text-ink">Регистрация</h2>
-          <p className="mt-3 text-[15px] leading-6 text-ink/60">
-            Заведём кабинет — дальше вопросы о сайте и компании, и документы под ваш сайт будут готовы.
-          </p>
+          {/* Только заголовок и кнопки (владелец 25.09): без «Добро пожаловать»,
+              без строки о цене («лишнее очень», цена — на шаге «Установка») и
+              без «Заведём кабинет. Дальше вопросы о сайте и компании…»: она
+              обещала не тот порядок шагов (первым идёт профиль), а что будет
+              дальше, говорят левая панель и вводные следующих экранов. */}
+          <h2 className="text-[28px] font-bold tracking-[-0.045em] text-ink">Регистрация</h2>
 
           {/* Ошибка — над кнопками входа, хотя галочки под ними (правка
               владельца 8.09): человек жмёт кнопку и смотрит на неё, а не вниз. */}
           {error && (
-            <p role="alert" className="mt-6 rounded-xl bg-danger/[0.07] px-4 py-3 text-[13px] font-semibold leading-5 text-danger">
+            <p role="alert" className="mt-6 rounded-xl bg-danger/[0.07] px-4 py-3 text-[13px] font-semibold leading-5 text-danger-ink">
               {error}
             </p>
           )}
@@ -150,13 +171,11 @@ export default function RegisterClient() {
           <div className="my-8 h-px bg-line" />
 
           <div className="space-y-3.5">
-            <Consent checked={pd} label="Согласие на обработку персональных данных" onToggle={() => { setPd(!pd); setError(null); }}>
-              Даю согласие на обработку моих персональных данных —{' '}
-              <Link href="#" className="font-semibold text-brand hover:underline">
-                политика
-              </Link>
+            <Consent id="consent-pd" checked={pd} invalid={Boolean(error) && !pd} onToggle={() => { setPd(!pd); setError(null); }}>
+              Даю согласие на обработку моих персональных данных{' '}
+              (<Link href="#" className="font-semibold text-brand hover:underline">политика</Link>)
             </Consent>
-            <Consent checked={terms} label="Принятие условий оферты" onToggle={() => { setTerms(!terms); setError(null); }}>
+            <Consent id="consent-terms" checked={terms} invalid={Boolean(error) && !terms} onToggle={() => { setTerms(!terms); setError(null); }}>
               Принимаю{' '}
               <Link href="#" className="font-semibold text-brand hover:underline">
                 условия оферты

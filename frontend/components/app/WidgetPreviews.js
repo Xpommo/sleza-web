@@ -7,7 +7,7 @@
 // врать (решение макета). Тема хранится в анкете — widgetSettings().
 
 import { useState } from 'react';
-import { CloseIcon, ShieldCheckIcon } from './AppIcons';
+import { CloseIcon, ShieldCheckIcon, LockIcon } from './AppIcons';
 
 const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
@@ -25,7 +25,7 @@ const isDark = (theme) => theme !== 'Светлая';
 
 export function ThemeNote({ theme }) {
   if (theme !== 'Авто') return null;
-  return <p className="mt-3 text-[12px] text-ink/60">Подстроится под тему браузера посетителя — здесь показан тёмный вариант.</p>;
+  return <p className="mt-3 text-[12px] text-ink/60">Подстроится под тему браузера посетителя. Здесь показан тёмный вариант.</p>;
 }
 
 export function ThemeSwitch({ value, onChange, labelledby }) {
@@ -58,10 +58,11 @@ export function Switch({ checked, onChange, label, disabled }) {
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${RING} ${
-        checked ? 'bg-brand' : 'bg-line-2'
+        // Выключенный — с рамкой: светлый трек на белом давал 1.44:1 (аудит 24.09).
+        checked ? 'bg-brand' : 'bg-line-2 ring-1 ring-inset ring-ink/50'
       }`}
     >
-      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${checked ? 'left-[22px]' : 'left-0.5'}`} />
+      <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : ''}`} />
     </button>
   );
 }
@@ -93,7 +94,6 @@ export function CookieBannerPreview({ theme, note = true }) {
           Принять и продолжить
         </span>
       </div>
-      <p className="mt-2 text-right font-mono text-[10px] uppercase tracking-[0.08em] text-ink/40">обязательное согласие · Слеза</p>
       {note && <ThemeNote theme={theme} />}
     </div>
   );
@@ -108,8 +108,8 @@ const PILLS = [
     locked: true,
     meta: '152-ФЗ, ст.3, 6, 9',
     title: 'Обработка куки',
-    body: 'Сайт использует файлы куки для аналитики и корректной работы сервисов. Согласие вы уже дали в баннере при заходе на сайт — отдельно отключить его здесь нельзя. Состав собираемых данных и цели — в политике ниже.',
-    lockNote: 'Обязательное согласие — уже подтверждено',
+    body: 'Сайт использует файлы куки для аналитики и корректной работы сервисов. Согласие вы уже дали в баннере при заходе на сайт, поэтому отдельно отключить его здесь нельзя. Состав собираемых данных и цели описаны в политике ниже.',
+    lockNote: 'Обязательное согласие уже подтверждено',
     links: ['Политика обработки куки →'],
   },
   {
@@ -117,7 +117,7 @@ const PILLS = [
     label: 'Персональные данные',
     meta: '152-ФЗ, ст.9',
     title: 'Согласие на обработку персональных данных',
-    body: 'Разрешает сайту обрабатывать данные, которые вы оставляете в формах — имя, телефон, email. Действует сразу на все формы сайта: включили здесь — включено везде, и наоборот.',
+    body: 'Разрешает сайту обрабатывать данные, которые вы оставляете в формах: имя, телефон, email. Действует сразу на все формы сайта: если включить здесь, включится везде, и наоборот.',
     toggle: true,
     links: ['Политика обработки персональных данных →', 'Согласие на обработку персональных данных →'],
   },
@@ -127,7 +127,7 @@ const PILLS = [
     meta: 'ч.1 ст.18 №38-ФЗ «О рекламе» · ч.4.1 ст.14.3 КоАП',
     title: 'Согласие на получение рекламных сообщений',
     body: 'Разрешает присылать вам рекламные сообщения: письма, сообщения в мессенджерах и звонки.',
-    hint: 'Сначала включите согласие на персональные данные — без него рассылка недоступна.',
+    hint: 'Сначала включите согласие на персональные данные: без него рассылка недоступна.',
     toggle: true,
     links: ['Согласие на получение рекламных сообщений →'],
   },
@@ -137,7 +137,7 @@ const PILLS = [
     locked: true,
     meta: 'реестры Минюста и Росфинмониторинга',
     title: 'Маркировка',
-    body: 'Скрипт Слезы автоматически маркирует на сайте упоминания лиц и организаций из реестров: иностранные агенты, экстремистские и террористические организации, а также упоминания наркотических веществ.',
+    body: 'На сайте автоматически отмечены упоминания лиц и организаций из реестров (иностранные агенты, экстремистские и террористические организации), а также упоминания наркотических веществ.',
     lockNote: 'Обязательно по закону',
   },
 ];
@@ -164,10 +164,8 @@ export function FooterPreview({ theme, note = true }) {
           dark ? 'bg-ink text-white' : 'border border-line bg-white text-ink'
         }`}
       >
-        <span className="flex items-center gap-2 text-[13px] font-bold">
-          <span className={`h-2 w-3 rounded-sm ${dark ? 'bg-brand-soft' : 'bg-brand'}`} /> Слеза
-        </span>
-        <span className={`h-4 w-px ${dark ? 'bg-white/20' : 'bg-line-2'}`} />
+        {/* Без нашего знака и имени (владелец 25.09): подвал принадлежит сайту
+            клиента, «Слеза» в нём читалась как реклама за его деньги. */}
         {PILLS.map((pill) => (
           <button
             key={pill.id}
@@ -181,7 +179,9 @@ export function FooterPreview({ theme, note = true }) {
             }`}
           >
             {pill.label}
-            {pill.locked && <span className="text-[10px] opacity-60">🔒</span>}
+            {/* Без замочков (два разбора подряд: посетителю они ничего не
+                говорят); что «Куки» и «Маркировку» не отключить, владелец
+                читает в «Виджете». */}
           </button>
         ))}
         <span className={`ml-auto text-[12px] font-semibold ${dark ? 'text-white/70' : 'text-ink/60'}`}>Реквизиты</span>
@@ -195,7 +195,7 @@ export function FooterPreview({ theme, note = true }) {
             <div key={pill.id} className="mt-3 rounded-xl border border-line bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-mono text-[10.5px] uppercase tracking-[0.09em] text-ink/60">{pill.meta}</p>
-                <button type="button" onClick={() => setOpen(null)} className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`} aria-label="Закрыть">
+                <button type="button" onClick={() => setOpen(null)} className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`} aria-label="Закрыть">
                   <CloseIcon size={16} />
                 </button>
               </div>
@@ -214,7 +214,7 @@ export function FooterPreview({ theme, note = true }) {
                 </div>
               )}
               {pill.lockNote && (
-                <p className="mt-3 flex items-center gap-2 rounded-lg bg-warm px-3 py-2.5 text-[12px] font-semibold text-ink/60">🔒 {pill.lockNote}</p>
+                <p className="mt-3 flex items-center gap-2 rounded-lg bg-warm px-3 py-2.5 text-[12px] font-semibold text-ink/60"><LockIcon size={14} className="shrink-0" /> {pill.lockNote}</p>
               )}
               {pill.links && (
                 <div className="mt-3 flex flex-col gap-1.5">

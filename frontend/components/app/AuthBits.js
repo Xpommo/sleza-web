@@ -3,7 +3,7 @@
 // Общие части входа и регистрации: знак, кнопки провайдеров и вход по коду
 // из письма. Регистрация и вход — один механизм, один вид (правило живого
 // макета): код из письма и там и там раскрывается на месте, под кнопкой
-// «Через почту», а не отдельным экраном.
+// «Через e-mail», а не отдельным экраном.
 
 import { useRef, useState } from 'react';
 import { ChevronIcon, CloseIcon, MailIcon } from './AppIcons';
@@ -55,15 +55,16 @@ export function MaxIcon({ size = 22 }) {
 
 export const MESSENGER_ICONS = { Telegram: TelegramIcon, MAX: MaxIcon };
 
-const BUTTON_BOX =
-  'rounded-xl border border-line bg-white shadow-[0_5px_18px_-14px_rgba(17,17,16,0.45)]';
+// Лист на столе, без своей тени и подъёма: тень — только у плавающего
+// (правило Float-Only, разбор 24.09).
+const BUTTON_BOX = 'rounded-xl border border-line bg-white shadow-sm';
 
 export function AuthButton({ icon, children, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group flex h-[58px] w-full items-center gap-3 px-5 text-[15px] font-semibold text-ink transition-all duration-200 hover:-translate-y-0.5 hover:border-line-2 hover:shadow-[0_14px_28px_-16px_rgba(17,17,16,0.4)] ${BUTTON_BOX} ${RING}`}
+      className={`group flex h-[58px] w-full items-center gap-3 px-5 text-[15px] font-semibold text-ink transition-colors duration-200 hover:border-line-2 hover:bg-warm ${BUTTON_BOX} ${RING}`}
     >
       {icon}
       {children}
@@ -97,7 +98,7 @@ function Input({ id, label, error, inputRef, className = '', ...rest }) {
   );
 }
 
-// «Через почту», раскрытое на месте: почта → «Прислать код» → код из письма.
+// «Через e-mail», раскрытое на месте: почта → «Прислать код» → код из письма.
 // Код в прототипе принимается любой из шести цифр — честная имитация, как у
 // проверки скрипта на шаге установки. gate() — проверка перед отправкой кода
 // (на регистрации это галочки согласий); вернула false — письмо не шлём.
@@ -113,15 +114,18 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
   if (!open) {
     return (
       <AuthButton icon={<MailIcon size={20} className="text-ink/60" />} onClick={onOpen}>
-        Через почту
+        Через e-mail
       </AuthButton>
     );
   }
 
+  // Почта и согласия проверяются вместе: при пустой почте и без галочек
+  // раньше говорили только про галочки (разбор 25.09).
   function send() {
+    const mailOk = EMAIL_RE.test(email.trim());
+    setErr(mailOk ? null : 'Нужен e-mail вида name@site.ru: на него придёт код для входа.');
     if (!gate()) return;
-    if (!EMAIL_RE.test(email.trim())) {
-      setErr('Нужна почта вида name@site.ru — на неё придёт код для входа.');
+    if (!mailOk) {
       mailRef.current?.focus();
       return;
     }
@@ -153,7 +157,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
     <div className={`p-5 ${BUTTON_BOX}`}>
       <div className="flex items-center gap-3 text-[15px] font-semibold text-ink">
         <MailIcon size={20} className="text-ink/60" />
-        Через почту
+        Через e-mail
         <button
           type="button"
           onClick={() => {
@@ -161,8 +165,8 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
             setErr(null);
             onClose();
           }}
-          aria-label="Свернуть вход по почте"
-          className={`ml-auto rounded p-1 text-ink/35 hover:text-ink ${RING}`}
+          aria-label="Свернуть вход по e-mail"
+          className={`-my-2 -mr-2 ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
         >
           <CloseIcon size={16} />
         </button>
@@ -177,10 +181,10 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
           }}
           noValidate
         >
-          <p className="mb-4 text-[13px] leading-5 text-ink/60">Пришлём код для входа — пароль не нужен.</p>
+          <p className="mb-4 text-[13px] leading-5 text-ink/60">Пришлём код для входа. Пароль не нужен.</p>
           <Input
             id="mail-login-email"
-            label="Почта"
+            label="E-mail"
             type="email"
             autoComplete="email"
             placeholder="you@company.ru"
@@ -195,7 +199,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
           />
           <button
             type="submit"
-            className={`mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+            className={`mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
           >
             Прислать код
           </button>
@@ -230,7 +234,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
           />
           <button
             type="submit"
-            className={`mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+            className={`mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
           >
             {submitLabel}
           </button>
@@ -250,7 +254,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
                 }}
                 className={`rounded font-bold text-ink/60 hover:text-ink ${RING}`}
               >
-                Изменить почту
+                Изменить e-mail
               </button>
             </span>
           </p>

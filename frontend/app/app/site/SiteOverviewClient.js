@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, CheckIcon, CopyIcon } from '../../../components/app/AppIcons';
 import { IconAction } from '../../../components/app/DocRows';
+import { widgetSettings } from '../../../components/app/WidgetPreviews';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS, docUrl, editEvents } from '../../../lib/docPackage';
 import { accountSites, balanceOf, currentSiteKey, saveSiteFields, setSiteLeaving, siteAnketa } from './_shared/sites';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { RING, SiteSidebar } from './_shared/SiteChrome';
-import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEndAt, trialEnds } from './_shared/subscription';
+import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, graceEndAt, graceEnds, paidPeriod, subState, trialEndAt, trialEnds, widgetStopped } from './_shared/subscription';
 
 // «Обзор» отвечает на три вопроса, с которыми сюда заходят (владелец 24.09):
 // сколько ещё будет работать подписка, все ли документы актуальны и когда
@@ -20,7 +21,7 @@ import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, paidPeriod, subState, trialEnd
 // задачи, которые клиент делает на сайте сам (владелец 24.09), пока они есть.
 
 const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
-const BTN = `inline-flex h-11 w-fit items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`;
+const BTN = `inline-flex h-11 w-fit items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
 const DAY = 24 * 3600 * 1000;
 const CONSENT = DOCUMENTS.find((d) => d.id === '12');
 const TONE = { warn: 'text-warn-ink', danger: 'text-danger', ok: 'text-ok', muted: 'text-ink/60', none: 'text-ink' };
@@ -61,7 +62,9 @@ function Answer({ label, value, tone = 'none', facts, action, link }) {
 // Задача клиента: что сделать и почему — одной строкой, закон мелко рядом, как
 // в строке документа. «Сделано» — белая кнопка: синяя на экране одна, и она
 // у подписки.
-function Task({ title, law, text, name, onDone, children }) {
+// href — задача, которую закрывают не отметкой, а делом в другом разделе
+// (включить выключенный баннер или подвал в «Виджете»).
+function Task({ title, law, text, name, onDone, href, actionLabel, children }) {
   return (
     <div className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
       <div className="min-w-0">
@@ -72,14 +75,23 @@ function Task({ title, law, text, name, onDone, children }) {
         <p className="mt-1 max-w-2xl text-[13px] leading-5 text-ink/60">{text}</p>
         {children}
       </div>
-      <button
-        type="button"
-        onClick={onDone}
-        aria-label={name}
-        className={`w-fit shrink-0 rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
-      >
-        Сделано
-      </button>
+      {href ? (
+        <Link
+          href={href}
+          className={`w-fit shrink-0 rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
+        >
+          {actionLabel}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={onDone}
+          aria-label={name}
+          className={`w-fit shrink-0 rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
+        >
+          Сделано
+        </button>
+      )}
     </div>
   );
 }
@@ -111,7 +123,11 @@ export default function SiteOverviewClient() {
   const period = b.paidAt ? paidPeriod(b.paidAt, b.paidYears) : null;
   const unfinished = (a.stepsDone || 0) < 4;
   const acc = loadAnketa(); // баланс и карта — одни на аккаунт
-  const short = balanceOf(acc) < PRICE && !acc.billing?.card?.auto;
+  // Выставленный счёт на пополнение — деньги в пути: нехватки нет, а главное
+  // действие — открыть счёт, не пополнить второй раз (разбор 24.09).
+  const invoice = acc.billing?.topupInvoice || null;
+  const stopped = widgetStopped(a, now, invoice);
+  const short = balanceOf(acc) + (invoice ? invoice.amount || PRICE : 0) < PRICE && !acc.billing?.card?.auto;
   const go = (href) => router.push(href);
   const button = (label, onClick, arrow = true) => (
     <button type="button" onClick={onClick} className={BTN}>
@@ -166,12 +182,15 @@ export default function SiteOverviewClient() {
         'Пробный период',
         !a.installed ? 'код пока не найден' : lastDay ? 'последний день' : `осталось ${left} ${plural(left, 'день', 'дня', 'дней')}`,
         b.leaving ? 'дальше сайт отключится' : b.cancelled ? 'продление вручную' : tariff ? `дальше ${tariff}` : 'тариф не выбран',
+        invoice && `ждём оплату счёта № ${invoice.no}`,
       ],
       action: !a.installed
         ? button('Проверить код на сайте', () => go('/app/start/code'))
         : b.leaving
           ? button('Вернуть в подписку', comeBack, false)
-          : lastDay && b.cancelled
+          : lastDay && invoice
+            ? button('Открыть счёт', () => go('/app/billing'))
+            : lastDay && b.cancelled
             ? button('Оплатить год', () => go('/app/sites?view=table&pay=current'))
             : lastDay && short
               ? button('Пополнить', () => go('/app/billing?topup=1'))
@@ -203,16 +222,34 @@ export default function SiteOverviewClient() {
     sub = {
       value: 'Ждём оплату',
       tone: 'warn',
-      facts: [`счёт № ${b.invoice?.no}`, 'обычно 1–3 рабочих дня'],
+      facts: [`счёт № ${b.invoice?.no}`, 'включим, как только поступят деньги'],
       action: button('Открыть счёт', () => go('/app/sites?view=table&pay=current')),
     };
   } else if (state === 'expired') {
-    sub = {
-      value: 'Остановлена',
-      tone: 'danger',
-      facts: [`пробный период закончился ${formatDate(a.trialStartedAt + TRIAL_MS)}`, 'виджет снят с сайта'],
-      action: button('Оплатить год', () => go('/app/sites?view=table&pay=current')),
-    };
+    // Мягкий уход (владелец 25.09): после пробного сайт работает ещё
+    // несколько дней, а при выставленном счёте — пока ждём деньги.
+    const ended = `пробный период закончился ${formatDate(a.trialStartedAt + TRIAL_MS)}`;
+    sub = stopped
+      ? {
+          value: 'Остановлена',
+          tone: 'danger',
+          facts: [ended, 'виджет снят с сайта'],
+          action: button('Оплатить год', () => go('/app/sites?view=table&pay=current')),
+        }
+      : invoice
+        ? {
+            value: 'Ждём оплату',
+            tone: 'warn',
+            facts: [ended, `счёт № ${invoice.no}`, 'сайт работает, пока ждём деньги'],
+            // Счёт уже выставлен: второй раз платить не предлагаем, ведём к нему.
+            action: button('Открыть счёт', () => go('/app/billing')),
+          }
+        : {
+            value: `до ${graceEnds(a)}`,
+            tone: 'warn',
+            facts: [ended, 'сайт пока работает', 'дальше виджет снимем с сайта'],
+            action: button('Оплатить год', () => go('/app/sites?view=table&pay=current')),
+          };
   } else {
     sub = {
       value: 'Не началась',
@@ -229,10 +266,10 @@ export default function SiteOverviewClient() {
   const madeAt = a.trialStartedAt || now;
   const edits = editEvents(a.docEdits);
   const updatedAt = Math.max(madeAt, ...edits.map((e) => e.at));
-  const live = a.installed && state !== 'expired' && state !== 'notstarted';
+  const live = a.installed && state !== 'notstarted' && !stopped;
   const docs = unfinished
     ? { value: 'Не собраны', tone: 'muted', facts: ['соберём по ответам анкеты'] }
-    : state === 'expired'
+    : stopped
       ? { value: 'Сняты с сайта', tone: 'danger', facts: [`${DOCUMENTS.length} документов`, 'вернутся после оплаты'] }
       : live
         ? { value: 'Актуальны', tone: 'ok', facts: [`${DOCUMENTS.length} документов`, `${edits.length ? 'обновлены' : 'собраны'} ${formatDate(updatedAt)}`] }
@@ -245,29 +282,35 @@ export default function SiteOverviewClient() {
   // Analytics — пока он в ответе «Счётчики на сайте».
   const features = a.features || [];
   const noForms = features.length > 0 && features.every((v) => v === 'none');
+  // Выключенный баннер или подвал — тоже задача, и первая: «Актуальны» при
+  // выключенном виджете читалось как «я в порядке» (разбор 24.09).
+  const w = widgetSettings(a);
   const tasks = [
+    live && !w.bannerOn && 'banner',
+    live && !w.footerOn && 'footer',
     live && !noForms && !a.tasksDone?.consentLink && 'consent',
     (a.analytics || []).includes('ga') && 'ga',
   ].filter(Boolean);
 
   // 4. Последние изменения — только то, что действительно произошло.
   const events = [
-    a.tasksDone?.consentLink && [a.tasksDone.consentLink, 'Ссылка на согласие добавлена в формы сайта — отметили вы', 'bg-ok'],
-    b.paidAt && [b.paidAt, `Подписка оплачена — до ${period.to}`, 'bg-ok'],
-    b.cancelled && b.cancelledAt && [b.cancelledAt, 'Автопродление выключено — продлевать будете вручную', 'bg-brand'],
-    b.leaving && [b.leavingAt || now, `Сайт отключается — работает до ${period ? period.to : trialEnds(a)}, дальше продлевать не будем`, 'bg-warn'],
+    a.tasksDone?.consentLink && [a.tasksDone.consentLink, 'Вы отметили, что ссылка на согласие добавлена в формы сайта', 'bg-ok'],
+    b.paidAt && [b.paidAt, `Подписка оплачена до ${period.to}`, 'bg-ok'],
+    b.cancelled && b.cancelledAt && [b.cancelledAt, 'Автопродление выключено: продлевать будете вручную', 'bg-brand'],
+    b.leaving && [b.leavingAt || now, `Сайт отключается: работает до ${period ? period.to : trialEnds(a)}, дальше продлевать не будем`, 'bg-warn'],
     b.invoice && !b.paidAt && [b.invoice.at, `Выставлен счёт № ${b.invoice.no}`, 'bg-warn'],
-    state === 'expired' && [a.trialStartedAt + TRIAL_MS, 'Пробный период закончился — виджет снят с сайта', 'bg-danger'],
+    state === 'expired' && [a.trialStartedAt + TRIAL_MS, 'Пробный период закончился', 'bg-warn'],
+    stopped && [graceEndAt(a), 'Виджет снят с сайта', 'bg-danger'],
     a.trialStartedAt && [a.trialStartedAt, a.installed ? 'Код найден на сайте, пробный период запущен' : 'Пробный период запущен, ждём код на сайте', 'bg-brand'],
     ...edits.map((e) => [e.at, e.text, 'bg-brand']),
     !unfinished && [madeAt - 1, 'Документы собраны по ответам анкеты', 'bg-ok'],
   ].filter(Boolean).sort((x, y) => y[0] - x[0]);
 
   return (
-    <main className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen bg-warm text-ink lg:flex">
       <SiteSidebar domain={a.domain} active="Обзор" user={user} />
 
-      <section className="min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
+      <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
           {/* Заголовок — сам сайт, а не «Обзор»: название раздела уже стоит
               в меню, и повтор ничего не сообщал (владелец 24.09). */}
@@ -292,11 +335,29 @@ export default function SiteOverviewClient() {
                 </span>
               </div>
               <div className="mt-5 divide-y divide-line">
+                {tasks.includes('banner') && (
+                  <Task
+                    title="Включите куки-баннер"
+                    law="152-ФЗ"
+                    text="Он выключен в «Виджете», и посетители не видят уведомление о куки."
+                    href="/app/site/widget"
+                    actionLabel="Открыть «Виджет»"
+                  />
+                )}
+                {tasks.includes('footer') && (
+                  <Task
+                    title="Включите подвал сайта"
+                    law="152-ФЗ"
+                    text="Он выключен в «Виджете», и ссылки на документы и реквизиты не показываются посетителям."
+                    href="/app/site/widget"
+                    actionLabel="Открыть «Виджет»"
+                  />
+                )}
                 {tasks.includes('consent') && (
                   <Task
                     title="Добавьте ссылку на согласие в формы сайта"
                     law={CONSENT.law}
-                    text="Рядом с кнопкой отправки — в каждой форме, где оставляют контакты."
+                    text="Рядом с кнопкой отправки в каждой форме, где оставляют контакты."
                     name="Сделано: ссылка на согласие добавлена в формы"
                     onDone={consentDone}
                   >
@@ -316,7 +377,7 @@ export default function SiteOverviewClient() {
                   <Task
                     title="Уберите Google Analytics с сайта"
                     law="152-ФЗ"
-                    text="Он сохраняет данные посетителей на серверах за рубежом — с 1 июля 2025 года это запрещено, даже если он назван в политике."
+                    text="Он сохраняет данные посетителей на серверах за рубежом. С 1 июля 2025 года это запрещено, даже если он назван в политике."
                     name="Сделано: Google Analytics убран с сайта"
                     onDone={gaRemoved}
                   />
@@ -340,7 +401,7 @@ export default function SiteOverviewClient() {
             </div>
           </section>
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }

@@ -12,7 +12,7 @@ import {
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { formatPhone, phoneIncomplete, validateEmail } from '../../../../lib/validate';
-import { RING, AnketaFrame, Field, PhoneField, SectionHead, Tile } from '../_shared/AnketaChrome';
+import { RING, AnketaFrame, Field, PhoneField, SectionHead, Tile, focusFirstError } from '../_shared/AnketaChrome';
 import { loadAnketa, loadAuth, markStepDone, saveAnketa, setMessenger, userLabel } from '../_shared/anketaState';
 
 const ROLES = ['Директор / собственник', 'Сотрудник', 'Подрядчик'];
@@ -118,7 +118,7 @@ export default function ProfileClient() {
     }
 
     if (!name.trim()) {
-      setNameError('Укажите имя — так будем обращаться в письмах.');
+      setNameError('Укажите имя: так будем обращаться в письмах.');
       ok = false;
     } else {
       setNameError(null);
@@ -130,13 +130,16 @@ export default function ProfileClient() {
     if (phoneErr) ok = false;
 
     if (validateEmail(email)) {
-      setEmailError('Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.');
+      setEmailError('Нужен e-mail вида name@site.ru: сюда будем писать об обновлениях документов.');
       ok = false;
     } else {
       setEmailError(null);
     }
 
-    if (!ok) return;
+    if (!ok) {
+      focusFirstError();
+      return;
+    }
     // Роль нужна на шаге установки: подрядчику незачем предлагать
     // «поручить другому» — он и есть тот, кому поручают.
     saveAnketa({ role, personName: name, personPhone: phone, personEmail: email });
@@ -145,7 +148,7 @@ export default function ProfileClient() {
   }
 
   return (
-    <AnketaFrame current={0} title="Ваш профиль" lead={<>Шесть шагов, на выходе — пакет документов и строка кода для сайта. Начнём с вас.</>}>
+    <AnketaFrame current={0} title="Ваш профиль" lead={<>Шесть шагов, и у вас будет пакет документов и строка кода для сайта. Сначала о вас, чтобы знать, кому писать об обновлениях. Потом сайт и компания: понадобится ИНН.</>}>
 
             <div className="mb-6 flex items-center justify-between">
               <div className="flex min-w-0 items-center gap-3">
@@ -172,7 +175,7 @@ export default function ProfileClient() {
             {authListOpen && (
               <div className="mb-6 rounded-2xl border border-line bg-white p-5 shadow-sm">
                 <p className="text-[13px] leading-5 text-ink/60">
-                  Вход в один тап и уведомления в мессенджер, а не только на почту. Отвязать можно в Настройках.
+                  Вход в один тап и уведомления в мессенджер, а не только на e-mail. Отвязать можно в Настройках.
                 </p>
                 <div className="mt-4 divide-y divide-line">
                   {MESSENGERS.map((m) => (
@@ -180,7 +183,7 @@ export default function ProfileClient() {
                       {m.icon}
                       <span className="text-sm font-bold">{m.name}</span>
                       {auth.messengers[m.name] ? (
-                        <span className="ml-auto rounded-full bg-ok/10 px-2.5 py-1 text-xs font-bold text-ok">подключён</span>
+                        <span className="ml-auto rounded-full bg-ok/10 px-2.5 py-1 text-xs font-bold text-ok-ink">подключён</span>
                       ) : (
                         <button
                           type="button"
@@ -211,7 +214,7 @@ export default function ProfileClient() {
                     <Tile key={item} title={item} radio compact selected={role === item} onClick={() => pickRole(item)} />
                   ))}
                 </div>
-                {roleError && <p className="mt-2 text-[12px] font-semibold text-danger">{roleError}</p>}
+                {roleError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{roleError}</p>}
               </div>
 
               <div className="my-8 h-px bg-line" />
@@ -220,16 +223,16 @@ export default function ProfileClient() {
                 {/* «Куда вам писать», а не «Ваши контакты»: шаг и так называется
                     «Ваш профиль», дубль заголовка снят ещё в макете (FIXLOG). */}
                 <SectionHead
-                  title="Куда вам писать"
+                  title="Ваши контакты"
                   whyOpen={whyOpen}
                   onWhy={() => setWhyOpen(!whyOpen)}
-                  why="Нужны, чтобы написать вам, когда обновим документы или изменится закон. На сайт и в документы они не попадут — там будут контакты компании со шага «Реквизиты»."
+                  why="Будем писать, когда обновим документы или изменится закон. На сайт и в документы эти контакты не попадут."
                 />
                 <div className="mt-5 grid gap-5 sm:grid-cols-2">
                   <Field
                     label="Как к вам обращаться"
                     required
-                    placeholder="Кирилл"
+                    placeholder="Имя"
                     icon={UserIcon}
                     value={name}
                     onChange={(e) => {
@@ -238,22 +241,28 @@ export default function ProfileClient() {
                     }}
                     error={nameError}
                   />
-                  <PhoneField
-                    label="Телефон на случай, если письма не дойдут"
-                    icon={PhoneIcon}
-                    value={phone}
-                    onValue={(v) => {
-                      setPhone(v);
-                      setPhoneError(null);
-                    }}
-                    error={phoneError}
-                  />
+                  {/* «Если письма не дойдут» звучало как признание, что письма
+                      теряются; «необязательно» — словом, звёздочки нет и так
+                      никто не замечал (разбор текстов 25.09). */}
+                  <div>
+                    <PhoneField
+                      label="Телефон, необязательно"
+                      icon={PhoneIcon}
+                      value={phone}
+                      onValue={(v) => {
+                        setPhone(v);
+                        setPhoneError(null);
+                      }}
+                      error={phoneError}
+                    />
+                    <p className="mt-2 text-[12px] text-ink/60">Позвоним, только если с сайтом что-то срочное.</p>
+                  </div>
 
                   <div className="sm:col-span-2">
                     <Field
-                      label="Почта"
+                      label="E-mail"
                       required
-                      placeholder="kirill@alfa-school.ru"
+                      placeholder="name@site.ru"
                       icon={MailIcon}
                       type="email"
                       autoComplete="email"
@@ -265,7 +274,7 @@ export default function ProfileClient() {
                       /* Неверный формат подсвечиваем сразу при выходе из поля
                          (правка владельца 7.09); пустое — только на «Далее». */
                       onBlur={() => {
-                        if (email.trim() && validateEmail(email)) setEmailError('Нужна почта вида name@site.ru — сюда будем писать об обновлениях документов.');
+                        if (email.trim() && validateEmail(email)) setEmailError('Нужен e-mail вида name@site.ru: сюда будем писать об обновлениях документов.');
                       }}
                       error={emailError}
                     />
@@ -290,7 +299,7 @@ export default function ProfileClient() {
                 data-funnel-next
                 type="button"
                 onClick={handleNext}
-                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
+                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
               >
                 Далее <ArrowRightIcon size={16} />
               </button>

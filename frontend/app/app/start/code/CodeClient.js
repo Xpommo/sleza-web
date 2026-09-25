@@ -17,7 +17,7 @@ import { EMAIL_RE } from '../../../../lib/validate';
 import { PLATFORMS } from '../../../../lib/anketaOptions';
 import { RING, AnketaFrame, Field, SectionHead } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
-import { TRIAL_DAYS, trialEnds } from '../../site/_shared/subscription';
+import { PRICE_LABEL, TRIAL_DAYS, trialEnds } from '../../site/_shared/subscription';
 import { MAIN, setCurrentSite } from '../../site/_shared/sites';
 import { useDialog } from '../../site/_shared/SiteChrome';
 
@@ -34,11 +34,18 @@ const SHARE_BTN = `inline-flex h-11 items-center justify-center gap-2 rounded-xl
 
 // Инструкция зависит от платформы, названной на «О сайте»: на документы она
 // не влияет, а вот куда именно вставлять код — влияет только она.
+// Что может помешать на платформе ещё до инструкции. Тильда: свой код в
+// head вставляется только на платном тарифе (Personal или Business, справка
+// Тильды), на бесплатном человек застревал, не понимая почему (разбор 25.09).
+const PLATFORM_NOTE = {
+  'Тильда': 'На бесплатном тарифе Тильды вставить свой код нельзя: нужен тариф Personal или Business.',
+};
+
 const PLATFORM_STEPS = {
   'Тильда': [
     'Откройте настройки сайта → «Ещё» → «HTML-код для вставки внутрь head».',
     'Вставьте строку и сохраните.',
-    'Опубликуйте сайт — без публикации изменения на него не попадают.',
+    'Опубликуйте сайт: без публикации изменения на него не попадают.',
   ],
   'WordPress': [
     'Откройте «Внешний вид» → «Редактор тем» → header.php.',
@@ -160,7 +167,7 @@ export default function CodeClient() {
   function shareMail() {
     const v = mailTo.trim();
     if (!EMAIL_RE.test(v)) {
-      setMailError(v ? 'Нужна почта вида name@site.ru.' : 'Укажите почту того, кто ведёт сайт.');
+      setMailError(v ? 'Нужен e-mail вида name@site.ru.' : 'Укажите e-mail того, кто ведёт сайт.');
       return;
     }
     setShared({ kind: 'mail', to: v });
@@ -183,7 +190,7 @@ export default function CodeClient() {
   }
   function sendSelf() {
     if (!EMAIL_RE.test(selfMail.trim())) {
-      setSelfError('Нужна почта вида name@site.ru.');
+      setSelfError('Нужен e-mail вида name@site.ru.');
       return;
     }
     setSelfSent(true);
@@ -205,6 +212,13 @@ export default function CodeClient() {
   // «Проверяем…» на время проверки: без него кнопка неотличима от
   // сломанной (макет, 9.09).
   const [checking, setChecking] = useState(false);
+  // Код найден — ключевой момент подключения: фокус на сообщение, скринридер
+  // прочтёт его сам (разбор 24.09: кнопка размонтировалась, фокус падал на
+  // body, статус молчал).
+  const foundRef = useRef(null);
+  useEffect(() => {
+    if (found) foundRef.current?.focus();
+  }, [found]);
   function checkScript() {
     if (checking) return;
     setChecking(true);
@@ -228,7 +242,7 @@ export default function CodeClient() {
   }
 
   return (
-    <AnketaFrame current={5} title="Установка" nextLabel={found || (effectiveMode === 'Поручу другому' && shared) ? 'В кабинет' : effectiveMode === 'Поставлю сам' ? 'Проверить' : canShare ? 'Поделиться' : 'Отправить'} lead={<>Поставьте на сайт одну строку кода — как только увидим её, включим документы и виджет на {TRIAL_DAYS} дней бесплатно.</>}>
+    <AnketaFrame current={5} title="Установка" nextLabel={found || (effectiveMode === 'Поручу другому' && shared) ? 'В кабинет' : effectiveMode === 'Поставлю сам' ? 'Проверить' : canShare ? 'Поделиться' : 'Отправить'} lead={<>Поставьте на сайт одну строку кода. Как только увидим её, включим документы и виджет на {TRIAL_DAYS} дней бесплатно.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {!isContractor && (
@@ -247,7 +261,7 @@ export default function CodeClient() {
                     <div>
                       <div className="mb-3">
                         <h3 className="text-[15px] font-bold">Скопируйте код</h3>
-                        <p className="mt-1 text-sm text-ink/60">Одна строка — ставится один раз и работает на всех страницах.</p>
+                        <p className="mt-1 text-sm text-ink/60">Строка ставится один раз и работает на всех страницах.</p>
                       </div>
                       {/* Копирование — привычной иконкой в углу кода, как в
                           документации: кнопку-надпись над кодом не замечали
@@ -273,12 +287,12 @@ export default function CodeClient() {
 
                     <div>
                       <h3 className="text-[15px] font-bold">
-                        Вставьте на сайт{platform ? ` — ${platform}` : ''}
+                        Вставьте на сайт{platform ? ` (${platform})` : ''}
                       </h3>
                       <p className="mt-1 text-sm text-ink/60">
                         {platform
                           ? 'Инструкция под платформу, которую вы назвали на шаге «О сайте».'
-                          : 'Платформа не указана — общая инструкция.'}{' '}
+                          : 'Платформа не указана, поэтому инструкция общая.'}{' '}
                         <button
                           type="button"
                           onClick={() => setPlatformPick(!platformPick)}
@@ -307,6 +321,9 @@ export default function CodeClient() {
                       )}
                       {/* Пункты списком, без кружков-номеров: нумерация внутри
                           «Шага 6 из 6» спорила со счётчиком самой анкеты. */}
+                      {PLATFORM_NOTE[platform] && (
+                        <p className="mt-4 rounded-lg bg-warn/10 px-3 py-2.5 text-[13px] leading-5 text-warn-ink">{PLATFORM_NOTE[platform]}</p>
+                      )}
                       <ul className="mt-4 space-y-2.5">
                         {steps.map((t) => (
                           <li key={t} className="flex gap-3 text-sm leading-5 text-ink/70">
@@ -321,11 +338,11 @@ export default function CodeClient() {
                         нереалистично, честный сценарий — переслать себе и доделать
                         с компьютера. На компьютере человек и так за ним (макет). */}
                     <div className="rounded-xl border border-line bg-warm p-4 lg:hidden">
-                      <h3 className="text-[15px] font-bold">Отправьте себе на почту</h3>
-                      <p className="mt-1 text-sm text-ink/60">Удобнее с компьютера — пришлём код и инструкцию на вашу почту.</p>
+                      <h3 className="text-[15px] font-bold">Отправьте себе на e-mail</h3>
+                      <p className="mt-1 text-sm text-ink/60">Удобнее с компьютера: пришлём код и инструкцию на ваш e-mail.</p>
                       <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                         <Field
-                          label="Почта"
+                          label="E-mail"
                           placeholder="kirill@alfa-school.ru"
                           icon={MailIcon}
                           type="email"
@@ -358,20 +375,22 @@ export default function CodeClient() {
                             data-funnel-next
                             type="button"
                             onClick={checkScript}
-                            disabled={checking}
+                            // aria-disabled, а не disabled: отключённая кнопка теряет
+                            // фокус, и после окна «Пока не видим код» он падал на body.
+                            aria-disabled={checking}
                             aria-busy={checking}
-                            className={`flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] disabled:cursor-wait disabled:bg-brand/70 sm:w-auto ${RING}`}
+                            className={`flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover sm:w-auto ${checking ? 'cursor-wait bg-brand/70' : ''} ${RING}`}
                           >
                             <RefreshIcon size={16} className={checking ? 'animate-spin' : ''} /> {checking ? 'Проверяем…' : 'Проверить код на сайте'}
                           </button>
                         )}
                       </div>
                       {found && (
-                        <div className="mt-3 flex items-start gap-2 rounded-lg bg-ok/10 px-3 py-2.5 text-[13px] leading-5 text-ok">
+                        <div ref={foundRef} tabIndex={-1} className={`mt-3 flex items-start gap-2 rounded-lg bg-ok/10 px-3 py-2.5 text-[13px] leading-5 text-ok-ink outline-none ${RING}`}>
                           <CheckIcon size={16} className="mt-0.5 shrink-0" />
                           <p>
-                            <b className="font-bold">Код найден — документы и виджет уже работают.</b> Бесплатно до {trialTo}, дальше
-                            понадобится оплата — напомним письмом за день до конца.
+                            <b className="font-bold">Код найден, документы и виджет уже работают.</b> Бесплатно до {trialTo}, дальше
+                            {PRICE_LABEL} в год. Напомним письмом за день до конца.
                           </p>
                         </div>
                       )}
@@ -400,7 +419,7 @@ export default function CodeClient() {
                               data-funnel-next
                               type="button"
                               onClick={shareSystem}
-                              className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                              className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
                             >
                               <LinkIcon size={16} /> Поделиться
                             </button>
@@ -410,7 +429,7 @@ export default function CodeClient() {
                             </button>
                           )}
                           <button type="button" onClick={() => setMailOpen(!mailOpen)} aria-expanded={mailOpen} className={SHARE_BTN}>
-                            <MailIcon size={17} /> Почта
+                            <MailIcon size={17} /> E-mail
                           </button>
                           <button type="button" onClick={shareCopy} className={SHARE_BTN}>
                             <CopyIcon size={16} /> Скопировать ссылку
@@ -419,7 +438,7 @@ export default function CodeClient() {
                         {mailOpen && (
                           <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                             <Field
-                              label="Почта того, кто ведёт сайт"
+                              label="E-mail того, кто ведёт сайт"
                               placeholder="webmaster@alfa-school.ru"
                               icon={MailIcon}
                               type="email"
@@ -434,7 +453,7 @@ export default function CodeClient() {
                             <button
                               type="button"
                               onClick={shareMail}
-                              className={`h-[52px] shrink-0 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                              className={`h-[52px] shrink-0 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
                             >
                               Отправить
                             </button>
@@ -450,13 +469,13 @@ export default function CodeClient() {
                           <p className="text-sm font-bold">
                             {{
                               mail: `Инструкцию отправили на ${shared.to}`,
-                              tg: 'Открыли Telegram — выберите, кому отправить инструкцию',
-                              copy: 'Ссылку на инструкцию скопировали — отправьте её исполнителю',
+                              tg: 'Открыли Telegram. Выберите, кому отправить инструкцию',
+                              copy: 'Ссылку на инструкцию скопировали. Отправьте её исполнителю',
                               share: 'Инструкцией поделились',
                             }[shared.kind]}
                           </p>
                           <p className="mt-1 text-[13px] leading-5 text-ink/65">
-                            Когда код появится на сайте, мы увидим это сами — пробный период на {TRIAL_DAYS} дней начнётся
+                            Когда код появится на сайте, мы увидим это сами, и пробный период на {TRIAL_DAYS} дней начнётся
                             автоматически.
                           </p>
                           {/* Скопировали — ссылка перед глазами, её можно выделить
@@ -486,7 +505,7 @@ export default function CodeClient() {
               {!(found || (effectiveMode === 'Поручу другому' && shared)) && (
                 <div className="mt-8 flex flex-col items-center gap-3 border-t border-line pt-6 text-center">
                   <p className="text-[13px] leading-5 text-ink/60">
-                    Пробный период начнётся сам, как только увидим код на сайте, — {TRIAL_DAYS} дней бесплатно.
+                    Пробный период на {TRIAL_DAYS} дней бесплатно начнётся сам, как только увидим код на сайте. Дальше {PRICE_LABEL} в год.
                   </p>
                   <button
                     type="button"
@@ -518,7 +537,7 @@ export default function CodeClient() {
                     setCurrentSite(MAIN);
                     router.push('/app/site');
                   }}
-                  className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a1acc] ${RING}`}
+                  className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
                 >
                   Перейти в кабинет <ArrowRightIcon size={17} />
                 </button>
@@ -542,7 +561,7 @@ export default function CodeClient() {
               <button
                 type="button"
                 onClick={() => setFailOpen(false)}
-                className={`rounded p-1 text-ink/40 hover:text-ink ${RING}`}
+                className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
                 aria-label="Закрыть"
               >
                 <CloseIcon size={18} />
@@ -552,7 +571,7 @@ export default function CodeClient() {
                 «Понятно» оставляло человека один на один с проблемой. */}
             <p className="mt-3 text-[13px] leading-5 text-ink/60">
               Не нашли код на сайте{domain && <> <b className="font-bold text-ink">{domain}</b></>}. Проверьте, что строка
-              вставлена и страница опубликована, и попробуйте ещё раз через минуту — иногда страница не успевает
+              вставлена и страница опубликована, и попробуйте ещё раз через минуту: иногда страница не успевает
               обновиться.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -562,7 +581,7 @@ export default function CodeClient() {
                   setFailOpen(false);
                   checkScript();
                 }}
-                className={`rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a1acc] ${RING}`}
+                className={`rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
               >
                 Проверить ещё раз
               </button>

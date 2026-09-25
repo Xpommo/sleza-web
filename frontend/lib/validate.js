@@ -8,7 +8,7 @@ export const EMAIL_RE = /^[a-zA-Z0-9]([a-zA-Z0-9.+_-]*[a-zA-Z0-9])?@[a-zA-Z0-9](
 export function validateEmail(raw) {
   const email = (raw || '').trim();
   if (!email) return 'Введите email';
-  if (!email.includes('@')) return 'Проверьте email — похоже, пропущена @';
+  if (!email.includes('@')) return 'Проверьте email: похоже, пропущена @';
   if (!EMAIL_RE.test(email)) return 'Некорректный email';
   return null;
 }
@@ -45,13 +45,13 @@ export function formatPhone(raw) {
 // Для необязательного телефона: пусто — можно, начатый номер — только целиком.
 export function phoneIncomplete(raw) {
   const d = normalizePhone(raw);
-  return d.length > 1 && d.length < 11 ? 'Номер неполный — после +7 нужно 10 цифр.' : null;
+  return d.length > 1 && d.length < 11 ? 'Номер неполный: после +7 нужно 10 цифр.' : null;
 }
 
 export function validatePhone(raw) {
   const digits = normalizePhone(raw);
   if (!digits) return 'Введите номер телефона';
-  if (digits.length < 11) return 'Номер неполный — нужно 11 цифр';
-  if (digits.length > 11 || digits[0] !== '7') return 'Проверьте номер — ожидается российский формат';
+  if (digits.length < 11) return 'Номер неполный: нужно 11 цифр';
+  if (digits.length > 11 || digits[0] !== '7') return 'Проверьте номер: ожидается российский формат';
   return null;
 }
