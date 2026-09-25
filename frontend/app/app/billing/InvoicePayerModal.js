@@ -11,10 +11,11 @@ import { Field, PhoneField } from '../start/_shared/AnketaChrome';
 import { RING, useDialog } from '../site/_shared/SiteChrome';
 import { phoneIncomplete } from '../../../lib/validate';
 
-export const EMPTY_PAYER = { name: '', inn: '', ogrn: '', email: '', phone: '', account: '', bank: '', bik: '', corr: '' };
+export const EMPTY_PAYER = { name: '', inn: '', ogrn: '', email: '', phone: '' };
 
 // Без наименования, ИНН и почты счёт не выставить и не доставить — эти три
-// проверяем, как и раньше. Банковские поля в счёте не обязательны.
+// проверяем, как и раньше. Банка плательщика нет (владелец 25.09): для счёта
+// и акта он не нужен, как и банк владельца на шаге «Реквизиты».
 function validate(v) {
   const e = {};
   if (!v.name.trim()) e.name = 'Укажите, кто оплачивает счёт.';
@@ -25,7 +26,7 @@ function validate(v) {
 }
 
 export function payerSummary(p) {
-  return [p.inn && `ИНН ${p.inn}`, p.email, p.phone, p.account && `счёт …${p.account.slice(-4)}`].filter(Boolean).join(' · ');
+  return [p.inn && `ИНН ${p.inn}`, p.email, p.phone].filter(Boolean).join(' · ');
 }
 
 export default function InvoicePayerModal({ initial, onClose, onSave }) {
@@ -66,11 +67,12 @@ export default function InvoicePayerModal({ initial, onClose, onSave }) {
           <Field label="Наименование плательщика" required placeholder="ООО «Ромашка»" {...bind('name')} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="ИНН" required inputMode="numeric" placeholder="10 или 12 цифр" {...bind('inn', 12)} />
-            <Field label="ОГРН" inputMode="numeric" placeholder="13 или 15 цифр" {...bind('ogrn', 15)} />
+            <Field label="ОГРН, необязательно" inputMode="numeric" placeholder="13 или 15 цифр" {...bind('ogrn', 15)} />
           </div>
           <div className="h-px bg-line" />
-          <Field label="Email для счёта" required type="email" placeholder="buh@romashka.ru" {...bind('email')} />
+          <Field label="E-mail для счёта" required type="email" placeholder="buh@romashka.ru" {...bind('email')} />
           <PhoneField
+            label="Телефон, необязательно"
             value={v.phone}
             onValue={(p) => {
               setV((x) => ({ ...x, phone: p }));
@@ -78,12 +80,6 @@ export default function InvoicePayerModal({ initial, onClose, onSave }) {
             }}
             error={err.phone}
           />
-          <Field label="Расчётный счёт" inputMode="numeric" placeholder="40702810..." {...bind('account', 20)} />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Банк" placeholder="ПАО «Сбербанк»" {...bind('bank')} />
-            <Field label="БИК" inputMode="numeric" placeholder="9 цифр" {...bind('bik', 9)} />
-          </div>
-          <Field label="Корр. счёт" inputMode="numeric" placeholder="30101810..." {...bind('corr', 20)} />
         </div>
 
         <div className="mt-7 flex flex-wrap gap-3">

@@ -322,7 +322,7 @@ Confident and few.
 
 ### Inputs / Fields
 - **Style:** 52px tall, 12px radius, Sheet fill, Hairline border, sheet shadow, 15px medium text, placeholder at 35% ink.
-- **Label:** 13px bold Soft Ink above the field; required star in blue.
+- **Label:** 13px bold Soft Ink above the field; required star in blue. **One marking rule everywhere (25.09):** a field that is checked as required carries the star, including fields that appear only after a choice («Чем вы занимаетесь?», «Какой счётчик?»); an optional field says so in its label («Телефон, необязательно», «Срок действия, необязательно»). No block-level «Необязательно» captions and no unmarked optional fields: an absent star alone went unnoticed.
 - **Focus:** border turns blue plus `ring-4 ring-brand/10` (the blue 1px border carries the contrast). Hover: border to Crease.
 - **Error:** danger border plus 12px semibold danger text under the field (`role="alert"`, so a screen reader announces it). Color is never the only signal. A group of tiles gets the same `role="alert"` line under it. A failed «Далее» / «Оплатить» calls `focusFirstError()` (`AnketaChrome.js`): the first invalid field or the first tile of the failed group is scrolled into view and focused — on phones the errors otherwise sat off-screen.
 - **Status announcements:** anything that changes state without moving the page («Скопировано», «Баланс пополнен», «Счёт выставлен», «Обращение отправлено», «Нашли по ИНН») is also spoken through `announce()` (`lib/announce.js`, one polite live region). A control that unmounts on success hands focus to the new panel (`data-panel-start`) or message, never to body; when focus lands on the message itself («Оплачено до …», «Код найден»), it is not announced a second time.
@@ -336,9 +336,11 @@ Confident and few.
 ### Segmented Control (`Segmented`)
 - Desk track with 4px padding and 12px radius; a blue thumb (8px radius, sheet shadow) slides under the chosen option with a 300ms transition. Options are 14px bold, unselected at 80% ink (not faded: an answer is still expected). With no value chosen, no thumb is shown. The client makes the choice; we never preselect.
 
-### Tabs (step 6 «Кто поставит код?»)
+### Tabs (step 6 «Способ установки»)
 - «Баланс и платежи» uses the same look for «Платежи / Документы», but those are links to two addresses (`nav` + `aria-current="page"`, `MoneyHeader`), not a `tablist`: arrow keys belong only to tabs that switch views on one page.
 - For switching between two views of the same task, not for answers: 14px bold labels, 28px apart, over a Hairline rule; the active tab is Ink with a 2px Ink underline (where you are), inactive at 60% ink. One tab is always open. Arrow keys move between tabs (`role="tablist"`/`tab`/`tabpanel`).
+
+**The Noun-Heading Rule (25.09).** Section and block headings in the anketa are nouns, like the rest of the cabinet («Данные, которые вы собираете», «Владелец сайта», «Рассылки, SMS и звонки клиентам об акциях», «Регистрация СМИ»). The options answer the noun, so a yes/no under a noun heading is «Есть / Нет», not «Да / Нет». Step leads stay on one line at desktop width.
 
 **The Answer-or-View Rule.** A Segmented control asks for an answer that ends up in the documents, so it starts empty and fills blue when chosen. Tabs switch what you see, so one is always open and they never fill. If a choice changes nothing but the view, it's tabs.
 

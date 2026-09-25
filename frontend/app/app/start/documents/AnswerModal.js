@@ -18,7 +18,7 @@ export const QUESTION_TITLES = {
   analytics: 'Счётчики на сайте',
   purposes: 'Цели сбора контактов',
   pdFields: 'Какие данные собираете',
-  promo: 'Пишете или звоните клиентам об акциях (рассылки, SMS, сообщения в мессенджерах)?',
+  promo: 'Рассылки, SMS и звонки клиентам об акциях',
 };
 
 const toggle = (list, value) => (list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -33,7 +33,7 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
   const [analyticsOther, setAnalyticsOther] = useState(a.analyticsOther || '');
   const [purposes, setPurposes] = useState((a.purposes || []).filter((v) => allowed.includes(v)));
   const [fields, setFields] = useState(a.pdFields || []);
-  const [promo, setPromo] = useState(typeof a.callsBase === 'boolean' ? (a.callsBase ? 'Да' : 'Нет') : null);
+  const [promo, setPromo] = useState(typeof a.callsBase === 'boolean' ? (a.callsBase ? 'Есть' : 'Нет') : null);
   const [error, setError] = useState(null);
   const [otherError, setOtherError] = useState(null);
 
@@ -56,8 +56,8 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
       if (!fields.length) return setError('Отметьте хотя бы одно: без состава данных политику и согласие составить нельзя.');
       patch = { pdFields: fields };
     } else if (kind === 'promo') {
-      if (!promo) return setError('Ответьте «Да» или «Нет».');
-      patch = { callsBase: promo === 'Да' };
+      if (!promo) return setError('Выберите «Есть» или «Нет».');
+      patch = { callsBase: promo === 'Есть' };
     }
     saveAnketa(patch);
     onSaved?.();
@@ -94,7 +94,7 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
               {analytics.includes('other') && (
                 <Field
                   className="mt-4"
-                  label="Какой счётчик?"
+                  label="Какой счётчик?" required
                   placeholder="Например: Top.Mail.Ru"
                   value={analyticsOther}
                   onChange={(e) => {
@@ -144,7 +144,7 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
           {kind === 'promo' && (
             <>
               <Segmented
-                options={['Да', 'Нет']}
+                options={['Есть', 'Нет']}
                 value={promo}
                 onChange={(v) => {
                   setPromo(v);
@@ -154,7 +154,7 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
               />
               {promo === 'Нет' && (
                 <p className="mt-3 text-[13px] leading-5 text-ink/60">
-                  Звонок или сообщение клиенту о новинке тоже считается рекламой, даже от менеджера: если такое бывает, ответьте «Да».
+                  Звонок или сообщение клиенту о новинке тоже считается рекламой, даже от менеджера: если такое бывает, выберите «Есть».
                   Согласие на рекламу в пакете будет при любом ответе.
                 </p>
               )}

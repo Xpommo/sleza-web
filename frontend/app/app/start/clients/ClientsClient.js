@@ -50,11 +50,11 @@ export default function ClientsClient() {
     const allowed = PURPOSE_MAP[a.sphere] || PURPOSE_MAP.other;
     if (a.purposes?.length) setPurposes(a.purposes.filter((v) => allowed.includes(v)));
     if (a.pdFields?.length) setFields(a.pdFields);
-    if (typeof a.callsBase === 'boolean') setPromo(a.callsBase ? 'Да' : 'Нет');
+    if (typeof a.callsBase === 'boolean') setPromo(a.callsBase ? 'Есть' : 'Нет');
     setRestored(true);
   }, []);
 
-  const answers = () => ({ purposes, pdFields: fields, callsBase: promo === null ? undefined : promo === 'Да' });
+  const answers = () => ({ purposes, pdFields: fields, callsBase: promo === null ? undefined : promo === 'Есть' });
 
   // Черновик пишется на каждое изменение, а не только по «Далее»: иначе
   // «Назад» и F5 теряют всё, что набрано на этом шаге. Пишем только после
@@ -86,7 +86,7 @@ export default function ClientsClient() {
     }
 
     if (!promo) {
-      setPromoError('Ответьте «Да» или «Нет»: от ответа зависят согласие и политика.');
+      setPromoError('Выберите «Есть» или «Нет»: от ответа зависят согласие и политика.');
       ok = false;
     } else {
       setPromoError(null);
@@ -108,7 +108,7 @@ export default function ClientsClient() {
               <div className="border-b border-line pb-7">
                 <SectionHead
                   id="h-fields"
-                  title="Какие данные собираете"
+                  title="Данные, которые вы собираете"
                   required
                   whyOpen={fieldsWhy}
                   onWhy={() => setFieldsWhy(!fieldsWhy)}
@@ -160,14 +160,14 @@ export default function ClientsClient() {
               <div className="pt-7">
                 <SectionHead
                   id="h-promo"
-                  title="Пишете или звоните клиентам об акциях (рассылки, SMS, сообщения в мессенджерах)?"
+                  title="Рассылки, SMS и звонки клиентам об акциях"
                   required
                   whyOpen={promoWhy}
                   onWhy={() => setPromoWhy(!promoWhy)}
-                  why="Для рассылок и звонков об акциях нужно отдельное согласие клиента. Если ответите «Да», назовём в нём ваши каналы связи."
+                  why="Для рассылок и звонков об акциях нужно отдельное согласие клиента. Если выберете «Есть», назовём в нём ваши каналы связи."
                 />
                 <div className="mt-5 inline-flex rounded-xl border border-line bg-warm p-1" role="group" aria-labelledby="h-promo">
-                  {['Да', 'Нет'].map((item) => (
+                  {['Есть', 'Нет'].map((item) => (
                     <button
                       key={item}
                       type="button"
@@ -189,8 +189,8 @@ export default function ClientsClient() {
                     согласие (владелец 24.09). Подсвечиваем именно этот случай. */}
                 {promo === 'Нет' && (
                   <p className="mt-3 max-w-2xl text-[13px] leading-5 text-ink/60">
-                    Звонок или сообщение клиенту о новинке тоже считается рекламой, даже от менеджера: если такое бывает, ответьте
-                    «Да». Согласие на рекламу в пакете будет при любом ответе.
+                    Звонок или сообщение клиенту о новинке тоже считается рекламой, даже от менеджера: если такое бывает, выберите
+                    «Есть». Согласие на рекламу в пакете будет при любом ответе.
                   </p>
                 )}
                 {promoError && <p role="alert" className="mt-3 text-[12px] font-semibold text-danger">{promoError}</p>}

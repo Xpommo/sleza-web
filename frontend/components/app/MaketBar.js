@@ -50,7 +50,6 @@ const CLIENTS = { purposes: ['booking', 'inquiry'], pdFields: ['name', 'phone', 
 const REQ = {
   owner: 'ООО', inn: '7701234567', companyName: 'ООО «Альфа Образование»', ogrn: '1157746112233', kpp: '770101001',
   address: '119019, Москва, ул. Воздвиженка, д. 10',
-  bank: { account: '40702810900000012345', bank: 'ПАО «Сбербанк»', bik: '044525225', corr: '30101810400000000225' },
   license: { has: 'Да', no: 'Л035-01298-77/00123456', date: 'бессрочная', org: 'Департамент образования и науки города Москвы' },
   itAccred: null, softRegistry: null,
   contacts: { companyMail: 'info@alfa-school.ru', companyPhone: '+7 (495) 123-45-67', postAddress: '', pdContact: 'pd@alfa-school.ru' },

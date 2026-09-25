@@ -34,15 +34,6 @@ const LICENSE_SPHERES = {
   kids: 'Детский центр, кружки, секции',
 };
 
-// Банк и корсчёт однозначно определяются БИК — вводить их незачем. В
-// прототипе — несколько настоящих банков для демонстрации (как подстановка
-// по ИНН); в продукте — справочник БИК Банка России. Не нашли — поля вручную.
-const BIK_LOOKUP = {
-  '044525225': { bank: 'ПАО «Сбербанк»', corr: '30101810400000000225' },
-  '044525974': { bank: 'АО «ТБанк»', corr: '30101810145250000974' },
-  '044525593': { bank: 'АО «Альфа-Банк»', corr: '30101810200000000593' },
-  '044525187': { bank: 'Банк ВТБ (ПАО)', corr: '30101810700000000187' },
-};
 
 // Найденное — карточкой на проверку, а не пятью открытыми полями
 // (владелец 23.09: блок реквизитов был слишком большим). «Изменить»
@@ -133,17 +124,6 @@ export default function RequisitesClient() {
   // человек заполняет сам, не перезаписываются и не сворачиваются (владелец 24.09).
   const [regManual, setRegManual] = useState(false);
 
-  const [account, setAccount] = useState('');
-  const [accountError, setAccountError] = useState(null);
-  const [bank, setBank] = useState('');
-  const [bankError, setBankError] = useState(null);
-  const [bik, setBik] = useState('');
-  const [bikError, setBikError] = useState(null);
-  const [corr, setCorr] = useState('');
-  const [corrError, setCorrError] = useState(null);
-  const [bankWhy, setBankWhy] = useState(false);
-  const [bankEdit, setBankEdit] = useState(false);
-  const [bankManual, setBankManual] = useState(false);
 
   const [license, setLicense] = useState(null);
   const [licenseError, setLicenseError] = useState(null);
@@ -200,12 +180,6 @@ export default function RequisitesClient() {
     setKpp(a.kpp || '');
     setAddress(a.address || '');
     setInnFound(Boolean(a.inn && a.companyName));
-    if (a.bank) {
-      setAccount(a.bank.account || '');
-      setBank(a.bank.bank || '');
-      setBik(a.bank.bik || '');
-      setCorr(a.bank.corr || '');
-    }
     if (a.license) {
       // Старые ответы «Да / Нет / В процессе» — в новые слова (владелец 25.09).
       setLicense({ Да: 'Есть', Нет: 'Не нужна', 'В процессе': 'Оформляем' }[a.license.has] ?? a.license.has ?? null);
@@ -218,7 +192,7 @@ export default function RequisitesClient() {
     setItAccredNo(a.itAccredNo || '');
     setSoftRegistryNo(a.softRegistryNo || '');
     if (a.mediaReg) {
-      setMedia(a.mediaReg.has ?? null);
+      setMedia(a.mediaReg.has === 'Да' ? 'Есть' : a.mediaReg.has ?? null);
       setMediaNo(a.mediaReg.no || '');
       setMediaDate(a.mediaReg.date || '');
       setMediaOrg(a.mediaReg.org ?? 'Роскомнадзор');
@@ -235,7 +209,6 @@ export default function RequisitesClient() {
   function answers() {
     return {
       owner, inn, companyName: name, ogrn, kpp, address,
-      bank: { account, bank, bik, corr },
       license: licenseSphere ? { has: license, no: licenseNo, date: licenseDate, org: licenseOrg } : null,
       itAccred, softRegistry,
       itAccredNo: itAccred === 'Есть' ? itAccredNo : '',
@@ -252,7 +225,7 @@ export default function RequisitesClient() {
     if (restored) saveAnketa(answers());
     // answers() читает те же значения, что перечислены здесь
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restored, owner, inn, name, ogrn, kpp, address, account, bank, bik, corr,
+  }, [restored, owner, inn, name, ogrn, kpp, address,
       license, licenseNo, licenseDate, licenseOrg, itAccred, softRegistry, itAccredNo, softRegistryNo, media, mediaNo, mediaDate, mediaOrg,
       companyMail, companyPhone, postAddress, pdContact, pdSame]);
   const [pdContactError, setPdContactError] = useState(null);
@@ -321,7 +294,7 @@ export default function RequisitesClient() {
   // карточку (владелец 23.09). С ошибкой не сворачиваем — карточка спрятала бы
   // неверные данные.
   function doneFields(keys) {
-    const e = validateRequisites({ owner, inn, name, ogrn, kpp, address, account, bank, bik, corr, companyMail, companyPhone });
+    const e = validateRequisites({ owner, inn, name, ogrn, kpp, address, companyMail, companyPhone });
     let bad = false;
     keys.forEach(([key, set]) => {
       set(e[key] || null);
@@ -332,37 +305,6 @@ export default function RequisitesClient() {
   function doneRegistry() {
     if (doneFields([['inn', setInnError], ['name', setNameError], ['ogrn', setOgrnError], ['kpp', setKppError], ['address', setAddressError]])) setRegEdit(false);
   }
-  function doneBank() {
-    if (doneFields([['bik', setBikError], ['bank', setBankError], ['corr', setCorrError]])) setBankEdit(false);
-  }
-
-  const lastBank = useRef({});
-  function applyBik(value, manual = bankManual) {
-    setBik(value);
-    setBikError(null);
-    if (value.length !== 9 || manual) return;
-    const found = BIK_LOOKUP[value];
-    const last = lastBank.current;
-    if (!found) {
-      // Подставленное по прошлому БИК к новому не относится — стираем; то,
-      // что человек ввёл руками, не трогаем.
-      if (bank && bank === last.bank) setBank('');
-      if (corr && corr === last.corr) setCorr('');
-      lastBank.current = {};
-      setBankEdit(true);
-      return;
-    }
-    if (!bank || bank === last.bank) setBank(found.bank);
-    if (!corr || corr === last.corr) setCorr(found.corr);
-    lastBank.current = found;
-    setBankError(null);
-    setCorrError(null);
-    setBankEdit(false);
-  }
-  function onBikChange(e) {
-    applyBik(digitsOnly(e.target.value).slice(0, 9));
-  }
-
   function pickOwner(item) {
     setOwner(item);
     setOwnerError(null);
@@ -396,26 +338,21 @@ export default function RequisitesClient() {
 
     // Реквизиты проверяются общими правилами — теми же, что у окна
     // «Реквизиты владельца» в кабинете.
-    const e = validateRequisites({ owner, inn, name, ogrn, kpp, address, account, bank, bik, corr, companyMail, companyPhone });
+    const e = validateRequisites({ owner, inn, name, ogrn, kpp, address, companyMail, companyPhone });
     const put = (setter, key) => (e[key] ? fail(setter, e[key]) : setter(null));
     put(setInnError, 'inn');
     put(setNameError, 'name');
     put(setOgrnError, 'ogrn');
     put(setKppError, 'kpp');
     put(setAddressError, 'address');
-    put(setAccountError, 'account');
-    put(setBankError, 'bank');
-    put(setBikError, 'bik');
-    put(setCorrError, 'corr');
     // Ошибка в свёрнутых полях не должна прятаться за карточкой: открываем их.
     // Пока ИНН не введён, хватает ошибки у самого ИНН.
     if (!e.inn && (e.name || e.ogrn || e.kpp || e.address)) setRegEdit(true);
-    if (!e.bik && (e.bank || e.corr)) setBankEdit(true);
 
     if (showMedia) {
       if (!media) fail(setMediaError, 'Ответьте, зарегистрирован ли сайт как СМИ: от этого зависит, что показать в подвале.');
       else setMediaError(null);
-      if (media === 'Да') {
+      if (media === 'Есть') {
         if (!mediaNo.trim()) fail(setMediaNoError, 'Укажите номер свидетельства: он публикуется вместе с реквизитами.');
         else setMediaNoError(null);
         if (!mediaOrg.trim()) fail(setMediaOrgError, 'Укажите, кто зарегистрировал СМИ.');
@@ -466,7 +403,7 @@ export default function RequisitesClient() {
               {/* «Кто владеет сайтом» подрядчик читал как вопрос о себе и отвечал
                   формой своей компании (владелец 23.09). Варианты — в самом
                   вопросе; «Зачем» не нужен: из вопроса понятно, что выбираешь. */}
-              <SectionHead id="h-owner" title="Владелец сайта — ООО, ИП или самозанятый?" required />
+              <SectionHead id="h-owner" title="Владелец сайта" required />
               <div className="mt-5">
                 <Segmented options={OWNERS} value={owner} onChange={pickOwner} ariaLabelledby="h-owner" />
               </div>
@@ -602,120 +539,9 @@ export default function RequisitesClient() {
                 </button>
               )}
 
-              <div className="my-7 h-px bg-line" />
-
-              {/* Банк — такой же блок, как соседние: серая подложка выделяла его
-                  как особенный, хотя он не важнее реестра и контактов. */}
-              <div>
-                <BlockHead
-                  id="h-bank"
-                  icon={BankIcon}
-                  title="Банковские реквизиты"
-                  note="Необязательно"
-                  why="Если укажете, покажем их в «Реквизитах владельца» на вашем сайте: по ним клиенты смогут платить вам по счёту."
-                  whyOpen={bankWhy}
-                  onWhy={() => setBankWhy(!bankWhy)}
-                />
-                <div className="mt-5 grid gap-5 md:grid-cols-2">
-                  <Field
-                    label="БИК"
-                    placeholder="9 цифр"
-                    icon={InfoIcon}
-                    badge={bankManual ? null : 'Банк подставим по БИК'}
-                    inputMode="numeric"
-                    name="bik"
-                    autoComplete="off"
-                    maxLength={9}
-                    value={bik}
-                    onChange={onBikChange}
-                    error={bikError}
-                  />
-                  <Field
-                    label="Расчётный счёт"
-                    /* Счета начинаются по-разному: у ООО 40702…, у ИП 40802…, у
-                       самозанятого обычно личный 40817… (разбор 25.09: 40702 у ИП
-                       бухгалтер замечает сразу). */
-                    placeholder={owner === 'Самозанятый' ? '40817810...' : owner === 'ИП' ? '40802810...' : '40702810...'}
-                    icon={BankIcon}
-                    inputMode="numeric"
-                    name="account"
-                    autoComplete="off"
-                    value={account}
-                    onChange={(e) => {
-                      setAccount(digitsOnly(e.target.value).slice(0, 20));
-                      setAccountError(null);
-                    }}
-                    error={accountError}
-                  />
-                </div>
-                {!bankEdit && bik.length === 9 && bank && corr ? (
-                  <FoundCard
-                    note={bank === lastBank.current.bank && corr === lastBank.current.corr ? 'Нашли по БИК, проверьте' : 'Проверьте, что всё верно'}
-                    title={bank}
-                    lines={[`Корреспондентский счёт ${corr}`]}
-                    onEdit={() => setBankEdit(true)}
-                  />
-                ) : (
-                  bankEdit && (
-                    <EditCard
-                      note={bik.length === 9 && !BIK_LOOKUP[bik] && !bank ? 'Не нашли банк по БИК, заполните вручную' : 'Редактирование'}
-                      onDone={bik.length === 9 ? doneBank : null}
-                    >
-                        <Field
-                          label="Банк"
-                          required
-                          placeholder="ПАО «Сбербанк»"
-                          icon={BuildingIcon}
-                          value={bank}
-                          onChange={(e) => {
-                            setBank(e.target.value);
-                            setBankError(null);
-                          }}
-                          error={bankError}
-                        />
-                        <Field
-                          label="Корреспондентский счёт"
-                          required
-                          placeholder="30101810..."
-                          icon={BankIcon}
-                          inputMode="numeric"
-                          value={corr}
-                          onChange={(e) => {
-                            setCorr(digitsOnly(e.target.value).slice(0, 20));
-                            setCorrError(null);
-                          }}
-                          error={corrError}
-                        />
-                    </EditCard>
-                  )
-                )}
-                {/* Как у ИНН: «вручную» — и подстановка по БИК больше не
-                    вмешивается в то, что человек вводит сам (владелец 24.09). */}
-                {!bankEdit && !(bik.length === 9 && bank && corr) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBankManual(true);
-                      setBankEdit(true);
-                    }}
-                    className={LINK_BTN}
-                  >
-                    Заполнить вручную
-                  </button>
-                )}
-                {bankManual && bankEdit && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBankManual(false);
-                      applyBik(bik, false);
-                    }}
-                    className={LINK_BTN}
-                  >
-                    Подставить по БИК
-                  </button>
-                )}
-              </div>
+              {/* Банковских реквизитов нет (владелец 25.09): на сайте их закон не
+                  требует, а обязательный счёт был главной точкой отвала — «зачем
+                  им мой счёт?». Для счетов на оплату нам хватает ИНН, КПП и адреса. */}
 
               {/* Блок появляется только там, где есть что спрашивать: лицензия
                   по лицензируемым сферам, аккредитация и реестр ПО — у ООО в ИТ. */}
@@ -773,7 +599,7 @@ export default function RequisitesClient() {
                             error={licenseNoError}
                           />
                           <Field
-                            label="Срок действия"
+                            label="Срок действия, необязательно"
                             placeholder="бессрочная или до 01.01.2030"
                             icon={InfoIcon}
                             value={licenseDate}
@@ -807,10 +633,10 @@ export default function RequisitesClient() {
                   {showMedia && (
                     <div className="mt-5">
                       <p id="h-media" className="mb-3 text-sm font-bold text-ink-2">
-                        Сайт зарегистрирован как СМИ? <span className="text-brand">*</span>
+                        Регистрация СМИ <span className="text-brand">*</span>
                       </p>
                       <Segmented
-                        options={['Да', 'Нет']}
+                        options={['Есть', 'Нет']}
                         value={media}
                         onChange={(v) => {
                           setMedia(v);
@@ -819,7 +645,7 @@ export default function RequisitesClient() {
                         ariaLabelledby="h-media"
                       />
                       {mediaError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{mediaError}</p>}
-                      {media === 'Да' && (
+                      {media === 'Есть' && (
                         <div className="mt-5 grid gap-5 md:grid-cols-2">
                           <Field
                             label="Номер свидетельства"
@@ -834,7 +660,7 @@ export default function RequisitesClient() {
                             error={mediaNoError}
                           />
                           <Field
-                            label="Дата регистрации"
+                            label="Дата регистрации, необязательно"
                             placeholder="01.01.2024"
                             icon={InfoIcon}
                             value={mediaDate}

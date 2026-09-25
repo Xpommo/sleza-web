@@ -186,7 +186,7 @@ export default function SiteClient() {
   }
 
   return (
-    <AnketaFrame current={1} title="О сайте" lead={<>По ответам на пять вопросов соберём документы под ваш сайт. Около 2 минут.</>}>
+    <AnketaFrame current={1} title="О сайте" lead={<>По ответам на пять вопросов соберём документы под ваш сайт.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {/* Адрес и сфера — такими же вопросами с заголовком, как остальные
@@ -274,7 +274,7 @@ export default function SiteClient() {
                   <div className="overflow-hidden">
                     <div className="pt-3">
                       <Field
-                        label="Чем вы занимаетесь?"
+                        label="Чем вы занимаетесь?" required
                         placeholder="Например: питомник растений, автосервис, типография"
                         value={sphereOther}
                         onChange={(e) => {
@@ -312,7 +312,7 @@ export default function SiteClient() {
                 {platform === 'Другое' && (
                   <div className="mt-3">
                     <Field
-                      label="Какая платформа?"
+                      label="Какая платформа?" required
                       placeholder="Например: Webflow, Joomla, самописный сайт"
                       value={platformOther}
                       onChange={(e) => {
@@ -368,7 +368,7 @@ export default function SiteClient() {
                 {analytics.includes('other') && (
                   <div className="mt-3">
                     <Field
-                      label="Какой счётчик?"
+                      label="Какой счётчик?" required
                       placeholder="Например: Top.Mail.Ru, LiveInternet"
                       value={analyticsOther}
                       onChange={(e) => {

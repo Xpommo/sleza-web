@@ -449,7 +449,6 @@ export default function BillingClient({ mode = 'money' }) {
   const main = sites[0];
   const single = sites.length === 1;
   const req = a.contacts || {};
-  const account = a.bank?.account || '';
   const renewal = nextRenewal(sites);
   // Нехватка на балансе — только близкая: «не хватает» за год до списания
   // (сразу после оплаты года) было не предупреждением, а придиркой.
@@ -697,7 +696,7 @@ export default function BillingClient({ mode = 'money' }) {
     setTimeout(() => setCopied(null), 2000);
   }
 
-  const payerNote = [a.inn && `ИНН ${a.inn}`, req.companyMail, req.companyPhone, account && `счёт …${account.slice(-4)}`]
+  const payerNote = [a.inn && `ИНН ${a.inn}`, req.companyMail, req.companyPhone]
     .filter(Boolean)
     .join(' · ');
 

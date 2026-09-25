@@ -51,7 +51,7 @@ export default function DocumentsClient() {
   }, []);
 
   return (
-    <AnketaFrame current={4} title="Пакет документов" lead={<>Пять документов для <span className="font-semibold text-ink">{domain}</span> готовы. Ваши ответы в тексте выделены, проверьте их. На сайте документы появятся, когда поставите код.</>}>
+    <AnketaFrame current={4} title="Пакет документов" lead={<>Пять документов для <span className="font-semibold text-ink">{domain}</span> готовы. Проверьте ваши ответы, они выделены в тексте.</>}>
 
             <section className="mb-7">
               <DocRowList withStatus={false}>

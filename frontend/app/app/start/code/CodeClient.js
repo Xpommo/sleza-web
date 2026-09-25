@@ -34,13 +34,6 @@ const SHARE_BTN = `inline-flex h-11 items-center justify-center gap-2 rounded-xl
 
 // Инструкция зависит от платформы, названной на «О сайте»: на документы она
 // не влияет, а вот куда именно вставлять код — влияет только она.
-// Что может помешать на платформе ещё до инструкции. Тильда: свой код в
-// head вставляется только на платном тарифе (Personal или Business, справка
-// Тильды), на бесплатном человек застревал, не понимая почему (разбор 25.09).
-const PLATFORM_NOTE = {
-  'Тильда': 'На бесплатном тарифе Тильды вставить свой код нельзя: нужен тариф Personal или Business.',
-};
-
 const PLATFORM_STEPS = {
   'Тильда': [
     'Откройте настройки сайта → «Ещё» → «HTML-код для вставки внутрь head».',
@@ -242,12 +235,12 @@ export default function CodeClient() {
   }
 
   return (
-    <AnketaFrame current={5} title="Установка" nextLabel={found || (effectiveMode === 'Поручу другому' && shared) ? 'В кабинет' : effectiveMode === 'Поставлю сам' ? 'Проверить' : canShare ? 'Поделиться' : 'Отправить'} lead={<>Поставьте на сайт одну строку кода. Как только увидим её, включим документы и виджет на {TRIAL_DAYS} дней бесплатно.</>}>
+    <AnketaFrame current={5} title="Установка" nextLabel={found || (effectiveMode === 'Поручу другому' && shared) ? 'В кабинет' : effectiveMode === 'Поставлю сам' ? 'Проверить' : canShare ? 'Поделиться' : 'Отправить'} lead={<>Как только код встанет на сайт, включим документы и виджет на {TRIAL_DAYS} дней бесплатно.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {!isContractor && (
                 <>
-                  <SectionHead id="h-mode" title="Кто поставит код?" />
+                  <SectionHead id="h-mode" title="Способ установки" />
                   <ModeTabs mode={mode} onChange={setMode} />
                 </>
               )}
@@ -321,9 +314,6 @@ export default function CodeClient() {
                       )}
                       {/* Пункты списком, без кружков-номеров: нумерация внутри
                           «Шага 6 из 6» спорила со счётчиком самой анкеты. */}
-                      {PLATFORM_NOTE[platform] && (
-                        <p className="mt-4 rounded-lg bg-warn/10 px-3 py-2.5 text-[13px] leading-5 text-warn-ink">{PLATFORM_NOTE[platform]}</p>
-                      )}
                       <ul className="mt-4 space-y-2.5">
                         {steps.map((t) => (
                           <li key={t} className="flex gap-3 text-sm leading-5 text-ink/70">
@@ -342,7 +332,7 @@ export default function CodeClient() {
                       <p className="mt-1 text-sm text-ink/60">Удобнее с компьютера: пришлём код и инструкцию на ваш e-mail.</p>
                       <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                         <Field
-                          label="E-mail"
+                          label="E-mail" required
                           placeholder="kirill@alfa-school.ru"
                           icon={MailIcon}
                           type="email"
@@ -438,7 +428,7 @@ export default function CodeClient() {
                         {mailOpen && (
                           <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                             <Field
-                              label="E-mail того, кто ведёт сайт"
+                              label="E-mail того, кто ведёт сайт" required
                               placeholder="webmaster@alfa-school.ru"
                               icon={MailIcon}
                               type="email"

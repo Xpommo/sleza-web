@@ -148,7 +148,7 @@ export default function ProfileClient() {
   }
 
   return (
-    <AnketaFrame current={0} title="Ваш профиль" lead={<>Шесть шагов, и у вас будет пакет документов и строка кода для сайта. Сначала о вас, чтобы знать, кому писать об обновлениях. Потом сайт и компания: понадобится ИНН.</>}>
+    <AnketaFrame current={0} title="Ваш профиль" lead={<>Шесть шагов, 10–15 минут. Сначала о вас, потом сайт и компания, понадобится ИНН.</>}>
 
             <div className="mb-6 flex items-center justify-between">
               <div className="flex min-w-0 items-center gap-3">

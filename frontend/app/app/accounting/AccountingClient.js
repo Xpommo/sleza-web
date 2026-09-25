@@ -87,6 +87,7 @@ export default function AccountingClient() {
                     <div className="flex-1">
                       <Field
                         label="E-mail для документов"
+                  required
                         type="email"
                         placeholder={`buh@${a.domain}`}
                         value={email}

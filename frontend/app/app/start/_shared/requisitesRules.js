@@ -23,7 +23,8 @@ export function ownerLabels(owner) {
   };
 }
 
-// v: { owner, inn, name, ogrn, kpp, address, account, bank, bik, corr, companyMail, companyPhone }
+// v: { owner, inn, name, ogrn, kpp, address, companyMail, companyPhone }
+// Банковских реквизитов нет (владелец 25.09): на сайте их закон не требует.
 // Возвращает { поле: сообщение } — пустой объект, если всё верно.
 export function validateRequisites(v) {
   const L = ownerLabels(v.owner);
@@ -44,19 +45,6 @@ export function validateRequisites(v) {
   if (L.isOoo && !digitsOnly(v.kpp)) e.kpp = 'Укажите КПП.';
   else if (L.isOoo && digitsOnly(v.kpp).length !== 9) e.kpp = 'КПП — 9 цифр.';
   if (!String(v.address || '').trim()) e.address = 'Укажите адрес: он попадёт в реквизиты на сайте.';
-  // Банковские реквизиты необязательны (владелец 25.09): закон не требует их
-  // на сайте, а обязательный счёт был главной точкой отвала («зачем им мой
-  // счёт?»). Начал заполнять — тогда нужны все четыре поля.
-  const bankAny = [v.account, v.bik, v.bank, v.corr].some((x) => String(x || '').trim());
-  if (bankAny) {
-    if (!digitsOnly(v.account)) e.account = 'Укажите расчётный счёт.';
-    else if (digitsOnly(v.account).length !== 20) e.account = 'Расчётный счёт — 20 цифр. Проверьте, не пропущена ли часть номера.';
-    if (!String(v.bank || '').trim()) e.bank = 'Укажите банк: в нём открыт расчётный счёт из поля выше.';
-    if (!digitsOnly(v.bik)) e.bik = 'Укажите БИК.';
-    else if (digitsOnly(v.bik).length !== 9) e.bik = 'БИК — 9 цифр.';
-    if (!digitsOnly(v.corr)) e.corr = 'Укажите корреспондентский счёт.';
-    else if (digitsOnly(v.corr).length !== 20) e.corr = 'Корреспондентский счёт — 20 цифр. Проверьте, не пропущена ли часть номера.';
-  }
   if (!EMAIL_RE.test(String(v.companyMail || '').trim())) e.companyMail = 'Нужен e-mail вида name@site.ru: его увидят в реквизитах на сайте.';
   const phone = normalizePhone(v.companyPhone);
   if (phone.length <= 1) e.companyPhone = 'Укажите телефон: он попадёт в реквизиты на сайте.';

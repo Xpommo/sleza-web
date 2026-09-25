@@ -385,7 +385,7 @@ export function Segmented({ options, value, onChange, ariaLabelledby }) {
 // Без строки-пояснения под заголовком — ни здесь, ни в SectionHead (владелец
 // 23.09): она стояла у одних вопросов и не стояла у других, и шаг читался
 // рваным. Заголовок понятен сам, объяснение — только в «Зачем это нужно».
-export function BlockHead({ id, icon: Icon, title, note, why, whyOpen, onWhy }) {
+export function BlockHead({ id, icon: Icon, title, why, whyOpen, onWhy }) {
   return (
     <div>
       <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-4">
@@ -397,7 +397,6 @@ export function BlockHead({ id, icon: Icon, title, note, why, whyOpen, onWhy }) 
             <h2 id={id} className="text-lg font-bold tracking-tight">
               {title}
             </h2>
-            {note && <p className="mt-0.5 text-[12px] text-ink/60">{note}</p>}
           </div>
         </div>
         {why && <WhyButton open={whyOpen} onClick={onWhy} />}

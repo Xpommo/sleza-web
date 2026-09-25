@@ -15,7 +15,8 @@ import { saveSiteFields, siteAnketa } from './sites';
 import { digitsOnly, ownerLabels, validateRequisites } from '../../start/_shared/requisitesRules';
 import { RING, useDialog } from './SiteChrome';
 
-const KEYS = ['inn', 'name', 'ogrn', 'kpp', 'address', 'account', 'bank', 'bik', 'corr', 'companyMail', 'companyPhone'];
+// Без банковских реквизитов (владелец 25.09), как на шаге «Реквизиты».
+const KEYS = ['inn', 'name', 'ogrn', 'kpp', 'address', 'companyMail', 'companyPhone'];
 
 function fromAnketa(a) {
   return {
@@ -25,10 +26,6 @@ function fromAnketa(a) {
     ogrn: a.ogrn || '',
     kpp: a.kpp || '',
     address: a.address || '',
-    account: a.bank?.account || '',
-    bank: a.bank?.bank || '',
-    bik: a.bank?.bik || '',
-    corr: a.bank?.corr || '',
     companyMail: a.contacts?.companyMail || '',
     companyPhone: a.contacts?.companyPhone || '',
   };
@@ -68,7 +65,6 @@ export default function RequisitesModal({ onClose, onSaved, track = true }) {
         ogrn: v.ogrn,
         kpp: v.kpp,
         address: v.address,
-        bank: { ...a.bank, account: v.account, bank: v.bank, bik: v.bik, corr: v.corr },
         contacts: { ...a.contacts, companyMail: v.companyMail, companyPhone: v.companyPhone },
         // Реквизиты стоят в документе «Реквизиты владельца» — правка
         // выпускает его новую версию, и она видна в истории изменений.
@@ -122,14 +118,6 @@ export default function RequisitesModal({ onClose, onSaved, track = true }) {
               error={err.companyPhone}
             />
           </div>
-          {/* Банк необязателен, как на шаге «Реквизиты» (владелец 25.09). */}
-          <p className="text-[12px] font-semibold text-ink/60">Банковские реквизиты, необязательно</p>
-          <Field label="Расчётный счёт" inputMode="numeric" placeholder={v.owner === 'Самозанятый' ? '40817810...' : v.owner === 'ИП' ? '40802810...' : '40702810...'} {...bind('account', { digits: 20 })} />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Банк" placeholder="ПАО «Сбербанк»" {...bind('bank')} />
-            <Field label="БИК" inputMode="numeric" placeholder="9 цифр" {...bind('bik', { digits: 9 })} />
-          </div>
-          <Field label="Корреспондентский счёт" inputMode="numeric" placeholder="30101810..." {...bind('corr', { digits: 20 })} />
         </div>
 
         <div className="mt-7 flex flex-wrap gap-3">
