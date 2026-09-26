@@ -495,7 +495,7 @@ export default function CodeClient() {
               {!(found || (effectiveMode === 'Поручу другому' && shared)) && (
                 <div className="mt-8 flex flex-col items-center gap-3 border-t border-line pt-6 text-center">
                   <p className="text-[13px] leading-5 text-ink/60">
-                    Пробный период на {TRIAL_DAYS} дней бесплатно начнётся сам, как только увидим код на сайте. Дальше {PRICE_LABEL} в год.
+                    После пробного периода подписка стоит {PRICE_LABEL} в год.
                   </p>
                   <button
                     type="button"

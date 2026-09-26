@@ -12,7 +12,7 @@ import { SITE_ID, operatorName } from '../../../lib/docPackage';
 import { AccountSidebar, RING, usePopup } from '../site/_shared/SiteChrome';
 import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
 import SiteOffModal from './SiteOffModal';
-import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, Panel, Row } from './BillingBits';
+import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, NoSiteMoney, Panel, Row } from './BillingBits';
 import { announce } from '../../../lib/announce';
 import {
   accountSites, balanceOf, currentSiteKey, debitShortfall, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite, payYearFromBalance,
@@ -85,7 +85,7 @@ function badgeOf(site) {
     case 'paid':
       return ['ok', `Оплачено до ${site.period.to}`];
     case 'off-soon':
-      return ['beige', `До ${site.until} · Без продления`];
+      return ['beige', `До ${site.until} · без продления`];
     case 'trial':
       return ['info', `Бесплатно до ${site.trialTo}`];
     case 'expired':
@@ -93,7 +93,9 @@ function badgeOf(site) {
     case 'pending':
       return ['warn', 'Ждёт оплаты по счёту'];
     default:
-      return ['muted', site.label === 'код не установлен' ? 'Код не установлен' : 'Анкета не закончена'];
+      // Те же слова, что в карточках «Моих сайтов» и на «Обзоре»: одно
+      // состояние — одно имя (Иван; аудит 26.09). Подробность — строкой ниже.
+      return ['muted', site.label === 'код не установлен' ? 'Документы собраны' : 'Документы не готовы'];
   }
 }
 
@@ -239,10 +241,12 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
   // карта с автопополнением. Иначе «оплатите до …» (разбор 25.09: «карту я не
   // привязывал, откуда спишете?»), при выставленном счёте — «ждём оплату».
   // Жёлтое «Не хватает» — по-прежнему только в последние дни (владелец 23.09).
+  const notReadyLine = site.kind === 'not-ready' && <p className="mt-1 text-[12px] text-ink/60">{site.label}</p>;
   const expiredLine = site.kind === 'expired' && (
     <p className={`mt-1 text-[12px] ${site.grace ? 'font-semibold text-warn-ink' : 'text-ink/60'}`}>{site.label}</p>
   );
   const debitLine =
+    notReadyLine ||
     expiredLine ||
     manualLine ||
     noTariffLine ||
@@ -250,7 +254,7 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
     (short ? (
       <p className="mt-1 text-[12px] font-semibold text-warn-ink">Не хватает {formatRub(short)} на год</p>
     ) : unfunded ? (
-      <p className="mt-1 text-[12px] text-ink/60">{invoice ? 'ждём оплату счёта' : `оплатите год до ${debit}`}</p>
+      <p className="mt-1 text-[12px] text-ink/60">{invoice ? 'ждём оплату счёта' : `к ${debit} нужно ${PRICE_TEXT} на балансе`}</p>
     ) : (
       <p className="mt-1 text-[12px] text-ink/60">
         {debit} спишем {PRICE_TEXT}
@@ -259,7 +263,9 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
   // Оплата года — на виду, в колонке «Статус и оплата», тем же видом, что
   // «Сменить» у тарифа (владелец 24.09: раньше пряталась в «⋯»). Ждёт оплаты по
   // счёту, отключается или анкета не закончена — платить нечего.
-  const payLabel = site.kind === 'paid' ? 'Продлить на год' : site.kind === 'trial' || site.kind === 'expired' ? 'Оплатить год' : null;
+  // «Оплатить» / «Продлить» без «год» (владелец 26.09): платить можно и за
+  // несколько лет вперёд, каждое нажатие — ещё год.
+  const payLabel = site.kind === 'paid' ? 'Продлить' : site.kind === 'trial' || site.kind === 'expired' ? 'Оплатить' : null;
   const payBtn = payLabel && (
     <p className="mt-1">
       <button
@@ -385,11 +391,15 @@ export default function BillingClient({ mode = 'money' }) {
   const [opsAll, setOpsAll] = useState(false);
   // «Посмотреть историю счетов» в «⋯» сайта — история только его.
   const [historyFor, setHistoryFor] = useState(null);
+  const [noSite, setNoSite] = useState(false);
 
   useEffect(() => {
     const saved = loadAnketa();
+    // Сайтов ещё нет: не перекидываем молча в «Мои сайты» (аудит 26.09 —
+    // пункт меню «Баланс и платежи» делал не то, что называл), а говорим прямо.
     if (!saved.domain && !sitesMode) {
-      router.replace('/app/sites');
+      setNoSite(true);
+      setUser(accountUser(CURRENT_USER));
       return;
     }
     const q = new URLSearchParams(window.location.search);
@@ -438,6 +448,7 @@ export default function BillingClient({ mode = 'money' }) {
     return () => clearInterval(id);
   }, [router]);
 
+  if (noSite) return <NoSiteMoney tab="Платежи" user={user} />;
   if (!a) return null;
 
   const b = a.billing || {};
@@ -1300,15 +1311,15 @@ export default function BillingClient({ mode = 'money' }) {
           {notReady ? (
             <section className="mt-6 rounded-2xl border border-warn/30 bg-warn/[0.06] p-6 shadow-sm sm:p-7">
               <h2 className="text-lg font-bold tracking-[-0.02em]">
-                {(a.stepsDone || 0) >= 4 ? 'Документы собраны, код не установлен' : 'Анкета не закончена'}
+                {(a.stepsDone || 0) >= 4 ? 'Документы собраны' : 'Документы не готовы'}
               </h2>
               <p className="mt-3 text-sm leading-6 text-ink/65">
                 {(a.stepsDone || 0) >= 4
                   ? `Пакет готов. Как только код встанет на сайт, включим документы и виджет на ${TRIAL_DAYS} дней бесплатно.`
-                  : 'Документы собираем по ответам анкеты.'}
+                  : 'Анкета не закончена: документы собираем по её ответам.'}
               </p>
               <button type="button" onClick={() => router.push(STEP_URLS[Math.min(a.stepsDone || 0, 5)])} className={`mt-5 ${PRIMARY}`}>
-                {(a.stepsDone || 0) >= 4 ? 'Поставить код на сайт' : 'Продолжить анкету'} <ArrowRightIcon size={16} />
+                {(a.stepsDone || 0) >= 5 ? 'Поставить код на сайт' : (a.stepsDone || 0) === 4 ? 'Проверить документы' : 'Продолжить анкету'} <ArrowRightIcon size={16} />
               </button>
             </section>
           ) : (
@@ -1321,7 +1332,7 @@ export default function BillingClient({ mode = 'money' }) {
                     <p className="mt-1 text-[28px] font-bold leading-none tracking-[-0.03em]">{formatRub(balance)}</p>
                     <p className="mt-2 text-[13px] leading-5 text-ink/60">
                       {renewal
-                        ? `Ближайшее списание: ${renewal.date} · ${renewal.site.domain} · ${renewal.site.tariff ? PRICE_TEXT : 'после выбора тарифа'}`
+                        ? `Ближайшая оплата: ${renewal.date} · ${renewal.site.domain} · ${renewal.site.tariff ? PRICE_TEXT : 'после выбора тарифа'}`
                         : 'С баланса оплачивается год каждого сайта в его дату продления.'}
                     </p>
                     {autoCard && shortSum > 0 && renewal?.site.tariff && (

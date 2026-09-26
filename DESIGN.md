@@ -330,7 +330,7 @@ Confident and few.
 
 ### Choice Tile (`Tile`)
 - **Style:** 12px radius, Sheet, Hairline border, 16px padding, min-height 58px (compact) or 78px. Title only, no caption.
-- **Selected:** blue border, brand 5% fill, `ring-2 ring-brand/10`, square marker filled blue with a white check.
+- **Selected:** blue border, brand 5% fill, `ring-2 ring-brand/10`. The marker says how many answers the question takes (owner 26.09, Ivan p.9): **one** (`radio`) — a round marker, filled blue with a white dot; **several** — a square marker, filled blue with a white check.
 - **Hover:** Crease border, Desk fill.
 
 ### Segmented Control (`Segmented`)

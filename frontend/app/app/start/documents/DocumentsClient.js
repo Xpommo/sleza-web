@@ -51,7 +51,18 @@ export default function DocumentsClient() {
   }, []);
 
   return (
-    <AnketaFrame current={4} title="Пакет документов" lead={<>Пять документов для <span className="font-semibold text-ink">{domain}</span> готовы. Проверьте ваши ответы, они выделены в тексте.</>}>
+    <AnketaFrame
+      current={4}
+      title="Пакет документов"
+      nextLabel={answers.installed ? 'Готово' : 'Далее'}
+      lead={
+        answers.installed ? (
+          <>Проверьте ответы, любой можно изменить: документы на сайте обновятся сами.</>
+        ) : (
+          <>Пять документов для <span className="font-semibold text-ink">{domain}</span> готовы. Проверьте ещё раз, любой ответ здесь можно изменить.</>
+        )
+      }
+    >
 
             <section className="mb-7">
               <DocRowList withStatus={false}>
@@ -152,12 +163,15 @@ export default function DocumentsClient() {
                 data-funnel-back
                 type="button"
                 onClick={() => {
+                  // Сайт уже работает — сюда пришли из «Документов» поправить
+                  // ответ (владелец 26.09): назад туда же, а не к установке.
+                  if (answers.installed) return router.push('/app/site/documents');
                   markStepDone(5);
                   router.push('/app/start/code');
                 }}
                 className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
               >
-                Поставить код на сайт <ArrowRightIcon size={17} />
+                {answers.installed ? 'Готово' : 'Поставить код на сайт'} <ArrowRightIcon size={17} />
               </button>
             </div>
       {editing === 'requisites' && <RequisitesModal track={false} onClose={() => setEditing(null)} onSaved={reload} />}

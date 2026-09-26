@@ -17,7 +17,7 @@ export const QUESTION_TITLES = {
   requisites: 'Реквизиты владельца',
   analytics: 'Счётчики на сайте',
   purposes: 'Цели сбора контактов',
-  pdFields: 'Какие данные собираете',
+  pdFields: 'Данные, которые вы собираете',
   promo: 'Рассылки, SMS и звонки клиентам об акциях',
 };
 
@@ -58,6 +58,15 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
     } else if (kind === 'promo') {
       if (!promo) return setError('Выберите «Есть» или «Нет».');
       patch = { callsBase: promo === 'Есть' };
+    }
+    // Сайт уже работает: поправленный ответ выпускает новую версию затронутых
+    // документов, и она видна в «Истории изменений» (как правка реквизитов).
+    const cur = loadAnketa();
+    const changed = Object.keys(patch).some((k) => JSON.stringify(patch[k]) !== JSON.stringify(cur[k]));
+    const DOCS = { analytics: ['02'], purposes: ['03', '12'], pdFields: ['12', '13'], promo: ['03', '12', '13'] };
+    if (cur.installed && changed) {
+      const at = Date.now();
+      patch.docEdits = [...(cur.docEdits || []), ...DOCS[kind].map((doc) => ({ at, doc, what: `Изменён ответ «${QUESTION_TITLES[kind]}»` }))];
     }
     saveAnketa(patch);
     onSaved?.();

@@ -116,7 +116,8 @@ export default function SiteClient() {
 
     const dom = normalizeDomain(domain);
     if (!DOMAIN_RE.test(dom)) {
-      setDomainError('Похоже, это не адрес сайта. Нужен адрес вида alfa-school.ru.');
+      // Пустое поле — «Укажите …» (правило 25.09), а не «похоже, это не адрес».
+      setDomainError(dom ? 'Похоже, это не адрес сайта. Нужен адрес вида alfa-school.ru.' : 'Укажите адрес сайта.');
       ok = false;
     } else {
       setDomain(dom);

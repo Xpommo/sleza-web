@@ -169,8 +169,9 @@ export default function SiteOverviewClient() {
   }
 
   // 1. Сколько ещё будет работать подписка. Кнопка — только когда без неё
-  // нельзя: в пробный период её нет, в последний день — «Пополнить», если на
-  // балансе не хватает на год (владелец 24.09).
+  // нельзя: в пробный период её нет, в последний день — «Оплатить», если на
+  // балансе не хватает на год (владелец 24.09; «Оплатить» без «год» и вместо
+  // «Пополнить» — владелец 26.09).
   let sub;
   if (state === 'trial') {
     const left = Math.ceil((trialEndAt(a) - now) / DAY);
@@ -191,9 +192,9 @@ export default function SiteOverviewClient() {
           : lastDay && invoice
             ? button('Открыть счёт', () => go('/app/billing'))
             : lastDay && b.cancelled
-            ? button('Оплатить год', () => go('/app/sites?view=table&pay=current'))
+            ? button('Оплатить', () => go('/app/sites?view=table&pay=current'))
             : lastDay && short
-              ? button('Пополнить', () => go('/app/billing?topup=1'))
+              ? button('Оплатить', () => go('/app/sites?view=table&pay=current'))
               : null,
     };
   } else if (state === 'paid') {
@@ -213,7 +214,7 @@ export default function SiteOverviewClient() {
       action: b.leaving
         ? button('Вернуть в подписку', comeBack, false)
         : renewSoon
-          ? button('Продлить на год', () => go('/app/sites?view=table&pay=current'))
+          ? button('Продлить', () => go('/app/sites?view=table&pay=current'))
           : !a.installed
             ? button('Поставить код на сайт', () => go('/app/start/code'))
             : null,
@@ -234,7 +235,7 @@ export default function SiteOverviewClient() {
           value: 'Остановлена',
           tone: 'danger',
           facts: [ended, 'виджет снят с сайта'],
-          action: button('Оплатить год', () => go('/app/sites?view=table&pay=current')),
+          action: button('Оплатить', () => go('/app/sites?view=table&pay=current')),
         }
       : invoice
         ? {
@@ -248,7 +249,7 @@ export default function SiteOverviewClient() {
             value: `до ${graceEnds(a)}`,
             tone: 'warn',
             facts: [ended, 'сайт пока работает', 'дальше виджет снимем с сайта'],
-            action: button('Оплатить год', () => go('/app/sites?view=table&pay=current')),
+            action: button('Оплатить', () => go('/app/sites?view=table&pay=current')),
           };
   } else {
     sub = {

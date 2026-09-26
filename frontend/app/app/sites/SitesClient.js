@@ -61,7 +61,9 @@ function siteStatus(a, now = Date.now(), invoice = null) {
   // Пакет собран после «Реквизитов»: дальше не хватает только кода.
   // Анкета пройдена, код отложен: документы собраны — те же слова, что в
   // «Обзоре» (FIXLOG: одно состояние не должно называться по-разному).
-  if (done >= 4) return { tone: 'warn', label: 'Документы собраны', meta: 'код не установлен', action: 'Поставить код на сайт', href: STEP_URLS[5] };
+  // После «Реквизитов» документы собраны, но шаг 5 (проверить их) ещё впереди:
+  // кнопка ведёт туда, а не перескакивает к установке (аудит 26.09).
+  if (done >= 4) return { tone: 'warn', label: 'Документы собраны', meta: 'код не установлен', ...(done === 4 ? { action: 'Проверить документы', href: STEP_URLS[4] } : { action: 'Поставить код на сайт', href: STEP_URLS[5] }) };
   return { tone: 'warn', label: 'Документы не готовы', meta: 'анкета не закончена', action: 'Продолжить анкету', href: STEP_URLS[done] };
 }
 
@@ -183,12 +185,16 @@ export default function SitesClient() {
   const [sites, setSites] = useState([]);
   const [view, setView] = useState('cards');
   const [user, setUser] = useState(CURRENT_USER);
+  // Анкета начата, а адреса сайта ещё нет: карточки нет, но и «Начнём с
+  // первого сайта» было бы неправдой (аудит 26.09).
+  const [started, setStarted] = useState(0);
 
   // Карточка появляется, как только анкета начата: сайт уже назван, и
   // прятать его до конца анкеты значит терять начатую работу.
   useEffect(() => {
     setUser(accountUser(CURRENT_USER));
     setSites(listSites(loadAnketa()));
+    setStarted(loadAnketa().domain ? 0 : loadAnketa().stepsDone || 0);
     // Оплата сайта с «Обзора» и из карточки ведёт сюда, в таблицу, где год
     // оплачивают в строке сайта (владелец 24.09).
     const q = new URLSearchParams(window.location.search);
@@ -279,9 +285,11 @@ export default function SitesClient() {
             <div className="flex max-w-md flex-col items-center text-center">
               {/* Первый экран встречает, а не перечисляет требования (владелец 25.09:
                 «Ответьте… Это 10–15 минут, понадобится ИНН» звучало грубо). */}
-              <h2 className="text-[20px] font-bold tracking-[-0.02em]">Начнём с первого сайта</h2>
+              <h2 className="text-[20px] font-bold tracking-[-0.02em]">{started ? 'Продолжим анкету' : 'Начнём с первого сайта'}</h2>
               <p className="mt-4 max-w-sm text-[15px] leading-6 text-ink/60">
-                Добавьте сайт, и мы подготовим для него документы. Это займёт 10–15 минут, держите под рукой ИНН компании.
+                {started
+                  ? `Вы остановились на шаге ${started + 1} из 6. Ответы сохранены, продолжите с того же места.`
+                  : 'Добавьте сайт, и мы подготовим для него документы. Это займёт 10–15 минут, держите под рукой ИНН.'}
               </p>
               {/* Одна форма главного действия на экране: раньше «Добавить
                   сайт» существовала в трёх видах и менялась от того, как
@@ -291,7 +299,7 @@ export default function SitesClient() {
                 onClick={() => router.push(addSite())}
                 className={`mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover ${RING}`}
               >
-                <PlusIcon size={17} /> Добавить сайт
+                {started ? 'Продолжить анкету' : <><PlusIcon size={17} /> Добавить сайт</>}
               </button>
             </div>
           </div>

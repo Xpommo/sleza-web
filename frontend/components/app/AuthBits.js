@@ -102,7 +102,10 @@ function Input({ id, label, error, inputRef, className = '', ...rest }) {
 // Код в прототипе принимается любой из шести цифр — честная имитация, как у
 // проверки скрипта на шаге установки. gate() — проверка перед отправкой кода
 // (на регистрации это галочки согласий); вернула false — письмо не шлём.
-export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submitLabel, onDone, defaultEmail = '' }) {
+// register — тот же блок на «Регистрации»: там не «вход», а подтверждение
+// e-mail нового аккаунта (аудит 26.09: экран «Регистрация», кнопка «Создать
+// аккаунт», а блок говорил «код для входа»).
+export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submitLabel, onDone, defaultEmail = '', register = false }) {
   const [step, setStep] = useState('request');
   const [email, setEmail] = useState(defaultEmail);
   const [code, setCode] = useState('');
@@ -123,7 +126,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
   // раньше говорили только про галочки (разбор 25.09).
   function send() {
     const mailOk = EMAIL_RE.test(email.trim());
-    setErr(mailOk ? null : 'Нужен e-mail вида name@site.ru: на него придёт код для входа.');
+    setErr(mailOk ? null : register ? 'Нужен e-mail вида name@site.ru: на него придёт код.' : 'Нужен e-mail вида name@site.ru: на него придёт код для входа.');
     if (!gate()) return;
     if (!mailOk) {
       mailRef.current?.focus();
@@ -137,7 +140,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
 
   function submit() {
     if (!/^\d{6}$/.test(code)) {
-      setErr('Код из письма — шесть цифр. Проверьте, не пропущена ли цифра.');
+      setErr(code ? 'Код из письма — шесть цифр. Проверьте, не пропущена ли цифра.' : 'Укажите код из письма.');
       codeRef.current?.focus();
       return;
     }
@@ -165,7 +168,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
             setErr(null);
             onClose();
           }}
-          aria-label="Свернуть вход по e-mail"
+          aria-label={register ? 'Свернуть регистрацию по e-mail' : 'Свернуть вход по e-mail'}
           className={`-my-2 -mr-2 ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
         >
           <CloseIcon size={16} />
@@ -181,13 +184,13 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
           }}
           noValidate
         >
-          <p className="mb-4 text-[13px] leading-5 text-ink/60">Пришлём код для входа. Пароль не нужен.</p>
+          <p className="mb-4 text-[13px] leading-5 text-ink/60">{register ? 'Пришлём код, чтобы подтвердить e-mail. Пароль не нужен.' : 'Пришлём код для входа. Пароль не нужен.'}</p>
           <Input
             id="mail-login-email"
             label="E-mail"
             type="email"
             autoComplete="email"
-            placeholder="you@company.ru"
+            placeholder="name@site.ru"
             autoFocus
             inputRef={mailRef}
             value={email}

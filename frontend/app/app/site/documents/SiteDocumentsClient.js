@@ -88,7 +88,7 @@ export default function SiteDocumentsClient() {
               <div>
                 <h2 className="text-lg font-bold tracking-[-0.02em]">Все документы сайта</h2>
                 <p className="mt-1 text-sm text-ink/60">
-                  {live ? 'Один адрес на весь пакет, его же открывает подвал' : 'Адрес закрепим за сайтом, и он не изменится'}
+                  {site.stopped ? 'Адрес за сайтом сохранён, документы откроются после оплаты' : live ? 'Один адрес на весь пакет, его же открывает подвал' : 'Адрес закрепим за сайтом, и он не изменится'}
                 </p>
               </div>
             </div>
@@ -161,11 +161,15 @@ export default function SiteDocumentsClient() {
               собрано по ответам анкеты (решения владельца 23.09). */}
           <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
             <h2 className="text-lg font-bold tracking-[-0.02em]">Что можно изменить</h2>
-            <p className="mt-1 text-[13px] text-ink/60">Остальное в документах собрано по ответам анкеты.</p>
+            {/* Ответы анкеты — третьей строкой (владелец 26.09): менять их нужно
+                редко, когда на сайте что-то изменилось, поэтому без отдельного
+                раздела — ведём на шаг 5, где документы и «Изменить ответ». */}
+            <p className="mt-1 text-[13px] text-ink/60">Документы обновятся сами, как только вы что-то поменяете.</p>
             <div className="mt-4 divide-y divide-line">
               {[
                 ['Реквизиты владельца', [site.answers.companyName, site.answers.inn && `ИНН ${site.answers.inn}`].filter(Boolean).join(' · '), 'Изменить реквизиты', () => setReqOpen(true)],
                 ['E-mail для запросов о персональных данных', site.answers.contacts?.pdContact || 'не указан', 'Изменить e-mail для запросов', () => setPdOpen(true)],
+                ['Ответы анкеты', 'формы, счётчики, цели, рассылки', 'Изменить ответы анкеты', () => router.push('/app/start/documents')],
               ].map(([label, value, aria, onClick]) => (
                 <div key={label} className="flex items-center justify-between gap-4 py-3.5">
                   <div className="min-w-0">

@@ -11,7 +11,7 @@ import { Field } from '../start/_shared/AnketaChrome';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
 import { accountSites } from '../site/_shared/sites';
-import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, Panel, Row } from '../billing/BillingBits';
+import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, NoSiteMoney, Panel, Row } from '../billing/BillingBits';
 
 // «Баланс и платежи» → вкладка «Документы» (владелец 24.09; до того — раздел
 // «Бухгалтерия»): куда присылать чеки, счета и акты, и сами акты. История
@@ -27,11 +27,13 @@ export default function AccountingClient() {
   const [email, setEmail] = useState('');
   const [editing, setEditing] = useState(false);
   const [err, setErr] = useState(null);
+  const [noSite, setNoSite] = useState(false);
 
   useEffect(() => {
     const saved = loadAnketa();
     if (!saved.domain) {
-      router.replace('/app/sites');
+      setNoSite(true);
+      setUser(accountUser(CURRENT_USER));
       return;
     }
     setA(saved);
@@ -39,6 +41,7 @@ export default function AccountingClient() {
     setEmail(saved.billing?.actsEmail || '');
   }, [router]);
 
+  if (noSite) return <NoSiteMoney tab="Акты и чеки" user={user} />;
   if (!a) return null;
 
   const b = a.billing || {};

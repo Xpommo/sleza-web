@@ -5,7 +5,9 @@
 // «подпись — значение — Изменить», как в «Настройках».
 
 import Link from 'next/link';
-import { RING } from '../site/_shared/SiteChrome';
+import { useRouter } from 'next/navigation';
+import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
+import { addSite } from '../site/_shared/sites';
 
 export const BTN_OUTLINE = `rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
 export const LINK = `rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`;
@@ -86,5 +88,32 @@ export function MoneyHeader({ tab, children }) {
       </nav>
       {children}
     </header>
+  );
+}
+
+// Сайтов ещё нет — «Платежи» и «Акты и чеки» говорят это прямо, а не
+// перекидывают молча в «Мои сайты» (аудит 26.09).
+export function NoSiteMoney({ tab, user }) {
+  const router = useRouter();
+  return (
+    <div className="min-h-screen bg-warm text-ink lg:flex">
+      <AccountSidebar active={MONEY_TITLE} user={user} />
+      <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
+        <div className="mx-auto max-w-4xl">
+          <MoneyHeader tab={tab} />
+          <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+            <h2 className="text-lg font-bold tracking-[-0.02em]">Пока платить не за что</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/65">Баланс, платежи, акты и чеки появятся здесь, когда вы добавите первый сайт.</p>
+            <button
+              type="button"
+              onClick={() => router.push(addSite())}
+              className={`mt-5 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover ${RING}`}
+            >
+              Добавить сайт
+            </button>
+          </section>
+        </div>
+      </main>
+    </div>
   );
 }

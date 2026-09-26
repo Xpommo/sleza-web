@@ -443,16 +443,15 @@ export function Tile({ title, description, selected, onClick, compact = false, r
         compact ? 'min-h-[58px] items-center' : 'min-h-[78px] items-start'
       } ${selected ? 'border-brand bg-brand/[0.05] ring-2 ring-brand/10' : 'border-line bg-white hover:border-line-2 hover:bg-warm'}`}
     >
-      {/* Одна отметка на все карточки анкеты — квадрат с галочкой, и у выбора
-          одного варианта тоже (владелец 23.09): круглая у платформы и роли
-          рядом с квадратными читалась как расхождение. Что вариант один,
-          говорит поведение и role="radio" для экранного диктора. */}
+      {/* Один выбор — круг с точкой, несколько — квадрат с галочкой (владелец
+          26.09, по ревью Ивана п.9: на шаге 2 «Платформа» стояла рядом со
+          «Счётчиками» и до клика не отличалась). Было 23.09: квадрат у всех. */}
       <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${compact ? '' : 'mt-0.5'} ${
+        className={`flex h-5 w-5 shrink-0 items-center justify-center border ${radio ? 'rounded-full' : 'rounded-md'} ${compact ? '' : 'mt-0.5'} ${
           selected ? 'border-brand bg-brand' : 'border-line-2 bg-white'
         }`}
       >
-        {selected && <CheckIcon size={13} className="text-white" />}
+        {selected && (radio ? <span className="h-2 w-2 rounded-full bg-white" /> : <CheckIcon size={13} className="text-white" />)}
       </span>
       <span>
         <span className="block text-sm font-bold text-ink">{title}</span>
