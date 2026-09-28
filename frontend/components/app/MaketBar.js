@@ -45,8 +45,8 @@ const SCREENS = [
 // Ответы — те, что дала бы демо-автоподстановка по ИНН на шаге 4, чтобы
 // экраны не спорили друг с другом.
 const PERSON = { role: 'Директор / собственник', personName: 'Кирилл', personPhone: '+7 (999) 123-45-67', personEmail: 'director@alfa-school.ru' };
-const SITE = { domain: 'alfa-school.ru', sphere: 'school', sphereOther: '', platform: 'Тильда', platformOther: '', analytics: ['metrika'], features: ['chat'] };
-const CLIENTS = { purposes: ['booking', 'inquiry'], pdFields: ['name', 'phone', 'email'], callsBase: true };
+const SITE = { domain: 'alfa-school.ru', sphere: 'school', sphereOther: '', platform: 'Тильда', platformOther: '', analytics: ['metrika'] };
+const CLIENTS = { features: ['chat'], purposes: ['booking', 'inquiry'], pdFields: ['name', 'phone', 'email'], callsBase: true };
 const REQ = {
   owner: 'ООО', inn: '7701234567', companyName: 'ООО «Альфа Образование»', ogrn: '1157746112233', kpp: '770101001',
   address: '119019, Москва, ул. Воздвиженка, д. 10',
@@ -59,6 +59,8 @@ const CARD = { method: 'Картой', card: { last4: '2323', exp: '11/28' } };
 const PRESETS = [
   ['Пусто, сайтов нет', () => ({}), '/app/sites'],
   ['Анкета: пройден шаг 1', () => ({ ...PERSON, stepsDone: 1 }), '/app/start/site'],
+  // Адрес, на котором уже стоит код другого кабинета (TAKEN_ELSEWHERE в sites.js).
+  ['Анкета: сайт уже подключён другим', () => ({ ...PERSON, stepsDone: 1, domain: 'vesna-dance.ru' }), '/app/start/site'],
   ['Анкета: пройден шаг 2', () => ({ ...PERSON, ...SITE, stepsDone: 2 }), '/app/start/clients'],
   ['Анкета: пройден шаг 3', () => ({ ...PERSON, ...SITE, ...CLIENTS, stepsDone: 3 }), '/app/start/requisites'],
   ['Анкета: пакет собран', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 4 }), '/app/start/documents'],

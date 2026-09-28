@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ArrowRightIcon } from '../../../../components/app/AppIcons';
 import { RING, AnketaFrame, SectionHead, Tile, focusFirstError } from '../_shared/AnketaChrome';
-import { PD_FIELDS, PURPOSES, PURPOSE_MAP, purposeLabel } from '../../../../lib/anketaOptions';
+import { FEATURES, PD_FIELDS, PURPOSES, PURPOSE_MAP, purposeLabel, toggleOption } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
-// Порядок вопросов (владелец 23.09): что собираете → зачем → рассказываете
-// ли об акциях. Каждый следующий опирается на предыдущий: из собранных
-// контактов берутся каналы для согласия на рекламу, а «Да» на последний
-// вопрос добавляет цель «информирование об акциях» в согласие и политику.
+// Порядок вопросов: где собираете (формы — с шага 2, владелец 28.09 по макету
+// Ивана: всё о данных клиентов на одном экране) → что собираете → зачем →
+// рассказываете ли об акциях (владелец 23.09). Каждый следующий опирается на
+// предыдущий: из собранных контактов берутся каналы для согласия на рекламу, а
+// «Да» на последний вопрос добавляет цель «информирование об акциях» в
+// согласие и политику.
 export default function ClientsClient() {
   const router = useRouter();
 
@@ -22,6 +24,13 @@ export default function ClientsClient() {
     if (saved && PURPOSE_MAP[saved]) setSphere(saved);
   }, []);
   const visiblePurposes = PURPOSES.filter((p) => (PURPOSE_MAP[sphere] || PURPOSE_MAP.other).includes(p.value));
+
+  // Формы и сервисы — три факта: заказ/оплата, авторизация, сторонний скрипт
+  // собирает контакты. Список нарочно короткий.
+  const [features, setFeatures] = useState([]);
+  const [featuresError, setFeaturesError] = useState(null);
+  const [featuresWhy, setFeaturesWhy] = useState(false);
+  const featuresExclusive = FEATURES.filter((o) => o.exclusive).map((o) => o.value);
 
   const [purposes, setPurposes] = useState([]);
   const [purposeError, setPurposeError] = useState(null);
@@ -49,19 +58,20 @@ export default function ClientsClient() {
     // макете, 17.09 — «цель оставалась отмеченной после смены сферы»).
     const allowed = PURPOSE_MAP[a.sphere] || PURPOSE_MAP.other;
     if (a.purposes?.length) setPurposes(a.purposes.filter((v) => allowed.includes(v)));
+    if (a.features?.length) setFeatures(a.features);
     if (a.pdFields?.length) setFields(a.pdFields);
     if (typeof a.callsBase === 'boolean') setPromo(a.callsBase ? 'Есть' : 'Нет');
     setRestored(true);
   }, []);
 
-  const answers = () => ({ purposes, pdFields: fields, callsBase: promo === null ? undefined : promo === 'Есть' });
+  const answers = () => ({ features, purposes, pdFields: fields, callsBase: promo === null ? undefined : promo === 'Есть' });
 
   // Черновик пишется на каждое изменение, а не только по «Далее»: иначе
   // «Назад» и F5 теряют всё, что набрано на этом шаге. Пишем только после
   // восстановления — иначе пустые значения первой отрисовки затрут анкету.
   useEffect(() => {
     if (restored) saveAnketa(answers());
-  }, [restored, purposes, fields, promo]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [restored, features, purposes, fields, promo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggle(list, setList, value) {
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -69,6 +79,13 @@ export default function ClientsClient() {
 
   function handleNext() {
     let ok = true;
+
+    if (features.length === 0) {
+      setFeaturesError('Отметьте, что есть на сайте, или «Ничего из этого нет»: от этого зависит согласие на обработку данных.');
+      ok = false;
+    } else {
+      setFeaturesError(null);
+    }
 
     if (fields.length === 0) {
       setFieldsError('Отметьте хотя бы одно: без состава данных политику и согласие составить нельзя.');
@@ -106,6 +123,32 @@ export default function ClientsClient() {
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               <div className="border-b border-line pb-7">
+                <SectionHead
+                  id="h-features"
+                  title="Формы и сервисы на сайте"
+                  required
+                  whyOpen={featuresWhy}
+                  onWhy={() => setFeaturesWhy(!featuresWhy)}
+                  why="Где сайт собирает контакты, нужно согласие на обработку данных. Отметьте всё, что есть на сайте."
+                />
+                <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-features">
+                  {FEATURES.map((o) => (
+                    <Tile
+                      key={o.value}
+                      title={o.label}
+                      compact
+                      selected={features.includes(o.value)}
+                      onClick={() => {
+                        setFeatures((prev) => toggleOption(prev, o.value, featuresExclusive));
+                        setFeaturesError(null);
+                      }}
+                    />
+                  ))}
+                </div>
+                {featuresError && <p role="alert" className="mt-3 text-[12px] font-semibold text-danger">{featuresError}</p>}
+              </div>
+
+              <div className="border-b border-line py-7">
                 <SectionHead
                   id="h-fields"
                   title="Данные, которые вы собираете"

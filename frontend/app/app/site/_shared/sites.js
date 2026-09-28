@@ -262,6 +262,20 @@ export function openSite(key) {
   return next;
 }
 
+// Адрес уже подключён: в этом кабинете (строкой в extraSites) или в чужом
+// (ревью Ивана 28.09). Чужой сайт «подключён», когда на нём найден код:
+// управление сайтом доказано установкой. Начатая где-то анкета адрес не
+// занимает, иначе чужой домен можно было бы занять, просто вписав его. В
+// прототипе чужие сайты — список ниже (панель «Макет»).
+export const TAKEN_ELSEWHERE = ['vesna-dance.ru'];
+
+export function domainTaken(domain, a = loadAnketa()) {
+  const own = (a.extraSites || []).find((s) => s.domain === domain);
+  if (own) return { kind: 'own', site: own, done: own.real ? own.fields?.stepsDone || 0 : 5 };
+  if (TAKEN_ELSEWHERE.includes(domain)) return { kind: 'other' };
+  return null;
+}
+
 // «Добавить сайт». Первый сайт — обычная анкета с «Вашего профиля». Если сайт
 // уже есть, он уходит в список целиком, а новый начинается с «О сайте»:
 // профиль — вопрос аккаунта, его уже знаем (живой макет, FUNNEL_ALL.skipIf по

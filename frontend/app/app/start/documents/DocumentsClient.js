@@ -5,39 +5,21 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
-  CheckIcon,
 } from '../../../../components/app/AppIcons';
-import { DocRow, DocRowList } from '../../../../components/app/DocRows';
 import { CookieBannerPreview, FooterPreview, ThemeSwitch, WIDGET_DEFAULTS, widgetSettings } from '../../../../components/app/WidgetPreviews';
 import { RING, AnketaFrame } from '../_shared/AnketaChrome';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
-import { DOCUMENTS, MARK, docOrigin, docPreview } from '../../../../lib/docPackage';
+import { DOCUMENTS } from '../../../../lib/docPackage';
 import RequisitesModal from '../../site/_shared/RequisitesModal';
-import AnswerModal, { QUESTION_TITLES } from './AnswerModal';
-
-// Превью с выделенными ответами: свои данные внутри юридического текста —
-// то, что показывает «документ собран под вас», а не шаблон (владелец 23.09:
-// голое начало документа ничего не давало).
-function MarkedText({ text }) {
-  const parts = String(text).split(MARK);
-  return parts.map((part, i) =>
-    i % 2 ? (
-      <mark key={i} className="rounded bg-brand/10 px-0.5 font-semibold text-ink">
-        {part}
-      </mark>
-    ) : (
-      part
-    ),
-  );
-}
+import AnswerModal from './AnswerModal';
+import DocViewer from './DocViewer';
 
 export default function DocumentsClient() {
   const router = useRouter();
   const [domain, setDomain] = useState('alfa-school.ru');
   const [answers, setAnswers] = useState({});
-  // Аккордеон: открыт один документ за раз — иначе список снова разъезжается
-  // в полотно, от которого и уходили.
-  const [openDoc, setOpenDoc] = useState(null);
+  // Открыт один документ за раз — сразу первый, а не пять свёрнутых строк.
+  const [openDoc, setOpenDoc] = useState(DOCUMENTS[0].id);
   const [widget, setWidget] = useState(WIDGET_DEFAULTS);
   // Какой ответ правят сейчас — окно с одним этим вопросом.
   const [editing, setEditing] = useState(null);
@@ -64,39 +46,7 @@ export default function DocumentsClient() {
       }
     >
 
-            <section className="mb-7">
-              <DocRowList withStatus={false}>
-                {DOCUMENTS.map((doc) => (
-                  <DocRow
-                    key={doc.id}
-                    doc={doc}
-                    note={docOrigin(doc, answers).line}
-                    open={openDoc === doc.id}
-                    onToggle={() => setOpenDoc(openDoc === doc.id ? null : doc.id)}
-                  >
-                    <p className="text-[13px] leading-6 text-ink/70">
-                      <MarkedText text={docPreview(doc, { ...answers, domain })} />
-                    </p>
-                    {/* Вторая половина петли: ответ виден в документе, и прямо
-                        отсюда правится ровно тот ответ, из которого взяты данные,
-                        — окном, без возврата в анкету (владелец 24.09). */}
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-ink/60">
-                      <span>Изменить ответ:</span>
-                      {docOrigin(doc, answers).sources.map((k) => (
-                        <button
-                          key={k}
-                          type="button"
-                          onClick={() => setEditing(k)}
-                          className={`rounded-lg border border-line bg-white px-2.5 py-1 font-semibold text-ink/80 transition hover:border-brand hover:text-brand ${RING}`}
-                        >
-                          {QUESTION_TITLES[k]}
-                        </button>
-                      ))}
-                    </div>
-                  </DocRow>
-                ))}
-              </DocRowList>
-            </section>
+            <DocViewer domain={domain} answers={answers} current={openDoc} onPick={setOpenDoc} onEdit={setEditing} />
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {/* Подписи превью — обычными подзаголовками: серые моно-капсы

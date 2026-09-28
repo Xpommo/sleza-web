@@ -1,18 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   BriefcaseIcon,
+  CheckIcon,
   ChevronDownIcon,
   GlobeIcon,
+  LockIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
-import { RING, AnketaFrame, Field, Tile, SectionHead, useFirstStep, focusFirstError } from '../_shared/AnketaChrome';
-import { ANALYTICS, FEATURES, GA_WARNING, PLATFORMS, SPHERES } from '../../../../lib/anketaOptions';
-import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
+import { announce } from '../../../../lib/announce';
+import { RING, STEP_URLS, AnketaFrame, Field, Tile, SectionHead, useFirstStep, focusFirstError } from '../_shared/AnketaChrome';
+import { ANALYTICS, GA_WARNING, PLATFORMS, SPHERES, toggleOption } from '../../../../lib/anketaOptions';
+import { accountUser, loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
+import { domainTaken, openSite } from '../../site/_shared/sites';
 
 // Кириллица — ради доменов .рф и кириллических имён на других зонах.
 const DOMAIN_RE = /^(?!-)[a-z0-9а-яё-]+(\.[a-z0-9а-яё-]+)*\.([a-zа-яё]{2,}|xn--[a-z0-9-]+)$/i;
@@ -29,14 +33,109 @@ function normalizeDomain(v) {
     .toLowerCase();
 }
 
-// Общая логика мульти-выбора с «исключающим» пунктом («Ничего из этого нет»):
-// обычный пункт снимает исключающие, исключающий очищает всё остальное.
-function toggleOption(prev, value, exclusiveValues) {
-  if (exclusiveValues.includes(value)) {
-    return prev.includes(value) ? [] : [value];
+const SECONDARY = `inline-flex h-11 items-center justify-center rounded-xl border border-line bg-white px-5 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`;
+const PRIMARY = `inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
+
+// Адрес уже подключён (ревью Ивана 28.09): второй раз подключать нельзя, у
+// сайта было бы два комплекта документов. Свой сайт — открыть его; чужой —
+// попросить доступ у владельца того кабинета, не узнавая, кто он.
+function TakenCard({ taken, headRef, onOpen, onOther, onLeave }) {
+  const [text, setText] = useState('');
+  const [error, setError] = useState(null);
+  const [sent, setSent] = useState(false);
+  const [user, setUser] = useState({ name: '', email: '' });
+  useEffect(() => setUser(accountUser(CURRENT_USER)), []);
+  const who = [user.name, user.email].filter(Boolean).join(', ');
+
+  if (taken.kind === 'own') {
+    const finished = taken.done >= 5;
+    return (
+      <div className="mt-4 rounded-xl border border-brand/25 bg-brand/[0.04] p-4 sm:p-5">
+        <p ref={headRef} tabIndex={-1} className="text-[15px] font-bold outline-none">
+          {taken.domain} уже есть в вашем кабинете
+        </p>
+        <p className="mt-1 text-[13px] leading-5 text-ink/65">
+          {finished ? 'Документы и настройки этого сайта уже там.' : 'Анкета этого сайта уже начата, продолжите её.'}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button type="button" onClick={onOpen} className={PRIMARY}>
+            {finished ? 'Открыть кабинет сайта' : 'Продолжить анкету'} <ArrowRightIcon size={16} />
+          </button>
+          <button type="button" onClick={onOther} className={SECONDARY}>
+            Ввести другой адрес
+          </button>
+        </div>
+      </div>
+    );
   }
-  const next = prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value];
-  return next.filter((v) => !exclusiveValues.includes(v));
+
+  if (sent) {
+    return (
+      <div className="mt-4 rounded-xl border border-ok/25 bg-ok/[0.06] p-4 sm:p-5">
+        <p ref={headRef} tabIndex={-1} className="flex items-center gap-2 text-[15px] font-bold outline-none">
+          <CheckIcon size={16} className="text-ok" /> Запрос отправлен
+        </p>
+        <p className="mt-1 text-[13px] leading-5 text-ink/65">
+          Когда вам откроют доступ, {taken.domain} появится в «Моих сайтах».{user.email ? ` Ответ пришлём на ${user.email}.` : ''}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button type="button" onClick={onLeave} className={PRIMARY}>
+            В «Мои сайты»
+          </button>
+          <button type="button" onClick={onOther} className={SECONDARY}>
+            Ввести другой адрес
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  function send() {
+    if (!text.trim()) {
+      setError('Напишите, кто вы: без этого владелец кабинета вас не узнает.');
+      focusFirstError();
+      return;
+    }
+    setSent(true);
+    announce('Запрос отправлен');
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-warn/40 bg-warn/[0.06] p-4 sm:p-5">
+      <p ref={headRef} tabIndex={-1} className="flex items-center gap-2 text-[15px] font-bold outline-none">
+        <LockIcon size={16} className="text-warn-ink" /> {taken.domain} уже подключён в другом кабинете
+      </p>
+      <p className="mt-1 text-[13px] leading-5 text-ink/65">
+        Второй раз подключить его нельзя: у сайта будет два комплекта документов. Попросите доступ, и мы перешлём запрос владельцу того кабинета, не раскрывая, кто он.
+      </p>
+      <label className="mt-4 block">
+        <span className="mb-2 block text-[13px] font-bold text-ink-2">
+          Сообщение владельцу кабинета<span className="text-brand"> *</span>
+        </span>
+        <textarea
+          rows={3}
+          value={text}
+          placeholder="Например: я новый маркетолог компании, нужен доступ, чтобы обновлять документы."
+          onChange={(e) => {
+            setText(e.target.value);
+            setError(null);
+          }}
+          aria-invalid={error ? 'true' : undefined}
+          className={`w-full resize-y rounded-xl border bg-white px-4 py-3 text-[15px] leading-6 shadow-sm outline-none transition placeholder:text-ink/35 focus:border-brand focus:ring-4 focus:ring-brand/10 ${error ? 'border-danger' : 'border-line'}`}
+        />
+        {error && <span role="alert" className="mt-1.5 block text-[12px] font-semibold text-danger">{error}</span>}
+      </label>
+      {who && <p className="mt-2 text-[12px] leading-4 text-ink/60">Вместе с сообщением владелец увидит ваше имя и e-mail: {who}.</p>}
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button type="button" onClick={send} className={PRIMARY}>
+          Отправить запрос
+        </button>
+        <button type="button" onClick={onOther} className={SECONDARY}>
+          Ввести другой адрес
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function SiteClient() {
@@ -47,6 +146,15 @@ export default function SiteClient() {
   const [domain, setDomain] = useState('');
   const [domainError, setDomainError] = useState(null);
   const [domainWhy, setDomainWhy] = useState(false);
+  // Адрес уже подключён — проверяем, когда адрес дописан (уход из поля,
+  // возврат на шаг, «Далее»), а не на каждую букву.
+  const [taken, setTaken] = useState(null);
+  const takenRef = useRef(null);
+  const domainInput = useRef(null);
+  // Какой адрес был у сайта до правки: уходя с занятого адреса, черновик
+  // нового сайта остаётся без адреса (в «Моих сайтах» его не видно), а
+  // подключённый сайт возвращает свой.
+  const initial = useRef({ domain: '', confirmed: false });
 
   const [sphere, setSphere] = useState('');
   const [sphereError, setSphereError] = useState(null);
@@ -68,10 +176,7 @@ export default function SiteClient() {
   const [analyticsError, setAnalyticsError] = useState(null);
   const [analyticsWhy, setAnalyticsWhy] = useState(false);
 
-  const [features, setFeatures] = useState([]);
   const [restored, setRestored] = useState(false);
-  const [featuresError, setFeaturesError] = useState(null);
-  const [featuresWhy, setFeaturesWhy] = useState(false);
 
   // Возврат на шаг («Назад», F5, «Продолжить анкету» из списка сайтов)
   // показывает то, что уже ответили: ответы лежат в анкете, и терять их
@@ -79,7 +184,11 @@ export default function SiteClient() {
   // и первая отрисовка должна совпасть с серверной.
   useEffect(() => {
     const a = loadAnketa();
-    if (a.domain) setDomain(a.domain);
+    initial.current = { domain: a.domain || '', confirmed: (a.stepsDone || 0) >= 2 };
+    if (a.domain) {
+      setDomain(a.domain);
+      checkTaken(a.domain, a);
+    }
     if (a.sphere) setSphere(a.sphere);
     if (a.sphereOther) setSphereOther(a.sphereOther);
     if (a.platform) setPlatform(a.platform);
@@ -88,7 +197,6 @@ export default function SiteClient() {
     const known = (a.analytics || []).filter((v) => ANALYTICS.some((o) => o.value === v));
     if (known.length) setAnalytics(known);
     if (a.analyticsOther) setAnalyticsOther(a.analyticsOther);
-    if (a.features?.length) setFeatures(a.features);
     setRestored(true);
   }, []);
 
@@ -96,11 +204,10 @@ export default function SiteClient() {
   // «Назад» и F5 теряют всё, что набрано на этом шаге. Пишем только после
   // восстановления — иначе пустые значения первой отрисовки затрут анкету.
   useEffect(() => {
-    if (restored) saveAnketa({ domain, sphere, sphereOther, platform, platformOther, analytics, analyticsOther, features });
-  }, [restored, domain, sphere, sphereOther, platform, platformOther, analytics, analyticsOther, features]);
+    if (restored) saveAnketa({ domain, sphere, sphereOther, platform, platformOther, analytics, analyticsOther });
+  }, [restored, domain, sphere, sphereOther, platform, platformOther, analytics, analyticsOther]);
 
   const analyticsExclusive = ANALYTICS.filter((o) => o.exclusive).map((o) => o.value);
-  const featuresExclusive = FEATURES.filter((o) => o.exclusive).map((o) => o.value);
 
   function pickPlatform(item) {
     setPlatform(item);
@@ -109,6 +216,24 @@ export default function SiteClient() {
       setPlatformOther('');
       setPlatformOtherError(null);
     }
+  }
+
+  function checkTaken(dom, a) {
+    const t = domainTaken(dom, a);
+    setTaken(t ? { ...t, domain: dom } : null);
+    if (t) announce(t.kind === 'own' ? `${dom} уже есть в вашем кабинете` : `${dom} уже подключён в другом кабинете`);
+    return t;
+  }
+
+  function showTaken() {
+    setTimeout(() => {
+      takenRef.current?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      takenRef.current?.focus({ preventScroll: true });
+    }, 60);
+  }
+
+  function leaveTaken() {
+    saveAnketa({ domain: initial.current.confirmed ? initial.current.domain : '' });
   }
 
   function handleNext() {
@@ -122,6 +247,11 @@ export default function SiteClient() {
     } else {
       setDomain(dom);
       setDomainError(null);
+      // Занятый адрес — дальше не идём: остальные вопросы к нему не относятся.
+      if (checkTaken(dom)) {
+        showTaken();
+        return;
+      }
     }
 
     if (sphere === 'other' && !sphereOther.trim()) {
@@ -161,33 +291,21 @@ export default function SiteClient() {
       setAnalyticsOtherError(null);
     }
 
-    if (features.length === 0) {
-      setFeaturesError('Отметьте, что есть на сайте, или «Ничего из этого нет»: от этого зависит согласие на обработку данных.');
-      ok = false;
-    } else {
-      setFeaturesError(null);
-    }
-
     if (!ok) {
       focusFirstError();
       return;
     }
 
-    saveAnketa({ domain: dom, sphere, sphereOther, platform, platformOther, analytics, analyticsOther, features });
-
-    // «Формы и сервисы» — единственный вопрос шага, который ветвит путь:
-    // если сайт вообще не собирает контакты, спрашивать на следующем шаге
-    // про цели сбора и звонки по базе нечего, и он пропускается целиком.
-    // Ответ «Ничего из этого нет» шаг «Данные клиентов» не пропускает —
-    // решение 9 сентября: исчезающий шаг и прыгающий счётчик («Шаг 2 из 6»
-    // → «Шаг 4 из 6») читаются как сбой, а согласие на рассылки выдаётся в
-    // любом случае. Путь всегда из шести шагов подряд.
+    saveAnketa({ domain: dom, sphere, sphereOther, platform, platformOther, analytics, analyticsOther });
+    // «Формы и сервисы» — на шаге 3, рядом с данными, которые они собирают
+    // (владелец 28.09, по макету Ивана). Шаг «Данные клиентов» не пропускается
+    // (решение 9.09): путь всегда из шести шагов подряд.
     markStepDone(2);
     router.push('/app/start/clients');
   }
 
   return (
-    <AnketaFrame current={1} title="О сайте" lead={<>По ответам на пять вопросов соберём документы под ваш сайт.</>}>
+    <AnketaFrame current={1} title="О сайте" lead={<>По четырём ответам соберём документы под этот сайт. Другие сайты подключаются отдельно.</>}>
 
             <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
               {/* Адрес и сфера — такими же вопросами с заголовком, как остальные
@@ -210,20 +328,49 @@ export default function SiteClient() {
                   inputMode="url"
                   autoCapitalize="none"
                   spellCheck={false}
+                  inputRef={domainInput}
                   value={domain}
                   onChange={(e) => {
                     setDomain(e.target.value);
                     setDomainError(null);
+                    setTaken(null);
                   }}
                   onBlur={() => {
                     // Показываем, какой адрес возьмём: https://www.… → домен.
                     const dom = normalizeDomain(domain);
-                    if (DOMAIN_RE.test(dom)) setDomain(dom);
+                    if (DOMAIN_RE.test(dom)) {
+                      setDomain(dom);
+                      checkTaken(dom);
+                    }
                   }}
                   error={domainError}
                 />
+                {taken && (
+                  <TakenCard
+                    key={taken.domain}
+                    taken={taken}
+                    headRef={takenRef}
+                    onOpen={() => {
+                      leaveTaken();
+                      openSite(taken.site.key);
+                      router.push(taken.done >= 5 ? '/app/site' : STEP_URLS[taken.done]);
+                    }}
+                    onOther={() => {
+                      setDomain('');
+                      setTaken(null);
+                      setTimeout(() => domainInput.current?.focus(), 0);
+                    }}
+                    onLeave={() => {
+                      leaveTaken();
+                      router.push('/app/sites');
+                    }}
+                  />
+                )}
               </div>
 
+              {/* Пока адрес занят, остальные вопросы к нему не относятся. */}
+              {!taken && (
+              <>
               <div className="my-6 h-px bg-line" />
 
               {/* Сфера деятельности — сюда, а не в «Данные клиентов»: она задаёт
@@ -333,7 +480,7 @@ export default function SiteClient() {
                   часто ставит и Метрику, и GA), «Ничего из этого нет» —
                   исключающий. «Не знаю» снят (владелец 23.09): вопрос — есть
                   счётчики или нет, посмотреть это можно самому. */}
-              <div className="mb-8">
+              <div>
                 <SectionHead
                   id="h-analytics"
                   title="Счётчики на сайте"
@@ -380,35 +527,8 @@ export default function SiteClient() {
                 {analyticsError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{analyticsError}</p>}
               </div>
 
-              <div className="my-6 h-px bg-line" />
-
-              {/* Формы и сервисы — три факта: заказ/оплата, авторизация,
-                  сторонний скрипт собирает контакты. Список нарочно короткий. */}
-              <div>
-                <SectionHead
-                  id="h-features"
-                  title="Формы и сервисы на сайте"
-                  required
-                  whyOpen={featuresWhy}
-                  onWhy={() => setFeaturesWhy(!featuresWhy)}
-                  why="Где сайт собирает контакты, нужно согласие на обработку данных. Отметьте всё, что есть на сайте."
-                />
-                <div className="mt-5 grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="h-features">
-                  {FEATURES.map((o) => (
-                    <Tile
-                      key={o.value}
-                      title={o.label}
-                      compact
-                      selected={features.includes(o.value)}
-                      onClick={() => {
-                        setFeatures((prev) => toggleOption(prev, o.value, featuresExclusive));
-                        setFeaturesError(null);
-                      }}
-                    />
-                  ))}
-                </div>
-                {featuresError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{featuresError}</p>}
-              </div>
+              </>
+              )}
             </section>
 
             {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,

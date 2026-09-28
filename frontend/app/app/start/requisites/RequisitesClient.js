@@ -91,7 +91,10 @@ const LINK_BTN = `mt-3 rounded text-[13px] font-semibold text-brand hover:text-i
 const INN_LOOKUP = {
   'ООО': { name: 'ООО «Альфа Образование»', ogrn: '1157746112233', kpp: '770101001', address: '119019, Москва, ул. Воздвиженка, д. 10' },
   'ИП': { name: 'Иванова Мария Сергеевна', ogrn: '304770000000123', address: '119019, Москва, ул. Воздвиженка, д. 10' },
-  'Самозанятый': { name: 'Иванова Мария Сергеевна', address: '119019, Москва, ул. Воздвиженка, д. 10' },
+  // Самозанятого нет в ЕГРЮЛ и ЕГРИП: по ИНН ФНС подтверждает только статус
+  // плательщика налога на профессиональный доход, ФИО и адрес не отдаёт.
+  // Подставлять их нельзя, поля открываются для ручного ввода (ревью Ивана 28.09).
+  'Самозанятый': {},
 };
 
 
@@ -164,6 +167,11 @@ export default function RequisitesClient() {
     if (pdSame) setPdContact(companyMail);
   }, [pdSame, companyMail]);
   const [restored, setRestored] = useState(false);
+  // Клиент подтверждает факты, мы отвечаем за правовую сборку (ревью Ивана
+  // 28.09, владелец: на шаге реквизитов, как у Ивана). Галочка — за данные
+  // этого шага: остальные ответы проверяются в документах на шаге 5.
+  const [confirmed, setConfirmed] = useState(false);
+  const [confirmError, setConfirmError] = useState(null);
 
   // Возврат на шаг («Назад», F5, «Продолжить анкету» из списка сайтов)
   // показывает то, что уже ответили: ответы лежат в анкете, и терять их
@@ -172,6 +180,7 @@ export default function RequisitesClient() {
   useEffect(() => {
     const a = loadAnketa();
     setRestored(true);
+    setConfirmed(Boolean(a.requisitesConfirmedAt));
     if (!a.owner) return;
     setOwner(a.owner);
     setInn(a.inn || '');
@@ -284,7 +293,7 @@ export default function RequisitesClient() {
     put(address, 'address', setAddress);
     lastFill.current = found;
     clearRegistryErrors();
-    setRegEdit(false);
+    setRegEdit(who === 'Самозанятый' && !(name && address));
   }
   function onInnChange(e) {
     applyInn(digitsOnly(e.target.value), owner);
@@ -386,12 +395,15 @@ export default function RequisitesClient() {
       fail(setPdContactError, pdContact.trim() ? 'Нужен e-mail вида name@site.ru: на него клиенты пришлют отзыв согласия.' : 'Укажите e-mail: без него в политике и согласии не будет способа отозвать согласие.');
     } else setPdContactError(null);
 
+    // Галочка — последней: к первой ошибке идём сверху вниз.
+    if (!confirmed) fail(setConfirmError, 'Подтвердите, что реквизиты и контакты верны: по ним собираются документы.');
+
     if (!ok) {
       focusFirstError();
       return;
     }
 
-    saveAnketa(answers());
+    saveAnketa({ ...answers(), requisitesConfirmedAt: loadAnketa().requisitesConfirmedAt || Date.now() });
     markStepDone(4);
     router.push('/app/start/documents');
   }
@@ -429,7 +441,7 @@ export default function RequisitesClient() {
                   required
                   placeholder={`${innLength} цифр`}
                   icon={BankIcon}
-                  badge={regManual ? null : 'Автозаполнение по ИНН'}
+                  badge={regManual || owner === 'Самозанятый' ? null : 'Автозаполнение по ИНН'}
                   inputMode="numeric"
                   name="inn"
                   autoComplete="off"
@@ -444,7 +456,13 @@ export default function RequisitesClient() {
                   номером висела бы чужая компания. */}
               {!regEdit && inn.length === innLength && name && address ? (
                 <FoundCard
-                  note={name === lastFill.current.name && address === lastFill.current.address ? 'Нашли по ИНН, проверьте' : 'Проверьте, что всё верно'}
+                  // Откуда данные и на какой день (ревью Ивана 28.09): «нашли» без
+                  // источника не отличить от догадки.
+                  note={
+                    name === lastFill.current.name && address === lastFill.current.address
+                      ? `Нашли в ${isOoo ? 'ЕГРЮЛ' : 'ЕГРИП'} на ${new Date().toLocaleDateString('ru-RU')}, проверьте`
+                      : 'Проверьте, что всё верно'
+                  }
                   title={name}
                   lines={[
                     [owner !== 'Самозанятый' && ogrn && `${isOoo ? 'ОГРН' : 'ОГРНИП'} ${ogrn}`, isOoo && kpp && `КПП ${kpp}`].filter(Boolean).join(' · '),
@@ -453,7 +471,10 @@ export default function RequisitesClient() {
                   onEdit={() => setRegEdit(true)}
                 />
               ) : regEdit ? (
-                <EditCard note="Редактирование" onDone={inn.length === innLength ? doneRegistry : null}>
+                <EditCard
+                  note={owner === 'Самозанятый' ? 'По ИНН проверяется только статус самозанятого, ФИО и адрес впишите сами.' : 'Редактирование'}
+                  onDone={inn.length === innLength ? doneRegistry : null}
+                >
                 <Field
                   label={ownerLabels(owner).name}
                   required
@@ -526,7 +547,7 @@ export default function RequisitesClient() {
                   Заполнить вручную
                 </button>
               )}
-              {regManual && regEdit && (
+              {regManual && regEdit && owner !== 'Самозанятый' && (
                 <button
                   type="button"
                   onClick={() => {
@@ -784,7 +805,7 @@ export default function RequisitesClient() {
                 id="h-pd"
                 icon={ShieldCheckIcon}
                 title="Запросы о персональных данных"
-                why="Этот адрес впишем в политику и согласие. На него клиенты пишут, чтобы отозвать согласие или узнать, что вы о них храните. На запрос о данных нужно ответить в течение 10 рабочих дней, поэтому укажите e-mail, который читаете."
+                why="Впишем его в политику и согласие: сюда клиенты пишут, чтобы отозвать согласие или узнать, что вы о них храните. На запрос о данных нужно ответить за 10 рабочих дней, поэтому укажите e-mail, который читаете."
                 whyOpen={pdWhy}
                 onWhy={() => setPdWhy(!pdWhy)}
               />
@@ -833,6 +854,35 @@ export default function RequisitesClient() {
               </>
               )}
             </section>
+
+            {owner && (
+              <div className="mt-7">
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={confirmed}
+                  aria-describedby="confirm-note"
+                  onClick={() => {
+                    setConfirmed(!confirmed);
+                    setConfirmError(null);
+                  }}
+                  className={`flex w-full items-start gap-3 rounded-2xl border bg-white p-4 text-left shadow-sm transition sm:p-5 ${RING} ${
+                    confirmError ? 'border-danger' : confirmed ? 'border-brand' : 'border-line hover:border-line-2'
+                  }`}
+                >
+                  <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${confirmed ? 'border-brand bg-brand' : 'border-line-2 bg-white'}`}>
+                    {confirmed && <CheckIcon size={13} className="text-white" />}
+                  </span>
+                  <span>
+                    <span className="block text-sm font-bold">Подтверждаю, что реквизиты и контакты верны</span>
+                    <span id="confirm-note" className="mt-1 block text-[13px] leading-5 text-ink/60">
+                      По ним собираются документы. Поправить их можно и позже, в «Документах» сайта.
+                    </span>
+                  </span>
+                </button>
+                {confirmError && <p role="alert" className="mt-2 text-[12px] font-semibold text-danger">{confirmError}</p>}
+              </div>
+            )}
 
             {/* На телефоне эту пару повторяет нижняя панель — докрутив до конца,
                 человек видел одни и те же кнопки дважды (правка владельца). */}
