@@ -1102,6 +1102,18 @@ P3 4). Детектор: в коде 2 находки, обе ложные (по
 
 ## Как проверять и публиковать
 
+**На 28.09 (актуально):** 24 набора в `design-export/cabinet-checks/` — `flow` (1440 и 390), `step3–6 d
+trial balance table multi multi2 multi3 pd pdedit req editcard collapse other polish review texts audfix`
+и новые `pay.mjs` (окно оплаты, 60) и `money.mjs` (списание в дату продления, 26); скриншоты пишут в
+`OUT=…`. Все зелёные, кроме давнего «имя из шага 1 в сайдбаре» во `flow 390` (сайдбара на телефоне нет).
+Прогон: сервер `python3 -m http.server 8899` над папкой, где лежит `sleza-web/anketa` (у нас
+`/tmp/srv`), сборка копируется туда. **Сборка для gh-pages — с закоммиченными чужими файлами:**
+`git show HEAD:frontend/components/IntakeModal.js > …` и так же `frontend/app/HomeClient.js`, после
+сборки вернуть рабочие версии. gh-pages: `git worktree add <scratchpad>/ghp gh-pages` (старый worktree
+может жить в скретчпаде прошлой сессии — `git worktree list`), `rsync -a --delete frontend/out/
+<ghp>/anketa/`, коммит, пуш; проверка — имя чанка `app/app/sites/page-*.js` из `out/app/sites/index.html`
+есть в живой странице. Последняя выкладка: master `f48ae79`, gh-pages `4a5d348`.
+
 Проверочные сценарии Playwright — локально в `design-export/cabinet-checks/` (не в git). 24.09 все 18
 основных зелёные (`flow step3 step4 step5 step6 d trial balance table multi multi2 multi3 pd pdedit req
 editcard collapse other`). Там же: `probe.mjs` — набор готовых состояний `screens` (импортировать, ничего не
