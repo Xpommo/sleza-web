@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ArrowRightIcon } from '../../../../components/app/AppIcons';
 import { RING, AnketaFrame, SectionHead, Tile, focusFirstError } from '../_shared/AnketaChrome';
-import { FEATURES, PD_FIELDS, PURPOSES, PURPOSE_MAP, purposeLabel, toggleOption } from '../../../../lib/anketaOptions';
+import { FEATURES, PD_FIELDS, PURPOSES, PURPOSE_MAP, allowedPurposes, purposeLabel, toggleOption } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
 // Порядок вопросов: где собираете (формы — с шага 2, владелец 28.09 по макету
@@ -23,7 +23,6 @@ export default function ClientsClient() {
     const saved = loadAnketa().sphere;
     if (saved && PURPOSE_MAP[saved]) setSphere(saved);
   }, []);
-  const visiblePurposes = PURPOSES.filter((p) => (PURPOSE_MAP[sphere] || PURPOSE_MAP.other).includes(p.value));
 
   // Формы и сервисы — три факта: заказ/оплата, авторизация, сторонний скрипт
   // собирает контакты. Список нарочно короткий.
@@ -31,6 +30,7 @@ export default function ClientsClient() {
   const [featuresError, setFeaturesError] = useState(null);
   const [featuresWhy, setFeaturesWhy] = useState(false);
   const featuresExclusive = FEATURES.filter((o) => o.exclusive).map((o) => o.value);
+  const visiblePurposes = PURPOSES.filter((p) => allowedPurposes(sphere, features).includes(p.value));
 
   const [purposes, setPurposes] = useState([]);
   const [purposeError, setPurposeError] = useState(null);
@@ -56,7 +56,7 @@ export default function ClientsClient() {
     // Цели, которых для текущей сферы нет, снимаются: сферу могли поменять
     // на прошлом шаге, а невидимая отметка уехала бы в согласие (как в
     // макете, 17.09 — «цель оставалась отмеченной после смены сферы»).
-    const allowed = PURPOSE_MAP[a.sphere] || PURPOSE_MAP.other;
+    const allowed = allowedPurposes(a.sphere, a.features || []);
     if (a.purposes?.length) setPurposes(a.purposes.filter((v) => allowed.includes(v)));
     if (a.features?.length) setFeatures(a.features);
     if (a.pdFields?.length) setFields(a.pdFields);
@@ -72,6 +72,11 @@ export default function ClientsClient() {
   useEffect(() => {
     if (restored) saveAnketa(answers());
   }, [restored, features, purposes, fields, promo]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Сняли оплату на сайте — цель «Принять оплату онлайн» скрылась, снимаем и её.
+  useEffect(() => {
+    if (restored && !features.includes('order')) setPurposes((prev) => prev.filter((v) => v !== 'payment'));
+  }, [restored, features]);
 
   function toggle(list, setList, value) {
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);

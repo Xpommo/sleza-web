@@ -8,7 +8,7 @@
 
 import { useRef, useState } from 'react';
 import { CloseIcon } from '../../../../components/app/AppIcons';
-import { ANALYTICS, GA_WARNING, PD_FIELDS, PURPOSES, PURPOSE_MAP, purposeLabel } from '../../../../lib/anketaOptions';
+import { ANALYTICS, GA_WARNING, PD_FIELDS, PURPOSES, allowedPurposes, purposeLabel } from '../../../../lib/anketaOptions';
 import { useDialog } from '../../site/_shared/SiteChrome';
 import { Field, RING, Segmented, Tile } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
@@ -27,7 +27,7 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
   const dialog = useRef(null);
   useDialog(dialog, onClose);
   const [a] = useState(loadAnketa);
-  const allowed = PURPOSE_MAP[a.sphere] || PURPOSE_MAP.other;
+  const allowed = allowedPurposes(a.sphere, a.features || []);
 
   const [analytics, setAnalytics] = useState(a.analytics || []);
   const [analyticsOther, setAnalyticsOther] = useState(a.analyticsOther || '');
