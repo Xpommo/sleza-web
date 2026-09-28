@@ -19,7 +19,7 @@
 //   поверх основного (siteAnketa), ответы анкеты у них общие с основным.
 
 import { loadAnketa, replaceAnketa, saveAnketa } from '../../start/_shared/anketaState';
-import { PRICE, TARIFFS, formatDate, graceEnds, inGrace, paidPeriod, subState, trialEndAt, trialEnds } from './subscription';
+import { PRICE, TARIFFS, TARIFF_CHOICE, formatDate, tariffName, graceEnds, inGrace, paidPeriod, subState, trialEndAt, trialEnds } from './subscription';
 
 export const MAIN = 'main';
 const CURRENT = 'current_site_v1';
@@ -27,9 +27,10 @@ const CURRENT = 'current_site_v1';
 // Тариф выбирает клиент — в таблице «Моих сайтов», пока идёт пробный период (владелец
 // 24.09). До выбора его нет: «Тариф Х · 12 000 ₽» в «Обзоре» сразу после
 // установки выглядел решённым за клиента. Оплаченный сайт без записи о
-// тарифе (старые состояния макета) — на первом тарифе.
+// тарифе (старые состояния макета) — на первом тарифе. Пока выбора нет
+// (TARIFF_CHOICE, владелец 28.09) — первый тариф у всех.
 function mainTariff(a) {
-  return a.siteTariff || a.billing?.tariff || (a.billing?.paidAt ? TARIFFS[0] : null);
+  return a.siteTariff || a.billing?.tariff || (a.billing?.paidAt || !TARIFF_CHOICE ? TARIFFS[0] : null);
 }
 
 // ─── какой сайт открыт в кабинете ────────────────────────────────────────
@@ -131,7 +132,7 @@ function describe(a, s, now) {
     // Льготные дни после пробного: сайт ещё работает (владелец 25.09).
     const invoice = a.billing?.topupInvoice;
     const grace = inGrace(v, now, invoice);
-    const label = !grace ? 'виджет снят с сайта' : invoice ? 'работает, пока ждём оплату счёта' : `работает до ${graceEnds(v)}`;
+    const label = !grace ? 'виджет снят с сайта' : invoice ? 'виджет работает, пока ждём оплату счёта' : `виджет работает до ${graceEnds(v)}`;
     return { kind: 'expired', label, tone: grace ? 'warn' : 'danger', period, grace, graceTo: graceEnds(v) };
   }
   return { kind: 'trial', label: `бесплатно до ${trialEnds(v)}`, tone: 'info', period };
@@ -169,7 +170,7 @@ export function accountSites(a, now = Date.now()) {
   const order = (s) => (s.demo ? Infinity : s.addedAt || 0);
   return list
     .sort((x, y) => order(x) - order(y))
-    .map((s) => ({ ...s, ...describe(a, s, now), price: PRICE }));
+    .map((s) => ({ ...s, tariff: s.tariff || (TARIFF_CHOICE ? null : TARIFFS[0]), ...describe(a, s, now), price: PRICE }));
 }
 
 // ─── несколько настоящих сайтов ──────────────────────────────────────────
@@ -433,6 +434,58 @@ export function payYearFromBalance(key) {
   return true;
 }
 
+// ─── списание в дату продления ────────────────────────────────────────────
+// В продукте это делает сервер в дату продления; в макете — при открытии
+// экрана кабинета (критика 28.09, P0: баланс, пополненный заранее, год не
+// оплачивал, и «Обзор» грозил снять виджет с уже заплатившего клиента).
+// Когда подошла дата и автопродление не выключено:
+// - пробный кончился без оплаты — год с конца пробного, без разрыва;
+// - оплаченный год кончился — ещё год.
+// Денег на балансе не хватает, а у карты стоит «Продлевать автоматически»
+// (card.auto) — недостающее списываем с карты. Иначе ничего не делаем: сайт
+// в льготных днях, как раньше. Возвращает домены, чей год оплачен.
+function dueAt(s) {
+  if (s.cancelled || s.leaving) return null;
+  if (s.kind === 'expired' && s.trialStartedAt) return trialEndAt(s);
+  if (s.kind === 'paid' && s.paidAt) {
+    const d = new Date(s.paidAt);
+    d.setFullYear(d.getFullYear() + (s.paidYears || 1));
+    return d.getTime();
+  }
+  return null;
+}
+
+export function settleRenewals(now = Date.now()) {
+  const paid = [];
+  for (let guard = 0; guard < 20; guard += 1) {
+    const a = loadAnketa();
+    const due = accountSites(a, now)
+      .map((s) => ({ s, at: dueAt(s) }))
+      .filter((x) => x.at && x.at <= now)
+      .sort((x, y) => x.at - y.at)[0];
+    if (!due) break;
+    const { s, at } = due;
+    const b = a.billing || {};
+    const ops = [...(b.ops || [])];
+    let balance = balanceOf(a);
+    if (balance < PRICE && b.card?.auto) {
+      ops.push({ at, kind: 'topup', amount: PRICE - balance, method: 'Картой', auto: true });
+      balance = PRICE;
+    }
+    if (balance < PRICE) break;
+    ops.push({ at, kind: 'debit', amount: PRICE, site: s.domain, auto: true });
+    saveAnketa({ billing: { ...b, balance: balance - PRICE, ops } });
+    const term = s.kind === 'paid' ? (y) => ({ paidYears: (y || 1) + 1 }) : () => ({ paidAt: at, paidYears: 1 });
+    patchSite(
+      s.key,
+      (x) => ({ billing: { ...x.billing, ...term(x.billing?.paidYears), paidAmount: PRICE, invoice: null } }),
+      (d) => ({ ...term(d.paidYears), invoice: null }),
+    );
+    paid.push(s.domain);
+  }
+  return paid;
+}
+
 // Когда с баланса спишут оплату сайта автопродлением, или null — не спишут.
 export function nextDebit(site) {
   const at = debitAt(site);
@@ -458,7 +511,7 @@ export function issueSiteInvoice(key, payer) {
 // в баннере «Обзора»: одно состояние — одно имя.
 const CARD = {
   paid: 'Документы актуальны',
-  'off-soon': 'Сайт отключается',
+  'off-soon': 'Без продления',
   off: 'Сайт отключён',
   pending: 'Счёт выставлен',
   expired: 'Пробный период закончился',
@@ -466,12 +519,14 @@ const CARD = {
   'not-ready': 'Документы собраны',
 };
 export function cardStatus(site) {
-  const meta = site.kind === 'off-soon' ? `работает ${site.label}` : site.label;
+  const meta = site.kind === 'off-soon' ? `подписка до ${site.until}` : site.label;
   // В пробный период тариф ещё не действует — рядом с «Пробный период» его
   // название путало.
-  return { label: CARD[site.kind], meta: site.kind === 'trial' || !site.tariff ? meta : `${meta} · ${site.tariff}`, tone: site.tone === 'muted' ? 'warn' : site.tone };
+  // Без продления — выбор клиента, не тревога: спокойный тон, как в таблице.
+  return { label: CARD[site.kind], meta: site.kind === 'trial' || !site.tariff ? meta : `${meta} · ${tariffName(site.tariff)}`, tone: site.kind === 'off-soon' ? 'muted' : site.tone === 'muted' ? 'warn' : site.tone };
 }
 
 export function formatRub(n) {
-  return `${n.toLocaleString('ru-RU')} ₽`;
+  // Знак рубля не отрывается от числа при переносе строки.
+  return `${n.toLocaleString('ru-RU')}\u00a0₽`;
 }

@@ -10,7 +10,7 @@ import { DOCUMENTS, SITE_ID, docOrigin, docUrl, editEvents } from '../../../../l
 import { accountUser, loadAnketa } from '../../start/_shared/anketaState';
 import PdEmailModal from '../_shared/PdEmailModal';
 import RequisitesModal from '../_shared/RequisitesModal';
-import { siteAnketa } from '../_shared/sites';
+import { settleRenewals, siteAnketa } from '../_shared/sites';
 import { widgetStopped } from '../_shared/subscription';
 import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
 
@@ -30,6 +30,7 @@ export default function SiteDocumentsClient() {
   const [pdOpen, setPdOpen] = useState(false);
 
   useEffect(() => {
+    settleRenewals(); // списание в дату продления — до чтения состояния
     const a = siteAnketa(loadAnketa());
     if (!a.domain) {
       router.replace('/app/sites');
@@ -88,7 +89,7 @@ export default function SiteDocumentsClient() {
               <div>
                 <h2 className="text-lg font-bold tracking-[-0.02em]">Все документы сайта</h2>
                 <p className="mt-1 text-sm text-ink/60">
-                  {site.stopped ? 'Адрес за сайтом сохранён, документы откроются после оплаты' : live ? 'Один адрес на весь пакет, его же открывает подвал' : 'Адрес закрепим за сайтом, и он не изменится'}
+                  {site.stopped ? 'Адрес пакета сохранён за сайтом' : live ? 'Один адрес на весь пакет, его же открывает подвал' : 'Адрес закрепим за сайтом, и он не изменится'}
                 </p>
               </div>
             </div>
@@ -113,11 +114,12 @@ export default function SiteDocumentsClient() {
             <div className="mb-5 flex items-end justify-between gap-4">
               {/* Заголовок раздела — той же ступени, что на остальных экранах
                   кабинета (18px): здесь был свой, крупнее, с кикером сверху. */}
-              {/* У остановленной подписки «Актуальные» спорило с «Сняты с сайта»
-                  на «Обзоре» (разбор 25.09). */}
+              {/* У остановленной подписки «Актуальные» спорило с «Обзором» (разбор
+                  25.09). Что с документами — одно правило (24.08): открываются по
+                  прежним ссылкам, но не обновляются. */}
               <div>
                 <h2 className="text-lg font-bold tracking-[-0.02em]">{site.stopped ? 'Документы сайта' : 'Актуальные документы'}</h2>
-                {site.stopped && <p className="mt-1 text-[13px] text-ink/60">Сняты с сайта, вернутся после оплаты.</p>}
+                {site.stopped && <p className="mt-1 text-[13px] text-ink/60">Открываются по прежним ссылкам, но не обновляются, пока подписка не оплачена.</p>}
               </div>
               <span className="shrink-0 text-xs font-semibold text-ink/60">{DOCUMENTS.length} документов</span>
             </div>

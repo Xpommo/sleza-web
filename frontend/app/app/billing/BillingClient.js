@@ -12,13 +12,14 @@ import { SITE_ID, operatorName } from '../../../lib/docPackage';
 import { AccountSidebar, RING, usePopup } from '../site/_shared/SiteChrome';
 import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
 import SiteOffModal from './SiteOffModal';
+import SitePayDialog from './SitePayDialog';
 import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, NoSiteMoney, Panel, Row } from './BillingBits';
 import { announce } from '../../../lib/announce';
 import {
-  accountSites, balanceOf, currentSiteKey, debitShortfall, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite, payYearFromBalance,
-  setSiteCancelled, setSiteLeaving, setSiteTariff, topUpBalance,
+  accountSites, balanceOf, currentSiteKey, debitShortfall, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite,
+  setSiteCancelled, setSiteLeaving, setSiteTariff, settleRenewals, topUpBalance,
 } from '../site/_shared/sites';
-import { PRICE, TARIFFS, TRIAL_DAYS, formatDate, paidPeriod, trialEndAt, trialEnds } from '../site/_shared/subscription';
+import { GRACE_DAYS, PRICE, TARIFFS, TARIFF_CHOICE, TRIAL_DAYS, formatDate, tariffName, trialEndAt, trialEnds } from '../site/_shared/subscription';
 
 // «Баланс и платежи» + таблица «Моих сайтов» (до 24.09 — «Подписка», потом «Оплата») — модель баланса (партнёрская программа, 14.09;
 // владелец 23.09: «платят нам за ПО»):
@@ -192,7 +193,7 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
   const live = site.kind !== 'not-ready';
   const debit = nextDebit(site);
   const trial = site.kind === 'trial';
-  const tariff = trial ? 'Пробный период' : live ? site.tariff || '—' : '—';
+  const tariff = trial ? 'Пробный период' : live && site.tariff ? tariffName(site.tariff) : '—';
   // Тариф — на виду, в своей колонке, а не в «⋯» (владелец 24.09): там его
   // не находили и не могли выбрать нужный.
   const tariffBtn = (label) => (
@@ -206,9 +207,12 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
       {label}
     </button>
   );
+  // Пока тариф не выбирают (TARIFF_CHOICE) — ни «Выбрать», ни «Сменить».
   const tariffAction = !live || site.kind === 'expired' || site.kind === 'pending'
     ? null
-    : trial && !site.tariff
+    : !TARIFF_CHOICE
+      ? trial && <p className="mt-0.5 text-[12px] text-ink/60">дальше {tariffName(site.tariff)}</p>
+      : trial && !site.tariff
       ? <p className="mt-0.5">{tariffBtn('Выбрать тариф')}</p>
       : trial
         ? <p className="mt-0.5 text-[12px] text-ink/60">дальше {site.tariff} · {tariffBtn('Сменить')}</p>
@@ -254,7 +258,15 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
     (short ? (
       <p className="mt-1 text-[12px] font-semibold text-warn-ink">Не хватает {formatRub(short)} на год</p>
     ) : unfunded ? (
-      <p className="mt-1 text-[12px] text-ink/60">{invoice ? 'ждём оплату счёта' : `к ${debit} нужно ${PRICE_TEXT} на балансе`}</p>
+      // Без слова «баланс» (владелец 28.09, вариант А): баланс общий на
+      // аккаунт, и «нужно 12 000 ₽ на балансе» при 24 000 ₽ на нём читалось как
+      // баланс этого сайта. Строка говорит только о сайте: сколько не хватит к
+      // его дате, с учётом того, что раньше уйдёт на другие сайты. «Не хватит»
+      // — только за месяц: сразу после оплаты года это придирка, а не
+      // предупреждение (решение 24.09), тогда просто дата и цена продления.
+      <p className="mt-1 text-[12px] text-ink/60">
+        {invoice ? 'ждём оплату счёта' : unfunded.at - Date.now() < SOON ? `к ${debit} не хватит ${formatRub(unfunded.amount)}` : `${debit} продление за ${PRICE_TEXT}`}
+      </p>
     ) : (
       <p className="mt-1 text-[12px] text-ink/60">
         {debit} спишем {PRICE_TEXT}
@@ -271,7 +283,7 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
       <button
         type="button"
         onClick={() => onPick('renew')}
-        aria-expanded={open === 'renew'}
+        aria-haspopup="dialog"
         className={`inline-flex min-h-11 items-center rounded text-[12px] font-bold text-brand hover:text-ink sm:min-h-0 ${RING}`}
       >
         {payLabel}
@@ -279,8 +291,11 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
     </p>
   );
   const nextTariff = site.nextTariff && site.period && <p className="mt-0.5 text-[12px] text-ink/60">{site.nextTariff} с {site.period.renew}</p>;
-  // У отключённого сайта продлевать нечего — переключателя нет.
-  const autoable = live && site.kind !== 'off-soon';
+  // У отключённого сайта продлевать нечего — переключателя нет. У сайта, чей
+  // пробный период кончился без оплаты, тоже: продлевать ещё нечего, а
+  // горящий переключатель читался как «продлится сам» (критика 23.09).
+  // Появится после оплаты, с прежним положением.
+  const autoable = live && site.kind !== 'off-soon' && site.kind !== 'expired';
   const sw = autoable && <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />;
   const menu = <RowMenu site={site} hasHistory={hasHistory} onPick={onPick} />;
   return (
@@ -301,7 +316,9 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
           {debitLine}
           {payBtn}
         </div>
-        <div>{sw}</div>
+        {/* Продлевать нечего — «—», как у пустого тарифа: пустая колонка
+            читалась как недогруженная. */}
+        <div>{sw || <span className="text-[14px] font-semibold text-ink/80">—</span>}</div>
         {menu}
       </div>
       {/* Телефон — та же строка карточкой: колонок нет, подписи на месте. */}
@@ -318,17 +335,20 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
           {debitLine}
           {payBtn}
         </div>
-        <div className="mt-3 flex items-center justify-between gap-3 text-[13px]">
-          <span className="min-w-0">
-            <span className="block font-semibold text-ink/75">{tariff}</span>
-            {tariffAction}
-          </span>
-          {autoable && (
-            <label className="flex items-center gap-2 font-semibold text-ink/65">
-              Автопродление {sw}
-            </label>
-          )}
-        </div>
+        {/* Без тарифа и без переключателя строка сводилась к одинокому «—». */}
+        {(tariff !== '—' || tariffAction || autoable) && (
+          <div className="mt-3 flex items-center justify-between gap-3 text-[13px]">
+            <span className="min-w-0">
+              <span className="block font-semibold text-ink/75">{tariff}</span>
+              {tariffAction}
+            </span>
+            {autoable && (
+              <label className="flex items-center gap-2 font-semibold text-ink/65">
+                Автопродление {sw}
+              </label>
+            )}
+          </div>
+        )}
       </div>
       {open && children && <div className="border-t border-line bg-warm/50 px-5 py-4 sm:px-6">{children}</div>}
     </div>
@@ -348,19 +368,19 @@ export default function BillingClient({ mode = 'money' }) {
   const [user, setUser] = useState(CURRENT_USER);
   const [now, setNow] = useState(Date.now());
 
-  // Раскрытая панель в строке сайта: { key, panel: 'tariff' | 'renew' }.
+  // Раскрытая панель в строке сайта: { key, panel: 'tariff' }. Оплата года —
+  // окном SitePayDialog (владелец 28.09): одно окно на «Обзор», карточку и строку.
   const [open, setOpen] = useState(null);
+  const [payKey, setPayKey] = useState(null);
   // Ничего не отмечено, пока клиент не выбрал: оплату с «Обзора» раньше
   // открывала панель с уже отмеченным «Тарифом Х».
   const [tariffPick, setTariffPick] = useState(null);
   const [off, setOff] = useState(null); // { site, step } — «Отключить сайт»
 
-  // Пополнение баланса. topupFor — сайт, год которого оплатим сразу после
-  // пополнения («Оплатить год», когда на балансе не хватило).
+  // Пополнение баланса («Баланс и платежи»). Оплата года сайта — в SitePayDialog.
   const [topupOpen, setTopupOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [amountErr, setAmountErr] = useState(null);
-  const [topupFor, setTopupFor] = useState(null);
 
   const [methodOpen, setMethodOpen] = useState(false);
   // Способ пополнения: пока ни разу не пополняли — не выбран (владелец 23.09:
@@ -386,14 +406,13 @@ export default function BillingClient({ mode = 'money' }) {
 
   const [whatOpen, setWhatOpen] = useState(false);
   const [copied, setCopied] = useState(null);
-  // Итог оплаты года в строке сайта: { key } — панель «Оплачено до …».
-  const [paidDone, setPaidDone] = useState(null);
   const [opsAll, setOpsAll] = useState(false);
   // «Посмотреть историю счетов» в «⋯» сайта — история только его.
   const [historyFor, setHistoryFor] = useState(null);
   const [noSite, setNoSite] = useState(false);
 
   useEffect(() => {
+    settleRenewals(); // списание в дату продления — до чтения состояния
     const saved = loadAnketa();
     // Сайтов ещё нет: не перекидываем молча в «Мои сайты» (аудит 26.09 —
     // пункт меню «Баланс и платежи» делал не то, что называл), а говорим прямо.
@@ -421,19 +440,15 @@ export default function BillingClient({ mode = 'money' }) {
       setOtherPayer(b.payerOther);
       setPayerMode('Другие реквизиты');
     } else if (b.method === 'По счёту') setPayerMode('Реквизиты компании');
-    // «Оплатить год» с «Обзора» и из карточек «Моих сайтов» открывает оплату сайта.
+    // Старые ссылки «?pay=» (с «Обзора» и из карточек до 28.09) — то же окно оплаты.
     const want = sitesMode && q.get('pay');
     if (want) {
       const key = want === 'current' ? currentSiteKey() : want;
-      const target = accountSites(saved).find((x) => x.key === key);
-      if (target) {
-        setOpen({ key, panel: 'renew' });
-        const have = balanceOf(saved);
-        if (target.tariff && have < PRICE && !saved.billing?.topupInvoice) openTopup(PRICE - have, key);
-      }
+      if (accountSites(saved).some((x) => x.key === key)) setPayKey(key);
     }
-    // «Выбрать тариф» с «Обзора» — сразу выбор тарифа в строке сайта.
-    const pick = sitesMode && q.get('tariff');
+    // «Выбрать тариф» с «Обзора» — сразу выбор тарифа в строке сайта (пока
+    // тариф не выбирают — TARIFF_CHOICE — не открываем).
+    const pick = sitesMode && TARIFF_CHOICE && q.get('tariff');
     if (pick) {
       const key = pick === 'current' ? currentSiteKey() : pick;
       if (accountSites(saved).some((x) => x.key === key)) {
@@ -497,32 +512,22 @@ export default function BillingClient({ mode = 'money' }) {
       setOpen(null);
       return;
     }
+    // «Оплатить» / «Продлить» — окно оплаты, не панель в строке (владелец 28.09).
+    if (panel === 'renew') {
+      setOpen(null);
+      setPayKey(site.key);
+      return;
+    }
     // Не выбран — ничего не отмечено: тариф выбирает клиент.
-    if (panel === 'tariff' || panel === 'renew') setTariffPick(site.nextTariff || site.tariff || null);
+    if (panel === 'tariff') setTariffPick(site.nextTariff || site.tariff || null);
     setOpen({ key: site.key, panel });
-    // Оплата года в строке сайта: не хватает на балансе — сразу форма доплаты
-    // на недостающую сумму (как корзина регистратора: сначала баланс, остальное
-    // картой или по счёту).
-    if (sitesMode && panel === 'renew' && site.tariff && balance < PRICE && !b.topupInvoice) openTopup(PRICE - balance, site.key);
   }
 
-  // then='renew' — тариф выбирали перед оплатой: после выбора та же строка
-  // показывает оплату года.
-  function pickTariff(site, then) {
+  function pickTariff(site) {
     if (!tariffPick) return;
     setSiteTariff(site.key, tariffPick, site.kind === 'paid');
     reload();
-    setOpen(then ? { key: site.key, panel: then } : null);
-    // Тариф выбран по пути к оплате — в таблице сайтов сразу форма доплаты,
-    // как после «Оплатить год».
-    if (sitesMode && then === 'renew' && balance < PRICE && !b.topupInvoice) openTopup(PRICE - balance, site.key);
-    focusPanel(site.key);
-  }
-
-  // Нажатая кнопка размонтируется вместе с панелью (выбор тарифа, оплата) —
-  // фокус на начало новой панели, иначе он падал на body (аудит 24.09).
-  function focusPanel(key) {
-    setTimeout(() => document.querySelector(`#site-${CSS.escape(key)} [data-panel-start]`)?.focus(), 60);
+    setOpen(null);
   }
 
   // Сменить способ — одно нажатие (владелец 24.09: было «Изменить → По счёту →
@@ -553,47 +558,22 @@ export default function BillingClient({ mode = 'money' }) {
     } else setPayerModal(true);
   }
 
-  function openTopup(sum = PRICE, forKey = null) {
+  function openTopup(sum = PRICE) {
     setAmount(String(sum));
     setAmountErr(null);
-    setTopupFor(forKey);
     setTopupOpen(true);
-    // В таблице сайтов доплата — в той же строке, без прыжка к балансу.
-    if (sitesMode) return;
     setOpen(null);
     setTimeout(() => document.getElementById('balance')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }
 
   function closeTopup() {
     setTopupOpen(false);
-    setTopupFor(null);
-    if (sitesMode) setOpen(null);
-  }
-
-  // Оплатить год сайта с баланса — сразу; не хватает — пополнение на
-  // недостающую сумму, а после него год оплатится сам.
-  function payYear(site) {
-    if (payYearFromBalance(site.key)) {
-      reload();
-      showPaid(site.key);
-    } else openTopup(PRICE - balance, site.key);
-  }
-
-  // После оплаты — не тишина, а итог в той же строке (разбор 24.09): срок,
-  // куда придут чек и акт. Фокус переходит на итог — скринридер прочтёт его
-  // сам; live-область здесь дала бы второе прочтение того же текста.
-  function showPaid(key) {
-    const fresh = accountSites(loadAnketa()).find((x) => x.key === key);
-    setPaidDone({ key, to: fresh?.period?.to });
-    setOpen({ key, panel: 'done' });
-    focusPanel(key);
   }
 
   function checkAmount() {
     const sum = Number(String(amount).replace(/\D/g, ''));
-    const min = topupFor ? PRICE - balance : 100;
-    if (!sum || sum < min) {
-      setAmountErr(topupFor ? `Нужно не меньше ${formatRub(min)}: столько не хватает на год сайта.` : 'Укажите сумму от 100 ₽.');
+    if (!sum || sum < 100) {
+      setAmountErr('Укажите сумму от 100 ₽.');
       return null;
     }
     setAmountErr(null);
@@ -663,11 +643,12 @@ export default function BillingClient({ mode = 'money' }) {
     saveAnketa({ billing: { ...loadAnketa().billing, ...patch } });
     setMethod('Картой');
     topUpBalance(sum, 'Картой');
-    const paidFor = topupFor && payYearFromBalance(topupFor) ? topupFor : null;
+    // Пополнили, а у сайта подошла дата продления (или пробный уже кончился) —
+    // год оплачивается сразу, как сделал бы сервер (критика 28.09, P0).
+    const settled = settleRenewals();
     closeTopup();
     reload();
-    if (paidFor && sitesMode) showPaid(paidFor);
-    else announce(`Баланс пополнен на ${formatRub(sum)}.`);
+    announce(`Баланс пополнен на ${formatRub(sum)}.${settled.length ? ` Оплачен год: ${settled.join(', ')}.` : ''}`);
   }
 
   const currentPayer = payerMode === 'Реквизиты компании' ? null : otherPayer;
@@ -694,11 +675,8 @@ export default function BillingClient({ mode = 'money' }) {
     setMethod('По счёту');
     issueTopupInvoice(sum, currentPayer);
     announce(`Счёт № ${loadAnketa().billing?.topupInvoice?.no || ''} на ${formatRub(sum)} выставлен. Пришлём его на ${email}.`);
-    const forKey = topupFor;
     closeTopup();
     reload();
-    // В строке сайта счёт остаётся на виду — «ждём оплату».
-    if (sitesMode && forKey) setOpen({ key: forKey, panel: 'renew' });
   }
 
   function copy(key, text) {
@@ -721,7 +699,7 @@ export default function BillingClient({ mode = 'money' }) {
     ? {
         'not-ready': 'Подписка начнётся с пробного периода, когда код встанет на сайт.',
         trial: main.cancelled
-          ? `Пробный период до ${main.trialTo}. Автопродление выключено. Оплатите год вручную до этой даты, иначе сайт отключится.`
+          ? `Пробный период до ${main.trialTo}. Автопродление выключено. Оплатите год вручную до этой даты, иначе через ${GRACE_DAYS} ${plural(GRACE_DAYS, 'день', 'дня', 'дней')} после неё снимем виджет с сайта.`
           : !main.tariff
             ? balance >= PRICE || autoCard
               ? `Пробный период до ${main.trialTo}. Выберите тариф, и дальше год оплатится сам, без перерыва.`
@@ -732,14 +710,14 @@ export default function BillingClient({ mode = 'money' }) {
                 ? `Пробный период до ${main.trialTo}. Потом спишем ${PRICE_TEXT} за год, недостающее возьмём с карты ···· ${b.card.last4}.`
                 : `Пробный период до ${main.trialTo}. Пополните баланс на ${PRICE_TEXT}, и дальше год оплатится сам, без перерыва.`,
         expired: main.grace
-          ? `Пробный период закончился. Сайт работает до ${main.graceTo}: оплатите год, чтобы он не отключился.`
+          ? `Пробный период закончился. Виджет работает до ${main.graceTo}: оплатите год, чтобы его не сняли с сайта.`
           : 'Пробный период закончился. Оплатите год, чтобы включить сайт снова.',
         pending: 'Счёт выставлен. Отметим оплату, как только поступят деньги.',
         // У оплаченного сайта лида нет (владелец 24.09): «Оплачено до …» и
         // «продление вручную» уже стоят в его строке таблицы. Остальные лиды
         // говорят, что делать дальше, — это плашкой не сказано.
         paid: null,
-        'off-soon': `Сайт отключается: работает до ${main.until}, дальше продлевать не будем.`,
+        'off-soon': `Подписка не продлится: документы и виджет работают до ${main.until}.`,
       }[main.kind]
     : `${sites.length} ${plural(sites.length, 'сайт', 'сайта', 'сайтов')}: у каждого свой год, оплата списывается с баланса в дату продления каждого.`;
 
@@ -756,8 +734,8 @@ export default function BillingClient({ mode = 'money' }) {
           ]
         : main.kind === 'expired'
         ? [
-            ['Сейчас отключено', ['Виджет снят с сайта: куки-баннер и подвал не показываются', 'Документы в кабинете открываются только на просмотр']],
-            ['Оплата включит снова', ['Виджет и документы заработают как прежде', 'Следим за законом и обновляем документы сами', 'Уведомления, если что-то изменилось']],
+            ['Сейчас отключено', ['Виджет снят с сайта: куки-баннер и подвал не показываются', 'Документы открываются по прежним ссылкам, но не обновляются']],
+            ['Оплата включит снова', ['Виджет вернётся на сайт', 'Документы снова будут обновляться вслед за законом', 'Уведомления, если что-то изменилось']],
           ]
         : [
             [a.installed ? `Уже работает, бесплатно до ${a.trialStartedAt ? trialEnds(a) : ''}` : `Включится на ${TRIAL_DAYS} дней бесплатно, как только код встанет на сайт`, common],
@@ -906,8 +884,7 @@ export default function BillingClient({ mode = 'money' }) {
         )}
         {docsEmailField('Куда прислать чек и акт')}
         <button type="button" onClick={topupByCard} className={`mt-5 ${PRIMARY}`}>
-          {/* Доплата за год сайта — «Оплатить»: человек платит за сайт, а не пополняет баланс. */}
-          {topupFor ? `Оплатить ${sumText}` : `Пополнить на ${sumText}`}
+          Пополнить на {sumText}
         </button>
       </div>
     );
@@ -958,19 +935,9 @@ export default function BillingClient({ mode = 'money' }) {
   // Пополнение по шагам: сумма → как пополняете → данные → куда прислать
   // документы. Ничего не выбрано заранее (владелец 23.09).
   function topupPanel() {
-    const forSite = topupFor && sites.find((s) => s.key === topupFor);
     const chips = [[PRICE, 'за год одного сайта'], ...(sites.length > 1 ? [[PRICE * sites.length, `за год всех ${sites.length} сайтов`]] : [])];
     return (
       <>
-        {/* Оплата года сайта — сумма известна, вводить её не нужно (разбор
-            24.09: «Оплатить год» открывало «Сумма, ₽» и «Как пополняете?»).
-            Что есть на балансе — спишем, остальное доплатить здесь. */}
-        {forSite && balance > 0 && (
-          <p className="mb-4 rounded-lg bg-brand/[0.06] px-3 py-2.5 text-[13px] leading-5 text-ink/75">
-            Спишем с баланса {formatRub(balance)}, доплатить нужно {formatRub(PRICE - balance)}.
-          </p>
-        )}
-        {!forSite && (
         <div className="grid gap-3 sm:grid-cols-[minmax(0,260px)_1fr] sm:items-end">
           <Field
             label="Сумма, ₽"
@@ -1002,9 +969,8 @@ export default function BillingClient({ mode = 'money' }) {
             ))}
           </div>
         </div>
-        )}
-        <p id="how-h" className={`mb-2 text-sm font-bold ${forSite ? '' : 'mt-6'}`}>
-          {forSite ? 'Как оплачиваете?' : 'Как пополняете?'}
+        <p id="how-h" className="mb-2 mt-6 text-sm font-bold">
+          Как пополняете?
         </p>
         <Segmented options={['Картой', 'По счёту']} value={payMethod} onChange={setPayMethod} ariaLabelledby="how-h" />
         {payMethod && <div className="mt-5 border-t border-line pt-5">{payMethod === 'Картой' ? cardPart() : invoicePart()}</div>}
@@ -1064,10 +1030,9 @@ export default function BillingClient({ mode = 'money' }) {
 
   // Выбор тарифа — в строке сайта. Тариф не применяется по клику: случайное
   // нажатие по соседней карточке меняло бы оплачиваемый тариф.
-  function tariffPanel(site, then) {
+  function tariffPanel(site) {
     return (
       <>
-        {then && <p className="mb-3 text-[15px] font-bold">Сначала выберите тариф для {site.domain}</p>}
         <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={`Тариф ${site.domain}`}>
           {TARIFFS.map((t) => (
             <button
@@ -1091,110 +1056,13 @@ export default function BillingClient({ mode = 'money' }) {
             : 'Состав тарифов ещё утверждается, поэтому цена пока одна.'}
         </p>
         <div className="mt-4 flex gap-3">
-          <button type="button" onClick={() => pickTariff(site, then)} disabled={!tariffPick} className={`${then ? PRIMARY_SM : BTN_OUTLINE} disabled:cursor-not-allowed disabled:opacity-50`}>
-            {then ? 'Выбрать и продолжить' : 'Выбрать этот тариф'}
+          <button type="button" onClick={() => pickTariff(site)} disabled={!tariffPick} className={`${BTN_OUTLINE} disabled:cursor-not-allowed disabled:opacity-50`}>
+            Выбрать этот тариф
           </button>
           <button type="button" onClick={() => setOpen(null)} className={BTN_TEXT}>
             Отмена
           </button>
         </div>
-      </>
-    );
-  }
-
-  // Итог оплаты: срок и где документы — то, что директор хочет услышать.
-  // Пробный период здесь не упоминается: оплаченный год уже стоит в сроке,
-  // а «начнётся после пробного» сказано до оплаты.
-  function donePanel(site) {
-    const to = paidDone?.key === site.key ? paidDone.to : site.period?.to;
-    return (
-      <div data-panel-start tabIndex={-1} className={`flex flex-wrap items-center justify-between gap-3 rounded-lg outline-none ${RING}`}>
-        <p className="flex items-start gap-2.5 text-[14px] leading-5">
-          <CheckIcon size={18} className="mt-px shrink-0 text-ok-ink" />
-          <span>
-            <b className="font-bold">Оплачено до {to}.</b>{' '}
-            <span className="text-ink/70">
-              Чек и акт придут на {b.actsEmail || 'e-mail для документов'}, акт также будет в «Балансе и платежах» → «Акты и чеки».
-            </span>
-          </span>
-        </p>
-        <button type="button" onClick={() => setOpen(null)} className={BTN_TEXT}>
-          Готово
-        </button>
-      </div>
-    );
-  }
-
-  function renewPanel(site) {
-    // Без тарифа платить не за что: сначала выбор, потом та же панель оплаты.
-    if (!site.tariff) return tariffPanel(site, 'renew');
-    const enough = balance >= PRICE;
-    // Тем же глаголом, что нажали: «Оплатить год» с «Обзора» раньше
-    // открывало панель без заголовка с одной «Пополнить» внутри.
-    const title = (
-      <p data-panel-start tabIndex={-1} className={`mb-1.5 rounded text-[15px] font-bold outline-none ${RING}`}>
-        {site.kind === 'paid' || site.kind === 'off-soon' ? `Продлить ${site.domain} на год` : `Оплатить год ${site.domain}`}: {site.tariff}, {PRICE_TEXT}
-      </p>
-    );
-    const what =
-      site.kind === 'trial'
-        ? `Год ${site.domain} начнётся после пробного периода, так что пробные дни не сгорают.`
-        : site.kind === 'paid' || site.kind === 'off-soon'
-          ? `Срок продлится до ${paidPeriod(site.paidAt, (site.paidYears || 1) + 1).to}.`
-          : site.grace
-            ? `Год ${site.domain} начнётся сегодня.`
-            : `${site.domain} включится сегодня на год.`;
-    // Что будет через год — до оплаты, а не после (разбор 24.09; HANDOFF:
-    // «не сказано до оплаты картой, что через год спишется 12 000 ₽»).
-    const next = (
-      <p className="mt-1 text-[13px] leading-5 text-ink/60">
-        {site.cancelled
-          ? 'Автопродление выключено. Следующий год оплатите вручную.'
-          : `В конце срока спишем с баланса ${PRICE_TEXT} за следующий год. Автопродление выключается в строке сайта.`}
-      </p>
-    );
-    return enough ? (
-      <>
-        {title}
-        <p className="text-[13px] leading-5 text-ink/70">
-          Спишем {PRICE_TEXT} с баланса ({formatRub(balance)}). {what}
-        </p>
-        {next}
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => payYear(site)} className={PRIMARY}>
-            Списать {PRICE_TEXT}
-          </button>
-          <button type="button" onClick={() => setOpen(null)} className={BTN_TEXT}>
-            Отмена
-          </button>
-        </div>
-      </>
-    ) : sitesMode ? (
-      // В таблице сайтов — доплата здесь же: счёт уже выставлен — он на виду,
-      // иначе форма на недостающую сумму (открывается сама, см. toggle).
-      <>
-        {title}
-        <p className="text-[13px] leading-5 text-ink/70">{what}</p>
-        {next}
-        {b.topupInvoice ? (
-          invoiceView(b.topupInvoice)
-        ) : topupOpen && topupFor === site.key ? (
-          <div className="mt-4">{topupPanel()}</div>
-        ) : (
-          <button type="button" onClick={() => openTopup(PRICE - balance, site.key)} className={`mt-4 ${PRIMARY}`}>
-            Доплатить {formatRub(PRICE - balance)}
-          </button>
-        )}
-      </>
-    ) : (
-      <>
-        {title}
-        <p className="text-[13px] leading-5 text-ink/70">
-          На балансе {formatRub(balance)}, на год не хватает {formatRub(PRICE - balance)}. {what}
-        </p>
-        <button type="button" onClick={() => openTopup(PRICE - balance, site.key)} className={`mt-4 ${PRIMARY}`}>
-          Пополнить на {formatRub(PRICE - balance)}
-        </button>
       </>
     );
   }
@@ -1225,7 +1093,7 @@ export default function BillingClient({ mode = 'money' }) {
             router.push(site.kind === 'not-ready' ? STEP_URLS[Math.min(site.stepsDone || 0, 5)] : '/app/site');
           }}
           short={(sitesMode || !single) && !autoCard && short[site.key] && short[site.key].at - now < warnWithin(site) ? short[site.key].amount : null}
-          unfunded={!autoCard && Boolean(unfundedMap[site.key])}
+          unfunded={!autoCard ? unfundedMap[site.key] || null : null}
           invoice={Boolean(b.topupInvoice)}
           open={open?.key === site.key ? open.panel : null}
           hasHistory={ops.some((op) => op.kind === 'debit' && op.site === site.domain)}
@@ -1250,7 +1118,7 @@ export default function BillingClient({ mode = 'money' }) {
             reload();
           }}
         >
-        {open?.panel === 'tariff' ? tariffPanel(site) : open?.panel === 'done' ? donePanel(site) : renewPanel(site)}
+        {open?.panel === 'tariff' ? tariffPanel(site) : null}
         </SiteTableRow>
       ))}
     </div>
@@ -1258,6 +1126,16 @@ export default function BillingClient({ mode = 'money' }) {
 
   const dialogs = (
     <>
+      {payKey && (
+        <SitePayDialog
+          siteKey={payKey}
+          onClose={() => {
+            setPayKey(null);
+            reload();
+          }}
+          fallback={() => document.querySelector(`#site-${CSS.escape(payKey)} button`)}
+        />
+      )}
       {off && (
         <SiteOffModal
           site={off.site}
@@ -1306,6 +1184,13 @@ export default function BillingClient({ mode = 'money' }) {
         <div className="mx-auto max-w-4xl">
           <MoneyHeader tab="Платежи">
             {lead && <p className="mt-5 max-w-2xl text-[15px] leading-6 text-ink/65">{lead}</p>}
+            {/* Лид говорит «оплатите год» — рядом и кнопка оплаты, а не только
+                «Пополнить» у баланса, которое год не оплачивало (критика 28.09). */}
+            {single && main.kind === 'expired' && !b.topupInvoice && (
+              <button type="button" onClick={() => setPayKey(main.key)} aria-haspopup="dialog" className={`mt-5 ${PRIMARY_SM}`}>
+                Оплатить
+              </button>
+            )}
           </MoneyHeader>
 
           {notReady ? (
@@ -1349,7 +1234,7 @@ export default function BillingClient({ mode = 'money' }) {
                   {/* Главная — только когда пополнить действительно нужно и
                       ниже не открыта оплата сайта со своей синей кнопкой. */}
                   {!topupOpen && (
-                    <button type="button" onClick={() => openTopup(shortSum || PRICE)} className={shortSum > 0 && !autoCard && open?.panel !== 'renew' ? PRIMARY_SM : SECONDARY_SM}>
+                    <button type="button" onClick={() => openTopup(shortSum || PRICE)} className={shortSum > 0 && !autoCard ? PRIMARY_SM : SECONDARY_SM}>
                       Пополнить
                     </button>
                   )}
@@ -1454,10 +1339,10 @@ export default function BillingClient({ mode = 'money' }) {
                   )}
                   <ul className="divide-y divide-line">
                     {(historyFor
-                      ? [...ops].reverse().filter((op) => op.site === historyFor)
+                      ? [...ops].sort((x, y) => y.at - x.at).filter((op) => op.site === historyFor)
                       : opsAll
-                        ? [...ops].reverse()
-                        : [...ops].reverse().slice(0, 6)
+                        ? [...ops].sort((x, y) => y.at - x.at)
+                        : [...ops].sort((x, y) => y.at - x.at).slice(0, 6)
                     ).map((op) => (
                       <li key={`${op.at}-${op.kind}-${op.site || ''}`} className="flex items-baseline gap-3 py-2 text-[13px]">
                         <span className="w-20 shrink-0 text-ink/60">{formatDate(op.at)}</span>

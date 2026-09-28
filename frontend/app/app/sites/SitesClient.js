@@ -10,9 +10,10 @@ import {
 import { CURRENT_USER } from '../../../lib/appMock';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
-import { graceEnds, inGrace, paidPeriod, subState, trialEnds } from '../site/_shared/subscription';
-import { MAIN, accountSites, addSite, cardStatus, openSite, siteView } from '../site/_shared/sites';
+import { graceEnds, inGrace, paidPeriod, subState, tariffName, trialEnds } from '../site/_shared/subscription';
+import { MAIN, accountSites, addSite, cardStatus, openSite, settleRenewals, siteView } from '../site/_shared/sites';
 import BillingClient from '../billing/BillingClient';
+import SitePayDialog from '../billing/SitePayDialog';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
@@ -33,25 +34,30 @@ function anketaProgress(a) {
 // warn — нужно действие.
 function siteStatus(a, now = Date.now(), invoice = null) {
   const sub = subState(a, now);
-  const open = { action: 'Открыть сайт', href: '/app/site' };
+  // «Открыть сайт» читалось как «открыть alfa-school.ru», а вело в кабинет
+  // (критика 28.09) — называем, куда ведёт.
+  const open = { action: OPEN_LABEL, href: '/app/site' };
   // Отключают сайт в «Моих сайтах», вид «Таблица» (владелец 24.09).
   if (sub === 'expired') {
     // Льготные дни (владелец 25.09): сайт ещё работает, но платить пора.
-    const meta = !inGrace(a, now, invoice) ? 'виджет отключён' : invoice ? 'работает, пока ждём оплату счёта' : `работает до ${graceEnds(a)}`;
-    return { tone: 'warn', label: 'Пробный период закончился', meta, action: 'Оплатить', href: '/app/sites?view=table&pay=current' };
+    const meta = !inGrace(a, now, invoice) ? 'виджет снят с сайта' : invoice ? 'виджет работает, пока ждём оплату счёта' : `виджет работает до ${graceEnds(a)}`;
+    // «Оплатить» — окно оплаты прямо здесь (владелец 28.09), без перехода в «Таблицу».
+    return { tone: 'warn', label: 'Пробный период закончился', meta, action: 'Оплатить', pay: true };
   }
   if (sub === 'pending') return { tone: 'info', label: 'Счёт выставлен', meta: `счёт № ${a.billing?.invoice?.no || ''}`, ...open };
   if (sub === 'paid') {
     const to = paidPeriod(a.billing.paidAt, a.billing.paidYears).to;
     // Отключают сайт в «⋯» строки в виде «Таблица»; выключенное автопродление — не уход,
     // а продление вручную: карточка та же, что у оплаченного (владелец 24.09).
-    if (a.billing.leaving) return { tone: 'warn', label: 'Сайт отключается', meta: `работает до ${to}`, ...open };
+    // «Сайт отключается» за 8 месяцев до даты читалось как «мой сайт выключат»
+    // (критика 28.09): говорим о подписке, спокойным тоном — это выбор клиента.
+    if (a.billing.leaving) return { tone: 'muted', label: 'Без продления', meta: `подписка до ${to}`, ...open };
     // Те же слова, что в баннере «Обзора»: оплачено, но документы ещё не на сайте.
     if (!a.installed) return { tone: 'warn', label: 'Оплачено, ждём код на сайте', meta: `оплачено до ${to}`, action: 'Поставить код на сайт', href: STEP_URLS[5] };
     return { tone: 'ok', label: 'Документы актуальны', meta: `оплачено до ${to}`, ...open };
   }
   if (sub === 'trial') {
-    if (a.billing?.leaving) return { tone: 'warn', label: 'Сайт отключается', meta: `работает до ${trialEnds(a)}`, ...open };
+    if (a.billing?.leaving) return { tone: 'muted', label: 'Без продления', meta: `пробный период до ${trialEnds(a)}`, ...open };
     const left = `бесплатно до ${trialEnds(a)}`;
     // Пробный период уже запущен, а код ещё не нашли: проверка идёт до 15
     // минут, и кабинет сайта уже открыт — туда и ведём, а не обратно в анкету.
@@ -67,8 +73,11 @@ function siteStatus(a, now = Date.now(), invoice = null) {
   return { tone: 'warn', label: 'Документы не готовы', meta: 'анкета не закончена', action: 'Продолжить анкету', href: STEP_URLS[done] };
 }
 
+const OPEN_LABEL = 'Открыть кабинет сайта';
+
 const TONE = {
   ok: ['border-ok/25 bg-ok/10 text-ok-ink', OkIcon],
+  muted: ['border-line bg-warm text-ink/70', ClockIcon],
   info: ['border-brand/20 bg-brand/[0.06] text-brand', ClockIcon],
   warn: ['border-warn/30 bg-warn/10 text-warn-ink', WarnIcon],
 };
@@ -86,6 +95,9 @@ const PRIMARY_BTN = `mt-7 flex h-11 w-full items-center justify-center gap-2 rou
 // странице было 3–4 синие кнопки при правиле «одна синяя на экран»).
 const OPEN_BTN = `mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-white text-sm font-bold text-ink shadow-sm transition hover:border-line-2 hover:bg-warm ${RING}`;
 
+// Растягивает кнопку на всю карточку (article — relative).
+const STRETCH = "after:absolute after:inset-0 after:rounded-2xl after:content-['']";
+
 function plural(n, one, few, many) {
   const m10 = n % 10;
   const m100 = n % 100;
@@ -100,7 +112,7 @@ function listSites(a) {
   return accountSites(a).map((s) => {
     if (s.demo) {
       const st = cardStatus(s);
-      return { ...s, status: { ...st, action: 'Открыть сайт', href: '/app/site' }, finished: true, demoMeta: st.meta };
+      return { ...s, status: { ...st, action: OPEN_LABEL, href: '/app/site' }, finished: true, demoMeta: st.meta };
     }
     const view = s.key === MAIN ? a : siteView(a, a.extraSites.find((x) => x.key === s.key));
     const skip = view.skipProfile ? 1 : 0;
@@ -120,7 +132,11 @@ function listSites(a) {
 function SiteCard({ site, onOpen }) {
   const [cls, Icon] = TONE[site.status.tone];
   return (
-    <article className="rounded-2xl border border-line bg-white p-6 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.35)] transition hover:-translate-y-0.5 sm:p-7">
+    // Карточка нажимается целиком, тем же действием, что её кнопка: шеврон и
+    // подъём при наведении обещали это, а нажималась только кнопка (критика
+    // 23.09). Кнопка растянута на карточку псевдоэлементом — остановка Tab
+    // одна, и экранный диктор читает одно действие, а не ссылку-карточку.
+    <article className="group relative cursor-pointer rounded-2xl border border-line bg-white p-6 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.35)] transition hover:-translate-y-0.5 hover:border-line-2 sm:p-7">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -131,7 +147,7 @@ function SiteCard({ site, onOpen }) {
           </div>
           {site.company && <p className="mt-4 text-sm font-medium text-ink/70">{site.company}</p>}
         </div>
-        <ChevronIcon size={19} className="mt-2 shrink-0 text-ink/25" />
+        <ChevronIcon size={19} className="mt-2 shrink-0 text-ink/25 transition group-hover:translate-x-0.5 group-hover:text-ink/50" />
       </div>
 
       <div className={`mt-6 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold ${cls}`}>
@@ -139,7 +155,7 @@ function SiteCard({ site, onOpen }) {
       </div>
       <p className="mt-2 px-1 text-[12px] text-ink/60">
         {site.demo ? site.demoMeta : site.status.meta}
-        {!site.demo && site.finished && site.tariff && site.kind !== 'trial' && ` · ${site.tariff}`}
+        {!site.demo && site.finished && site.tariff && site.kind !== 'trial' && ` · ${tariffName(site.tariff)}`}
       </p>
 
       {!site.demo && (
@@ -173,7 +189,12 @@ function SiteCard({ site, onOpen }) {
         </>
       )}
 
-      <button type="button" onClick={onOpen} className={site.status.action === 'Открыть сайт' ? OPEN_BTN : PRIMARY_BTN}>
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-haspopup={site.status.pay ? 'dialog' : undefined}
+        className={`${site.status.action === OPEN_LABEL ? OPEN_BTN : PRIMARY_BTN} ${STRETCH}`}
+      >
         {site.status.action} <ChevronIcon size={16} />
       </button>
     </article>
@@ -188,10 +209,12 @@ export default function SitesClient() {
   // Анкета начата, а адреса сайта ещё нет: карточки нет, но и «Начнём с
   // первого сайта» было бы неправдой (аудит 26.09).
   const [started, setStarted] = useState(0);
+  const [payKey, setPayKey] = useState(null);
 
   // Карточка появляется, как только анкета начата: сайт уже назван, и
   // прятать его до конца анкеты значит терять начатую работу.
   useEffect(() => {
+    settleRenewals(); // списание в дату продления — до чтения состояния
     setUser(accountUser(CURRENT_USER));
     setSites(listSites(loadAnketa()));
     setStarted(loadAnketa().domain ? 0 : loadAnketa().stepsDone || 0);
@@ -204,14 +227,11 @@ export default function SitesClient() {
   // Настоящий сайт становится открытым (его анкета и кабинет), демо —
   // открывается поверх основного.
   function open(site) {
-    openSite(site.key);
-    // «Оплатить» из карточки — та же страница, вид «Таблица» с оплатой этого
-    // сайта: адрес меняем сразу, таблица читает его при появлении.
-    if (site.status.href.startsWith('/app/sites?')) {
-      window.history.replaceState(null, '', `${window.location.pathname}?${site.status.href.split('?')[1]}`);
-      setView('table');
+    if (site.status.pay) {
+      setPayKey(site.key);
       return;
     }
+    openSite(site.key);
     router.push(site.status.href);
   }
 
@@ -311,6 +331,16 @@ export default function SitesClient() {
           )}
         </div>
       </main>
+      {payKey && (
+        <SitePayDialog
+          siteKey={payKey}
+          onClose={() => {
+            setPayKey(null);
+            setSites(listSites(loadAnketa()));
+          }}
+          fallback={() => document.querySelector('main article button')}
+        />
+      )}
     </div>
   );
 }

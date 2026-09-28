@@ -8,10 +8,11 @@ import { IconAction } from '../../../components/app/DocRows';
 import { widgetSettings } from '../../../components/app/WidgetPreviews';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS, docUrl, editEvents } from '../../../lib/docPackage';
-import { accountSites, balanceOf, currentSiteKey, saveSiteFields, setSiteLeaving, siteAnketa } from './_shared/sites';
+import { accountSites, balanceOf, currentSiteKey, debitShortfall, saveSiteFields, setSiteLeaving, settleRenewals, siteAnketa } from './_shared/sites';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { RING, SiteSidebar } from './_shared/SiteChrome';
-import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, graceEndAt, graceEnds, paidPeriod, subState, trialEndAt, trialEnds, widgetStopped } from './_shared/subscription';
+import SitePayDialog from '../billing/SitePayDialog';
+import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, graceEndAt, graceEnds, paidPeriod, subState, trialEndAt, trialEnds, widgetStopped, tariffName } from './_shared/subscription';
 
 // «Обзор» отвечает на три вопроса, с которыми сюда заходят (владелец 24.09):
 // сколько ещё будет работать подписка, все ли документы актуальны и когда
@@ -102,8 +103,11 @@ export default function SiteOverviewClient() {
   const [user, setUser] = useState(CURRENT_USER);
   const [now, setNow] = useState(Date.now());
   const [copied, setCopied] = useState(false);
+  // Окно оплаты года — здесь же, без перехода в «Мои сайты» (владелец 28.09).
+  const [paying, setPaying] = useState(false);
 
   useEffect(() => {
+    settleRenewals(); // списание в дату продления — до чтения состояния
     const saved = siteAnketa(loadAnketa());
     if (!saved.domain) {
       router.replace('/app/sites');
@@ -119,7 +123,8 @@ export default function SiteOverviewClient() {
 
   const b = a.billing || {};
   const state = subState(a, now);
-  const tariff = accountSites(a, now)[0].tariff;
+  const rawTariff = accountSites(a, now)[0].tariff;
+  const tariff = rawTariff && tariffName(rawTariff);
   const period = b.paidAt ? paidPeriod(b.paidAt, b.paidYears) : null;
   const unfinished = (a.stepsDone || 0) < 4;
   const acc = loadAnketa(); // баланс и карта — одни на аккаунт
@@ -127,6 +132,14 @@ export default function SiteOverviewClient() {
   // действие — открыть счёт, не пополнить второй раз (разбор 24.09).
   const invoice = acc.billing?.topupInvoice || null;
   const stopped = widgetStopped(a, now, invoice);
+  const paidOp = [...(acc.billing?.ops || [])].reverse().find((op) => op.kind === 'debit' && op.site === a.domain);
+  const paidOpAt = paidOp?.at || null;
+  const paidAuto = Boolean(paidOp?.auto);
+  // Продлится ли год сам — только если есть откуда списать: карта с галочкой
+  // «Продлевать автоматически» или баланс покроет этот сайт в его дату (с
+  // учётом других сайтов). Иначе «автопродление включено» обещало то, чего не
+  // будет (критика 28.09: окно оплаты сказало «напомним», «Обзор» — «включено»).
+  const autoReal = Boolean(acc.billing?.card?.auto) || !debitShortfall(accountSites(acc, now), balanceOf(acc))[currentSiteKey()];
   const short = balanceOf(acc) + (invoice ? invoice.amount || PRICE : 0) < PRICE && !acc.billing?.card?.auto;
   const go = (href) => router.push(href);
   const button = (label, onClick, arrow = true) => (
@@ -150,18 +163,6 @@ export default function SiteOverviewClient() {
     setA(siteAnketa(loadAnketa()));
   }
 
-  // Убранный Google Analytics уходит из ответа «Счётчики на сайте», а с ним —
-  // из «Политики обработки куки»: документ не должен называть счётчик,
-  // которого на сайте нет. Опубликованный документ получает новую версию.
-  function gaRemoved() {
-    const rest = (a.analytics || []).filter((v) => v !== 'ga');
-    saveSiteFields({
-      analytics: rest.length ? rest : ['none'],
-      ...(a.installed && { docEdits: [...(a.docEdits || []), { at: Date.now(), doc: '02', what: 'Убран Google Analytics' }] }),
-    });
-    setA(siteAnketa(loadAnketa()));
-  }
-
   function copyConsent() {
     navigator.clipboard?.writeText(`https://${docUrl(CONSENT)}`).catch(() => {});
     setCopied(true);
@@ -182,7 +183,7 @@ export default function SiteOverviewClient() {
       facts: [
         'Пробный период',
         !a.installed ? 'код пока не найден' : lastDay ? 'последний день' : `осталось ${left} ${plural(left, 'день', 'дня', 'дней')}`,
-        b.leaving ? 'дальше сайт отключится' : b.cancelled ? 'продление вручную' : tariff ? `дальше ${tariff}` : 'тариф не выбран',
+        b.leaving ? 'без продления' : b.cancelled ? 'продление вручную' : tariff ? `дальше ${tariff}` : 'тариф не выбран',
         invoice && `ждём оплату счёта № ${invoice.no}`,
       ],
       action: !a.installed
@@ -190,11 +191,11 @@ export default function SiteOverviewClient() {
         : b.leaving
           ? button('Вернуть в подписку', comeBack, false)
           : lastDay && invoice
-            ? button('Открыть счёт', () => go('/app/billing'))
+            ? button('Открыть счёт', () => setPaying(true))
             : lastDay && b.cancelled
-            ? button('Оплатить', () => go('/app/sites?view=table&pay=current'))
+            ? button('Оплатить', () => setPaying(true))
             : lastDay && short
-              ? button('Оплатить', () => go('/app/sites?view=table&pay=current'))
+              ? button('Оплатить', () => setPaying(true))
               : null,
     };
   } else if (state === 'paid') {
@@ -202,19 +203,19 @@ export default function SiteOverviewClient() {
     // год», раньше — просто факт (как «Скоро» в таблице сайтов).
     const end = new Date(b.paidAt);
     end.setFullYear(end.getFullYear() + (b.paidYears || 1));
-    const renewSoon = b.cancelled && !b.leaving && end.getTime() - now < 30 * DAY;
+    const renewSoon = (b.cancelled || !autoReal) && !b.leaving && end.getTime() - now < 30 * DAY;
     sub = {
       value: `до ${period.to}`,
       tone: renewSoon ? 'warn' : 'none',
       facts: [
         tariff,
-        b.leaving ? 'дальше сайт отключится' : b.cancelled ? 'продление вручную' : 'автопродление включено',
+        b.leaving ? 'без продления' : b.cancelled ? 'продление вручную' : autoReal ? 'автопродление включено' : 'напомним о продлении заранее',
         !a.installed && 'ждём код на сайте',
       ],
       action: b.leaving
         ? button('Вернуть в подписку', comeBack, false)
         : renewSoon
-          ? button('Продлить', () => go('/app/sites?view=table&pay=current'))
+          ? button('Продлить', () => setPaying(true))
           : !a.installed
             ? button('Поставить код на сайт', () => go('/app/start/code'))
             : null,
@@ -224,7 +225,7 @@ export default function SiteOverviewClient() {
       value: 'Ждём оплату',
       tone: 'warn',
       facts: [`счёт № ${b.invoice?.no}`, 'включим, как только поступят деньги'],
-      action: button('Открыть счёт', () => go('/app/sites?view=table&pay=current')),
+      action: button('Открыть счёт', () => setPaying(true)),
     };
   } else if (state === 'expired') {
     // Мягкий уход (владелец 25.09): после пробного сайт работает ещё
@@ -234,22 +235,24 @@ export default function SiteOverviewClient() {
       ? {
           value: 'Остановлена',
           tone: 'danger',
-          facts: [ended, 'виджет снят с сайта'],
-          action: button('Оплатить', () => go('/app/sites?view=table&pay=current')),
+          facts: [ended, 'виджет снят с сайта', 'ссылки на документы работают'],
+          action: button('Оплатить', () => setPaying(true)),
         }
       : invoice
         ? {
             value: 'Ждём оплату',
             tone: 'warn',
-            facts: [ended, `счёт № ${invoice.no}`, 'сайт работает, пока ждём деньги'],
+            facts: [ended, `счёт № ${invoice.no}`, 'виджет работает, пока ждём деньги'],
             // Счёт уже выставлен: второй раз платить не предлагаем, ведём к нему.
-            action: button('Открыть счёт', () => go('/app/billing')),
+            action: button('Открыть счёт', () => setPaying(true)),
           }
         : {
-            value: `до ${graceEnds(a)}`,
+            // «Подписка: до 30.09» читалось как «оплачено до» (критика 28.09):
+            // подписка не оплачена, до даты работает только виджет.
+            value: 'Не оплачена',
             tone: 'warn',
-            facts: [ended, 'сайт пока работает', 'дальше виджет снимем с сайта'],
-            action: button('Оплатить', () => go('/app/sites?view=table&pay=current')),
+            facts: [ended, `виджет работает до ${graceEnds(a)}`, `потом снимем его с ${a.domain}`],
+            action: button('Оплатить', () => setPaying(true)),
           };
   } else {
     sub = {
@@ -271,7 +274,10 @@ export default function SiteOverviewClient() {
   const docs = unfinished
     ? { value: 'Не собраны', tone: 'muted', facts: ['соберём по ответам анкеты'] }
     : stopped
-      ? { value: 'Сняты с сайта', tone: 'danger', facts: [`${DOCUMENTS.length} документов`, 'вернутся после оплаты'] }
+      // Опубликованные страницы остаются по ссылке, но не обновляются (правило
+      // владельца 24.08, подтверждено 28.09): «Сняты с сайта, вернутся после
+      // оплаты» обещало мёртвые ссылки в формах клиента.
+      ? { value: 'Не обновляются', tone: 'danger', facts: [`${DOCUMENTS.length} документов`, 'открываются по прежним ссылкам'] }
       : live
         ? { value: 'Актуальны', tone: 'ok', facts: [`${DOCUMENTS.length} документов`, `${edits.length ? 'обновлены' : 'собраны'} ${formatDate(updatedAt)}`] }
         : { value: 'Ждут кода', tone: 'warn', facts: [`${DOCUMENTS.length} документов`, `собраны ${formatDate(madeAt)}`] };
@@ -279,8 +285,9 @@ export default function SiteOverviewClient() {
   // 3. Что сделать на сайте самому (владелец 24.09): мы собрали документы и
   // ставим виджет, а формы и счётчики — в руках клиента. Задача висит до
   // отметки «Сделано». Ссылку на согласие — только когда она открывается
-  // (код стоит, подписка не остановлена) и формы на сайте есть; Google
-  // Analytics — пока он в ответе «Счётчики на сайте».
+  // (код стоит, подписка не остановлена) и формы на сайте есть. Задачи
+  // «Уберите Google Analytics» нет (владелец 28.09): о нём предупреждает
+  // анкета в момент выбора, а убрал ли его клиент, проверить мы не можем.
   const features = a.features || [];
   const noForms = features.length > 0 && features.every((v) => v === 'none');
   // Выключенный баннер или подвал — тоже задача, и первая: «Актуальны» при
@@ -290,15 +297,16 @@ export default function SiteOverviewClient() {
     live && !w.bannerOn && 'banner',
     live && !w.footerOn && 'footer',
     live && !noForms && !a.tasksDone?.consentLink && 'consent',
-    (a.analytics || []).includes('ga') && 'ga',
   ].filter(Boolean);
 
   // 4. Последние изменения — только то, что действительно произошло.
   const events = [
     a.tasksDone?.consentLink && [a.tasksDone.consentLink, 'Вы отметили, что ссылка на согласие добавлена в формы сайта', 'bg-ok'],
-    b.paidAt && [b.paidAt, `Подписка оплачена до ${period.to}`, 'bg-ok'],
+    // Дата события — день оплаты, а не начала оплаченного года: оплатив в
+    // пробный период, клиент видел событие «завтрашним» (критика 28.09).
+    b.paidAt && [paidOpAt || Math.min(b.paidAt, now), paidAuto ? `Год продлён автоматически: оплачено до ${period.to}` : `Подписка оплачена до ${period.to}`, 'bg-ok'],
     b.cancelled && b.cancelledAt && [b.cancelledAt, 'Автопродление выключено: продлевать будете вручную', 'bg-brand'],
-    b.leaving && [b.leavingAt || now, `Сайт отключается: работает до ${period ? period.to : trialEnds(a)}, дальше продлевать не будем`, 'bg-warn'],
+    b.leaving && [b.leavingAt || now, `Подписка не продлится: документы и виджет работают до ${period ? period.to : trialEnds(a)}`, 'bg-warn'],
     b.invoice && !b.paidAt && [b.invoice.at, `Выставлен счёт № ${b.invoice.no}`, 'bg-warn'],
     state === 'expired' && [a.trialStartedAt + TRIAL_MS, 'Пробный период закончился', 'bg-warn'],
     stopped && [graceEndAt(a), 'Виджет снят с сайта', 'bg-danger'],
@@ -374,15 +382,6 @@ export default function SiteOverviewClient() {
                     </div>
                   </Task>
                 )}
-                {tasks.includes('ga') && (
-                  <Task
-                    title="Уберите Google Analytics с сайта"
-                    law="152-ФЗ"
-                    text="Он сохраняет данные посетителей на серверах за рубежом. С 1 июля 2025 года это запрещено, даже если он назван в политике."
-                    name="Сделано: Google Analytics убран с сайта"
-                    onDone={gaRemoved}
-                  />
-                )}
               </div>
             </section>
           )}
@@ -403,6 +402,16 @@ export default function SiteOverviewClient() {
           </section>
         </div>
       </main>
+      {paying && (
+        <SitePayDialog
+          siteKey={currentSiteKey()}
+          onClose={() => {
+            setPaying(false);
+            setA(siteAnketa(loadAnketa()));
+          }}
+          fallback={() => document.getElementById('content')}
+        />
+      )}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import {
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
 import { RING, AnketaFrame, Field, Tile, SectionHead, useFirstStep, focusFirstError } from '../_shared/AnketaChrome';
-import { ANALYTICS, FEATURES, PLATFORMS, SPHERES } from '../../../../lib/anketaOptions';
+import { ANALYTICS, FEATURES, GA_WARNING, PLATFORMS, SPHERES } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 
 // Кириллица — ради доменов .рф и кириллических имён на других зонах.
@@ -205,7 +205,7 @@ export default function SiteClient() {
                 <Field
                   className="mt-5"
                   aria-labelledby="h-domain"
-                  placeholder="alfa-school.ru"
+                  placeholder="site.ru"
                   icon={GlobeIcon}
                   inputMode="url"
                   autoCapitalize="none"
@@ -357,14 +357,11 @@ export default function SiteClient() {
                     />
                   ))}
                 </div>
-                {/* Предупреждаем в момент выбора, а не только потом в кабинете
-                    (разбор 25.09): иначе выглядело так, будто сервис сам вписал
-                    в политику то, что затем велит убрать. */}
+                {/* Предупреждаем в момент выбора (разбор 25.09). В кабинете
+                    задачи «Уберите Google Analytics» больше нет (владелец 28.09):
+                    сказать об этом — здесь. */}
                 {analytics.includes('ga') && (
-                  <p className="mt-3 rounded-lg bg-warn/10 px-3 py-2.5 text-[13px] leading-5 text-warn-ink">
-                    Google Analytics сохраняет данные посетителей на серверах за рубежом. С 1 июля 2025 года это запрещено, даже если он назван в
-                    политике. Пока он стоит на сайте, назовём его в «Политике обработки куки», а в кабинете напомним убрать.
-                  </p>
+                  <p className="mt-3 rounded-lg bg-warn/10 px-3 py-2.5 text-[13px] leading-5 text-warn-ink">{GA_WARNING}</p>
                 )}
                 {analytics.includes('other') && (
                   <div className="mt-3">

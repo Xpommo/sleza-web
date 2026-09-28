@@ -8,7 +8,7 @@
 
 import { useRef, useState } from 'react';
 import { CloseIcon } from '../../../../components/app/AppIcons';
-import { ANALYTICS, PD_FIELDS, PURPOSES, PURPOSE_MAP, purposeLabel } from '../../../../lib/anketaOptions';
+import { ANALYTICS, GA_WARNING, PD_FIELDS, PURPOSES, PURPOSE_MAP, purposeLabel } from '../../../../lib/anketaOptions';
 import { useDialog } from '../../site/_shared/SiteChrome';
 import { Field, RING, Segmented, Tile } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
@@ -100,6 +100,10 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
                   <Tile key={o.value} title={o.label} compact selected={analytics.includes(o.value)} onClick={() => pickAnalytics(o.value)} />
                 ))}
               </div>
+              {/* То же предупреждение, что на шаге 2: ответ меняют и здесь. */}
+              {analytics.includes('ga') && (
+                <p className="mt-3 rounded-lg bg-warn/10 px-3 py-2.5 text-[13px] leading-5 text-warn-ink">{GA_WARNING}</p>
+              )}
               {analytics.includes('other') && (
                 <Field
                   className="mt-4"

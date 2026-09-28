@@ -60,7 +60,7 @@ export default function PdEmailModal({ onClose, onSaved }) {
           <Field
             label="E-mail"
             required
-            placeholder="pd@alfa-school.ru"
+            placeholder="pd@site.ru"
             icon={MailIcon}
             inputMode="email"
             autoComplete="off"

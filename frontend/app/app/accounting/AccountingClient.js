@@ -10,7 +10,7 @@ import { SITE_ID } from '../../../lib/docPackage';
 import { Field } from '../start/_shared/AnketaChrome';
 import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
-import { accountSites } from '../site/_shared/sites';
+import { accountSites, settleRenewals } from '../site/_shared/sites';
 import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, NoSiteMoney, Panel, Row } from '../billing/BillingBits';
 
 // «Баланс и платежи» → вкладка «Документы» (владелец 24.09; до того — раздел
@@ -30,6 +30,7 @@ export default function AccountingClient() {
   const [noSite, setNoSite] = useState(false);
 
   useEffect(() => {
+    settleRenewals(); // списание в дату продления — до чтения состояния
     const saved = loadAnketa();
     if (!saved.domain) {
       setNoSite(true);

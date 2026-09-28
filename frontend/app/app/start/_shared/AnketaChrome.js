@@ -430,11 +430,39 @@ function WhyPanel({ children }) {
 // radio — выбор ровно одного: круглая отметка, как у роли на шаге 1.
 // Квадратная галочка на одиночном выборе — то самое «радиобаттон намешан с
 // чекбоксом» из ревью Ивана (п.9).
+//
+// Одиночный выбор ведёт себя как группа радиокнопок (критика 23.09: каждая
+// плитка была отдельной остановкой Tab, стрелки не работали): в группу
+// заходят одним Tab — на выбранную плитку или, если выбора нет, на первую;
+// стрелки переводят фокус и сразу выбирают. Группа — ближайший
+// role="radiogroup" вокруг плиток.
 export function Tile({ title, description, selected, onClick, compact = false, radio = false }) {
+  const ref = useRef(null);
+  const [tabbable, setTabbable] = useState(true);
+  const radios = () => [...(ref.current?.closest('[role="radiogroup"]')?.querySelectorAll('[role="radio"]') || [])];
+  useEffect(() => {
+    if (!radio) return;
+    const all = radios();
+    if (!all.length) return;
+    setTabbable((all.find((el) => el.getAttribute('aria-checked') === 'true') || all[0]) === ref.current);
+  });
+  function onKeyDown(e) {
+    const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+    if (!radio || !step) return;
+    const all = radios();
+    if (all.length < 2) return;
+    e.preventDefault();
+    const next = all[(all.indexOf(ref.current) + step + all.length) % all.length];
+    next.focus();
+    next.click();
+  }
   return (
     <button
+      ref={ref}
       type="button"
       onClick={onClick}
+      onKeyDown={onKeyDown}
+      tabIndex={radio && !tabbable ? -1 : undefined}
       // Множественный выбор — чекбокс для экранного диктора, одиночный —
       // radio (разбор 25.09: плитки читались как безымянные кнопки).
       role={radio ? 'radio' : 'checkbox'}

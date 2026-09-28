@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
@@ -260,8 +260,23 @@ export default function CodeClient() {
                           документации: кнопку-надпись над кодом не замечали
                           (владелец 23.09). После нажатия — галочка и «Скопировано». */}
                       <div className="relative">
-                        <pre className="overflow-x-auto rounded-xl bg-ink p-5 pr-14 font-mono text-[12px] leading-6 text-white/85">
-                          <code>{snippet}</code>
+                        {/* Строка кода переносится, а не уезжает под значок копирования:
+                            на телефоне её конец был скрыт (критика 28.09). Копируется
+                            всё равно целиком — из snippet. */}
+                        <pre className="whitespace-pre-wrap break-words rounded-xl bg-ink p-5 pr-14 font-mono text-[12px] leading-6 text-white/85">
+                          {/* Перенос — после «/», а не посреди «w.js». */}
+                          <code>
+                            {snippet.split('/').map((part, i, all) => (
+                              <Fragment key={i}>
+                                {part}
+                                {i < all.length - 1 && (
+                                  <>
+                                    /<wbr />
+                                  </>
+                                )}
+                              </Fragment>
+                            ))}
+                          </code>
                         </pre>
                         <button
                           type="button"
@@ -333,7 +348,7 @@ export default function CodeClient() {
                       <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                         <Field
                           label="E-mail" required
-                          placeholder="kirill@alfa-school.ru"
+                          placeholder="name@site.ru"
                           icon={MailIcon}
                           type="email"
                           value={selfMail}
@@ -379,7 +394,7 @@ export default function CodeClient() {
                         <div ref={foundRef} tabIndex={-1} className={`mt-3 flex items-start gap-2 rounded-lg bg-ok/10 px-3 py-2.5 text-[13px] leading-5 text-ok-ink outline-none ${RING}`}>
                           <CheckIcon size={16} className="mt-0.5 shrink-0" />
                           <p>
-                            <b className="font-bold">Код найден, документы и виджет уже работают.</b> Бесплатно до {trialTo}, дальше
+                            <b className="font-bold">Код найден, документы и виджет уже работают.</b> Бесплатно до {trialTo}, дальше{' '}
                             {PRICE_LABEL} в год. Напомним письмом за день до конца.
                           </p>
                         </div>
@@ -429,7 +444,7 @@ export default function CodeClient() {
                           <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                             <Field
                               label="E-mail того, кто ведёт сайт" required
-                              placeholder="webmaster@alfa-school.ru"
+                              placeholder="name@site.ru"
                               icon={MailIcon}
                               type="email"
                               autoComplete="off"

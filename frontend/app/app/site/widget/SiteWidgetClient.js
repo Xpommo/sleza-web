@@ -10,7 +10,7 @@ import { SITE_ID } from '../../../../lib/docPackage';
 import { accountUser, loadAnketa, saveAnketa } from '../../start/_shared/anketaState';
 import { RING, SiteHeader, SiteSidebar, useDialog } from '../_shared/SiteChrome';
 import { widgetStopped } from '../_shared/subscription';
-import { siteAnketa } from '../_shared/sites';
+import { settleRenewals, siteAnketa } from '../_shared/sites';
 
 const SNIPPET = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID}" async></script>`;
 
@@ -118,6 +118,7 @@ export default function SiteWidgetClient() {
   const [confirmOff, setConfirmOff] = useState(null); // 'banner' | 'footer'
 
   useEffect(() => {
+    settleRenewals(); // списание в дату продления — до чтения состояния
     const a = siteAnketa(loadAnketa());
     if (!a.domain) {
       router.replace('/app/sites');

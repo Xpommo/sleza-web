@@ -64,13 +64,17 @@ const PRESETS = [
   ['Анкета: пакет собран', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 4 }), '/app/start/documents'],
   ['Всё пройдено, код не поставлен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5 }), '/app/site'],
   ['Пробный период, код найден', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 2 * HOUR }), '/app/site'],
-  // Google Analytics на сайте — задача «Уберите Google Analytics» на «Обзоре»
-  // (владелец 24.09). В остальных состояниях его нет, как в данных демо-сайта.
-  ['Пробный период, на сайте Google Analytics', () => ({ ...PERSON, ...SITE, analytics: ['metrika', 'ga'], ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 2 * HOUR }), '/app/site'],
+  // Последний день пробного: только в нём «Обзор» и «Мои сайты» говорят жёлтым
+  // «не хватает» и ведут к оплате (warnWithin, владелец 23.09) — без этого
+  // состояния увидеть их можно было, только подождав 5 дней.
+  ['Последний день пробного, баланс пуст', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 4 * 24 * HOUR - 12 * HOUR }), '/app/site'],
   // Пробный период — 5 дней с момента, когда код найден (решение 23.09).
   // Мягкий уход (владелец 25.09): после пробного 3 льготных дня сайт работает.
+  // Баланс пополнили заранее, пробный кончился — год списывается сам в дату
+  // конца пробного (settleRenewals), без льготных дней (критика 28.09, P0).
+  ['Пробный закончился, баланс пополнен заранее', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 6 * 24 * HOUR, billing: { ...CARD, actsEmail: 'buh@alfa-school.ru', balance: 12000, ops: [{ at: Date.now() - 3 * 24 * HOUR, kind: 'topup', amount: 12000, method: 'Картой' }] } }), '/app/site'],
   ['Пробный закончился, льготные дни', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 6 * 24 * HOUR }), '/app/site'],
-  ['Пробный закончился, сайт отключён', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 9 * 24 * HOUR }), '/app/site'],
+  ['Пробный закончился, виджет снят', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 9 * 24 * HOUR }), '/app/site'],
   // Модель баланса (партнёрская программа, 14.09): пополняют баланс, оплата
   // года каждого сайта списывается с него.
   ['Пробный период, баланс пополнен', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 2 * HOUR, billing: { ...CARD, actsEmail: 'buh@alfa-school.ru', balance: 12000, ops: [{ at: Date.now() - HOUR, kind: 'topup', amount: 12000, method: 'Картой' }] } }), '/app/billing'],
@@ -88,7 +92,7 @@ const PRESETS = [
   ['Оплачено, автопродление выключено', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, cancelled: true, cancelledAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
   // Выключенное автопродление — продление вручную; уход — «Отключить сайт»
   // в «⋯» «Оплаты» (владелец 24.09).
-  ['Оплачено, сайт отключается', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, leaving: true, leavingAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
+  ['Оплачено, без продления (сайт отключают)', () => ({ ...PERSON, ...SITE, ...CLIENTS, ...REQ, stepsDone: 5, installed: true, trialStartedAt: Date.now() - 20 * HOUR, billing: { ...CARD, paidAt: Date.now() - HOUR, leaving: true, leavingAt: Date.now() - 10 * 60 * 1000 } }), '/app/site'],
 ];
 
 function readUi() {

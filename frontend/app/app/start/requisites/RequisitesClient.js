@@ -745,7 +745,7 @@ export default function RequisitesClient() {
                 <Field
                   label="E-mail компании"
                   required
-                  placeholder="info@alfa-school.ru"
+                  placeholder="info@site.ru"
                   icon={MailIcon}
                   type="email"
                   value={companyMail}
@@ -797,7 +797,7 @@ export default function RequisitesClient() {
                   label="E-mail"
                   aria-label="E-mail для запросов о персональных данных"
                   required
-                  placeholder="pd@alfa-school.ru"
+                  placeholder="pd@site.ru"
                   icon={MailIcon}
                   inputMode="email"
                   autoComplete="off"
