@@ -5,7 +5,7 @@
 // макета): код из письма и там и там раскрывается на месте, под кнопкой
 // «Через e-mail», а не отдельным экраном.
 
-import { useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { ChevronIcon, CloseIcon, MailIcon } from './AppIcons';
 import { EMAIL_RE } from '../../lib/validate';
 
@@ -94,6 +94,281 @@ function Input({ id, label, error, inputRef, className = '', ...rest }) {
           {error}
         </p>
       )}
+    </div>
+  );
+}
+
+// Заглушка QR-кода: настоящей ссылки на бота в макете нет. Узор постоянный
+// (не случайный на каждую отрисовку) — иначе сервер и браузер нарисовали бы
+// разное. Три угловых квадрата — чтобы с первого взгляда читался как QR.
+const QR_N = 21;
+function qrCell(x, y) {
+  const inFinder = (fx, fy) => x >= fx && x < fx + 7 && y >= fy && y < fy + 7;
+  for (const [fx, fy] of [[0, 0], [QR_N - 7, 0], [0, QR_N - 7]]) {
+    if (inFinder(fx, fy)) {
+      const dx = x - fx;
+      const dy = y - fy;
+      const ring = dx === 0 || dy === 0 || dx === 6 || dy === 6;
+      const core = dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4;
+      return ring || core;
+    }
+  }
+  return (x * 7 + y * 13 + x * y * 3) % 5 < 2;
+}
+function QrStub({ label }) {
+  const cells = [];
+  for (let y = 0; y < QR_N; y++) for (let x = 0; x < QR_N; x++) if (qrCell(x, y)) cells.push(<rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" />);
+  return (
+    <span className="shrink-0 rounded-lg border border-line bg-white p-2">
+      <svg width="104" height="104" viewBox={`0 0 ${QR_N} ${QR_N}`} role="img" aria-label={label} className="text-ink" fill="currentColor" shapeRendering="crispEdges">
+        {cells}
+      </svg>
+    </span>
+  );
+}
+
+// Шесть клеток кода (по образцу СеоПапы, владелец 29.09): поле ввода одно, а
+// клетки — только его вид. Так работают вставка кода целиком, подсказка кода
+// из уведомления на телефоне (one-time-code) и экранный диктор — у шести
+// отдельных полей всё это ломается. Шестая цифра — сразу onComplete.
+function CodeCells({ id, label, value, onChange, onComplete, inputRef, error }) {
+  const [focused, setFocused] = useState(false);
+  const at = Math.min(value.length, 5);
+  return (
+    <div>
+      <div className="relative mx-auto flex w-fit items-center gap-1.5 sm:gap-2">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <Fragment key={i}>
+            {i === 3 && <span aria-hidden="true" className="h-0.5 w-3 rounded bg-ink/30" />}
+            <span
+              aria-hidden="true"
+              className={`flex h-12 w-10 items-center justify-center rounded-xl border bg-white font-mono text-[20px] font-bold text-ink transition sm:h-14 sm:w-11 ${
+                error ? 'border-danger' : focused && i === at ? 'border-brand ring-4 ring-brand/10' : 'border-line'
+              }`}
+            >
+              {value[i] || ''}
+            </span>
+          </Fragment>
+        ))}
+        <input
+          id={id}
+          ref={inputRef}
+          aria-label={label}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? `${id}-err` : undefined}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={6}
+          value={value}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onChange={(e) => {
+            const v = e.target.value.replace(/\D/g, '').slice(0, 6);
+            onChange(v);
+            if (v.length === 6) onComplete(v);
+          }}
+          className="absolute inset-0 h-full w-full cursor-text opacity-0"
+        />
+      </div>
+      {error && (
+        <p id={`${id}-err`} className="mt-2 text-center text-[12px] font-semibold text-danger">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// Адрес бота — заглушка: настоящего бота ещё нет, в макете он не открывается.
+const BOT = '@sleza_belyisait_bot';
+
+// «Через Telegram» / «Через MAX», раскрытое на месте, как «Через e-mail»
+// (владелец 29.09, по макету Ивана, оформление — по СеоПапе): наш бот
+// присылает шесть цифр, их вводят здесь же, вход — сам после шестой. Бота не
+// ищут: имя названо и нажимается, кнопка ведёт прямо в него; у кого мессенджер
+// только на телефоне — QR по ссылке (на телефоне ссылки нет, QR там бесполезен).
+// Один способ для обоих мессенджеров, и бот сразу — канал для сообщений о
+// законе и продлении. В прототипе бот не открывается, код — любые шесть цифр.
+// gate() — галочки согласий на регистрации.
+export function MessengerCodeLogin({ via, icon, open, onOpen, onClose, gate = () => true, onDone, register = false }) {
+  const [code, setCode] = useState('');
+  const [err, setErr] = useState(null);
+  const [asked, setAsked] = useState(false);
+  const [qr, setQr] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [resent, setResent] = useState(false);
+  const codeRef = useRef(null);
+  const id = `code-${via.toLowerCase()}`;
+  // Тот же блок переключили на другой мессенджер — начатый код к нему не относится.
+  useEffect(() => {
+    setCode('');
+    setErr(null);
+    setAsked(false);
+    setQr(false);
+    setChecking(false);
+  }, [via]);
+
+  if (!open) {
+    return (
+      <AuthButton icon={icon} onClick={() => gate() && onOpen()}>
+        Через {via}
+      </AuthButton>
+    );
+  }
+
+  function openBot() {
+    setAsked(true);
+    setErr(null);
+    setTimeout(() => codeRef.current?.focus(), 0);
+  }
+
+  function submit(v = code) {
+    if (!/^\d{6}$/.test(v)) {
+      setErr(v ? `Код из ${via} — шесть цифр. Проверьте, не пропущена ли цифра.` : `Укажите код из ${via}.`);
+      codeRef.current?.focus();
+      return;
+    }
+    if (!gate()) return;
+    setChecking(true);
+    setTimeout(onDone, 400);
+  }
+
+  function resend() {
+    setCode('');
+    setErr(null);
+    setResent(true);
+    codeRef.current?.focus();
+    setTimeout(() => setResent(false), 2500);
+  }
+
+  const link = `rounded font-bold text-brand hover:text-ink ${RING}`;
+
+  return (
+    <div className={`p-5 ${BUTTON_BOX}`}>
+      <div className="flex items-center gap-3 text-[15px] font-semibold text-ink">
+        {icon}
+        Через {via}
+        <button
+          type="button"
+          onClick={() => {
+            setErr(null);
+            onClose();
+          }}
+          aria-label={register ? `Свернуть регистрацию через ${via}` : `Свернуть вход через ${via}`}
+          className={`-my-2 -mr-2 ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
+        >
+          <CloseIcon size={16} />
+        </button>
+      </div>
+
+      <form
+        className="mt-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          submit();
+        }}
+        noValidate
+      >
+        <p className="text-center text-[14px] leading-6 text-ink/70">
+          Напишите в {via}{' '}
+          <button type="button" onClick={openBot} className={`${link} font-semibold`}>
+            {BOT}
+          </button>{' '}
+          «/start» и введите код{register ? '' : ' для входа'}:
+        </p>
+        <div className="mt-4">
+          <CodeCells
+            id={id}
+            label={`Код из ${via}`}
+            value={code}
+            onChange={(v) => {
+              setCode(v);
+              setErr(null);
+            }}
+            onComplete={submit}
+            inputRef={codeRef}
+            error={err}
+          />
+        </div>
+        {checking ? (
+          <p role="status" className="mt-4 text-center text-[13px] font-semibold text-ink/70">
+            Проверяем код…
+          </p>
+        ) : (
+          <button
+            type="button"
+            onClick={openBot}
+            className={`mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+          >
+            Открыть {via}
+          </button>
+        )}
+        {asked && !checking && (
+          <p role="status" className="mt-2 text-center text-[12px] text-ink/60">
+            Бот прислал код в {via}. Код действует 10 минут.
+          </p>
+        )}
+        {qr && (
+          <div className="mt-4 hidden flex-col items-center gap-2 sm:flex">
+            <QrStub label={`QR-код: бот ${BOT} в ${via}`} />
+            <p className="text-center text-[12px] text-ink/60">Наведите камеру телефона: откроется наш бот, нажмите в нём «Старт».</p>
+          </div>
+        )}
+        <p className="mt-4 hidden text-center text-[12px] text-ink/60 sm:block">
+          {via} только на телефоне?{' '}
+          <button type="button" onClick={() => setQr(!qr)} aria-expanded={qr} className={link}>
+            {qr ? 'Скрыть QR-код' : 'Показать QR-код'}
+          </button>
+        </p>
+        <p className="mt-2 text-center text-[12px] text-ink/60">
+          Не пришёл код?{' '}
+          <button type="button" onClick={resend} className={link}>
+            {resent ? 'Отправили ещё раз' : 'Отправить снова'}
+          </button>
+        </p>
+      </form>
+    </div>
+  );
+}
+
+// Способы входа (владелец 29.09): пока ни один не выбран — три большие кнопки;
+// выбран — его блок, а остальные ужимаются в «таблетки» под ним: «Или через:
+// (М) MAX · (✉) e-mail». Иконка со словом, а не голые круги: значок MAX пока
+// мало кто узнаёт в лицо. Под блоком, а не над: альтернативы не спорят с главным.
+// Смена — без анимации (владелец 29.09: плавную высоту и растворение
+// посмотрел — не нужно). methods: [{ id, label, icon, gate?, node }] — node сам
+// рисует и закрытую кнопку, и раскрытый блок.
+export function AuthMethods({ methods, openId, onOpen }) {
+  const cur = openId && methods.find((m) => m.id === openId);
+  if (!cur) {
+    return (
+      <div className="space-y-3">
+        {methods.map((m) => (
+          <Fragment key={m.id}>{m.node}</Fragment>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div>
+      {cur.node}
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <span className="text-[12px] text-ink/60">Или через:</span>
+        {methods
+          .filter((m) => m.id !== openId)
+          .map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => (m.gate ? m.gate() : true) && onOpen(m.id)}
+              aria-label={`Через ${m.label}`}
+              className={`inline-flex h-11 items-center gap-2 rounded-full border border-line bg-white pl-2 pr-4 text-[13px] font-semibold text-ink transition hover:border-line-2 hover:bg-warm sm:h-10 ${RING}`}
+            >
+              <span className="flex h-6 w-6 items-center justify-center">{m.icon}</span>
+              {m.label}
+            </button>
+          ))}
+      </div>
     </div>
   );
 }

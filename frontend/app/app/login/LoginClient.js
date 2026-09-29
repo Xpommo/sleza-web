@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AuthButton, BrandMark, MailCodeLogin, MaxIcon, TelegramIcon } from '../../../components/app/AuthBits';
+import { AuthMethods, BrandMark, MailCodeLogin, MaxIcon, MessengerCodeLogin, TelegramIcon } from '../../../components/app/AuthBits';
+import { MailIcon } from '../../../components/app/AppIcons';
 import { signIn } from '../start/_shared/anketaState';
 
 // Вход в кабинет (живой макет, s-login). Тихий экран: сюда приходит тот, у
@@ -16,7 +17,8 @@ import { signIn } from '../start/_shared/anketaState';
 // в отличие от регистрации (FIXLOG, интент mailFlow в макете).
 export default function LoginClient() {
   const router = useRouter();
-  const [mailOpen, setMailOpen] = useState(false);
+  // Раскрыт один способ за раз: Telegram, MAX или почта.
+  const [openVia, setOpenVia] = useState(null);
 
   function enter(via, email) {
     signIn(via, email);
@@ -33,19 +35,44 @@ export default function LoginClient() {
         <h1 className="text-[28px] font-bold tracking-[-0.045em] text-ink sm:text-[36px]">Вход в кабинет</h1>
         <p className="mt-3 text-[15px] leading-6 text-ink/60">Выберите, чем удобнее войти. Пароль не нужен.</p>
 
-        <div className="mt-8 space-y-3">
-          <AuthButton icon={<TelegramIcon />} onClick={() => enter('Telegram')}>
-            Через Telegram
-          </AuthButton>
-          <AuthButton icon={<MaxIcon />} onClick={() => enter('MAX')}>
-            Через MAX
-          </AuthButton>
-          <MailCodeLogin
-            open={mailOpen}
-            onOpen={() => setMailOpen(true)}
-            onClose={() => setMailOpen(false)}
-            submitLabel="Войти →"
-            onDone={(email) => enter('почта', email)}
+        <div className="mt-8">
+          {/* Код от нашего бота вводится здесь же, как код из письма (владелец
+              29.09, по макету Ивана). Раскрыт один способ, остальные —
+              «таблетками» под ним (AuthMethods). */}
+          <AuthMethods
+            openId={openVia}
+            onOpen={setOpenVia}
+            methods={[
+              ...[['Telegram', TelegramIcon], ['MAX', MaxIcon]].map(([via, Icon]) => ({
+                id: via,
+                label: via,
+                icon: <Icon size={20} />,
+                node: (
+                  <MessengerCodeLogin
+                    via={via}
+                    icon={<Icon />}
+                    open={openVia === via}
+                    onOpen={() => setOpenVia(via)}
+                    onClose={() => setOpenVia(null)}
+                    onDone={() => enter(via)}
+                  />
+                ),
+              })),
+              {
+                id: 'почта',
+                label: 'e-mail',
+                icon: <MailIcon size={18} className="text-ink/60" />,
+                node: (
+                  <MailCodeLogin
+                    open={openVia === 'почта'}
+                    onOpen={() => setOpenVia('почта')}
+                    onClose={() => setOpenVia(null)}
+                    submitLabel="Войти →"
+                    onDone={(email) => enter('почта', email)}
+                  />
+                ),
+              },
+            ]}
           />
         </div>
 
