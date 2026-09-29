@@ -138,6 +138,14 @@ function describe(a, s, now) {
   return { kind: 'trial', label: `бесплатно до ${trialEnds(v)}`, tone: 'info', period };
 }
 
+// Какую оплату предлагать сайту — одна подпись на таблицу «Моих сайтов»,
+// карточку и «Обзор» (владелец 26.09: без «год», платить можно и на несколько
+// лет вперёд; 29.09: на виду везде, а не только в виде «Таблица»). kind — как в
+// describe(): отключаемому, ждущему оплаты счёта и незаконченному платить нечего.
+export function payLabel(kind) {
+  return kind === 'paid' ? 'Продлить' : kind === 'trial' || kind === 'expired' ? 'Оплатить' : null;
+}
+
 export function accountSites(a, now = Date.now()) {
   const b = a.billing || {};
   const extra = a.extraSites || [];

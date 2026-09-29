@@ -16,7 +16,7 @@ import SitePayDialog from './SitePayDialog';
 import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, NoSiteMoney, Panel, Row } from './BillingBits';
 import { announce } from '../../../lib/announce';
 import {
-  accountSites, balanceOf, currentSiteKey, debitShortfall, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite,
+  accountSites, balanceOf, currentSiteKey, debitShortfall, formatRub, issueTopupInvoice, nextDebit, nextRenewal, openSite, payLabel,
   setSiteCancelled, setSiteLeaving, setSiteTariff, settleRenewals, topUpBalance,
 } from '../site/_shared/sites';
 import { GRACE_DAYS, PRICE, TARIFFS, TARIFF_CHOICE, TRIAL_DAYS, formatDate, tariffName, trialEndAt, trialEnds } from '../site/_shared/subscription';
@@ -277,8 +277,8 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
   // счёту, отключается или анкета не закончена — платить нечего.
   // «Оплатить» / «Продлить» без «год» (владелец 26.09): платить можно и за
   // несколько лет вперёд, каждое нажатие — ещё год.
-  const payLabel = site.kind === 'paid' ? 'Продлить' : site.kind === 'trial' || site.kind === 'expired' ? 'Оплатить' : null;
-  const payBtn = payLabel && (
+  const pay = payLabel(site.kind);
+  const payBtn = pay && (
     <p className="mt-1">
       <button
         type="button"
@@ -286,7 +286,7 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
         aria-haspopup="dialog"
         className={`inline-flex min-h-11 items-center rounded text-[12px] font-bold text-brand hover:text-ink sm:min-h-0 ${RING}`}
       >
-        {payLabel}
+        {pay}
       </button>
     </p>
   );

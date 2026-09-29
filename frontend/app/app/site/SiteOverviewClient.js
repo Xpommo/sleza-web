@@ -8,7 +8,7 @@ import { IconAction } from '../../../components/app/DocRows';
 import { widgetSettings } from '../../../components/app/WidgetPreviews';
 import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS, docUrl, editEvents } from '../../../lib/docPackage';
-import { accountSites, balanceOf, currentSiteKey, debitShortfall, saveSiteFields, setSiteLeaving, settleRenewals, siteAnketa } from './_shared/sites';
+import { accountSites, balanceOf, currentSiteKey, debitShortfall, payLabel, saveSiteFields, setSiteLeaving, settleRenewals, siteAnketa } from './_shared/sites';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { RING, SiteSidebar } from './_shared/SiteChrome';
 import SitePayDialog from '../billing/SitePayDialog';
@@ -51,9 +51,15 @@ function Answer({ label, value, tone = 'none', facts, action, link }) {
       {action && <div className="mt-5">{action}</div>}
       <div className="mt-auto pt-5">
         <div className="border-t border-line pt-5">
-          <Link href={link[1]} className={`rounded text-sm font-semibold text-brand hover:underline ${RING}`}>
-            {link[0]} →
-          </Link>
+          {typeof link[1] === 'function' ? (
+            <button type="button" onClick={link[1]} aria-haspopup="dialog" className={`rounded text-sm font-semibold text-brand hover:underline ${RING}`}>
+              {link[0]} →
+            </button>
+          ) : (
+            <Link href={link[1]} className={`rounded text-sm font-semibold text-brand hover:underline ${RING}`}>
+              {link[0]} →
+            </Link>
+          )}
         </div>
       </div>
     </article>
@@ -147,6 +153,13 @@ export default function SiteOverviewClient() {
       {label} {arrow && <ArrowRightIcon size={16} />}
     </button>
   );
+  // Кнопка, открывающая окно оплаты: отмечаем, что оплата в блоке уже есть, —
+  // тогда внизу второй «Оплатить» не нужен.
+  let actionPays = false;
+  const payButton = (label) => {
+    actionPays = true;
+    return button(label, () => setPaying(true));
+  };
 
   // Отключённый сайт возвращают отсюда же, одним нажатием: продление — как
   // было до отключения. «Включить автопродление» здесь больше нет (владелец
@@ -191,11 +204,11 @@ export default function SiteOverviewClient() {
         : b.leaving
           ? button('Вернуть в подписку', comeBack, false)
           : lastDay && invoice
-            ? button('Открыть счёт', () => setPaying(true))
+            ? payButton('Открыть счёт')
             : lastDay && b.cancelled
-            ? button('Оплатить', () => setPaying(true))
+            ? payButton('Оплатить')
             : lastDay && short
-              ? button('Оплатить', () => setPaying(true))
+              ? payButton('Оплатить')
               : null,
     };
   } else if (state === 'paid') {
@@ -215,7 +228,7 @@ export default function SiteOverviewClient() {
       action: b.leaving
         ? button('Вернуть в подписку', comeBack, false)
         : renewSoon
-          ? button('Продлить', () => setPaying(true))
+          ? payButton('Продлить')
           : !a.installed
             ? button('Поставить код на сайт', () => go('/app/start/code'))
             : null,
@@ -225,7 +238,7 @@ export default function SiteOverviewClient() {
       value: 'Ждём оплату',
       tone: 'warn',
       facts: [`счёт № ${b.invoice?.no}`, 'включим, как только поступят деньги'],
-      action: button('Открыть счёт', () => setPaying(true)),
+      action: payButton('Открыть счёт'),
     };
   } else if (state === 'expired') {
     // Мягкий уход (владелец 25.09): после пробного сайт работает ещё
@@ -236,7 +249,7 @@ export default function SiteOverviewClient() {
           value: 'Остановлена',
           tone: 'danger',
           facts: [ended, 'виджет снят с сайта', 'ссылки на документы работают'],
-          action: button('Оплатить', () => setPaying(true)),
+          action: payButton('Оплатить'),
         }
       : invoice
         ? {
@@ -244,7 +257,7 @@ export default function SiteOverviewClient() {
             tone: 'warn',
             facts: [ended, `счёт № ${invoice.no}`, 'виджет работает, пока ждём деньги'],
             // Счёт уже выставлен: второй раз платить не предлагаем, ведём к нему.
-            action: button('Открыть счёт', () => setPaying(true)),
+            action: payButton('Открыть счёт'),
           }
         : {
             // «Подписка: до 30.09» читалось как «оплачено до» (критика 28.09):
@@ -252,7 +265,7 @@ export default function SiteOverviewClient() {
             value: 'Не оплачена',
             tone: 'warn',
             facts: [ended, `виджет работает до ${graceEnds(a)}`, `потом снимем его с ${a.domain}`],
-            action: button('Оплатить', () => setPaying(true)),
+            action: payButton('Оплатить'),
           };
   } else {
     sub = {
@@ -264,7 +277,15 @@ export default function SiteOverviewClient() {
         : button('Поставить код на сайт', () => go('/app/start/code')),
     };
   }
-  const subLink = state === 'trial' && !tariff ? ['Выбрать тариф', '/app/sites?view=table&tariff=current'] : ['Тариф и оплата', '/app/sites?view=table'];
+  // Оплата на виду всегда (владелец 29.09: как продлить, было не понять, не зайдя
+  // в таблицу «Моих сайтов»): если в блоке нет кнопки оплаты, «Продлить» /
+  // «Оплатить» встаёт вместо ссылки в таблицу и открывает то же окно.
+  const pay = !actionPays && payLabel(b.leaving && (state === 'paid' || state === 'trial') ? 'off-soon' : state);
+  const subLink = pay
+    ? [pay, () => setPaying(true)]
+    : state === 'trial' && !tariff
+      ? ['Выбрать тариф', '/app/sites?view=table&tariff=current']
+      : ['Тариф и оплата', '/app/sites?view=table'];
 
   // 2. Все ли документы актуальны и когда обновлены.
   const madeAt = a.trialStartedAt || now;

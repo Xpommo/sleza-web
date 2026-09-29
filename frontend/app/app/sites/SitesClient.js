@@ -11,7 +11,7 @@ import { CURRENT_USER } from '../../../lib/appMock';
 import { accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
 import { graceEnds, inGrace, paidPeriod, subState, tariffName, trialEnds } from '../site/_shared/subscription';
-import { MAIN, accountSites, addSite, cardStatus, openSite, settleRenewals, siteView } from '../site/_shared/sites';
+import { MAIN, accountSites, addSite, cardStatus, openSite, payLabel, settleRenewals, siteView } from '../site/_shared/sites';
 import BillingClient from '../billing/BillingClient';
 import SitePayDialog from '../billing/SitePayDialog';
 
@@ -129,8 +129,12 @@ function listSites(a) {
   });
 }
 
-function SiteCard({ site, onOpen }) {
+function SiteCard({ site, onOpen, onPay }) {
   const [cls, Icon] = TONE[site.status.tone];
+  // Оплата на виду прямо в карточке (владелец 29.09: «не понятно, если не
+  // провалиться в карточку, как продлить»), той же подписью и тем же окном, что
+  // в строке таблицы. Где главная кнопка уже «Оплатить», вторая не нужна.
+  const pay = !site.status.pay && payLabel(site.kind);
   return (
     // Карточка нажимается целиком, тем же действием, что её кнопка: шеврон и
     // подъём при наведении обещали это, а нажималась только кнопка (критика
@@ -157,6 +161,18 @@ function SiteCard({ site, onOpen }) {
         {site.demo ? site.demoMeta : site.status.meta}
         {!site.demo && site.finished && site.tariff && site.kind !== 'trial' && ` · ${tariffName(site.tariff)}`}
       </p>
+      {/* Над растянутой кнопкой карточки (z-10): своё действие, своя остановка Tab. */}
+      {pay && (
+        <button
+          type="button"
+          onClick={onPay}
+          aria-haspopup="dialog"
+          aria-label={`${pay} · ${site.domain}`}
+          className={`relative z-10 mt-1 inline-flex min-h-11 items-center rounded px-1 text-[13px] font-bold text-brand hover:text-ink sm:min-h-0 ${RING}`}
+        >
+          {pay}
+        </button>
+      )}
 
       {!site.demo && (
         <>
@@ -286,7 +302,7 @@ export default function SitesClient() {
               {view === 'cards' ? (
                 <div className="mt-6 grid gap-5 md:grid-cols-2">
                   {sites.map((x) => (
-                    <SiteCard key={x.key} site={x} onOpen={() => open(x)} />
+                    <SiteCard key={x.key} site={x} onOpen={() => open(x)} onPay={() => setPayKey(x.key)} />
                   ))}
                 </div>
               ) : (
@@ -327,7 +343,7 @@ export default function SitesClient() {
           {/* Под пустой карточкой подписи нет (владелец 25.09): «Документы и
               виджет появятся здесь…» повторяло текст самой карточки. */}
           {any && anyFinished && view === 'cards' && (
-            <p className="mt-6 text-center text-xs text-ink/60">Тариф, автопродление и оплату года каждого сайта смотрите в виде «Таблица».</p>
+            <p className="mt-6 text-center text-xs text-ink/60">Автопродление и отключение сайта настраиваются в виде «Таблица».</p>
           )}
         </div>
       </main>
