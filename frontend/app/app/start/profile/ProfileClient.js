@@ -169,7 +169,10 @@ export default function ProfileClient() {
   return (
     <AnketaFrame current={0} title="Ваш профиль" lead={<>Шесть шагов, 10–15 минут. Сначала о вас, потом сайт и компания, понадобится ИНН.</>}>
 
-            <div className="mb-6 flex items-center justify-between">
+            {/* На телефоне кнопка — под строкой с именем, во всю ширину: рядом ей
+                не хватало места, и она пряталась (владелец 29.09: «в телефонной
+                версии нет этой кнопки»). */}
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
                   {who.initial || <UserIcon size={18} />}
@@ -184,7 +187,7 @@ export default function ProfileClient() {
                 onClick={() => setAuthListOpen(!authListOpen)}
                 aria-expanded={authListOpen}
                 disabled={freeMessengers.length === 0}
-                className={`hidden items-center gap-2 rounded-xl border border-line bg-white px-4 py-3 text-sm font-bold shadow-sm transition-colors hover:border-brand disabled:cursor-default disabled:text-ink/60 disabled:hover:border-line sm:flex ${RING}`}
+                className={`flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-line bg-white px-4 py-3 text-sm font-bold shadow-sm transition-colors hover:border-brand disabled:cursor-default disabled:text-ink/60 disabled:hover:border-line sm:w-auto sm:justify-center ${RING}`}
               >
                 {freeMessengers.length ? `Добавить вход через ${freeMessengers.join(' или ')}` : 'Все способы входа привязаны'}
                 <ChevronDownIcon size={16} className={authListOpen ? 'rotate-180' : ''} />
