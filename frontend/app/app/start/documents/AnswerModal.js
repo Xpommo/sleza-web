@@ -8,13 +8,14 @@
 
 import { useRef, useState } from 'react';
 import { CloseIcon } from '../../../../components/app/AppIcons';
-import { ANALYTICS, GA_WARNING, PD_FIELDS, PURPOSES, allowedPurposes, purposeLabel } from '../../../../lib/anketaOptions';
+import { ANALYTICS, FEATURES, GA_WARNING, PD_FIELDS, PURPOSES, allowedPurposes, purposeLabel, toggleOption } from '../../../../lib/anketaOptions';
 import { useDialog } from '../../site/_shared/SiteChrome';
 import { Field, RING, Segmented, Tile } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
 
 export const QUESTION_TITLES = {
   requisites: 'Реквизиты владельца',
+  features: 'Формы и сервисы на сайте',
   analytics: 'Счётчики на сайте',
   purposes: 'Цели сбора контактов',
   pdFields: 'Данные, которые вы собираете',
@@ -29,6 +30,10 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
   const [a] = useState(loadAnketa);
   const allowed = allowedPurposes(a.sphere, a.features || []);
 
+  // Формы — после запуска их тоже меняют (владелец 29.09): от ответа зависит
+  // строка согласия «Форм на сайте нет» и цель «Принять оплату онлайн».
+  const [features, setFeatures] = useState(a.features || []);
+  const featuresExclusive = FEATURES.filter((o) => o.exclusive).map((o) => o.value);
   const [analytics, setAnalytics] = useState(a.analytics || []);
   const [analyticsOther, setAnalyticsOther] = useState(a.analyticsOther || '');
   const [purposes, setPurposes] = useState((a.purposes || []).filter((v) => allowed.includes(v)));
@@ -45,7 +50,13 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
 
   function save() {
     let patch;
-    if (kind === 'analytics') {
+    if (kind === 'features') {
+      if (!features.length) return setError('Отметьте, что есть на сайте, или «Ничего из этого нет»: от этого зависит согласие на обработку данных.');
+      // Сняли оплату на сайте — цель «Принять оплату онлайн» уходит из ответа,
+      // как на шаге 3 (allowedPurposes).
+      const ok = allowedPurposes(a.sphere, features);
+      patch = { features, purposes: (a.purposes || []).filter((v) => ok.includes(v)) };
+    } else if (kind === 'analytics') {
       if (!analytics.length) return setError('Отметьте счётчики или «Ничего из этого нет»: от этого зависит политика обработки куки.');
       if (analytics.includes('other') && !analyticsOther.trim()) return setOtherError('Напишите, какой счётчик стоит: его нужно указать в политике обработки куки.');
       patch = { analytics, analyticsOther: analytics.includes('other') ? analyticsOther.trim() : '' };
@@ -63,7 +74,7 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
     // документов, и она видна в «Истории изменений» (как правка реквизитов).
     const cur = loadAnketa();
     const changed = Object.keys(patch).some((k) => JSON.stringify(patch[k]) !== JSON.stringify(cur[k]));
-    const DOCS = { analytics: ['02'], purposes: ['03', '12'], pdFields: ['12', '13'], promo: ['03', '12', '13'] };
+    const DOCS = { features: ['03', '12'], analytics: ['02'], purposes: ['03', '12'], pdFields: ['12', '13'], promo: ['03', '12', '13'] };
     if (cur.installed && changed) {
       const at = Date.now();
       patch.docEdits = [...(cur.docEdits || []), ...DOCS[kind].map((doc) => ({ at, doc, what: `Изменён ответ «${QUESTION_TITLES[kind]}»` }))];
@@ -93,6 +104,23 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
         </div>
 
         <div className="mt-5">
+          {kind === 'features' && (
+            <div className="grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="answer-title">
+              {FEATURES.map((o) => (
+                <Tile
+                  key={o.value}
+                  title={o.label}
+                  compact
+                  selected={features.includes(o.value)}
+                  onClick={() => {
+                    setFeatures((prev) => toggleOption(prev, o.value, featuresExclusive));
+                    setError(null);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
           {kind === 'analytics' && (
             <>
               <div className="grid gap-3 sm:grid-cols-2" role="group" aria-labelledby="answer-title">

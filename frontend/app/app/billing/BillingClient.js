@@ -179,7 +179,7 @@ function RowMenu({ site, hasHistory, onPick }) {
   );
 }
 
-function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick, onAuto, onOpenSite, children }) {
+function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, autoCard, onPick, onAuto, onOpenSite, children }) {
   // Название — ссылка в кабинет сайта (так таблица живёт в «Моих сайтах»).
   const name = onOpenSite ? (
     <button type="button" onClick={onOpenSite} className={`max-w-full truncate rounded text-left text-[15px] font-bold hover:text-brand hover:underline ${RING}`}>
@@ -296,6 +296,15 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
   // Появится после оплаты, с прежним положением.
   const autoable = live && site.kind !== 'off-soon' && site.kind !== 'expired';
   const sw = autoable && <Switch checked={!site.cancelled} onChange={onAuto} label={`Автопродление ${site.domain}`} />;
+  // Одно название — «Автопродление», а под переключателем — что будет на деле
+  // (критика 28.09, владелец 29.09): горящий переключатель при пустом балансе
+  // читался как «продлится само», а «Обзор» при этом писал «напомним».
+  // Выключенному подпись не нужна: «продление вручную» уже стоит в статусе.
+  const autoOutcome = autoable && !site.cancelled && (
+    <span className="mt-1 block text-[12px] font-normal text-ink/60">
+      {autoCard ? 'с баланса и карты' : unfunded ? 'напомним заранее' : 'с баланса'}
+    </span>
+  );
   const menu = <RowMenu site={site} hasHistory={hasHistory} onPick={onPick} />;
   return (
     <div id={`site-${site.key}`} className="scroll-mt-6 border-b border-line last:border-0">
@@ -317,7 +326,10 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
         </div>
         {/* Продлевать нечего — «—», как у пустого тарифа: пустая колонка
             читалась как недогруженная. */}
-        <div>{sw || <span className="text-[14px] font-semibold text-ink/80">—</span>}</div>
+        <div>
+          {sw || <span className="text-[14px] font-semibold text-ink/80">—</span>}
+          {autoOutcome}
+        </div>
         {menu}
       </div>
       {/* Телефон — та же строка карточкой: колонок нет, подписи на месте. */}
@@ -342,9 +354,12 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, onPick
               {tariffAction}
             </span>
             {autoable && (
-              <label className="flex items-center gap-2 font-semibold text-ink/65">
-                Автопродление {sw}
-              </label>
+              <span className="text-right">
+                <label className="flex items-center justify-end gap-2 font-semibold text-ink/65">
+                  Автопродление {sw}
+                </label>
+                {autoOutcome}
+              </span>
             )}
           </div>
         )}
@@ -860,7 +875,7 @@ export default function BillingClient({ mode = 'money' }) {
             className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-brand"
           />
           <span>
-            <b className="font-semibold text-ink">Автопополнение:</b> если к продлению на балансе не хватит, спишем
+            <b className="font-semibold text-ink">Автопродление с карты:</b> если к продлению на балансе не хватит, спишем
             недостающее с этой карты. Отключить можно в любой момент.
           </span>
         </label>
@@ -1094,6 +1109,7 @@ export default function BillingClient({ mode = 'money' }) {
           short={(sitesMode || !single) && !autoCard && short[site.key] && short[site.key].at - now < warnWithin(site) ? short[site.key].amount : null}
           unfunded={!autoCard ? unfundedMap[site.key] || null : null}
           invoice={Boolean(b.topupInvoice)}
+          autoCard={autoCard}
           open={open?.key === site.key ? open.panel : null}
           hasHistory={ops.some((op) => op.kind === 'debit' && op.site === site.domain)}
           onPick={(id) => {
@@ -1250,7 +1266,7 @@ export default function BillingClient({ mode = 'money' }) {
                   <Row
                     label="Способ"
                     value={method === 'Картой' ? (b.card ? `Карта ···· ${b.card.last4}` : 'Картой') : 'По счёту'}
-                    note={method === 'Картой' ? (b.card ? `до ${b.card.exp}${b.card.auto ? ' · автопополнение' : ''}` : 'карта не привязана') : 'счёт на e-mail, оплата переводом'}
+                    note={method === 'Картой' ? (b.card ? `до ${b.card.exp}${b.card.auto ? ' · автопродление с карты' : ''}` : 'карта не привязана') : 'счёт на e-mail, оплата переводом'}
                     action="Изменить"
                     open={methodOpen}
                     onAction={() => setMethodOpen(!methodOpen)}
@@ -1267,13 +1283,13 @@ export default function BillingClient({ mode = 'money' }) {
                     {b.card && (
                       <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5 text-[13px] leading-5">
                         <span>
-                          <b className="font-semibold">Автопополнение:</b> если к продлению не хватит, спишем недостающее с
+                          <b className="font-semibold">Автопродление с карты:</b> если к продлению не хватит, спишем недостающее с
                           карты ···· {b.card.last4}
                         </span>
                         <Switch
                           checked={Boolean(b.card.auto)}
                           onChange={(on) => saveBilling({ card: { ...b.card, auto: on } })}
-                          label="Автопополнение с карты"
+                          label="Автопродление с карты"
                         />
                       </div>
                     )}

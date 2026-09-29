@@ -170,7 +170,7 @@ export default function SiteDocumentsClient() {
               {[
                 ['Реквизиты владельца', [site.answers.companyName, site.answers.inn && `ИНН ${site.answers.inn}`].filter(Boolean).join(' · '), 'Изменить реквизиты', () => setReqOpen(true)],
                 ['E-mail для запросов о персональных данных', site.answers.contacts?.pdContact || 'не указан', 'Изменить e-mail для запросов', () => setPdOpen(true)],
-                ['Ответы анкеты', 'формы, счётчики, цели, рассылки', 'Изменить ответы анкеты', () => router.push('/app/start/documents')],
+                ['Ответы анкеты', 'формы, счётчики, цели, рассылки', 'Изменить ответы анкеты', () => router.push('/app/site/documents/answers')],
               ].map(([label, value, aria, onClick]) => (
                 <div key={label} className="flex items-center justify-between gap-4 py-3.5">
                   <div className="min-w-0">

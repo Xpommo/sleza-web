@@ -227,8 +227,8 @@ export default function SitePayDialog({ siteKey, onClose, fallback }) {
     <label className="mt-4 flex items-start gap-3 text-[13px] leading-5 text-ink/70">
       <input type="checkbox" checked={cardAuto} onChange={(e) => setCardAuto(e.target.checked)} className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-brand" />
       <span>
-        <b className="font-semibold text-ink">Продлевать автоматически:</b> через год спишем {PRICE_TEXT} с{' '}
-        {card ? `карты\u00a0····\u00a0${card.last4}` : 'этой карты'}. Выключить можно в любой момент переключателем «Автопродление» в строке сайта.
+        <b className="font-semibold text-ink">Автопродление с карты:</b> через год спишем {PRICE_TEXT} с{' '}
+        {card ? `карты\u00a0····\u00a0${card.last4}` : 'этой карты'}. Выключить можно в любой момент переключателем «Автопродление» в «Моих сайтах», вид «Таблица».
       </span>
     </label>
   );

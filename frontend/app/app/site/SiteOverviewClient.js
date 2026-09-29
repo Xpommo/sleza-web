@@ -170,6 +170,13 @@ export default function SiteOverviewClient() {
 
   // Отметку «Сделано» ставит сам клиент — проверить формы и счётчики на его
   // сайте прототип не может.
+  // Ошиблись нажатием — возвращаем задачу (владелец 29.09, критика 28.09:
+  // «Сделано» без отмены).
+  function consentUndo() {
+    saveSiteFields({ tasksDone: { ...a.tasksDone, consentLink: null } });
+    setA(siteAnketa(loadAnketa()));
+  }
+
   function consentDone() {
     saveSiteFields({ tasksDone: { ...a.tasksDone, consentLink: Date.now() } });
     setA(siteAnketa(loadAnketa()));
@@ -321,7 +328,7 @@ export default function SiteOverviewClient() {
 
   // 4. Последние изменения — только то, что действительно произошло.
   const events = [
-    a.tasksDone?.consentLink && [a.tasksDone.consentLink, 'Вы отметили, что ссылка на согласие добавлена в формы сайта', 'bg-ok'],
+    a.tasksDone?.consentLink && [a.tasksDone.consentLink, 'Вы отметили, что ссылка на согласие добавлена в формы сайта', 'bg-ok', ['Вернуть в задачи', consentUndo]],
     // Дата события — день оплаты, а не начала оплаченного года: оплатив в
     // пробный период, клиент видел событие «завтрашним» (критика 28.09).
     b.paidAt && [paidOpAt || Math.min(b.paidAt, now), paidAuto ? `Год продлён автоматически: оплачено до ${period.to}` : `Подписка оплачена до ${period.to}`, 'bg-ok'],
@@ -409,12 +416,17 @@ export default function SiteOverviewClient() {
           <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
             <h2 className="text-lg font-bold tracking-[-0.02em]">Последние изменения</h2>
             <div className={`relative mt-6 space-y-6 ${events.length > 1 ? 'before:absolute before:bottom-2 before:left-[7px] before:top-2 before:w-px before:bg-line' : ''}`}>
-              {events.map(([when, what, dot]) => (
+              {events.map(([when, what, dot, undo]) => (
                 <div key={`${when}-${what}`} className="relative flex gap-4">
                   <span className={`z-10 mt-1 h-4 w-4 shrink-0 rounded-full border-4 border-white ${dot}`} />
                   <div>
                     <p className="text-sm font-bold">{sameDay(when)}</p>
                     <p className="mt-1 text-sm text-ink/60">{what}</p>
+                    {undo && (
+                      <button type="button" onClick={undo[1]} className={`mt-1 inline-flex min-h-11 items-center rounded text-[13px] font-semibold text-brand hover:text-ink sm:min-h-0 ${RING}`}>
+                        {undo[0]}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
