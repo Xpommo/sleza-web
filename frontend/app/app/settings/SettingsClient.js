@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CloseIcon } from '../../../components/app/AppIcons';
-import { MESSENGER_ICONS } from '../../../components/app/AuthBits';
+import { MESSENGER_ICONS, MessengerCodeLogin } from '../../../components/app/AuthBits';
 import { EMAIL_RE, formatPhone, phoneIncomplete } from '../../../lib/validate';
 import { Field, PhoneField } from '../start/_shared/AnketaChrome';
 import { NO_USER, accountUser, loadAnketa, loadAuth, saveAnketa, setMessenger } from '../start/_shared/anketaState';
@@ -26,6 +26,8 @@ export default function SettingsClient() {
   const [form, setForm] = useState({ name: '', email: '', phone: '' });
   const [err, setErr] = useState({});
   const [messengers, setMessengers] = useState({});
+  // Какой мессенджер сейчас привязывают кодом от бота (владелец 29.09).
+  const [linking, setLinking] = useState(null);
 
   // Имя, почта и телефон — те же, что на шаге «Ваш профиль»: это один
   // человек и одни контакты, а не вторая копия.
@@ -152,7 +154,7 @@ export default function SettingsClient() {
 
             <h3 className="text-[15px] font-bold">Мессенджеры</h3>
             <p className="mt-1 text-[13px] leading-5 text-ink/60">
-              Вход в один тап и уведомления туда же: о продлении, оплате и статусе виджета. Можно подключить несколько, здесь
+              Вход без пароля и уведомления туда же: о продлении, оплате и статусе виджета. Можно подключить несколько, здесь
               же и отвязать.
             </p>
             {/* Список, а не «подключить один»: Telegram — для себя, MAX — для
@@ -161,6 +163,24 @@ export default function SettingsClient() {
               {['Telegram', 'MAX'].map((name) => {
                 const Icon = MESSENGER_ICONS[name];
                 const on = Boolean(messengers[name]);
+                // Подключение — кодом от бота, тем же блоком, что на входе.
+                if (linking === name) {
+                  return (
+                    <div key={name} className="p-3">
+                      <MessengerCodeLogin
+                        via={name}
+                        icon={<Icon size={20} />}
+                        open
+                        link
+                        onClose={() => setLinking(null)}
+                        onDone={() => {
+                          toggleMessenger(name, true);
+                          setLinking(null);
+                        }}
+                      />
+                    </div>
+                  );
+                }
                 return (
                   <div key={name} className="flex min-h-[60px] items-center gap-3 px-4 py-2.5">
                     <Icon size={20} />
@@ -179,7 +199,7 @@ export default function SettingsClient() {
                         </button>
                       </>
                     ) : (
-                      <button type="button" onClick={() => toggleMessenger(name, true)} className={`ml-auto ${BTN_SECONDARY}`}>
+                      <button type="button" onClick={() => setLinking(name)} className={`ml-auto ${BTN_SECONDARY}`}>
                         Подключить
                       </button>
                     )}

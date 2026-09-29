@@ -190,7 +190,9 @@ const BOT = '@sleza_belyisait_bot';
 // Один способ для обоих мессенджеров, и бот сразу — канал для сообщений о
 // законе и продлении. В прототипе бот не открывается, код — любые шесть цифр.
 // gate() — галочки согласий на регистрации.
-export function MessengerCodeLogin({ via, icon, open, onOpen, onClose, gate = () => true, onDone, register = false }) {
+// link — тот же блок для привязки второго мессенджера на «Вашем профиле» и в
+// «Настройках» (владелец 29.09: «так же через бота»).
+export function MessengerCodeLogin({ via, icon, open, onOpen, onClose, gate = () => true, onDone, register = false, link: linking = false }) {
   const [code, setCode] = useState('');
   const [err, setErr] = useState(null);
   const [asked, setAsked] = useState(false);
@@ -247,14 +249,14 @@ export function MessengerCodeLogin({ via, icon, open, onOpen, onClose, gate = ()
     <div className={`p-5 ${BUTTON_BOX}`}>
       <div className="flex items-center gap-3 text-[15px] font-semibold text-ink">
         {icon}
-        Через {via}
+        {linking ? `Подключить ${via}` : `Через ${via}`}
         <button
           type="button"
           onClick={() => {
             setErr(null);
             onClose();
           }}
-          aria-label={register ? `Свернуть регистрацию через ${via}` : `Свернуть вход через ${via}`}
+          aria-label={linking ? `Отменить подключение ${via}` : register ? `Свернуть регистрацию через ${via}` : `Свернуть вход через ${via}`}
           className={`-my-2 -mr-2 ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
         >
           <CloseIcon size={16} />
@@ -274,7 +276,7 @@ export function MessengerCodeLogin({ via, icon, open, onOpen, onClose, gate = ()
           <button type="button" onClick={openBot} className={`${link} font-semibold`}>
             {BOT}
           </button>{' '}
-          «/start» и введите код{register ? '' : ' для входа'}:
+          «/start» и введите код{register || linking ? '' : ' для входа'}:
         </p>
         <div className="mt-4">
           <CodeCells

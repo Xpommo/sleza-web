@@ -11,6 +11,7 @@ import {
   MailIcon,
 } from '../../../../components/app/AppIcons';
 import { CURRENT_USER } from '../../../../lib/appMock';
+import { MessengerCodeLogin } from '../../../../components/app/AuthBits';
 import { formatPhone, phoneIncomplete, validateEmail } from '../../../../lib/validate';
 import { RING, AnketaFrame, Field, PhoneField, SectionHead, Tile, focusFirstError } from '../_shared/AnketaChrome';
 import { loadAnketa, loadAuth, markStepDone, saveAnketa, setMessenger, userLabel } from '../_shared/anketaState';
@@ -60,6 +61,11 @@ export default function ProfileClient() {
   // у него нет ни маски, ни ошибки, это запасной канал, а не гейт.
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState(null);
+  // Откуда подставлен телефон, пока его не поправили: бот попросит поделиться
+  // контактом (владелец 29.09).
+  const [phoneFrom, setPhoneFrom] = useState(null);
+  // Какой мессенджер сейчас привязывают кодом от бота.
+  const [linking, setLinking] = useState(null);
 
   // Почта проверяется только на формат. Подтверждение кодом снято решением
   // владельца: письма сюда идут формальные (обновление документов, изменение
@@ -95,7 +101,10 @@ export default function ProfileClient() {
     else if (byMessenger) setName(CURRENT_USER.name);
     // Метка — и после F5, пока в поле то же имя, что пришло из мессенджера.
     if (byMessenger && (!a.personName || a.personName === CURRENT_USER.name)) setNameFrom(via);
+    // Телефон — так же, как имя: бот попросит «Поделиться контактом» (владелец 29.09).
     if (a.personPhone) setPhone(formatPhone(a.personPhone));
+    else if (byMessenger) setPhone(formatPhone(CURRENT_USER.phone));
+    if (byMessenger && (!a.personPhone || formatPhone(a.personPhone) === formatPhone(CURRENT_USER.phone))) setPhoneFrom(via);
     if (a.personEmail) setEmail(a.personEmail);
     setAuth(loadAuth());
     setRestored(true);
@@ -185,10 +194,26 @@ export default function ProfileClient() {
             {authListOpen && (
               <div className="mb-6 rounded-2xl border border-line bg-white p-5 shadow-sm">
                 <p className="text-[13px] leading-5 text-ink/60">
-                  Вход в один тап и уведомления в мессенджер, а не только на e-mail. Отвязать можно в Настройках.
+                  Вход без пароля и уведомления в мессенджер, а не только на e-mail. Отвязать можно в Настройках.
                 </p>
                 <div className="mt-4 divide-y divide-line">
-                  {MESSENGERS.map((m) => (
+                  {MESSENGERS.map((m) =>
+                    linking === m.name ? (
+                      <div key={m.name} className="py-3 first:pt-0 last:pb-0">
+                        <MessengerCodeLogin
+                          via={m.name}
+                          icon={m.icon}
+                          open
+                          link
+                          onClose={() => setLinking(null)}
+                          onDone={() => {
+                            setMessenger(m.name, true);
+                            setAuth(loadAuth());
+                            setLinking(null);
+                          }}
+                        />
+                      </div>
+                    ) : (
                     <div key={m.name} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                       {m.icon}
                       <span className="text-sm font-bold">{m.name}</span>
@@ -197,17 +222,15 @@ export default function ProfileClient() {
                       ) : (
                         <button
                           type="button"
-                          onClick={() => {
-                            setMessenger(m.name, true);
-                            setAuth(loadAuth());
-                          }}
+                          onClick={() => setLinking(m.name)}
                           className={`ml-auto rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-bold shadow-sm transition-colors hover:border-brand hover:text-brand ${RING}`}
                         >
                           Подключить
                         </button>
                       )}
                     </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
             )}
@@ -259,6 +282,7 @@ export default function ProfileClient() {
                     <PhoneField
                       label="Телефон, необязательно"
                       icon={PhoneIcon}
+                      badge={phoneFrom && phone === formatPhone(CURRENT_USER.phone) ? `Из ${phoneFrom}` : null}
                       value={phone}
                       onValue={(v) => {
                         setPhone(v);
