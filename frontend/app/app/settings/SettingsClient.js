@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import { CloseIcon } from '../../../components/app/AppIcons';
 import { MESSENGER_ICONS } from '../../../components/app/AuthBits';
-import { CURRENT_USER } from '../../../lib/appMock';
 import { EMAIL_RE, formatPhone, phoneIncomplete } from '../../../lib/validate';
 import { Field, PhoneField } from '../start/_shared/AnketaChrome';
-import { accountUser, loadAnketa, loadAuth, saveAnketa, setMessenger } from '../start/_shared/anketaState';
+import { NO_USER, accountUser, loadAnketa, loadAuth, saveAnketa, setMessenger } from '../start/_shared/anketaState';
 import { RING, SettingsSidebar } from '../site/_shared/SiteChrome';
 
 // Настройки аккаунта (живой макет, s-settings). Два раздела — контакты и
@@ -21,7 +20,7 @@ function Card({ children }) {
 }
 
 export default function SettingsClient() {
-  const [user, setUser] = useState(CURRENT_USER);
+  const [user, setUser] = useState(NO_USER);
   const [phone, setPhone] = useState('');
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '' });
@@ -31,7 +30,7 @@ export default function SettingsClient() {
   // Имя, почта и телефон — те же, что на шаге «Ваш профиль»: это один
   // человек и одни контакты, а не вторая копия.
   function sync() {
-    setUser(accountUser(CURRENT_USER));
+    setUser(accountUser());
     setPhone(formatPhone(loadAnketa().personPhone || ''));
     setMessengers(loadAuth().messengers);
   }

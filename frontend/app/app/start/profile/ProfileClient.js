@@ -54,6 +54,8 @@ export default function ProfileClient() {
 
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState(null);
+  // Откуда подставлено имя («Telegram» / «MAX»), пока его не поправили.
+  const [nameFrom, setNameFrom] = useState(null);
   // Телефон — необязательный и без проверки формата: в утверждённой анкете
   // у него нет ни маски, ни ошибки, это запасной канал, а не гейт.
   const [phone, setPhone] = useState('');
@@ -84,7 +86,15 @@ export default function ProfileClient() {
       return;
     }
     if (a.role) setRole(a.role);
+    // Имя из мессенджера, которым вошли, — сразу в поле (владелец 29.09): мы его
+    // уже знаем, вводить заново незачем; метка «Из Telegram» гаснет, как только
+    // имя поправили. При входе по почте имени нет — поле пустое.
+    const via = loadAuth().via;
+    const byMessenger = via !== 'почта';
     if (a.personName) setName(a.personName);
+    else if (byMessenger) setName(CURRENT_USER.name);
+    // Метка — и после F5, пока в поле то же имя, что пришло из мессенджера.
+    if (byMessenger && (!a.personName || a.personName === CURRENT_USER.name)) setNameFrom(via);
     if (a.personPhone) setPhone(formatPhone(a.personPhone));
     if (a.personEmail) setEmail(a.personEmail);
     setAuth(loadAuth());
@@ -153,7 +163,7 @@ export default function ProfileClient() {
             <div className="mb-6 flex items-center justify-between">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
-                  {who.initial}
+                  {who.initial || <UserIcon size={18} />}
                 </div>
                 <div className="min-w-0">
                   <p className="break-all font-bold">{who.title}</p>
@@ -234,6 +244,7 @@ export default function ProfileClient() {
                     required
                     placeholder="Имя"
                     icon={UserIcon}
+                    badge={nameFrom && name === CURRENT_USER.name ? `Из ${nameFrom}` : null}
                     value={name}
                     onChange={(e) => {
                       setName(e.target.value);

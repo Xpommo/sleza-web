@@ -7,6 +7,8 @@
 // sessionStorage, а не контекст: ответы должны пережить F5 посреди анкеты,
 // но не должны оставаться в браузере после закрытия вкладки. Бэкенда это
 // дерево по-прежнему не касается (см. frontend/CLAUDE.md).
+import { CURRENT_USER } from '../../../../lib/appMock';
+
 const KEY = 'anketa_v1';
 
 export function loadAnketa() {
@@ -18,25 +20,25 @@ export function loadAnketa() {
   }
 }
 
-// Имя и почта в углу кабинета — те, что человек назвал на «Ваш профиль».
-// До этого — только то, что мы о нём уже знаем: при входе через мессенджер
-// имя приходит из него (в прототипе — из мока), почты ещё нет; при входе по
-// почте есть почта, а имени нет. Чужие «Кирилл» или director@… рядом с тем,
-// что человек ввёл сам, выглядели как чужой аккаунт. Если никто не входил
-// (экран открыт панелью «Макет») — мок целиком, как в макете.
-export function accountUser(fallback) {
+// Имя и почта в углу кабинета — то, что человек назвал на «Вашем профиле», а
+// до этого — то, что мы о нём уже знаем со входа: через мессенджер приходит
+// имя (в прототипе — из мока), почты нет; по почте — почта (signIn пишет её
+// в personEmail). Владелец 29.09: в пустом кабинете стояла почта, которую
+// человек не называл (мок при открытии через «Макет»), — почту берём только
+// указанную. Никто не входил — как вход через Telegram (так же решает loadAuth).
+export const NO_USER = { name: '', email: '' };
+
+export function accountUser() {
   const a = loadAnketa();
-  const byMail = a.authVia === 'почта';
-  const byMessenger = Boolean(a.authVia) && !byMail;
-  return {
-    name: a.personName || (byMail ? '' : fallback.name),
-    email: a.personEmail || (byMessenger ? '' : fallback.email),
-  };
+  const byMessenger = (a.authVia || 'Telegram') !== 'почта';
+  return { name: a.personName || (byMessenger ? CURRENT_USER.name : ''), email: a.personEmail || '' };
 }
 
-// Как подписать человека, пока имени нет: почтой. Первая буква — для аватара.
+// Как подписать человека: именем, без имени — почтой, без обоих — «Мой
+// аккаунт» (аватар тогда со значком, а не с буквой: initial пустой).
 export function userLabel(user) {
   const title = user.name || user.email;
+  if (!title) return { title: 'Мой аккаунт', sub: '', initial: '' };
   return { title, sub: user.name ? user.email : '', initial: title.slice(0, 1).toUpperCase() };
 }
 

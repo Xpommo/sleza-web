@@ -5,9 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CheckIcon, ChevronDownIcon, CloseIcon, CopyIcon, WarnIcon } from '../../../../components/app/AppIcons';
 import { CookieBannerPreview, FooterPreview, Switch, ThemeSwitch, widgetSettings } from '../../../../components/app/WidgetPreviews';
-import { CURRENT_USER } from '../../../../lib/appMock';
 import { SITE_ID } from '../../../../lib/docPackage';
-import { accountUser, loadAnketa, saveAnketa } from '../../start/_shared/anketaState';
+import { NO_USER, accountUser, loadAnketa, saveAnketa } from '../../start/_shared/anketaState';
 import { RING, SiteHeader, SiteSidebar, useDialog } from '../_shared/SiteChrome';
 import { widgetStopped } from '../_shared/subscription';
 import { settleRenewals, siteAnketa } from '../_shared/sites';
@@ -111,7 +110,7 @@ function OffDialog({ kind, domain, onClose, onConfirm }) {
 export default function SiteWidgetClient() {
   const router = useRouter();
   const [site, setSite] = useState(null);
-  const [user, setUser] = useState(CURRENT_USER);
+  const [user, setUser] = useState(NO_USER);
   const [w, setW] = useState(null);
   const [codeOpen, setCodeOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -124,7 +123,7 @@ export default function SiteWidgetClient() {
       router.replace('/app/sites');
       return;
     }
-    setUser(accountUser(CURRENT_USER));
+    setUser(accountUser());
     setSite({ domain: a.domain, installed: Boolean(a.installed), stopped: widgetStopped(a, Date.now(), loadAnketa().billing?.topupInvoice) });
     setW(widgetSettings(a));
   }, [router]);

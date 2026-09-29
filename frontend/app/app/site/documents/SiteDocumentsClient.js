@@ -5,9 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CheckIcon, CopyIcon, DocsIcon, LinkIcon } from '../../../../components/app/AppIcons';
 import { DocRow, DocRowList, IconAction } from '../../../../components/app/DocRows';
-import { CURRENT_USER } from '../../../../lib/appMock';
 import { DOCUMENTS, SITE_ID, docOrigin, docUrl, editEvents } from '../../../../lib/docPackage';
-import { accountUser, loadAnketa } from '../../start/_shared/anketaState';
+import { NO_USER, accountUser, loadAnketa } from '../../start/_shared/anketaState';
 import PdEmailModal from '../_shared/PdEmailModal';
 import RequisitesModal from '../_shared/RequisitesModal';
 import { settleRenewals, siteAnketa } from '../_shared/sites';
@@ -23,7 +22,7 @@ function formatDate(ms) {
 export default function SiteDocumentsClient() {
   const router = useRouter();
   const [site, setSite] = useState(null);
-  const [user, setUser] = useState(CURRENT_USER);
+  const [user, setUser] = useState(NO_USER);
   const [copied, setCopied] = useState(false);
   const [copiedDoc, setCopiedDoc] = useState(null);
   const [reqOpen, setReqOpen] = useState(false);
@@ -36,7 +35,7 @@ export default function SiteDocumentsClient() {
       router.replace('/app/sites');
       return;
     }
-    setUser(accountUser(CURRENT_USER));
+    setUser(accountUser());
     setSite({
       domain: a.domain,
       installed: Boolean(a.installed),

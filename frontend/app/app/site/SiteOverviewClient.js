@@ -6,10 +6,9 @@ import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, CheckIcon, CopyIcon } from '../../../components/app/AppIcons';
 import { IconAction } from '../../../components/app/DocRows';
 import { widgetSettings } from '../../../components/app/WidgetPreviews';
-import { CURRENT_USER } from '../../../lib/appMock';
 import { DOCUMENTS, docUrl, editEvents } from '../../../lib/docPackage';
 import { accountSites, balanceOf, currentSiteKey, debitShortfall, payLabel, saveSiteFields, setSiteLeaving, settleRenewals, siteAnketa } from './_shared/sites';
-import { accountUser, loadAnketa } from '../start/_shared/anketaState';
+import { NO_USER, accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { RING, SiteSidebar } from './_shared/SiteChrome';
 import SitePayDialog from '../billing/SitePayDialog';
 import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, graceEndAt, graceEnds, paidPeriod, subState, trialEndAt, trialEnds, widgetStopped, tariffName } from './_shared/subscription';
@@ -106,7 +105,7 @@ function Task({ title, law, text, name, onDone, href, actionLabel, children }) {
 export default function SiteOverviewClient() {
   const router = useRouter();
   const [a, setA] = useState(null);
-  const [user, setUser] = useState(CURRENT_USER);
+  const [user, setUser] = useState(NO_USER);
   const [now, setNow] = useState(Date.now());
   const [copied, setCopied] = useState(false);
   // Окно оплаты года — здесь же, без перехода в «Мои сайты» (владелец 28.09).
@@ -120,7 +119,7 @@ export default function SiteOverviewClient() {
       return;
     }
     setA(saved);
-    setUser(accountUser(CURRENT_USER));
+    setUser(accountUser());
     const id = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(id);
   }, [router]);

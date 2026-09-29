@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, CheckIcon, ChevronDownIcon, CopyIcon, ExternalIcon, MoreHorizontalIcon } from '../../../components/app/AppIcons';
 import { IconAction } from '../../../components/app/DocRows';
 import { Switch } from '../../../components/app/WidgetPreviews';
-import { CURRENT_USER } from '../../../lib/appMock';
 import { Field, Segmented, focusFirstError } from '../start/_shared/AnketaChrome';
-import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
+import { NO_USER, accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { SITE_ID, operatorName } from '../../../lib/docPackage';
 import { AccountSidebar, RING, usePopup } from '../site/_shared/SiteChrome';
 import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
@@ -365,7 +364,7 @@ export default function BillingClient({ mode = 'money' }) {
   const sitesMode = mode === 'sites';
   const router = useRouter();
   const [a, setA] = useState(null);
-  const [user, setUser] = useState(CURRENT_USER);
+  const [user, setUser] = useState(NO_USER);
   const [now, setNow] = useState(Date.now());
 
   // Раскрытая панель в строке сайта: { key, panel: 'tariff' }. Оплата года —
@@ -418,7 +417,7 @@ export default function BillingClient({ mode = 'money' }) {
     // пункт меню «Баланс и платежи» делал не то, что называл), а говорим прямо.
     if (!saved.domain && !sitesMode) {
       setNoSite(true);
-      setUser(accountUser(CURRENT_USER));
+      setUser(accountUser());
       return;
     }
     const q = new URLSearchParams(window.location.search);
@@ -429,7 +428,7 @@ export default function BillingClient({ mode = 'money' }) {
     }
     setA(saved);
     if (!sitesMode && q.get('history')) setHistoryFor(q.get('history'));
-    setUser(accountUser(CURRENT_USER));
+    setUser(accountUser());
     const b = saved.billing || {};
     if (b.method) {
       setMethod(b.method);

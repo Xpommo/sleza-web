@@ -5,10 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ExternalIcon } from '../../../components/app/AppIcons';
 import { IconAction } from '../../../components/app/DocRows';
-import { CURRENT_USER } from '../../../lib/appMock';
 import { SITE_ID } from '../../../lib/docPackage';
 import { Field } from '../start/_shared/AnketaChrome';
-import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
+import { NO_USER, accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
 import { accountSites, settleRenewals } from '../site/_shared/sites';
 import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, NoSiteMoney, Panel, Row } from '../billing/BillingBits';
@@ -23,7 +22,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function AccountingClient() {
   const router = useRouter();
   const [a, setA] = useState(null);
-  const [user, setUser] = useState(CURRENT_USER);
+  const [user, setUser] = useState(NO_USER);
   const [email, setEmail] = useState('');
   const [editing, setEditing] = useState(false);
   const [err, setErr] = useState(null);
@@ -34,11 +33,11 @@ export default function AccountingClient() {
     const saved = loadAnketa();
     if (!saved.domain) {
       setNoSite(true);
-      setUser(accountUser(CURRENT_USER));
+      setUser(accountUser());
       return;
     }
     setA(saved);
-    setUser(accountUser(CURRENT_USER));
+    setUser(accountUser());
     setEmail(saved.billing?.actsEmail || '');
   }, [router]);
 

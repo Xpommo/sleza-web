@@ -4,9 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, InfoIcon } from '../../../../components/app/AppIcons';
-import { CURRENT_USER } from '../../../../lib/appMock';
 import { formatPhone, normalizePhone } from '../../../../lib/validate';
-import { accountUser, loadAnketa } from './anketaState';
+import { NO_USER, accountUser, loadAnketa } from './anketaState';
 import { SidebarShell, TearMark, useBottomBar, usePopup } from '../../site/_shared/SiteChrome';
 
 // Общий каркас всех шести шагов анкеты «Слеза Белый Сайт». Названия шагов
@@ -140,8 +139,8 @@ export function Progress({ current, first = 0 }) {
 export function Sidebar({ current, first = 0, bottomBar }) {
   // Тот, кто представился на шаге 1, а не мок аккаунта: иначе в углу анкеты
   // стоял чужой человек, хотя имя и почту уже назвали.
-  const [user, setUser] = useState(CURRENT_USER);
-  useEffect(() => setUser(accountUser(CURRENT_USER)), [current]);
+  const [user, setUser] = useState(NO_USER);
+  useEffect(() => setUser(accountUser()), [current]);
   return (
     <SidebarShell user={user} bottomBar={bottomBar}>
       <Link

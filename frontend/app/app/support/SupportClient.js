@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CheckIcon, ChevronDownIcon } from '../../../components/app/AppIcons';
-import { CURRENT_USER } from '../../../lib/appMock';
-import { accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
+import { NO_USER, accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
 import { announce } from '../../../lib/announce';
 
@@ -65,7 +64,7 @@ function Faq({ q, a, open, onToggle, id }) {
 }
 
 export default function SupportClient() {
-  const [user, setUser] = useState(CURRENT_USER);
+  const [user, setUser] = useState(NO_USER);
   const [openQ, setOpenQ] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [text, setText] = useState('');
@@ -73,7 +72,7 @@ export default function SupportClient() {
   const [sent, setSent] = useState(null);
 
   useEffect(() => {
-    setUser(accountUser(CURRENT_USER));
+    setUser(accountUser());
     setTickets(loadAnketa().tickets || []);
   }, []);
 

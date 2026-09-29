@@ -9,10 +9,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon, ChevronDownIcon, DocsIcon, LogoutIcon, MonitorIcon, ProjectsIcon, SettingsIcon, SupportIcon,
-  WalletIcon,
+  UserIcon, WalletIcon,
 } from '../../../../components/app/AppIcons';
-import { CURRENT_USER } from '../../../../lib/appMock';
-import { accountUser, loadAnketa, rememberReturn, returnPath, userLabel } from '../../start/_shared/anketaState';
+import { NO_USER, accountUser, loadAnketa, rememberReturn, returnPath, userLabel } from '../../start/_shared/anketaState';
 
 export const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
@@ -65,7 +64,7 @@ export function useMoney() {
   return money;
 }
 
-export { accountUser, CURRENT_USER };
+export { accountUser };
 
 // Один вид пункта меню на весь кабинет: раньше активный пункт в «Моих
 // сайтах» был синим, а в разделах сайта — чёрным.
@@ -284,7 +283,7 @@ export function AccountMenu({ user, compact = false }) {
         }`}
       >
         <span className={`flex shrink-0 items-center justify-center rounded-full bg-ink font-bold text-white ${compact ? 'h-9 w-9 text-[13px]' : 'h-10 w-10 text-sm'}`}>
-          {who.initial}
+          {who.initial || <UserIcon size={compact ? 16 : 18} />}
         </span>
         {!compact && (
           <>
@@ -437,7 +436,7 @@ export function SidebarShell({ user, children, supportActive, bottomBar }) {
   );
 }
 
-export function SiteSidebar({ domain, active, user = CURRENT_USER }) {
+export function SiteSidebar({ domain, active, user = NO_USER }) {
   return (
     <SidebarShell user={user} bottomBar={<SiteTabbar active={active} />}>
       <Link
@@ -466,7 +465,7 @@ function useHasSite() {
 
 // Поддержка — с «← Назад», как Настройки (живой макет, support-back), но с
 // навигацией аккаунта: из неё переходят сразу в нужный раздел (макет, 25.08).
-export function AccountSidebar({ active, user = CURRENT_USER, supportActive }) {
+export function AccountSidebar({ active, user = NO_USER, supportActive }) {
   const hasSite = useHasSite();
   return (
     <SidebarShell user={user} supportActive={supportActive} bottomBar={hasSite && active !== 'Мои сайты' ? <SiteTabbar /> : null}>
@@ -480,7 +479,7 @@ export function AccountSidebar({ active, user = CURRENT_USER, supportActive }) {
 
 // Настройки — уровень аккаунта, общие для всех сайтов: в сайдбаре только
 // сам раздел и «← Назад» туда, откуда пришли (живой макет, s-settings).
-export function SettingsSidebar({ user = CURRENT_USER }) {
+export function SettingsSidebar({ user = NO_USER }) {
   const hasSite = useHasSite();
   return (
     <SidebarShell user={user} bottomBar={hasSite ? <SiteTabbar /> : null}>

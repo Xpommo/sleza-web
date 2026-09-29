@@ -11,7 +11,6 @@ import {
   GlobeIcon,
   LockIcon,
 } from '../../../../components/app/AppIcons';
-import { CURRENT_USER } from '../../../../lib/appMock';
 import { announce } from '../../../../lib/announce';
 import { RING, STEP_URLS, AnketaFrame, Field, Tile, SectionHead, useFirstStep, focusFirstError } from '../_shared/AnketaChrome';
 import { ANALYTICS, GA_WARNING, PLATFORMS, SPHERES, toggleOption } from '../../../../lib/anketaOptions';
@@ -44,7 +43,7 @@ function TakenCard({ taken, headRef, onOpen, onOther, onLeave }) {
   const [error, setError] = useState(null);
   const [sent, setSent] = useState(false);
   const [user, setUser] = useState({ name: '', email: '' });
-  useEffect(() => setUser(accountUser(CURRENT_USER)), []);
+  useEffect(() => setUser(accountUser()), []);
   const who = [user.name, user.email].filter(Boolean).join(', ');
 
   if (taken.kind === 'own') {

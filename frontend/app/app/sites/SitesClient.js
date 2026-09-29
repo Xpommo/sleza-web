@@ -7,8 +7,7 @@ import {
   BuildingIcon, ChevronIcon, GridIcon, ListIcon, PlusIcon,
   ClockIcon, OkIcon, SupportIcon, WarnIcon,
 } from '../../../components/app/AppIcons';
-import { CURRENT_USER } from '../../../lib/appMock';
-import { accountUser, loadAnketa } from '../start/_shared/anketaState';
+import { NO_USER, accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar } from '../site/_shared/SiteChrome';
 import { graceEnds, inGrace, paidPeriod, subState, tariffName, trialEnds } from '../site/_shared/subscription';
 import { MAIN, accountSites, addSite, cardStatus, openSite, payLabel, settleRenewals, siteView } from '../site/_shared/sites';
@@ -221,7 +220,7 @@ export default function SitesClient() {
   const router = useRouter();
   const [sites, setSites] = useState([]);
   const [view, setView] = useState('cards');
-  const [user, setUser] = useState(CURRENT_USER);
+  const [user, setUser] = useState(NO_USER);
   // Анкета начата, а адреса сайта ещё нет: карточки нет, но и «Начнём с
   // первого сайта» было бы неправдой (аудит 26.09).
   const [started, setStarted] = useState(0);
@@ -231,7 +230,7 @@ export default function SitesClient() {
   // прятать его до конца анкеты значит терять начатую работу.
   useEffect(() => {
     settleRenewals(); // списание в дату продления — до чтения состояния
-    setUser(accountUser(CURRENT_USER));
+    setUser(accountUser());
     setSites(listSites(loadAnketa()));
     setStarted(loadAnketa().domain ? 0 : loadAnketa().stepsDone || 0);
     // Оплата сайта с «Обзора» и из карточки ведёт сюда, в таблицу, где год
