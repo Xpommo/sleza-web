@@ -1195,7 +1195,7 @@ export default function BillingClient({ mode = 'money' }) {
   }
 
   return (
-    <div className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen min-h-dvh bg-warm text-ink lg:flex">
       <AccountSidebar active={MONEY_TITLE} user={user} />
 
       <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
@@ -1367,7 +1367,7 @@ export default function BillingClient({ mode = 'money' }) {
                         <span className="min-w-0 flex-1 break-words text-ink/80">
                           {op.kind === 'topup' ? `Пополнение ${op.method === 'Картой' ? 'картой' : 'по счёту'}` : `Оплата года · ${op.site}`}
                         </span>
-                        <span className={`shrink-0 font-semibold ${op.kind === 'topup' ? 'text-ok' : 'text-ink'}`}>
+                        <span className={`shrink-0 font-semibold tabular-nums ${op.kind === 'topup' ? 'text-ok' : 'text-ink'}`}>
                           {op.kind === 'topup' ? '+' : '−'}
                           {formatRub(op.amount)}
                         </span>

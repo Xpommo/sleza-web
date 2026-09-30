@@ -40,7 +40,7 @@ const CABINET_BLUE = {
 // между экранами прототипа в нужном состоянии.
 export default function AppLayout({ children }) {
   return (
-    <div className="contents" style={CABINET_BLUE}>
+    <div className="cabinet contents" style={CABINET_BLUE}>
       {children}
       <MaketBar />
     </div>

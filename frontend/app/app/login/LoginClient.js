@@ -26,7 +26,7 @@ export default function LoginClient() {
   }
 
   return (
-    <main className="flex min-h-screen items-start justify-center bg-paper px-6 py-14 sm:items-center sm:py-12">
+    <main className="flex min-h-screen min-h-dvh items-start justify-center bg-paper px-6 py-14 sm:items-center sm:py-12">
       <div className="w-full max-w-[430px]">
         <div className="mb-12">
           <BrandMark />

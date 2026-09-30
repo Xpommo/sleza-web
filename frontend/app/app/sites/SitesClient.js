@@ -139,7 +139,7 @@ function SiteCard({ site, onOpen, onPay }) {
     // подъём при наведении обещали это, а нажималась только кнопка (критика
     // 23.09). Кнопка растянута на карточку псевдоэлементом — остановка Tab
     // одна, и экранный диктор читает одно действие, а не ссылку-карточку.
-    <article className="group relative cursor-pointer rounded-2xl border border-line bg-white p-6 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.35)] transition hover:-translate-y-0.5 hover:border-line-2 sm:p-7">
+    <article className="group relative flex cursor-pointer flex-col rounded-2xl border border-line bg-white p-6 shadow-[0_18px_50px_-32px_rgba(17,17,16,0.35)] transition hover:-translate-y-0.5 hover:border-line-2 sm:p-7">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -204,6 +204,10 @@ function SiteCard({ site, onOpen, onPay }) {
         </>
       )}
 
+      {/* Кнопка прижата к низу карточки (mt-auto в колонке): в ряду карточки
+          одной высоты, а содержимое разное (у одной ИНН, у другой «Оплатить») —
+          без этого кнопки стояли на разной высоте. Наименьший отступ — mt-7 у кнопки. */}
+      <div className="mt-auto" />
       <button
         type="button"
         onClick={onOpen}
@@ -254,7 +258,7 @@ export default function SitesClient() {
   const anyFinished = sites.some((x) => !x.demo && x.finished);
 
   return (
-    <div className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen min-h-dvh bg-warm text-ink lg:flex">
       <AccountSidebar active="Мои сайты" user={user} />
 
       <main id="content" tabIndex={-1} className="outline-none flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">

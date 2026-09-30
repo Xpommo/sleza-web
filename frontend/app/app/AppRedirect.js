@@ -12,7 +12,7 @@ export default function AppRedirect() {
     router.replace('/app/sites');
   }, [router]);
   return (
-    <main className="flex min-h-screen items-center justify-center bg-warm p-6 text-sm text-ink/60">
+    <main className="flex min-h-screen min-h-dvh items-center justify-center bg-warm p-6 text-sm text-ink/60">
       <Link href="/app/sites" className="font-semibold text-brand underline-offset-4 hover:underline">
         Перейти в «Мои сайты»
       </Link>

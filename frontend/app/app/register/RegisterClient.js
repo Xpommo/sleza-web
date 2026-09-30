@@ -92,11 +92,11 @@ export default function RegisterClient() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-paper lg:grid lg:grid-cols-2">
+    <main className="flex min-h-screen min-h-dvh flex-col bg-paper lg:grid lg:grid-cols-2">
       {/* На телефоне сначала форма, панель с преимуществами под ней (владелец
           26.09: кнопки входа были на полтора экрана ниже первого). Порядок в
           разметке прежний — меняется только показ, на компьютере всё как было. */}
-      <section className="relative order-2 overflow-hidden bg-ink px-7 py-9 text-white sm:px-12 lg:order-none lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:px-[7vw] lg:py-12">
+      <section className="relative order-2 overflow-hidden bg-ink px-7 py-9 text-white sm:px-12 lg:order-none lg:flex lg:min-h-screen min-h-dvh lg:flex-col lg:justify-between lg:px-[7vw] lg:py-12">
         <div className="pointer-events-none absolute -right-40 -top-40 h-[440px] w-[440px] rounded-full bg-brand/20 blur-3xl" />
         {/* На телефоне знак уже стоит над формой — второй раз не повторяем. */}
         <div className="hidden lg:block">
@@ -142,7 +142,7 @@ export default function RegisterClient() {
 
       </section>
 
-      <section className="order-1 flex items-start justify-center px-7 py-9 sm:px-12 lg:order-none lg:min-h-screen lg:items-center lg:px-[6vw] lg:py-12">
+      <section className="order-1 flex items-start justify-center px-7 py-9 sm:px-12 lg:order-none lg:min-h-screen min-h-dvh lg:items-center lg:px-[6vw] lg:py-12">
         <div className="w-full max-w-[430px]">
           {/* Только заголовок и кнопки (владелец 25.09): без «Добро пожаловать»,
               без строки о цене («лишнее очень», цена — на шаге «Установка») и

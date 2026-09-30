@@ -61,7 +61,7 @@ export default function AccountingClient() {
   }
 
   return (
-    <div className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen min-h-dvh bg-warm text-ink lg:flex">
       <AccountSidebar active={MONEY_TITLE} user={user} />
 
       <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">

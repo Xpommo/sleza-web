@@ -237,7 +237,7 @@ export function useFirstStep() {
 export function AnketaFrame({ current, title, lead, nextLabel = 'Далее', children }) {
   const first = useFirstStep();
   return (
-    <div className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen min-h-dvh bg-warm text-ink lg:flex">
       <Sidebar current={current} first={first} bottomBar={<FunnelBar current={current} first={first} nextLabel={nextLabel} />} />
       <main id="content" tabIndex={-1} className="min-w-0 flex-1 outline-none">
         <div className="mx-auto max-w-[1000px] px-5 py-8 sm:px-8 sm:py-10 lg:px-14 lg:py-12">
