@@ -1093,7 +1093,7 @@ export default function BillingClient({ mode = 'money' }) {
     <div className="rounded-2xl border border-line bg-white shadow-sm">
       <div
         aria-hidden="true"
-        className={`hidden gap-4 rounded-t-2xl border-b border-line bg-warm/70 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink/60 sm:grid ${SITE_COLS}`}
+        className={`hidden gap-4 rounded-t-2xl border-b border-line bg-warm/70 px-6 py-3 text-[12px] font-semibold text-ink/60 sm:grid ${SITE_COLS}`}
       >
         <span>Сайт</span>
         <span>Тариф</span>

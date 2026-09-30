@@ -22,7 +22,7 @@ export function DocRowList({ children, actionsLabel = 'Действие', withSt
     <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
       <div
         aria-hidden="true"
-        className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink/60 sm:grid ${withStatus ? COLS : COLS_NO_STATUS}`}
+        className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 text-[12px] font-semibold text-ink/60 sm:grid ${withStatus ? COLS : COLS_NO_STATUS}`}
       >
         <span>Документ</span>
         {withStatus && <span>Статус</span>}

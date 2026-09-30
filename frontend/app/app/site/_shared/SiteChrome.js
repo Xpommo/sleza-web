@@ -487,7 +487,7 @@ export function SiteSidebar({ domain, active, user = NO_USER }) {
         <ArrowLeftIcon size={16} /> Мои сайты
       </Link>
       <div className="mt-7 border-t border-line pt-6">
-        <p className="mb-3 truncate px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ink/60">{domain}</p>
+        <p className="mb-3 truncate px-3 font-mono text-[12px] text-ink/60">{domain}</p>
         <NavList items={SITE_NAV} active={active} label="Разделы сайта" />
       </div>
     </SidebarShell>

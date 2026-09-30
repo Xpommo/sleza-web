@@ -240,7 +240,7 @@ export function FooterPreview({ theme, extra = [] }) {
           return (
             <div key={pill.id} className="mt-3 rounded-xl border border-line bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
-                <p className="font-mono text-[11px] uppercase tracking-[0.09em] text-ink/60">{pill.meta}</p>
+                <p className="font-mono text-[11px] text-ink/60">{pill.meta}</p>
                 <button type="button" onClick={() => setOpen(null)} className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`} aria-label="Закрыть">
                   <CloseIcon size={16} />
                 </button>

@@ -150,7 +150,7 @@ export function Sidebar({ current, first = 0, bottomBar }) {
         <ArrowLeftIcon size={16} /> Мои сайты
       </Link>
       <div className="mt-7 border-t border-line pt-6">
-        <p className="mb-1 px-1 font-mono text-[11px] uppercase tracking-[0.18em] text-ink/60">Подключение сайта</p>
+        <p className="mb-1 px-1 text-[12px] font-semibold text-ink/60">Подключение сайта</p>
         <StepList current={current} first={first} />
       </div>
     </SidebarShell>
@@ -176,7 +176,7 @@ function FunnelBar({ current, first = 0, nextLabel }) {
       {sheet && <div className="fixed inset-0 z-40 bg-ink/20 lg:hidden" aria-hidden="true" onClick={() => setSheet(false)} />}
       {sheet && (
         <div ref={sheetRef} className="fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-white p-4 shadow-xl lg:hidden">
-          <p className="px-1 font-mono text-[11px] uppercase tracking-[0.18em] text-ink/60">Шаги анкеты</p>
+          <p className="px-1 text-[12px] font-semibold text-ink/60">Шаги анкеты</p>
           <div className="-mt-2">
             <StepList current={current} first={first} onPick={() => setSheet(false)} />
           </div>
@@ -242,7 +242,7 @@ export function AnketaFrame({ current, title, lead, nextLabel = 'Далее', ch
       <main id="content" tabIndex={-1} className="min-w-0 flex-1 outline-none">
         <div className="mx-auto max-w-[1000px] px-5 py-8 sm:px-8 sm:py-10 lg:px-14 lg:py-12">
           <header className="mb-8">
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-brand">
+            <p className="mb-3 text-[13px] font-semibold text-brand">
               Шаг {current + 1 - first} из {STEPS.length - first}
             </p>
             <h1 className="text-[28px] font-bold tracking-[-0.045em] sm:text-[36px]">{title}</h1>

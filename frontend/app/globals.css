@@ -147,3 +147,8 @@
    висячей строки из одного слова (доводка 30.09). */
 .cabinet :is(h1, h2, h3) { text-wrap: balance; }
 .cabinet p { text-wrap: pretty; }
+
+/* Кабинет: отклик кнопки на нажатие — сдвиг на 1px вниз (владелец 30.09, как у
+   Ивана). Свойство translate, а не transform: оно складывается с transform самой
+   кнопки (центровка, active:scale-95 в панели анкеты), а не заменяет его. */
+.cabinet :is(button, [role="button"]):not(:disabled):not([aria-disabled="true"]):active { translate: 0 1px; }
