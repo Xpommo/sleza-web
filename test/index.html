@@ -170,16 +170,20 @@ async function save() {
   showState('Сохраняем…');
   const sentRev = rev;
   try {
-    const res = await fetch(ENDPOINT, { method: 'POST', body: JSON.stringify({ id: testerId, row: toRow(S) }) });
-    const out = await res.json();
-    if (!out.ok) throw new Error(out.error || 'server');
+    let res;
+    try { res = await fetch(ENDPOINT, { method: 'POST', body: JSON.stringify({ id: testerId, row: toRow(S) }) }); }
+    catch (_) { throw new Error('network'); }
+    let out;
+    try { out = await res.json(); } catch (_) { throw new Error('not_json_' + res.status); }
+    if (!out.ok) throw new Error('script: ' + (out.error || 'unknown'));
     savedAt = new Date();
     dirty = rev !== sentRev;
     const t = savedAt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
     if (dirty) showState(`Сохранено в ${t}, но с тех пор есть новые изменения — сохраните ещё раз.`, 'dirty');
     else showState(`Сохранено в ${t}. Команда видит ваши ответы.`, 'ok');
   } catch (e) {
-    showState('Не сохранилось: нет связи с таблицей. Ответы остались на этой странице — нажмите «Сохранить» ещё раз.', 'err');
+    // Код в скобках — для команды: по нему видно, где сломалось (доступ к скрипту, сам скрипт, сеть).
+    showState(`Не сохранилось. Ответы остались на этой странице — нажмите «Сохранить» ещё раз. (код: ${e.message})`, 'err');
   } finally {
     saving = false;
     document.querySelectorAll('[data-save]').forEach((b) => { b.disabled = false; b.textContent = 'Сохранить'; });
