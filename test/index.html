@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Тест кабинета Белого сайта</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="bar"><div class="bar-in">
+  <div class="meter" aria-hidden="true"><i id="meterFill"></i></div>
+  <small id="meterText">0 из 14 заданий</small>
+  <button type="button" class="btn primary small" data-save>Сохранить</button>
+</div></div>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Слеза Белый Сайт · тест кабинета</div>
+    <h1>Пройдите кабинет и расскажите, где было трудно</h1>
+    <p class="lead">Мы делаем сервис, который собирает для сайта юридические документы по 152-ФЗ и другим законам и держит их актуальными за 12 000 ₽ в год. Проверяем, понятен ли кабинет человеку, который видит его впервые. Ошибаетесь не вы, а интерфейс: любая заминка — полезная находка.</p>
+  </header>
+
+  <div class="rules">
+    <h3>Перед началом</h3>
+    <ul>
+      <li>Это макет: деньги не списываются, код на сайт ставить не нужно, проверка кода всегда проходит успешно.</li>
+      <li>Всё, что вводите в кабинете, хранится только в вашем браузере. Можно вписать выдуманные данные.</li>
+      <li>ИНН — любые цифры: 10 для ООО, 12 для ИП. Данные компании подставятся демонстрационные.</li>
+      <li>Панель «Макет» в правом нижнем углу — для разработчиков. Не пользуйтесь ею, если задание не просит.</li>
+      <li>Заполняйте эту страницу сразу после каждого задания и нажимайте «Сохранить» — кнопка всегда вверху. Сохранять можно сколько угодно раз: команда видит последнюю версию.</li>
+    </ul>
+    <a class="open" id="openCabinet" href="#" target="_blank" rel="noopener">Открыть кабинет в новой вкладке ↗</a>
+  </div>
+
+  <section class="card" id="about">
+    <div class="head"><h2>О вас</h2><p class="note">Нужно, чтобы понять, чьими глазами смотрели на кабинет.</p></div>
+    <div class="two">
+      <div class="q"><label for="a_name">Имя или ник</label><input type="text" id="a_name" data-path="about.name" autocomplete="off"></div>
+      <div class="q"><label for="a_browser">Браузер</label><input type="text" id="a_browser" data-path="about.browser" placeholder="Chrome, Safari, Яндекс…"></div>
+    </div>
+    <div class="q"><div class="lbl">Кто вы</div><div class="opt" data-radio="about.role"></div></div>
+    <div class="q"><div class="lbl">С чего проходите</div><div class="opt" data-radio="about.device"></div></div>
+    <div class="q"><div class="lbl">У вас есть свой сайт или вы ведёте чужой?</div><div class="opt" data-radio="about.site"></div></div>
+  </section>
+
+  <div id="tasks" style="display:grid;gap:28px"></div>
+
+  <section class="card" id="bugs">
+    <div class="head"><h2>Ошибки и поломки</h2><p class="note">Кнопка не нажимается, экран съехал, текст обрезан, что-то пропало. Одна запись — одна ошибка. Добавляйте по ходу.</p></div>
+    <div id="bugList" style="display:grid;gap:12px"></div>
+    <button type="button" class="btn ghost" id="addBug">+ Добавить ошибку</button>
+  </section>
+
+  <section class="card" id="final">
+    <div class="head"><h2>Итог</h2><p class="note">Заполните в конце, когда пройдёте весь путь.</p></div>
+    <div class="q"><div class="lbl">Заплатили бы 12 000 ₽ в год за такой сервис для своего сайта?</div><div class="opt" data-radio="final.pay"></div></div>
+    <div class="q"><label for="f_payWhy">Почему?</label><textarea id="f_payWhy" data-path="final.payWhy"></textarea></div>
+    <div class="q"><div class="lbl">Насколько вероятно, что посоветуете сервис знакомому? 0 — точно нет, 10 — точно да</div><div class="opt nps" data-radio="final.nps"></div></div>
+    <div class="q"><label for="f_top">Три самых серьёзных проблемы, с которыми столкнулись</label><textarea id="f_top" data-path="final.top" placeholder="1.&#10;2.&#10;3."></textarea></div>
+    <div class="q"><label for="f_words">Слова и фразы, которые были непонятны</label><textarea id="f_words" data-path="final.words"></textarea></div>
+    <div class="two">
+      <div class="q"><label for="f_extra">Что показалось лишним</label><textarea id="f_extra" data-path="final.extra"></textarea></div>
+      <div class="q"><label for="f_missing">Чего не хватило</label><textarea id="f_missing" data-path="final.missing"></textarea></div>
+    </div>
+    <div class="q"><label for="f_liked">Что понравилось</label><textarea id="f_liked" data-path="final.liked"></textarea></div>
+  </section>
+
+  <section class="card" id="send">
+    <div class="head"><h2>Сохранить ответы</h2><p class="note">Ответы уходят команде сразу после нажатия. Спасибо, что прошли!</p></div>
+    <div class="row">
+      <button type="button" class="btn primary" data-save>Сохранить</button>
+      <span class="state" id="saveState" role="status" aria-live="polite">Ещё не сохранено</span>
+    </div>
+    <div class="row">
+      <button type="button" class="btn text" id="resetBtn">Начать заново</button><span class="state" id="resetMsg"></span>
+    </div>
+  </section>
+</div>
+
+<script src="tasks.js"></script>
+<script>
+const { ENDPOINT, CABINET, OPTIONS, STATUS, PAIN, TASKS, toRow } = window.USABILITY;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+$('openCabinet').href = CABINET;
+
+// ── State: draft in this browser, one id per tester (a repeat save updates the same row) ──
+const DRAFT_KEY = 'usability_draft_v1', ID_KEY = 'usability_id_v1';
+const empty = () => ({ about: {}, tasks: {}, final: {}, bugs: [] });
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (_) {} },
+};
+const newId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12));
+let S = empty();
+try { const d = JSON.parse(store.get(DRAFT_KEY) || 'null'); if (d && d.tasks) S = Object.assign(empty(), d); } catch (_) {}
+let testerId = store.get(ID_KEY);
+if (!testerId) { testerId = newId(); store.set(ID_KEY, testerId); }
+let dirty = false, savedAt = null, saving = false, rev = 0;
+
+const getP = (path) => path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), S);
+function setP(path, v) {
+  const ks = path.split('.'); let o = S;
+  ks.slice(0, -1).forEach((k) => { if (typeof o[k] !== 'object' || o[k] === null) o[k] = {}; o = o[k]; });
+  o[ks[ks.length - 1]] = v;
+}
+
+// ── Render ──
+const radioHtml = (path, opts) => opts.map((o, i) =>
+  `<label><input type="radio" name="${path}" id="${path.replace(/\./g, '_')}_${i}" value="${esc(o)}" data-path="${path}"><span>${esc(o)}</span></label>`).join('');
+document.querySelectorAll('[data-radio]').forEach((el) => { el.innerHTML = radioHtml(el.dataset.radio, OPTIONS[el.dataset.radio]); });
+$('tasks').innerHTML = TASKS.map((t, i) => {
+  const p = `tasks.${t.id}`;
+  return `<section class="card" id="t_${t.id}">
+    <div class="head">
+      <span class="num">Задание ${i + 1} из ${TASKS.length}</span>
+      <h2>${esc(t.title)}</h2>
+      <span class="where">${esc(t.where)}</span>
+      <p class="todo">${esc(t.todo)}</p>
+    </div>
+    <div class="q"><div class="lbl">Получилось?</div><div class="opt st">${radioHtml(p + '.status', STATUS)}</div></div>
+    ${t.ask ? `<div class="q"><label for="${t.id}_ask">${esc(t.ask)}</label><textarea id="${t.id}_ask" data-path="${p}.ask"></textarea></div>` : ''}
+    <div class="q"><label for="${t.id}_problem">Что мешало, было непонятно или показалось лишним</label><textarea id="${t.id}_problem" data-path="${p}.problem" placeholder="Где именно, что ожидали и что увидели"></textarea></div>
+    <div class="q"><div class="lbl">Насколько это мешало</div><div class="opt">${radioHtml(p + '.pain', PAIN)}</div></div>
+  </section>`;
+}).join('');
+
+function renderBugs() {
+  const screens = TASKS.map((t) => t.title).concat('Другое');
+  $('bugList').innerHTML = S.bugs.length ? S.bugs.map((b, i) => `<div class="bug">
+      <div class="bug-h"><h3>Ошибка ${i + 1}</h3><button type="button" class="btn text" data-del="${i}">Удалить</button></div>
+      <div class="q"><label for="bug_${i}_screen">Где</label><select id="bug_${i}_screen" data-path="bugs.${i}.screen"><option value="">Выберите экран</option>${screens.map((s) => `<option>${esc(s)}</option>`).join('')}</select></div>
+      <div class="q"><label for="bug_${i}_what">Что делали и что произошло</label><textarea id="bug_${i}_what" data-path="bugs.${i}.what"></textarea></div>
+      <div class="q"><label for="bug_${i}_expect">Что ожидали</label><input type="text" id="bug_${i}_expect" data-path="bugs.${i}.expect"></div>
+    </div>`).join('') : '<p class="note">Пока ни одной. Отлично, если так и останется.</p>';
+  fillValues($('bugList'));
+}
+function fillValues(root) {
+  root.querySelectorAll('[data-path]').forEach((el) => {
+    const v = getP(el.dataset.path);
+    if (el.type === 'radio') el.checked = v === el.value;
+    else el.value = v ?? '';
+  });
+}
+function progress() {
+  const done = TASKS.filter((t) => S.tasks[t.id]?.status).length;
+  $('meterFill').style.width = (done / TASKS.length * 100) + '%';
+  $('meterText').textContent = `${done} из ${TASKS.length} заданий`;
+  TASKS.forEach((t) => {
+    const c = $('t_' + t.id); const st = S.tasks[t.id]?.status;
+    c.classList.toggle('done', st === 'Сразу');
+    c.classList.toggle('hard', st === 'С трудом');
+    c.classList.toggle('fail', st === 'Не получилось');
+  });
+}
+function showState(text, cls) {
+  const el = $('saveState'); el.textContent = text; el.className = 'state' + (cls ? ' ' + cls : '');
+}
+
+// ── Save to the team's Google Sheet ──
+async function save() {
+  if (saving) return;
+  if (!ENDPOINT) { showState('Сохранение ещё не настроено. Сообщите тому, кто дал ссылку.', 'err'); $('saveState').scrollIntoView({ block: 'center' }); return; }
+  saving = true;
+  document.querySelectorAll('[data-save]').forEach((b) => { b.disabled = true; b.textContent = 'Сохраняем…'; });
+  showState('Сохраняем…');
+  const sentRev = rev;
+  try {
+    const res = await fetch(ENDPOINT, { method: 'POST', body: JSON.stringify({ id: testerId, row: toRow(S) }) });
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.error || 'server');
+    savedAt = new Date();
+    dirty = rev !== sentRev;
+    const t = savedAt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    if (dirty) showState(`Сохранено в ${t}, но с тех пор есть новые изменения — сохраните ещё раз.`, 'dirty');
+    else showState(`Сохранено в ${t}. Команда видит ваши ответы.`, 'ok');
+  } catch (e) {
+    showState('Не сохранилось: нет связи с таблицей. Ответы остались на этой странице — нажмите «Сохранить» ещё раз.', 'err');
+  } finally {
+    saving = false;
+    document.querySelectorAll('[data-save]').forEach((b) => { b.disabled = false; b.textContent = 'Сохранить'; });
+  }
+}
+document.querySelectorAll('[data-save]').forEach((b) => b.addEventListener('click', save));
+
+function changed() {
+  store.set(DRAFT_KEY, JSON.stringify(S));
+  dirty = true; rev++;
+  showState(savedAt ? 'Есть несохранённые изменения' : 'Ещё не сохранено', savedAt ? 'dirty' : '');
+}
+function onField(e) {
+  const el = e.target; const path = el.dataset && el.dataset.path; if (!path) return;
+  if (el.type === 'radio' && !el.checked) return;
+  setP(path, el.value); progress(); changed();
+}
+document.addEventListener('input', onField);
+document.addEventListener('change', onField);
+window.addEventListener('beforeunload', (e) => { if (dirty && ENDPOINT) { e.preventDefault(); e.returnValue = ''; } });
+
+$('addBug').addEventListener('click', () => {
+  S.bugs.push({ screen: '', what: '', expect: '' }); renderBugs(); changed();
+  $('bug_' + (S.bugs.length - 1) + '_screen').focus();
+});
+$('bugList').addEventListener('click', (e) => {
+  const i = e.target.dataset && e.target.dataset.del; if (i == null) return;
+  S.bugs.splice(Number(i), 1); renderBugs(); changed();
+});
+
+// «Начать заново» — новый тестировщик на том же устройстве: новая строка в таблице.
+let resetArmed = false;
+$('resetBtn').addEventListener('click', () => {
+  if (!resetArmed) { resetArmed = true; $('resetBtn').textContent = 'Да, начать с чистого листа'; $('resetMsg').textContent = 'Нажмите ещё раз. Уже сохранённые ответы останутся у команды.'; return; }
+  resetArmed = false; S = empty(); testerId = newId(); store.set(ID_KEY, testerId); store.del(DRAFT_KEY);
+  dirty = false; savedAt = null;
+  $('resetBtn').textContent = 'Начать заново'; $('resetMsg').textContent = '';
+  renderBugs(); fillValues(document); progress(); showState('Ещё не сохранено'); window.scrollTo({ top: 0 });
+});
+
+renderBugs(); fillValues(document); progress();
+</script>
+</body>
+</html>
