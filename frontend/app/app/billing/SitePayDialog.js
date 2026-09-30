@@ -31,10 +31,12 @@ import InvoicePayerModal, { payerSummary } from './InvoicePayerModal';
 import { LINK } from './BillingBits';
 import { accountSites, balanceOf, formatRub, issueTopupInvoice, payYearFromBalance, setSiteCancelled, topUpBalance } from '../site/_shared/sites';
 import { PRICE, TARIFF_CHOICE, paidPeriod } from '../site/_shared/subscription';
+import { CLOSE_BTN, btn } from '../../../components/app/Button';
+import { CARD } from '../../../components/app/Card';
 
 const PRICE_TEXT = formatRub(PRICE);
-const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
-const BTN_TEXT = `tap rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
+const PRIMARY = btn({ size: 'lg' });
+const BTN_TEXT = btn({ variant: 'quiet', size: 'sm' });
 const COMPANY = 'Реквизиты компании';
 const OTHER = 'Другие реквизиты';
 
@@ -441,7 +443,7 @@ export default function SitePayDialog({ siteKey, onClose, fallback }) {
         aria-labelledby="pay-title"
         className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none"
       >
-        <div className="my-10 w-full max-w-[520px] rounded-2xl border border-line bg-white p-6 shadow-sm sm:my-16 sm:p-7">
+        <div className={`${CARD} my-10 w-full max-w-[520px] p-6 sm:my-16 sm:p-7`}>
           <div className="flex items-start justify-between gap-3">
             <h2 id="pay-title" className="text-lg font-bold tracking-[-0.03em]">
               {done === 'paid' ? 'Оплата прошла' : done === 'invoice' ? 'Счёт выставлен' : title}
@@ -450,7 +452,7 @@ export default function SitePayDialog({ siteKey, onClose, fallback }) {
               type="button"
               onClick={onClose}
               aria-label="Закрыть"
-              className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
+              className={CLOSE_BTN}
             >
               <CloseIcon size={18} />
             </button>

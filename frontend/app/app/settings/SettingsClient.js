@@ -7,13 +7,15 @@ import { EMAIL_RE, formatPhone, phoneIncomplete } from '../../../lib/validate';
 import { Field, PhoneField } from '../start/_shared/AnketaChrome';
 import { NO_USER, accountUser, loadAnketa, loadAuth, saveAnketa, setMessenger } from '../start/_shared/anketaState';
 import { RING, SettingsSidebar } from '../site/_shared/SiteChrome';
+import { btn } from '../../../components/app/Button';
+import { StatusPill } from '../../../components/app/Status';
 
 // Настройки аккаунта (живой макет, s-settings). Два раздела — контакты и
 // вход. Пароля нет: вход по коду из письма или через мессенджер (17.09).
 // «Реквизиты владельца» здесь не живут с 9.09 — они принадлежат сайту и у
 // второго сайта могут быть другими; почта для актов — в «Балансе и платежах» → «Акты и чеки».
 
-const BTN_SECONDARY = `shrink-0 tap rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:bg-warm hover:text-ink ${RING}`;
+const BTN_SECONDARY = btn({ variant: 'secondary', size: 'xs', className: 'shrink-0' });
 
 function Card({ children }) {
   return <div className="mt-4 rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:p-6">{children}</div>;
@@ -106,7 +108,7 @@ export default function SettingsClient() {
                   <button
                     type="button"
                     onClick={save}
-                    className={`inline-flex h-11 items-center justify-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+                    className={btn({ size: 'md' })}
                   >
                     Сохранить
                   </button>
@@ -187,7 +189,7 @@ export default function SettingsClient() {
                     <span className="text-sm font-bold">{name}</span>
                     {on ? (
                       <>
-                        <span className="ml-auto rounded-full bg-ok/10 px-2.5 py-1 text-[11px] font-bold text-ok-ink">подключён</span>
+                        <StatusPill tone="ok" className="ml-auto">подключён</StatusPill>
                         <button
                           type="button"
                           onClick={() => toggleMessenger(name, false)}

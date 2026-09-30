@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { CloseIcon, ShieldCheckIcon, LockIcon } from './AppIcons';
+import { CLOSE_BTN } from './Button';
 
 const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
@@ -222,13 +223,21 @@ export function FooterPreview({ theme, extra = [] }) {
         ))}
         {/* Доп. реквизит и «Реквизиты» — одной группой через точку, как «Оферта ·
             Реквизиты» у Ивана: при переносе строки не остаётся висящей черты. */}
-        <span className="flex w-full min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-[12px] leading-4 text-[color:var(--w-muted)] sm:ml-auto sm:w-auto sm:justify-end sm:text-right">
-          {extra.map((x) => (
-            <span key={x} className="contents">
-              <span className="min-w-0">{x}</span>
-              <span aria-hidden="true" className="opacity-50">·</span>
-            </span>
-          ))}
+        {/* На телефоне — столбиком без точек: при переносе точка вставала в начало
+            строки. Номер («№ Л035-01298-77/00123456») не разрывается посередине. */}
+        <span className="flex w-full min-w-0 flex-col items-start gap-1 text-[12px] leading-4 text-[color:var(--w-muted)] sm:ml-auto sm:w-auto sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-end sm:gap-x-2 sm:text-right">
+          {extra.map((x) => {
+            const [label, no] = x.split(/ (?=№ )/);
+            return (
+              <span key={x} className="contents">
+                <span className="min-w-0">
+                  {label}
+                  {no && <span className="whitespace-nowrap"> {no}</span>}
+                </span>
+                <span aria-hidden="true" className="hidden opacity-50 sm:inline">·</span>
+              </span>
+            );
+          })}
           <span className="font-semibold">Реквизиты</span>
         </span>
       </div>
@@ -241,7 +250,7 @@ export function FooterPreview({ theme, extra = [] }) {
             <div key={pill.id} className="mt-3 rounded-xl border border-line bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-mono text-[11px] text-ink/60">{pill.meta}</p>
-                <button type="button" onClick={() => setOpen(null)} className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`} aria-label="Закрыть">
+                <button type="button" onClick={() => setOpen(null)} className={CLOSE_BTN} aria-label="Закрыть">
                   <CloseIcon size={16} />
                 </button>
               </div>

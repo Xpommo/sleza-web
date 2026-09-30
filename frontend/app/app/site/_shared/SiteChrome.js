@@ -13,7 +13,9 @@ import {
 } from '../../../../components/app/AppIcons';
 import { NO_USER, accountUser, loadAnketa, rememberReturn, returnPath, userLabel } from '../../start/_shared/anketaState';
 
-export const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
+// Фокусная рамка — одна на кабинет, из Button.js.
+import { RING } from '../../../../components/app/Button';
+export { RING };
 
 export function TearMark({ size = 28 }) {
   return (

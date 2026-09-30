@@ -11,6 +11,7 @@ import { NO_USER, accountUser, loadAnketa, saveAnketa } from '../start/_shared/a
 import { AccountSidebar } from '../site/_shared/SiteChrome';
 import { accountSites, settleRenewals } from '../site/_shared/sites';
 import { BTN_OUTLINE, LINK, MONEY_TITLE, MoneyHeader, NoSiteMoney, Panel, Row } from '../billing/BillingBits';
+import { CARD } from '../../../components/app/Card';
 
 // «Баланс и платежи» → вкладка «Документы» (владелец 24.09; до того — раздел
 // «Бухгалтерия»): куда присылать чеки, счета и акты, и сами акты. История
@@ -69,7 +70,7 @@ export default function AccountingClient() {
           <MoneyHeader tab="Акты и чеки" />
 
           {!started ? (
-            <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+            <section className={`${CARD} mt-6 p-6 sm:p-7`}>
               <p className="text-sm text-ink/70">Чеки, счета и акты появятся здесь после первого пополнения баланса.</p>
               <Link href="/app/billing" className={`mt-3 inline-block ${LINK}`}>
                 Пополнить баланс →

@@ -21,6 +21,8 @@ import { RING, AnketaFrame, Field, PhoneField, Segmented, BlockHead, SectionHead
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 import { digitsOnly, ownerLabels, validateRequisites } from '../_shared/requisitesRules';
 import { EMAIL_RE, formatPhone } from '../../../../lib/validate';
+import { btn } from '../../../../components/app/Button';
+import { CARD } from '../../../../components/app/Card';
 
 const OWNERS = ['ООО', 'ИП', 'Самозанятый'];
 
@@ -74,7 +76,7 @@ function EditCard({ note, onDone, children }) {
         <button
           type="button"
           onClick={onDone}
-          className={`mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+          className={btn({ size: 'md', className: 'mt-5' })}
         >
           <CheckIcon size={15} /> Готово
         </button>
@@ -411,7 +413,7 @@ export default function RequisitesClient() {
   return (
     <AnketaFrame current={3} title="Реквизиты" lead={<>Данные компании встанут в документы и в «Реквизиты» в подвале сайта.</>}>
 
-            <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
+            <section className={`${CARD} p-5 sm:p-7`}>
               {/* «Кто владеет сайтом» подрядчик читал как вопрос о себе и отвечал
                   формой своей компании (владелец 23.09). Варианты — в самом
                   вопросе; «Зачем» не нужен: из вопроса понятно, что выбираешь. */}
@@ -891,7 +893,7 @@ export default function RequisitesClient() {
                 data-funnel-back
                 type="button"
                 onClick={() => router.push('/app/start/clients')}
-                className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
+                className={btn({ variant: 'secondary', size: 'xl' })}
               >
                 <ArrowLeftIcon size={17} /> Назад
               </button>
@@ -899,7 +901,7 @@ export default function RequisitesClient() {
                 data-funnel-next
                 type="button"
                 onClick={handleNext}
-                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
+                className={btn({ size: 'xl', className: 'flex-1' })}
               >
                 Далее <ArrowRightIcon size={17} />
               </button>

@@ -19,6 +19,9 @@ import {
   setSiteCancelled, setSiteLeaving, setSiteTariff, settleRenewals, topUpBalance,
 } from '../site/_shared/sites';
 import { GRACE_DAYS, PRICE, TARIFFS, TARIFF_CHOICE, TRIAL_DAYS, formatDate, tariffName, trialEndAt, trialEnds } from '../site/_shared/subscription';
+import { btn } from '../../../components/app/Button';
+import { StatusPill } from '../../../components/app/Status';
+import { CARD } from '../../../components/app/Card';
 
 // «Баланс и платежи» + таблица «Моих сайтов» (до 24.09 — «Подписка», потом «Оплата») — модель баланса (партнёрская программа, 14.09;
 // владелец 23.09: «платят нам за ПО»):
@@ -52,9 +55,9 @@ const TONE = {
   muted: 'bg-warm text-ink/60',
 };
 
-const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
-const PRIMARY_SM = `tap inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
-const SECONDARY_SM = `tap inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold text-ink shadow-sm transition hover:border-line-2 ${RING}`;
+const PRIMARY = btn({ size: 'lg' });
+const PRIMARY_SM = btn({ size: 'sm' });
+const SECONDARY_SM = btn({ variant: 'secondary', size: 'sm' });
 // «Скоро» для денег — месяц: так же решает, синяя ли «Продлить на 1 год».
 const DAY = 24 * 3600 * 1000;
 const SOON = 30 * DAY;
@@ -62,7 +65,7 @@ const SOON = 30 * DAY;
 // последний день, как баннер «Обзора» и письмо-напоминание (владелец 23.09:
 // пробный период — хорошая новость); у оплаченного сайта — за месяц.
 const warnWithin = (site) => (site.kind === 'trial' ? DAY : SOON);
-const BTN_TEXT = `tap rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
+const BTN_TEXT = btn({ variant: 'quiet', size: 'sm' });
 
 // Таблица сайтов (владелец 23.09: «перегружено и выбивается из общего») —
 // в том же виде, что список в «Документах»: шапка моно-капсами, строки через
@@ -71,21 +74,12 @@ const BTN_TEXT = `tap rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 h
 // Ивана «действия словами, не в ⋯» для этой таблицы снято).
 const SITE_COLS = 'sm:grid-cols-[minmax(0,1.6fr)_minmax(0,0.9fr)_minmax(0,1.5fr)_112px_40px]';
 
-const BADGE = {
-  ok: 'bg-ok/10 text-ok-ink',
-  info: 'bg-brand/[0.07] text-brand',
-  warn: 'bg-warn/10 text-warn-ink',
-  danger: 'bg-danger/10 text-danger-ink',
-  beige: 'bg-warm text-ink/70 ring-1 ring-inset ring-line',
-  muted: 'bg-warm text-ink/60',
-};
-
 function badgeOf(site) {
   switch (site.kind) {
     case 'paid':
       return ['ok', `Оплачено до ${site.period.to}`];
     case 'off-soon':
-      return ['beige', `До ${site.until} · без продления`];
+      return ['muted', `До ${site.until} · без продления`];
     case 'trial':
       return ['info', `Бесплатно до ${site.trialTo}`];
     case 'expired':
@@ -223,7 +217,7 @@ function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, autoCa
       Чтобы продлить {debit}, выберите тариф
     </p>
   );
-  const badge = <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-[12px] font-bold ${BADGE[tone]}`}>{text}</span>;
+  const badge = <StatusPill tone={tone}>{text}</StatusPill>;
   // Автопродление включено, а денег на списание нет — жёлтым, с суммой:
   // серое «спишем» при пустом балансе читалось как «всё в порядке». Дата
   // уже стоит в плашке статуса — здесь только сколько не хватит.
@@ -1090,7 +1084,7 @@ export default function BillingClient({ mode = 'money' }) {
   const untilOf = (site) => site.period?.to || site.trialTo || '';
 
   const sitesTable = (
-    <div className="rounded-2xl border border-line bg-white shadow-sm">
+    <div className={`${CARD}`}>
       <div
         aria-hidden="true"
         className={`hidden gap-4 rounded-t-2xl border-b border-line bg-warm/70 px-6 py-3 text-[12px] font-semibold text-ink/60 sm:grid ${SITE_COLS}`}
@@ -1228,7 +1222,7 @@ export default function BillingClient({ mode = 'money' }) {
           ) : (
             <>
               {/* Баланс — первым: из него оплачивается год каждого сайта. */}
-              <section id="balance" className="mt-6 scroll-mt-6 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
+              <section id="balance" className={`${CARD} mt-6 scroll-mt-6 p-5 sm:p-6`}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <p className="text-[13px] font-semibold text-ink/60">Баланс</p>

@@ -8,13 +8,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
 import { addSite } from '../site/_shared/sites';
+import { btn } from '../../../components/app/Button';
+import { CARD } from '../../../components/app/Card';
 
-export const BTN_OUTLINE = `rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
+export const BTN_OUTLINE = btn({ variant: 'secondary', size: 'sm' });
 export const LINK = `rounded text-[13px] font-semibold text-brand hover:text-ink ${RING}`;
 
 export function Panel({ title, aside, children }) {
   return (
-    <section className="mt-5 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
+    <section className={`${CARD} mt-5 p-5 sm:p-6`}>
       <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-bold tracking-[-0.02em]">{title}</h2>
         {aside && <span className="text-[13px] text-ink/60">{aside}</span>}
@@ -101,13 +103,13 @@ export function NoSiteMoney({ tab, user }) {
       <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-4xl">
           <MoneyHeader tab={tab} />
-          <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+          <section className={`${CARD} mt-6 p-6 sm:p-7`}>
             <h2 className="text-lg font-bold tracking-[-0.02em]">Пока платить не за что</h2>
             <p className="mt-2 text-sm leading-6 text-ink/65">Баланс, платежи, акты и чеки появятся здесь, когда вы добавите первый сайт.</p>
             <button
               type="button"
               onClick={() => router.push(addSite())}
-              className={`mt-5 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover ${RING}`}
+              className={btn({ size: 'lg', className: 'mt-5' })}
             >
               Добавить сайт
             </button>

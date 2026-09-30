@@ -15,6 +15,8 @@ import { MessengerCodeLogin } from '../../../../components/app/AuthBits';
 import { formatPhone, phoneIncomplete, validateEmail } from '../../../../lib/validate';
 import { RING, AnketaFrame, Field, PhoneField, SectionHead, Tile, focusFirstError } from '../_shared/AnketaChrome';
 import { loadAnketa, loadAuth, markStepDone, saveAnketa, setMessenger, userLabel } from '../_shared/anketaState';
+import { btn } from '../../../../components/app/Button';
+import { CARD } from '../../../../components/app/Card';
 
 const ROLES = ['Директор / собственник', 'Сотрудник', 'Подрядчик'];
 
@@ -195,7 +197,7 @@ export default function ProfileClient() {
             </div>
 
             {authListOpen && (
-              <div className="mb-6 rounded-2xl border border-line bg-white p-5 shadow-sm">
+              <div className={`${CARD} mb-6 p-5`}>
                 <p className="text-[13px] leading-5 text-ink/60">
                   Вход без пароля и уведомления в мессенджер, а не только на e-mail. Отвязать можно в Настройках.
                 </p>
@@ -226,7 +228,7 @@ export default function ProfileClient() {
                         <button
                           type="button"
                           onClick={() => setLinking(m.name)}
-                          className={`ml-auto tap rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-bold shadow-sm transition-colors hover:border-brand hover:text-brand ${RING}`}
+                          className={btn({ variant: 'next', size: 'xs', className: 'ml-auto' })}
                         >
                           Подключить
                         </button>
@@ -238,7 +240,7 @@ export default function ProfileClient() {
               </div>
             )}
 
-            <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
+            <section className={`${CARD} p-5 sm:p-7`}>
               <div>
                 <h2 id="h-role" className="text-xl font-bold tracking-[-0.025em]">
                   Ваша роль в компании <span className="text-brand">*</span>
@@ -329,7 +331,7 @@ export default function ProfileClient() {
                 data-funnel-back
                 type="button"
                 onClick={() => router.push('/app/sites')}
-                className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
+                className={btn({ variant: 'secondary', size: 'xl' })}
               >
                 <ArrowLeftIcon size={16} /> Назад
               </button>
@@ -337,7 +339,7 @@ export default function ProfileClient() {
                 data-funnel-next
                 type="button"
                 onClick={handleNext}
-                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
+                className={btn({ size: 'xl', className: 'flex-1' })}
               >
                 Далее <ArrowRightIcon size={16} />
               </button>

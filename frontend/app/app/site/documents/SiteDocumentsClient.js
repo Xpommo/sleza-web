@@ -12,6 +12,8 @@ import RequisitesModal from '../_shared/RequisitesModal';
 import { settleRenewals, siteAnketa } from '../_shared/sites';
 import { widgetStopped } from '../_shared/subscription';
 import { RING, SiteHeader, SiteSidebar } from '../_shared/SiteChrome';
+import { btn } from '../../../../components/app/Button';
+import { CARD } from '../../../../components/app/Card';
 
 const PACKAGE_URL = `cdn.sleza.media/${SITE_ID}`;
 
@@ -80,7 +82,7 @@ export default function SiteDocumentsClient() {
               каждого документа, про версии и даты — «История изменений». */}
           <SiteHeader title="Документы" domain={site.domain} />
 
-          <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7 lg:mt-0">
+          <section className={`${CARD} mt-9 p-6 sm:p-7 lg:mt-0`}>
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
                 <DocsIcon size={19} />
@@ -110,7 +112,7 @@ export default function SiteDocumentsClient() {
                 type="button"
                 onClick={copyLink}
                 disabled={!canCopy}
-                className={`inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold transition hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50 ${RING}`}
+                className={btn({ variant: 'next', size: 'lg', className: 'shrink-0' })}
               >
                 {copied ? <CheckIcon size={16} className="text-ok" /> : <CopyIcon size={16} />}
                 {copied ? 'Скопировано' : 'Скопировать ссылку'}
@@ -169,7 +171,7 @@ export default function SiteDocumentsClient() {
           {/* Что клиент правит сам — в одном месте и названо прямо: реквизиты и
               почта для запросов о персональных данных. Остальное в документах
               собрано по ответам анкеты (решения владельца 23.09). */}
-          <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+          <section className={`${CARD} mt-9 p-6 sm:p-7`}>
             <h2 className="text-lg font-bold tracking-[-0.02em]">Что можно изменить</h2>
             {/* Ответы анкеты — третьей строкой (владелец 26.09): менять их нужно
                 редко, когда на сайте что-то изменилось, поэтому без отдельного
@@ -190,7 +192,7 @@ export default function SiteDocumentsClient() {
                     type="button"
                     onClick={onClick}
                     aria-label={aria}
-                    className={`shrink-0 tap rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
+                    className={btn({ variant: 'next', size: 'xs', className: 'shrink-0' })}
                   >
                     Изменить
                   </button>
@@ -199,7 +201,7 @@ export default function SiteDocumentsClient() {
             </div>
           </section>
 
-          <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+          <section className={`${CARD} mt-9 p-6 sm:p-7`}>
             <h2 className="text-lg font-bold tracking-[-0.02em]">История изменений</h2>
             {/* «Публикуем и датируем сами» стояло под заголовком страницы
                 (владелец 24.09: не наверху — это про версии). Здесь его
@@ -238,7 +240,7 @@ export default function SiteDocumentsClient() {
               <p className="text-sm text-ink/60">Документы включатся на сайте сразу после установки кода.</p>
               <Link
                 href="/app/start/code"
-                className={`inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+                className={btn({ size: 'md', className: 'shrink-0' })}
               >
                 Поставить код на сайт
               </Link>

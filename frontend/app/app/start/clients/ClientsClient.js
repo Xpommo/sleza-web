@@ -6,6 +6,8 @@ import { ArrowLeftIcon, ArrowRightIcon } from '../../../../components/app/AppIco
 import { RING, AnketaFrame, SectionHead, Tile, focusFirstError } from '../_shared/AnketaChrome';
 import { FEATURES, PD_FIELDS, PURPOSES, PURPOSE_MAP, allowedPurposes, purposeLabel, toggleOption } from '../../../../lib/anketaOptions';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
+import { btn } from '../../../../components/app/Button';
+import { CARD } from '../../../../components/app/Card';
 
 // Порядок вопросов: где собираете (формы — с шага 2, владелец 28.09 по макету
 // Ивана: всё о данных клиентов на одном экране) → что собираете → зачем →
@@ -126,7 +128,7 @@ export default function ClientsClient() {
   return (
     <AnketaFrame current={2} title="Данные клиентов" lead={<>От того, какие контакты вы собираете и зачем, зависит текст политики и согласий.</>}>
 
-            <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
+            <section className={`${CARD} p-5 sm:p-7`}>
               <div className="border-b border-line pb-7">
                 <SectionHead
                   id="h-features"
@@ -252,7 +254,7 @@ export default function ClientsClient() {
                 data-funnel-back
                 type="button"
                 onClick={() => router.push('/app/start/site')}
-                className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
+                className={btn({ variant: 'secondary', size: 'xl' })}
               >
                 <ArrowLeftIcon size={17} /> Назад
               </button>
@@ -260,7 +262,7 @@ export default function ClientsClient() {
                 data-funnel-next
                 type="button"
                 onClick={handleNext}
-                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
+                className={btn({ size: 'xl', className: 'flex-1' })}
               >
                 Далее <ArrowRightIcon size={17} />
               </button>

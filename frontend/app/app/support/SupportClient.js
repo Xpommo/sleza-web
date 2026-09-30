@@ -5,6 +5,9 @@ import { CheckIcon, ChevronDownIcon } from '../../../components/app/AppIcons';
 import { NO_USER, accountUser, loadAnketa, saveAnketa } from '../start/_shared/anketaState';
 import { AccountSidebar, RING } from '../site/_shared/SiteChrome';
 import { announce } from '../../../lib/announce';
+import { btn } from '../../../components/app/Button';
+import { StatusPill } from '../../../components/app/Status';
+import { CARD } from '../../../components/app/Card';
 
 // Ответы — про этот кабинет, а не про макет: где что лежит сейчас. Ответы
 // макета расходились с решениями 18 и 23 сентября и с устройством кабинета
@@ -104,7 +107,7 @@ export default function SupportClient() {
           </header>
 
           <h2 className="mb-4 mt-9 text-lg font-bold tracking-[-0.02em] lg:mt-0">Частые вопросы</h2>
-          <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+          <div className={`${CARD} overflow-hidden`}>
             {FAQ.map(([q, a], i) => (
               <Faq key={q} id={`faq-${i}`} q={q} a={a} open={openQ === i} onToggle={() => setOpenQ(openQ === i ? null : i)} />
             ))}
@@ -120,12 +123,12 @@ export default function SupportClient() {
           ) : (
             <div className="space-y-3">
               {tickets.map((t) => (
-                <article key={t.no} className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+                <article key={t.no} className={`${CARD} p-5`}>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-[13px] font-semibold text-ink/60">
                       Заявка №{t.no} · {new Date(t.at).toLocaleDateString('ru-RU')}
                     </p>
-                    <span className="rounded-full bg-warn/10 px-3 py-1 text-[11px] font-bold text-warn-ink">{t.status}</span>
+                    <StatusPill tone="warn">{t.status}</StatusPill>
                   </div>
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{t.text}</p>
                 </article>
@@ -133,7 +136,7 @@ export default function SupportClient() {
             </div>
           )}
 
-          <section className="mt-9 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+          <section className={`${CARD} mt-9 p-6 sm:p-7`}>
             <h2 className="text-lg font-bold tracking-[-0.02em]">Написать в поддержку</h2>
             {sent ? (
               <div className="mt-4 flex items-start gap-3 rounded-xl bg-ok/[0.07] p-4">
@@ -168,7 +171,7 @@ export default function SupportClient() {
                 <button
                   type="button"
                   onClick={send}
-                  className={`mt-5 inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+                  className={btn({ size: 'lg', className: 'mt-5' })}
                 >
                   Отправить
                 </button>

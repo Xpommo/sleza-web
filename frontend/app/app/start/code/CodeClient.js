@@ -20,6 +20,8 @@ import { loadAnketa, saveAnketa } from '../_shared/anketaState';
 import { PRICE_LABEL, TRIAL_DAYS, trialEnds } from '../../site/_shared/subscription';
 import { MAIN, setCurrentSite } from '../../site/_shared/sites';
 import { useDialog } from '../../site/_shared/SiteChrome';
+import { CLOSE_BTN, btn } from '../../../../components/app/Button';
+import { CARD } from '../../../../components/app/Card';
 
 const SITE_ID = '486312';
 // Страница с инструкцией: код и шаги под платформу — её и пересылают
@@ -30,7 +32,7 @@ const INSTRUCTION_URL = `https://cdn.sleza.media/${SITE_ID}/install`;
 // «Шаги установки для Тильды» — платформа в родительном падеже.
 const PLATFORM_FOR = { 'Тильда': 'Тильды', 'WordPress': 'WordPress', 'Битрикс': 'Битрикса' };
 
-const SHARE_BTN = `inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-bold shadow-sm transition hover:border-brand hover:text-brand ${RING}`;
+const SHARE_BTN = btn({ variant: 'next', size: 'md' });
 
 // Инструкция зависит от платформы, названной на «О сайте»: на документы она
 // не влияет, а вот куда именно вставлять код — влияет только она.
@@ -237,7 +239,7 @@ export default function CodeClient() {
   return (
     <AnketaFrame current={5} title="Установка" nextLabel={found || (effectiveMode === 'Поручу другому' && shared) ? 'В кабинет' : effectiveMode === 'Поставлю сам' ? 'Проверить' : canShare ? 'Поделиться' : 'Отправить'} lead={<>Как только код встанет на сайт, включим документы и виджет на {TRIAL_DAYS} дней бесплатно.</>}>
 
-            <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
+            <section className={`${CARD} p-5 sm:p-7`}>
               {!isContractor && (
                 <>
                   <SectionHead id="h-mode" title="Способ установки" />
@@ -362,7 +364,7 @@ export default function CodeClient() {
                         <button
                           type="button"
                           onClick={sendSelf}
-                          className={`h-[52px] shrink-0 rounded-xl border border-line bg-white px-5 text-sm font-bold shadow-sm transition hover:border-brand hover:text-brand ${RING}`}
+                          className={btn({ variant: 'next', size: 'xl', className: 'shrink-0' })}
                         >
                           {selfSent ? '✓ Отправили' : 'Отправить'}
                         </button>
@@ -384,7 +386,7 @@ export default function CodeClient() {
                             // фокус, и после окна «Пока не видим код» он падал на body.
                             aria-disabled={checking}
                             aria-busy={checking}
-                            className={`flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover sm:w-auto ${checking ? 'cursor-wait bg-brand/70' : ''} ${RING}`}
+                            className={btn({ size: 'lg', className: `w-full shrink-0 sm:w-auto ${checking ? 'cursor-wait bg-brand/70' : ''}` })}
                           >
                             <RefreshIcon size={16} className={checking ? 'animate-spin' : ''} /> {checking ? 'Проверяем…' : 'Проверить код на сайте'}
                           </button>
@@ -424,7 +426,7 @@ export default function CodeClient() {
                               data-funnel-next
                               type="button"
                               onClick={shareSystem}
-                              className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+                              className={btn({ size: 'md' })}
                             >
                               <LinkIcon size={16} /> Поделиться
                             </button>
@@ -458,7 +460,7 @@ export default function CodeClient() {
                             <button
                               type="button"
                               onClick={shareMail}
-                              className={`h-[52px] shrink-0 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+                              className={btn({ size: 'xl', className: 'shrink-0' })}
                             >
                               Отправить
                             </button>
@@ -530,7 +532,7 @@ export default function CodeClient() {
                 data-funnel-back
                 type="button"
                 onClick={() => router.push('/app/start/documents')}
-                className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
+                className={btn({ variant: 'secondary', size: 'xl' })}
               >
                 <ArrowLeftIcon size={17} /> Назад
               </button>
@@ -542,7 +544,7 @@ export default function CodeClient() {
                     setCurrentSite(MAIN);
                     router.push('/app/site');
                   }}
-                  className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
+                  className={btn({ size: 'xl', className: 'flex-1' })}
                 >
                   Перейти в кабинет <ArrowRightIcon size={17} />
                 </button>
@@ -558,7 +560,7 @@ export default function CodeClient() {
           aria-labelledby="fail-title"
           className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none"
         >
-          <div className="mt-16 w-full max-w-[420px] rounded-2xl border border-line bg-white p-5 shadow-sm">
+          <div className={`${CARD} mt-16 w-full max-w-[420px] p-5`}>
             <div className="flex items-start justify-between gap-3">
               <h2 id="fail-title" className="text-lg font-bold tracking-[-0.02em]">
                 Пока не видим код
@@ -566,7 +568,7 @@ export default function CodeClient() {
               <button
                 type="button"
                 onClick={() => setFailOpen(false)}
-                className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
+                className={CLOSE_BTN}
                 aria-label="Закрыть"
               >
                 <CloseIcon size={18} />
@@ -586,7 +588,7 @@ export default function CodeClient() {
                   setFailOpen(false);
                   checkScript();
                 }}
-                className={`rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+                className={btn({ size: 'md' })}
               >
                 Проверить ещё раз
               </button>

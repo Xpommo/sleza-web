@@ -13,6 +13,8 @@ import { graceEnds, inGrace, paidPeriod, subState, tariffName, trialEnds } from 
 import { MAIN, accountSites, addSite, cardStatus, openSite, payLabel, settleRenewals, siteView } from '../site/_shared/sites';
 import BillingClient from '../billing/BillingClient';
 import SitePayDialog from '../billing/SitePayDialog';
+import { btn } from '../../../components/app/Button';
+import { statusBar } from '../../../components/app/Status';
 
 // Сколько шагов анкеты уже отвечено — по тому, что реально сохранено.
 // Прогресс не выдумываем: пустой ответ не считается пройденным шагом.
@@ -74,12 +76,6 @@ function siteStatus(a, now = Date.now(), invoice = null) {
 
 const OPEN_LABEL = 'Открыть кабинет сайта';
 
-const TONE = {
-  ok: ['border-ok/25 bg-ok/10 text-ok-ink', OkIcon],
-  muted: ['border-line bg-warm text-ink/70', ClockIcon],
-  info: ['border-brand/20 bg-brand/[0.06] text-brand', ClockIcon],
-  warn: ['border-warn/30 bg-warn/10 text-warn-ink', WarnIcon],
-};
 
 const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
@@ -88,11 +84,11 @@ const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring
 // принадлежат конкретному сайту и появляются внутри него, а не здесь.
 // «Поддержка» — постоянный пункт, а не запрятанный в меню аккаунта.
 
-const PRIMARY_BTN = `mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
+const PRIMARY_BTN = btn({ size: 'md', full: true, className: 'mt-7' });
 // «Открыть сайт» — не следующий шаг, а вход: белой кнопкой. Синяя — только
 // у карточки, где ждут действия (аудит 24.09: при нескольких сайтах на
 // странице было 3–4 синие кнопки при правиле «одна синяя на экран»).
-const OPEN_BTN = `mt-7 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-white text-sm font-bold text-ink shadow-sm transition hover:border-line-2 hover:bg-warm ${RING}`;
+const OPEN_BTN = btn({ variant: 'secondary', size: 'md', full: true, className: 'mt-7' });
 
 // Растягивает кнопку на всю карточку (article — relative).
 const STRETCH = "after:absolute after:inset-0 after:rounded-2xl after:content-['']";
@@ -129,7 +125,7 @@ function listSites(a) {
 }
 
 function SiteCard({ site, onOpen, onPay }) {
-  const [cls, Icon] = TONE[site.status.tone];
+  const { cls, Icon } = statusBar(site.status.tone);
   // Оплата на виду прямо в карточке (владелец 29.09: «не понятно, если не
   // провалиться в карточку, как продлить»), той же подписью и тем же окном, что
   // в строке таблицы. Где главная кнопка уже «Оплатить», вторая не нужна.
@@ -280,7 +276,7 @@ export default function SitesClient() {
                   <button
                     type="button"
                     onClick={() => router.push(addSite())}
-                    className={`tap inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-white px-4 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
+                    className={btn({ variant: 'secondary', size: 'sm' })}
                   >
                     <PlusIcon size={16} /> Добавить сайт
                   </button>
@@ -336,7 +332,7 @@ export default function SitesClient() {
               <button
                 type="button"
                 onClick={() => router.push(addSite())}
-                className={`mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover ${RING}`}
+                className={btn({ size: 'lg', className: 'mt-8' })}
               >
                 {started ? 'Продолжить анкету' : <><PlusIcon size={17} /> Добавить сайт</>}
               </button>

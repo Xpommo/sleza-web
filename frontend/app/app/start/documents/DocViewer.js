@@ -11,6 +11,7 @@ import { useRef } from 'react';
 import { RING } from '../_shared/AnketaChrome';
 import { DOCUMENTS, MARK, docOrigin, docPreview } from '../../../../lib/docPackage';
 import { QUESTION_TITLES } from './AnswerModal';
+import { CARD } from '../../../../components/app/Card';
 
 // Превью с выделенными ответами: свои данные внутри юридического текста —
 // то, что показывает «документ собран под вас», а не шаблон (владелец 23.09:
@@ -55,7 +56,7 @@ export default function DocViewer({ domain, answers, current, onPick, onEdit }) 
   }
 
   return (
-    <section className="mb-7 overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+    <section className={`${CARD} mb-7 overflow-hidden`}>
       <div className="flex items-center gap-3 border-b border-line bg-warm/70 px-4 py-2.5">
         <span aria-hidden="true" className="flex gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-ink/15" />

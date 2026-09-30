@@ -8,8 +8,10 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { ChevronIcon, CloseIcon, MailIcon } from './AppIcons';
 import { EMAIL_RE } from '../../lib/validate';
+import { RING, btn } from './Button';
 
-export const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
+// Фокусная рамка — одна на кабинет, из Button.js.
+export { RING };
 
 // Знак — капля: тот же контур, что носит виджет на сайтах клиентов.
 export function TearMark({ size = 30, className = '' }) {
@@ -300,7 +302,7 @@ export function MessengerCodeLogin({ via, icon, open, onOpen, onClose, gate = ()
           <button
             type="button"
             onClick={openBot}
-            className={`mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+            className={btn({ size: 'lg', full: true, className: 'mt-4' })}
           >
             Открыть {via}
           </button>
@@ -479,7 +481,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
           />
           <button
             type="submit"
-            className={`mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+            className={btn({ size: 'lg', full: true, className: 'mt-4' })}
           >
             Прислать код
           </button>
@@ -514,7 +516,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
           />
           <button
             type="submit"
-            className={`mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+            className={btn({ size: 'lg', full: true, className: 'mt-4' })}
           >
             {submitLabel}
           </button>

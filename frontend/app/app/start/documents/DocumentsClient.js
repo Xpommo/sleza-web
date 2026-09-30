@@ -13,6 +13,8 @@ import { DOCUMENTS } from '../../../../lib/docPackage';
 import RequisitesModal from '../../site/_shared/RequisitesModal';
 import AnswerModal from './AnswerModal';
 import DocViewer from './DocViewer';
+import { btn } from '../../../../components/app/Button';
+import { CARD } from '../../../../components/app/Card';
 
 export default function DocumentsClient() {
   const router = useRouter();
@@ -48,7 +50,7 @@ export default function DocumentsClient() {
 
             <DocViewer domain={domain} answers={answers} current={openDoc} onPick={setOpenDoc} onEdit={setEditing} />
 
-            <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
+            <section className={`${CARD} p-5 sm:p-7`}>
               {/* Подписи превью — обычными подзаголовками: серые моно-капсы
                   сливались с фоном; «после установки» у подвала лишнее — и
                   так ясно, что сейчас его на сайте нет (владелец 23.09).
@@ -107,7 +109,7 @@ export default function DocumentsClient() {
               <button
                 type="button"
                 onClick={() => router.push('/app/start/requisites')}
-                className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
+                className={btn({ variant: 'secondary', size: 'xl' })}
               >
                 <ArrowLeftIcon size={17} /> Назад
               </button>
@@ -122,7 +124,7 @@ export default function DocumentsClient() {
                   markStepDone(5);
                   router.push('/app/start/code');
                 }}
-                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
+                className={btn({ size: 'xl', className: 'flex-1' })}
               >
                 {answers.installed ? 'Готово' : 'Поставить код на сайт'} <ArrowRightIcon size={17} />
               </button>

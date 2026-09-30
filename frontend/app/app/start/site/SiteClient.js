@@ -16,6 +16,8 @@ import { RING, STEP_URLS, AnketaFrame, Field, Tile, SectionHead, useFirstStep, f
 import { ANALYTICS, GA_WARNING, PLATFORMS, SPHERES, toggleOption } from '../../../../lib/anketaOptions';
 import { accountUser, loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 import { domainTaken, openSite } from '../../site/_shared/sites';
+import { btn } from '../../../../components/app/Button';
+import { CARD } from '../../../../components/app/Card';
 
 // Кириллица — ради доменов .рф и кириллических имён на других зонах.
 const DOMAIN_RE = /^(?!-)[a-z0-9а-яё-]+(\.[a-z0-9а-яё-]+)*\.([a-zа-яё]{2,}|xn--[a-z0-9-]+)$/i;
@@ -32,8 +34,8 @@ function normalizeDomain(v) {
     .toLowerCase();
 }
 
-const SECONDARY = `inline-flex h-11 items-center justify-center rounded-xl border border-line bg-white px-5 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`;
-const PRIMARY = `inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
+const SECONDARY = btn({ variant: 'secondary', size: 'md' });
+const PRIMARY = btn({ size: 'md' });
 
 // Адрес уже подключён (ревью Ивана 28.09): второй раз подключать нельзя, у
 // сайта было бы два комплекта документов. Свой сайт — открыть его; чужой —
@@ -307,7 +309,7 @@ export default function SiteClient() {
   return (
     <AnketaFrame current={1} title="О сайте" lead={<>По четырём ответам соберём документы под этот сайт. Другие сайты подключаются отдельно.</>}>
 
-            <section className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7">
+            <section className={`${CARD} p-5 sm:p-7`}>
               {/* Адрес и сфера — такими же вопросами с заголовком, как остальные
                   блоки шага (правка владельца 23.09): раньше они были подписями
                   полей, и самый важный вопрос выглядел мельче прочих. */}
@@ -538,7 +540,7 @@ export default function SiteClient() {
                 data-funnel-back
                 type="button"
                 onClick={() => router.push(first ? '/app/sites' : '/app/start/profile')}
-                className={`flex h-[52px] items-center justify-center gap-2 rounded-xl border border-line bg-white px-6 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
+                className={btn({ variant: 'secondary', size: 'xl' })}
               >
                 <ArrowLeftIcon size={16} /> Назад
               </button>
@@ -546,7 +548,7 @@ export default function SiteClient() {
                 data-funnel-next
                 type="button"
                 onClick={handleNext}
-                className={`flex h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-hover ${RING}`}
+                className={btn({ size: 'xl', className: 'flex-1' })}
               >
                 Далее <ArrowRightIcon size={16} />
               </button>

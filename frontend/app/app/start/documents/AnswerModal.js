@@ -12,6 +12,8 @@ import { ANALYTICS, FEATURES, GA_WARNING, PD_FIELDS, PURPOSES, allowedPurposes, 
 import { useDialog } from '../../site/_shared/SiteChrome';
 import { Field, RING, Segmented, Tile } from '../_shared/AnketaChrome';
 import { loadAnketa, saveAnketa } from '../_shared/anketaState';
+import { CLOSE_BTN, btn } from '../../../../components/app/Button';
+import { CARD } from '../../../../components/app/Card';
 
 export const QUESTION_TITLES = {
   requisites: 'Реквизиты владельца',
@@ -93,12 +95,12 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
       aria-labelledby="answer-title"
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none"
     >
-      <div className="my-10 w-full max-w-[560px] rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+      <div className={`${CARD} my-10 w-full max-w-[560px] p-6 sm:p-7`}>
         <div className="flex items-start justify-between gap-3">
           <h2 id="answer-title" className="text-lg font-bold tracking-[-0.02em]">
             {QUESTION_TITLES[kind]}
           </h2>
-          <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} aria-label="Закрыть" className={CLOSE_BTN}>
             <CloseIcon size={18} />
           </button>
         </div>
@@ -213,7 +215,7 @@ export default function AnswerModal({ kind, onClose, onSaved }) {
           <button
             type="button"
             onClick={save}
-            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+            className={btn({ size: 'lg' })}
           >
             Сохранить
           </button>

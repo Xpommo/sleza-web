@@ -10,6 +10,8 @@
 import { useEffect } from 'react';
 import { ChevronDownIcon, DocsIcon } from './AppIcons';
 import { announce } from '../../lib/announce';
+import { StatusPill } from './Status';
+import { CARD } from './Card';
 
 const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 const COLS = 'sm:grid-cols-[minmax(0,1fr)_150px_140px]';
@@ -19,7 +21,7 @@ const COLS_NO_STATUS = 'sm:grid-cols-[minmax(0,1fr)_140px]';
 
 export function DocRowList({ children, actionsLabel = 'Действие', withStatus = true }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+    <div className={`${CARD} overflow-hidden`}>
       <div
         aria-hidden="true"
         className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 text-[12px] font-semibold text-ink/60 sm:grid ${withStatus ? COLS : COLS_NO_STATUS}`}
@@ -73,13 +75,7 @@ export function DocRow({ doc, note, status, meta, href, action = 'Посмотр
         <div className={`flex items-center gap-3 pl-[52px] sm:contents ${status ? 'justify-between' : 'justify-end'}`}>
           {status && (
           <span className="flex flex-col gap-1">
-            <span
-              className={`w-fit rounded-full px-3 py-1.5 text-[11px] font-bold ${
-                status.tone === 'warn' ? 'bg-warn/10 text-warn-ink' : 'bg-ok/10 text-ok-ink'
-              }`}
-            >
-              {status.label}
-            </span>
+            <StatusPill tone={status.tone === 'warn' ? 'warn' : 'ok'}>{status.label}</StatusPill>
             {meta && <span className="pl-1 text-[11px] text-ink/60">{meta}</span>}
           </span>
           )}

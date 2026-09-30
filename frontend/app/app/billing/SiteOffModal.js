@@ -11,8 +11,10 @@ import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { CloseIcon } from '../../../components/app/AppIcons';
 import { RING, useDialog } from '../site/_shared/SiteChrome';
+import { CLOSE_BTN, btn } from '../../../components/app/Button';
+import { CARD } from '../../../components/app/Card';
 
-const BTN = `rounded-xl border border-line bg-white px-5 py-3 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`;
+const BTN = btn({ variant: 'secondary', size: 'md' });
 
 export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, onConfirm }) {
   const dialog = useRef(null);
@@ -22,12 +24,12 @@ export default function SiteOffModal({ site, step, paidUntil, onStep, onClose, o
   const trial = site.kind === 'trial';
   return (
     <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="off-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none">
-      <div className="mt-16 w-full max-w-[460px] rounded-2xl border border-line bg-white p-6 shadow-sm">
+      <div className={`${CARD} mt-16 w-full max-w-[460px] p-6`}>
         <div className="flex items-start justify-between gap-3">
           <h2 id="off-title" className="text-lg font-bold tracking-[-0.03em]">
             {step === 1 ? 'Может, получится помочь?' : `Отключить ${site.domain}?`}
           </h2>
-          <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} aria-label="Закрыть" className={CLOSE_BTN}>
             <CloseIcon size={18} />
           </button>
         </div>

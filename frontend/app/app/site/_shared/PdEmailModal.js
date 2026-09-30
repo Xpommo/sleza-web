@@ -12,6 +12,8 @@ import { Field } from '../../start/_shared/AnketaChrome';
 import { loadAnketa } from '../../start/_shared/anketaState';
 import { saveSiteFields, siteAnketa } from './sites';
 import { RING, useDialog } from './SiteChrome';
+import { CLOSE_BTN, btn } from '../../../../components/app/Button';
+import { CARD } from '../../../../components/app/Card';
 
 export default function PdEmailModal({ onClose, onSaved }) {
   const dialog = useRef(null);
@@ -42,7 +44,7 @@ export default function PdEmailModal({ onClose, onSaved }) {
 
   return (
     <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="pd-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none">
-      <div className="my-10 w-full max-w-[480px] rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+      <div className={`${CARD} my-10 w-full max-w-[480px] p-6 sm:p-7`}>
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 id="pd-title" className="text-lg font-bold tracking-[-0.03em]">
@@ -52,7 +54,7 @@ export default function PdEmailModal({ onClose, onSaved }) {
               Этот адрес стоит в политике и согласии. На него клиенты пишут, чтобы отозвать согласие или узнать, что вы о них храните. На запрос о данных нужно ответить в течение 10 рабочих дней, поэтому укажите e-mail, который читаете.
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} aria-label="Закрыть" className={CLOSE_BTN}>
             <CloseIcon size={18} />
           </button>
         </div>
@@ -77,7 +79,7 @@ export default function PdEmailModal({ onClose, onSaved }) {
           <button
             type="button"
             onClick={save}
-            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+            className={btn({ size: 'lg' })}
           >
             Сохранить
           </button>

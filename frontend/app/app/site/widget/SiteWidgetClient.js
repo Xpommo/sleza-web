@@ -10,6 +10,8 @@ import { NO_USER, accountUser, loadAnketa, saveAnketa } from '../../start/_share
 import { RING, SiteHeader, SiteSidebar, useDialog } from '../_shared/SiteChrome';
 import { widgetStopped } from '../_shared/subscription';
 import { settleRenewals, siteAnketa } from '../_shared/sites';
+import { CLOSE_BTN, btn } from '../../../../components/app/Button';
+import { CARD } from '../../../../components/app/Card';
 
 const SNIPPET = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID}" async></script>`;
 
@@ -20,7 +22,7 @@ const SNIPPET = `<script src="https://cdn.sleza.media/w.js" data-site="${SITE_ID
 // или свой подвал на конструкторе.
 function Block({ title, on, onToggle, offWarning, offNote, themeId, theme, onTheme, notLive, children }) {
   return (
-    <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+    <section className={`${CARD} mt-6 p-6 sm:p-7`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 id={themeId} className="text-lg font-bold tracking-[-0.02em]">
@@ -80,12 +82,12 @@ function OffDialog({ kind, domain, onClose, onConfirm }) {
   const c = OFF[kind];
   return (
     <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="off-widget-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none">
-      <div className="mt-16 w-full max-w-[460px] rounded-2xl border border-line bg-white p-6 shadow-sm">
+      <div className={`${CARD} mt-16 w-full max-w-[460px] p-6`}>
         <div className="flex items-start justify-between gap-3">
           <h2 id="off-widget-title" className="text-lg font-bold tracking-[-0.03em]">
             {c.title} на {domain}?
           </h2>
-          <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
+          <button type="button" onClick={onClose} aria-label="Закрыть" className={CLOSE_BTN}>
             <CloseIcon size={18} />
           </button>
         </div>
@@ -98,7 +100,7 @@ function OffDialog({ kind, domain, onClose, onConfirm }) {
           >
             Да, выключить
           </button>
-          <button type="button" onClick={onClose} className={`rounded-xl border border-line bg-white px-5 py-3 text-sm font-bold text-ink transition hover:border-line-2 hover:bg-warm ${RING}`}>
+          <button type="button" onClick={onClose} className={btn({ variant: 'secondary', size: 'md' })}>
             Оставить
           </button>
         </div>
@@ -165,7 +167,7 @@ export default function SiteWidgetClient() {
               </div>
               <Link
                 href="/app/start/code"
-                className={`inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+                className={btn({ size: 'md', className: 'shrink-0' })}
               >
                 Инструкция по установке
               </Link>
@@ -204,7 +206,7 @@ export default function SiteWidgetClient() {
           </Block>
 
 
-          <section className="mt-6 rounded-2xl border border-line bg-white shadow-sm">
+          <section className={`${CARD} mt-6`}>
             <button
               type="button"
               onClick={() => setCodeOpen(!codeOpen)}
@@ -229,7 +231,7 @@ export default function SiteWidgetClient() {
                   <button
                     type="button"
                     onClick={copySnippet}
-                    className={`inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold transition hover:border-brand hover:text-brand ${RING}`}
+                    className={btn({ variant: 'next', size: 'lg', className: 'shrink-0' })}
                   >
                     {copied ? <CheckIcon size={16} className="text-ok" /> : <CopyIcon size={16} />}
                     {copied ? 'Скопировано' : 'Скопировать код'}

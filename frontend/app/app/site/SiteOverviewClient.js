@@ -12,6 +12,8 @@ import { NO_USER, accountUser, loadAnketa } from '../start/_shared/anketaState';
 import { RING, SiteSidebar } from './_shared/SiteChrome';
 import SitePayDialog from '../billing/SitePayDialog';
 import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, graceEndAt, graceEnds, paidPeriod, subState, trialEndAt, trialEnds, widgetStopped, tariffName } from './_shared/subscription';
+import { TEXT_LINK, btn } from '../../../components/app/Button';
+import { CARD } from '../../../components/app/Card';
 
 // «Обзор» отвечает на три вопроса, с которыми сюда заходят (владелец 24.09):
 // сколько ещё будет работать подписка, все ли документы актуальны и когда
@@ -21,7 +23,7 @@ import { PRICE, TRIAL_DAYS, TRIAL_MS, formatDate, graceEndAt, graceEnds, paidPer
 // задачи, которые клиент делает на сайте сам (владелец 24.09), пока они есть.
 
 const STEP_URLS = ['profile', 'site', 'clients', 'requisites', 'documents', 'code'].map((s) => `/app/start/${s}`);
-const BTN = `inline-flex h-11 w-fit items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
+const BTN = btn({ size: 'md', className: 'w-fit' });
 const DAY = 24 * 3600 * 1000;
 const CONSENT = DOCUMENTS.find((d) => d.id === '12');
 const TONE = { warn: 'text-warn-ink', danger: 'text-danger', ok: 'text-ok', muted: 'text-ink/60', none: 'text-ink' };
@@ -43,7 +45,7 @@ function sameDay(ms) {
 // одной высоты, и ссылки стоят на одной линии).
 function Answer({ label, value, tone = 'none', facts, action, link }) {
   return (
-    <article className="flex flex-col rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+    <article className={`${CARD} flex flex-col p-6 sm:p-7`}>
       <h2 className="text-[13px] font-semibold text-ink/60">{label}</h2>
       <p className={`mt-2 text-[28px] font-bold leading-tight tracking-[-0.03em] ${TONE[tone]}`}>{value}</p>
       <p className="mt-2 text-sm leading-5 text-ink/60">{facts.filter(Boolean).join(' · ')}</p>
@@ -51,11 +53,11 @@ function Answer({ label, value, tone = 'none', facts, action, link }) {
       <div className="mt-auto pt-5">
         <div className="border-t border-line pt-5">
           {typeof link[1] === 'function' ? (
-            <button type="button" onClick={link[1]} aria-haspopup="dialog" className={`tap rounded text-sm font-semibold text-brand hover:underline ${RING}`}>
+            <button type="button" onClick={link[1]} aria-haspopup="dialog" className={TEXT_LINK}>
               {link[0]} →
             </button>
           ) : (
-            <Link href={link[1]} className={`tap rounded text-sm font-semibold text-brand hover:underline ${RING}`}>
+            <Link href={link[1]} className={TEXT_LINK}>
               {link[0]} →
             </Link>
           )}
@@ -84,7 +86,7 @@ function Task({ title, law, text, name, onDone, href, actionLabel, children }) {
       {href ? (
         <Link
           href={href}
-          className={`w-fit shrink-0 tap rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
+          className={btn({ variant: 'next', size: 'xs', className: 'w-fit shrink-0' })}
         >
           {actionLabel}
         </Link>
@@ -93,7 +95,7 @@ function Task({ title, law, text, name, onDone, href, actionLabel, children }) {
           type="button"
           onClick={onDone}
           aria-label={name}
-          className={`w-fit shrink-0 tap rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
+          className={btn({ variant: 'next', size: 'xs', className: 'w-fit shrink-0' })}
         >
           Сделано
         </button>
@@ -363,7 +365,7 @@ export default function SiteOverviewClient() {
           </div>
 
           {tasks.length > 0 && (
-            <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+            <section className={`${CARD} mt-6 p-6 sm:p-7`}>
               <div className="flex items-baseline justify-between gap-4">
                 <h2 className="text-lg font-bold tracking-[-0.02em]">Сделайте на сайте сами</h2>
                 <span className="shrink-0 text-xs font-semibold text-ink/60">
@@ -413,7 +415,7 @@ export default function SiteOverviewClient() {
             </section>
           )}
 
-          <section className="mt-6 rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
+          <section className={`${CARD} mt-6 p-6 sm:p-7`}>
             <h2 className="text-lg font-bold tracking-[-0.02em]">Последние изменения</h2>
             <div className={`relative mt-6 space-y-6 ${events.length > 1 ? 'before:absolute before:bottom-2 before:left-[7px] before:top-2 before:w-px before:bg-line' : ''}`}>
               {events.map(([when, what, dot, undo]) => (

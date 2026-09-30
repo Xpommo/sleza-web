@@ -296,23 +296,43 @@ Soft, consistent rounding sized to the element's job:
 
 ## Components
 
-### Buttons
+**How this section works (design system, 30.09).** Every component names its source file, then **When**, **When not**, **States** and **Text**. A new screen is built only from these parts; a class string that re-creates one of them by hand is a bug (the cabinet had ~60 hand-built buttons in 29 files before this). Live samples of everything below: `/app/kit` (Макет panel → «Система» → «Компоненты кабинета»).
+
+| Component | Source | One-line rule |
+|---|---|---|
+| Button | `components/app/Button.js` — `btn()`, `<Button>`, `CLOSE_BTN`, `TEXT_LINK`, `RING` | one blue per view; size by neighbour, not by taste |
+| Status | `components/app/Status.js` — `StatusPill`, `statusBar`, `TONES` | word + icon + tint, never color alone |
+| Card | `components/app/Card.js` — `CARD` | paper sheet; padding by role |
+| Field, Tile, Segmented, WhyButton, SectionHead | `app/app/start/_shared/AnketaChrome.js` | the client chooses; nothing is preselected |
+| Switch, ThemeSwitch, widget previews | `components/app/WidgetPreviews.js` | on/off settings only |
+| IconAction, DocRow(s) | `components/app/DocRows.js` | one inline icon action per row |
+| Dialog behavior | `useDialog` in `app/app/site/_shared/SiteChrome.js` | inert page, locked scroll, focus returns |
+
+### Buttons (`components/app/Button.js`)
 Confident and few.
-- **Shape:** 12px radius, 48px tall (h-12), 20–24px horizontal padding, 14px bold.
-- **Primary:** Seal Blue fill, white text, sheet shadow; hover darkens to `brand-hover` (`#1c2ab8`), no lift. Every button answers a press by moving down 1px (`.cabinet … :active { translate: 0 1px }` in `globals.css`, owner 30.09): the `translate` property, not `transform`, so it adds to a button's own transform instead of replacing it. One per view: in «Мои сайты» each site card's «Открыть сайт» is the white secondary, so the only blue is «Добавить сайт».
-- **Secondary:** white fill, Hairline border, Ink text, sheet shadow; hover moves the border to Crease (or to blue with blue text, where the secondary action is itself a next step).
-- **Text:** no fill, Muted Ink semibold; hover to Ink. «Отмена», «Назад», low-emphasis actions.
+- **When:** *primary* — the one next step on the screen; *secondary* — a second action beside it; *next* — a secondary that itself moves the task on («Сделано», «Скопировать ссылку», «Изменить»): its hover turns border and text blue; *quiet* — «Отмена», «Поставлю позже».
+- **When not:** two blue fills on one view (one of them is wrong); a hand-written class string instead of `btn()`; a button for navigation that reads as a link in running text (`TEXT_LINK` then).
+- **Sizes** (by neighbour): `xl` 52px — the anketa's «Назад / Далее», beside 52px fields; `lg` 48px — the main action of a dialog or a screen; `md` 44px — an action inside a card; `sm` 40px — a toolbar over a list or table («Добавить сайт», «Пополнить»); `xs` 36px — an action inside a row («Изменить», «Сделано»). All 12px radius, 14px bold (13px at `xs`); `sm`/`xs` carry the phone hit area (`tap`).
+- **States:** hover — primary to `brand-hover`, secondary border to Crease with a Desk fill, next to blue; press — every button moves down 1px (`.cabinet … :active { translate: 0 1px }` in `globals.css`, owner 30.09; `translate`, not `transform`, so it adds to a button's own transform); focus — `RING`; disabled — 50% opacity, not-allowed cursor, hover suppressed. A blocked «Далее» / «Оплатить» is **not** disabled: it stays clickable and `focusFirstError()` takes the person to what is missing (a silent button is the worst option).
+- **Text:** verb and object, what happens: «Оплатить», «Скопировать ссылку», «Поставить код на сайт». Not «Продолжить», «Применить», «ОК». «Оплатить» / «Продлить» without «год» (owner 26.09).
+- **Primary:** Seal Blue fill, white text, sheet shadow; no lift. One per view: in «Мои сайты» each site card's «Открыть кабинет сайта» is the white secondary, so the only blue is «Добавить сайт».
+- **Secondary:** white fill, Hairline border, Ink text, sheet shadow.
+- **Quiet:** no fill, Muted Ink semibold, hover to Ink; smaller side padding so the word lines up with the text above.
 - **Hit area:** anything tappable is at least 44px on phones. Default: the `tap` class (`app/globals.css`, below `sm` only) adds an invisible 44×44 `::before` around the control's centre, so a 36px icon button, a 20px text link or a 24px switch keeps its approved size and spacing. Where `tap` can't work — the control clips its own overflow (`truncate`), or neighbours touch (menu items) — grow the box on phones instead (`max-sm:min-h-11`, or padding pulled back with a negative margin). A modal's close icon sits in a 44px square pulled back with a negative margin so the header doesn't grow. Check with `design-export/cabinet-checks/a11y.mjs` (hit-tests the real area).
 - **Icon action** (`IconAction`): 36px square, 8px radius, Muted Ink icon at 17px; hover warms the background and turns the icon blue. Always has `aria-label` and a small ink tooltip; a disabled one explains why in the tooltip.
 - **Focus (all):** `ring-2 ring-brand ring-offset-2`, outline removed. The earlier `ring-4 ring-brand/15` was about 1.3:1 and invisible on nav items and links; a focus ring must stay visible (3:1 or more).
 
-### Status Badges
-- **Style:** pill, 11px bold, 6px × 12px padding, status color on its 10% tint, text in that status's ink (`ok-ink`, `warn-ink`, `danger-ink`), `info` in blue on brand tint (trial), `beige` neutral on Desk with an inset Hairline ring, `muted` on Desk.
-- **Rule:** a badge column exists only when statuses differ between rows. If every row would say «Готово», drop the column (`withStatus={false}`).
+### Status (`components/app/Status.js`)
+- **When:** the state of a site, a document, a connection or a ticket — `StatusPill` in tables, rows and settings; `statusBar` (full-width, bordered) at the top of a «Мои сайты» card.
+- **When not:** color alone; red for «soon» (that is amber); a status column where every row says the same («Готово» ×5 — drop it, `withStatus={false}`).
+- **Tones:** `ok` — working, paid, ready (check icon); `info` — running, nothing broken: trial, invoice issued (clock); `warn` — act soon: last trial day, code not found (triangle); `danger` — stopped, overdue (triangle); `muted` — calm «not active»: no renewal, anketa not finished (clock). Text is the tone's `*-ink` on its 10% tint (Tint-Not-Fill Rule).
+- **Style:** pill, 12px bold, 4px × 10px padding, 13px icon before the word. One state — one name in every place it appears (card, table, «Обзор»).
 
-### Cards / Containers
-- **Corner:** 16px. **Background:** Sheet. **Border:** 1px Hairline. **Shadow:** Sheet.
-- **Padding:** 24px, 28px from `sm`.
+### Cards / Containers (`components/app/Card.js`)
+- **When:** a section of a page or a block in a grid — the surface is always `CARD` (16px radius, Sheet, 1px Hairline, sheet shadow).
+- **When not:** a card inside a card (use a Hairline divider or a Desk panel); a card around a single line of text; a card that is clickable as a whole with the plain `CARD` (the «Мои сайты» card has its own lift and a stretched link).
+- **Padding by role:** `p-6 sm:p-7` — a page section; `p-5 sm:p-6` — a card in a grid or a nested block; none — a list or a table, whose rows carry their own padding.
+- **Side by side:** cards in one row share top and bottom edges (grid stretch), and their main button is pinned to the bottom (`mt-auto`), so buttons in a row stand on one line (checked 30.09 on «Обзор» and «Мои сайты»).
 - **Overview card:** title (18px bold), key–value rows, and a footer link pinned to the bottom with `mt-auto` behind a Hairline divider, so cards in one row align.
 - **Notices:** 12px radius; neutral on Desk, attention as `warn-ink` text on amber tint, the found-by-INN edit frame as an amber 40% border over a 6% amber fill with a real blue «Готово» button.
 - **Client tasks (Обзор):** «Сделайте на сайте сами» — a white card between the answer cards and the changes list, shown only while tasks remain (owner 24.09): things we can't do on the client's site (the consent link in forms, removing Google Analytics). A switched-off cookie banner or footer on a live site is listed first, with a white «Открыть «Виджет»» link instead of «Сделано»: it is the one task that undoes what the subscription is for. A row = 14px bold imperative title with the law in mono beside it, one 13px/60% sentence of why, an optional mono link with an `IconAction` copy, and a white «Сделано» button on the right (below the text on phones). No blue fill here: the one blue button belongs to the subscription card.
@@ -326,12 +346,14 @@ Confident and few.
 - **Status announcements:** anything that changes state without moving the page («Скопировано», «Баланс пополнен», «Счёт выставлен», «Обращение отправлено», «Нашли по ИНН») is also spoken through `announce()` (`lib/announce.js`, one polite live region). A control that unmounts on success hands focus to the new panel (`data-panel-start`) or message, never to body; when focus lands on the message itself («Оплачено до …», «Код найден»), it is not announced a second time.
 - **Phone:** one mask everywhere (`PhoneField`): «+7 » inserted on focus, formatted, capped at 11 digits.
 
-### Choice Tile (`Tile`)
+### Choice Tile (`Tile`, `AnketaChrome.js`)
+- **When:** an answer from a short list — round marker for one answer, square for several. **When not:** yes/no in settings (that is a Switch), more than ~8 options (a select), anything preselected.
 - **Style:** 12px radius, Sheet, Hairline border, 16px padding, min-height 58px (compact) or 78px. Title only, no caption.
 - **Selected:** blue border, brand 5% fill, `ring-2 ring-brand/10`. The marker says how many answers the question takes (owner 26.09, Ivan p.9): **one** (`radio`) — a round marker, filled blue with a white dot; **several** — a square marker, filled blue with a white check.
 - **Hover:** Crease border, Desk fill.
 
-### Segmented Control (`Segmented`)
+### Segmented Control (`Segmented`, `AnketaChrome.js`)
+- **When:** one short answer of two–four («Картой / По счёту», «Есть / Не нужна / Оформляем»). **When not:** switching views (tabs), long labels (tiles).
 - Desk track with 4px padding and 12px radius; a blue thumb (8px radius, sheet shadow) slides under the chosen option with a 300ms transition. Options are 14px bold, unselected at 80% ink (not faded: an answer is still expected). With no value chosen, no thumb is shown. The client makes the choice; we never preselect.
 
 ### Tabs (step 6 «Способ установки»)
@@ -364,10 +386,11 @@ Confident and few.
 - The row «⋯» menu, the account menu, the phone «Ещё» sheet and the anketa «Шаги» sheet share `usePopup` (`SiteChrome.js`): focus moves to the first item on open, Escape closes and returns focus to the button, focus leaving closes. Menus (`role="menu"`) add arrows, Home/End and close on Tab; sheets let Tab walk inside.
 - Every screen's first Tab stop is a «К содержимому» skip link (visible on focus only) to `main#content`; the sidebar sits outside `<main>`.
 
-### Modal
+### Modal (`useDialog` + `CLOSE_BTN`)
+- **When:** a short decision on top of the page: pay a year, confirm switching something off, change one answer. **When not:** a long form that can live on the page; a message that needs no decision (say it on the page).
 - 45% ink scrim, panel 480–560px wide, 16px radius, Sheet, 24–28px padding, 18px bold title with a close icon (44px hit area, `ink/60`), actions bottom-left: primary blue button, then a text «Отмена».
 - Switching off something the subscription watches (the cookie banner, the footer, the site itself) always asks first, in this modal: what the visitor stops seeing and when turning it off makes sense.
-- Behavior through `useDialog` (`site/_shared/SiteChrome.js`): focus moves into the dialog on open, Tab cycles inside it, Escape closes it, and focus returns to the control that opened it. Multi-step dialogs pass their step so focus lands back in the dialog after a step changes; a conditionally rendered dialog (step 6 «Пока не видим код») passes its open flag the same way.
+- Behavior through `useDialog` (`site/_shared/SiteChrome.js`): focus moves into the dialog on open, Tab cycles inside it, Escape closes it, and focus returns to the control that opened it. While it is open everything around it is `inert` (screen readers and Tab never reach the page underneath) and the page does not scroll under the scrim (30.09). Multi-step dialogs pass their step so focus lands back in the dialog after a step changes; a conditionally rendered dialog (step 6 «Пока не видим код») passes its open flag the same way.
 
 ## Do's and Don'ts
 
@@ -399,3 +422,21 @@ Confident and few.
 ## Widget themes (client's site)
 
 The banner and the footer strip on the client's site come in five tones from Ivan's widget mock (owner 30.09): **Чернила** `#111111`, **Графит** `#2B2E36`, **Туман** `#F4F4F2`, **Бумага** `#FFFFFF`, **Вода** `#F7FAFE` (near-white with soft blue spots, not a flat fill). Default Чернила. Colors live in `SKINS` in `components/app/WidgetPreviews.js` as CSS variables (`--w-bg`, `--w-text`, `--w-muted`, `--w-line`, `--w-accent`, `--w-accent-soft`, `--w-hover`), one markup for all five. «Авто» (by the visitor's browser theme) is retired: the footer is matched to the site, not to the visitor. Anketas saved earlier map Светлая → Бумага, Тёмная/Авто → Чернила. The theme picker is a segmented control with a 14px swatch before each name; it wraps on phones. The public documents page (`app/app/public`, what `cdn.sleza.media/<id>` shows a visitor) takes the footer's tone for the whole page; our mark there is only the drop and the word «Слеза» in the corner, no tagline.
+
+**Tones in context (checked 30.09 on five mock client sites, 1280 and 390).** All five tones read well: text 13.6–18.9:1, captions 8–12.6:1, blue 5.9–7.9:1 against their own background. Pill borders are 1.3–1.6:1 on purpose — the pill is named by its word, the border only groups. Which tone looks like part of the site:
+
+| Client's footer | Tone that continues it | Tone that sets the strip apart |
+|---|---|---|
+| white | Бумага (1.00) · Вода (1.05) | Чернила |
+| light grey (typical Тильда) | Туман (1.00) · Вода (1.05) | Чернила |
+| beige / warm | Туман (1.06) · Вода (1.11) | Чернила |
+| dark grey / black | Чернила (1.1–1.2) · Графит | Бумага |
+| navy / corporate dark | Чернила (1.13) | Туман |
+| brand color (green, red…) | none — the strip always reads as its own band | Графит or Бумага, whichever the site's text uses |
+
+(Numbers are the contrast between the tone's background and the footer's: ~1.0 blends in, above 1.5 reads as a separate band.)
+
+**Requirements for the real widget script (w.js), found in context:**
+- **Floating chat buttons.** Almost every small-business site has a round chat button (WhatsApp, Jivo, Telegram) fixed at the bottom right. The strip is the very last block of the page, exactly where that button sits: on phones it covered «Реквизиты» and the end of the licence line. On phones the strip keeps a clear bottom inset of about 88px (or ends its content before the right-hand 72px).
+- **Banner placement.** The banner must not sit under or on top of a chat button: bottom-left card on desktop, full-width bottom sheet on phones above any fixed buttons of the site (highest z-index of the page), never blocking scroll (lawyer question №10 stays open).
+- **Licence and certificate numbers never break mid-number** («№ Л035-01298-77/00123456» on one line); on phones the requisites go one per line, without «·» separators.

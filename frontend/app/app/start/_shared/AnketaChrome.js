@@ -13,7 +13,9 @@ import { SidebarShell, TearMark, useBottomBar, usePopup } from '../../site/_shar
 // («Настройка»/«Проверка» отклонены разбором за то, что не говорят, что внутри).
 export const STEPS = ['Ваш профиль', 'О сайте', 'Данные клиентов', 'Реквизиты', 'Пакет документов', 'Установка'];
 
-export const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
+// Фокусная рамка — одна на кабинет, из Button.js.
+import { RING } from '../../../../components/app/Button';
+export { RING };
 
 // Знак — тот же, что в кабинете и на входе: раньше анкета носила фонарик
 // сканера, и переход «Мои сайты → анкета» выглядел как переход в другой сервис.

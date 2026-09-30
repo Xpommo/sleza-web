@@ -17,6 +17,7 @@ import DocViewer from '../../../start/documents/DocViewer';
 import RequisitesModal from '../../_shared/RequisitesModal';
 import { settleRenewals, siteAnketa } from '../../_shared/sites';
 import { RING, SiteSidebar } from '../../_shared/SiteChrome';
+import { btn } from '../../../../../components/app/Button';
 
 export default function SiteAnswersClient() {
   const router = useRouter();
@@ -61,7 +62,7 @@ export default function SiteAnswersClient() {
           <button
             type="button"
             onClick={() => router.push('/app/site/documents')}
-            className={`inline-flex h-12 items-center justify-center rounded-xl bg-brand px-7 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`}
+            className={btn({ size: 'lg' })}
           >
             Готово
           </button>
