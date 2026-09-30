@@ -223,3 +223,12 @@ export function editEvents(edits = []) {
 export function docUrl(doc) {
   return `cdn.sleza.media/${SITE_ID}/${doc.id}`;
 }
+
+// Страница документов, которую видит посетитель (у нас — адрес пакета
+// cdn.sleza.media/<id>, у документа — /<id>/<doc>). В прототипе она живёт на
+// /app/public/; префикс пути (basePath на GitHub Pages) берём из адреса, как
+// панель «Макет».
+export function publicDocHref(docId) {
+  const base = typeof window === 'undefined' ? '' : window.location.pathname.replace(/\/app(\/.*)?$/, '');
+  return `${base}/app/public/${docId ? `?doc=${docId}` : ''}`;
+}

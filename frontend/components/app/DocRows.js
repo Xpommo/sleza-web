@@ -53,7 +53,9 @@ export function DocRow({ doc, note, status, meta, href, action = 'Посмотр
                 закрывает, — срезать его многоточием нельзя. */}
             <h3 className="text-sm font-bold leading-5">
               {href ? (
-                <a href={href} target="_blank" rel="noreferrer" className={`tap rounded max-sm:py-[3px] underline-offset-4 transition hover:text-brand hover:underline ${RING}`}>
+                // rel="opener": вкладка страницы документов в прототипе читает анкету
+                // из sessionStorage, а он копируется в новую вкладку только с opener.
+                <a href={href} target="_blank" rel="opener" className={`tap rounded max-sm:py-[3px] underline-offset-4 transition hover:text-brand hover:underline ${RING}`}>
                   {doc.title}
                   <span className="sr-only"> (откроется в новой вкладке)</span>
                 </a>

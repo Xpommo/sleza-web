@@ -36,7 +36,8 @@ export function widgetSettings(a) {
 
 // Цвета темы — CSS-переменными на контейнере превью, классы читают их
 // (bg-[color:var(--w-bg)] и т.д.): одна разметка на все пять тонов.
-function skinStyle(theme) {
+// Та же тема — у страницы документов (app/app/public), как у Ивана.
+export function skinStyle(theme) {
   const k = SKINS[skinName(theme)];
   const style = { '--w-bg': k.bg, '--w-text': k.text, '--w-muted': k.muted, '--w-line': k.line, '--w-accent': k.accent, '--w-accent-soft': k.accentSoft, '--w-hover': k.hover };
   // «Вода» — не заливка: почти белый фон и мягкие пятна за содержимым (у Ивана

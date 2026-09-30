@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CheckIcon, CopyIcon, DocsIcon, LinkIcon } from '../../../../components/app/AppIcons';
 import { DocRow, DocRowList, IconAction } from '../../../../components/app/DocRows';
-import { DOCUMENTS, SITE_ID, docOrigin, docUrl, editEvents } from '../../../../lib/docPackage';
+import { DOCUMENTS, SITE_ID, docOrigin, docUrl, editEvents, publicDocHref } from '../../../../lib/docPackage';
 import { NO_USER, accountUser, loadAnketa } from '../../start/_shared/anketaState';
 import PdEmailModal from '../_shared/PdEmailModal';
 import RequisitesModal from '../_shared/RequisitesModal';
@@ -70,7 +70,7 @@ export default function SiteDocumentsClient() {
   }
 
   return (
-    <div className="min-h-screen bg-warm text-ink lg:flex">
+    <div className="min-h-screen min-h-dvh bg-warm text-ink lg:flex">
       <SiteSidebar domain={site.domain} active="Документы" user={user} />
 
       <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
@@ -95,7 +95,16 @@ export default function SiteDocumentsClient() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <div className="flex h-12 min-w-0 shrink-0 items-center sm:flex-1 gap-3 rounded-xl border border-line bg-warm px-4 font-mono text-[13px] text-ink/70">
                 <LinkIcon size={17} className="shrink-0 text-ink/35" />
-                <span className="truncate">{PACKAGE_URL}</span>
+                {/* Адрес пакета — это страница документов сайта: открыть её можно
+                    прямо отсюда, как посетитель (владелец 30.09). */}
+                {live ? (
+                  <a href={publicDocHref()} target="_blank" rel="opener" className={`flex h-full min-w-0 flex-1 items-center rounded hover:text-brand hover:underline ${RING}`}>
+                    <span className="truncate">{PACKAGE_URL}</span>
+                    <span className="sr-only"> (откроется в новой вкладке)</span>
+                  </a>
+                ) : (
+                  <span className="truncate">{PACKAGE_URL}</span>
+                )}
               </div>
               <button
                 type="button"
@@ -137,7 +146,7 @@ export default function SiteDocumentsClient() {
                   <DocRow
                     key={doc.id}
                     doc={doc}
-                    href={live ? `https://${docUrl(doc)}` : undefined}
+                    href={live ? publicDocHref(doc.id) : undefined}
                     note={docOrigin(doc, site.answers).line}
                     meta={`версия ${1 + edits.length} · ${formatDate(edits.at(-1)?.at || site.madeAt)}${live ? '' : ' · откроется после установки кода'}`}
                     actions={
