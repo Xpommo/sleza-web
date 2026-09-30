@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CheckIcon, ChevronDownIcon, CloseIcon, CopyIcon, WarnIcon } from '../../../../components/app/AppIcons';
-import { CookieBannerPreview, FooterPreview, Switch, ThemeSwitch, widgetSettings } from '../../../../components/app/WidgetPreviews';
+import { CookieBannerPreview, FooterPreview, Switch, ThemeSwitch, footerExtra, widgetSettings } from '../../../../components/app/WidgetPreviews';
 import { SITE_ID } from '../../../../lib/docPackage';
 import { NO_USER, accountUser, loadAnketa, saveAnketa } from '../../start/_shared/anketaState';
 import { RING, SiteHeader, SiteSidebar, useDialog } from '../_shared/SiteChrome';
@@ -124,7 +124,7 @@ export default function SiteWidgetClient() {
       return;
     }
     setUser(accountUser());
-    setSite({ domain: a.domain, installed: Boolean(a.installed), stopped: widgetStopped(a, Date.now(), loadAnketa().billing?.topupInvoice) });
+    setSite({ domain: a.domain, installed: Boolean(a.installed), stopped: widgetStopped(a, Date.now(), loadAnketa().billing?.topupInvoice), extra: footerExtra(a) });
     setW(widgetSettings(a));
   }, [router]);
 
@@ -197,7 +197,7 @@ export default function SiteWidgetClient() {
             offNote="Подвал сайта выключен, и ссылки на документы и реквизиты не показываются."
             offWarning="Ссылки на документы и реквизиты компании перестанут быть постоянно доступны посетителям. 152-ФЗ ст.18.1 ч.2 требует, чтобы политика обработки персональных данных была опубликована и открывалась без ограничений."
           >
-            <FooterPreview theme={w.footerTheme} />
+            <FooterPreview theme={w.footerTheme} extra={site.extra} />
             <p className="mt-3 text-[12px] leading-5 text-ink/60">
               «Куки» и «Маркировку» посетитель отключить не может: согласие на куки он даёт в баннере, а маркировка обязательна по закону.
             </p>

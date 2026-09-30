@@ -6,7 +6,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
 } from '../../../../components/app/AppIcons';
-import { CookieBannerPreview, FooterPreview, ThemeSwitch, WIDGET_DEFAULTS, widgetSettings } from '../../../../components/app/WidgetPreviews';
+import { CookieBannerPreview, FooterPreview, ThemeSwitch, WIDGET_DEFAULTS, footerExtra, widgetSettings } from '../../../../components/app/WidgetPreviews';
 import { RING, AnketaFrame } from '../_shared/AnketaChrome';
 import { loadAnketa, markStepDone, saveAnketa } from '../_shared/anketaState';
 import { DOCUMENTS } from '../../../../lib/docPackage';
@@ -70,26 +70,29 @@ export default function DocumentsClient() {
                     labelledby="step5-theme"
                   />
                 </div>
-                <p className="mt-2 text-sm text-ink/60">
-                  {(widget.bannerTheme === 'Авто' || widget.footerTheme === 'Авто') && 'Подстроится под тему браузера посетителя, здесь показан тёмный вариант. '}
-                  Тему и показ баннера и подвала можно поменять потом в разделе «Виджет».
-                </p>
+                <p className="mt-2 text-sm text-ink/60">Тему и показ баннера и подвала можно поменять потом в разделе «Виджет».</p>
               </div>
 
               <h3 className="mb-3 text-[15px] font-bold">Куки-баннер</h3>
-              <CookieBannerPreview theme={widget.bannerTheme} note={false} />
+              <CookieBannerPreview theme={widget.bannerTheme} />
 
               <h3 className="mb-3 mt-7 text-[15px] font-bold">Подвал сайта</h3>
-              <FooterPreview theme={widget.footerTheme} note={false} />
+              <FooterPreview theme={widget.footerTheme} extra={footerExtra(answers)} />
 
               <h3 className="mb-3 mt-7 text-[15px] font-bold">Маркировка в тексте страниц</h3>
               <div className="rounded-xl border border-line-2 bg-paper p-4">
+                {/* Знак — капля 💧, как у Ивана (владелец 30.09: «ставим Слеза»), и сноска
+                    внизу страницы: подсказку по наведению не видно на телефоне и не
+                    слышно диктору, сноску — видно и слышно. */}
                 <p className="text-[14px] leading-6">
-                  …в интервью для издания «Пример»
-                  <span title="Маркировка по реестрам" role="img" aria-label="Маркировка по реестрам" className="ml-0.5 align-super text-[10px] font-bold text-brand">
-                    ✱
+                  …в интервью для издания «Пример»{' '}
+                  <span title="Маркировка по реестрам" role="img" aria-label="Маркировка по реестрам" className="text-[13px]">
+                    💧
                   </span>{' '}
                   сказал, что…
+                </p>
+                <p className="mt-2 border-t border-line pt-2 text-[12px] leading-4 text-ink/70">
+                  Знаком <span role="img" aria-label="капля">💧</span> отмечены: «Пример» — демонстрационный пример маркировки.
                 </p>
                 <p className="mt-2 text-[12px] leading-4 text-ink/60">
                   Сами сверим страницы с официальными реестрами Минюста и Росфинмониторинга (иностранные агенты,

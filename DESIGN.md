@@ -7,10 +7,10 @@ colors:
   warm: "#f4f1ec"
   paper: "#faf8f4"
   white: "#ffffff"
-  brand: "#1f1fe6"
-  brand-hover: "#1a1acc"
-  brand-soft: "#5f5fff"
-  brand-tint: "rgba(31,31,230,0.08)"
+  brand: "#2a3bf0"
+  brand-hover: "#1c2ab8"
+  brand-soft: "#8fa2ff"
+  brand-tint: "rgba(42,59,240,0.08)"
   ok: "#1a7a52"
   ok-ink: "#15613f"
   ok-tint: "rgba(26,122,82,0.10)"
@@ -207,7 +207,7 @@ Depth is paper, not glass. Cards sit one soft hairline shadow above the warm des
 
 **Key Characteristics:**
 - Warm desk canvas (`#f4f1ec`), white sheets on it, near-black ink text
-- Blue (`#1f1fe6`) marks the next action and the current choice; ink marks where you are
+- Blue (`#2a3bf0`) marks the next action and the current choice; ink marks where you are
 - One filled blue button per view; everything else is a white or text button
 - Soft rounding by role: 8px icon buttons, 12px controls, 16px cards, pills for statuses
 - Monospace only for data to verify and for small caps labels, never for prose or money
@@ -218,7 +218,7 @@ Depth is paper, not glass. Cards sit one soft hairline shadow above the warm des
 Three warm neutrals do almost all the work; blue is spent on action and choice; the three status colors appear only as tinted pills or bordered notices.
 
 ### Primary
-- **Seal Blue** (`#1f1fe6`, hover `#1a1acc`): the single accent. It fills the primary button, the selected segment, the selected tile's check marker, required-field stars, the «Зачем это нужно» toggle, text links and the focus ring (`ring-2 ring-brand ring-offset-2`). Its 8% tint (`brand-tint`) backs icon tiles next to headings, the selected tile and the "info" badge.
+- **Seal Blue** (`#2a3bf0`, hover `#1c2ab8`; on dark surfaces `brand-soft` `#8fa2ff`): the single accent. Owner 30.09: one blue, Ivan's `#2a3bf0` (was `#1f1fe6`; `#3157d5` retired). It is scoped to the cabinet: `tailwind.config.js` reads `--c-brand*` variables set in `app/app/layout.js`, the rest of the app keeps `#1f1fe6` until it is decided separately. 7.0:1 on white, 6.2:1 on Desk. It fills the primary button, the selected segment, the selected tile's check marker, required-field stars, the «Зачем это нужно» toggle, text links and the focus ring (`ring-2 ring-brand ring-offset-2`). Its 8% tint (`brand-tint`) backs icon tiles next to headings, the selected tile and the "info" badge.
 
 **The Next-Move Rule.** A screen has exactly one filled blue button: the thing we want the person to do now. A second action on the same screen is a white button with a hairline border or a text button. If two blue fills compete, one of them is wrong.
 
@@ -301,7 +301,7 @@ Soft, consistent rounding sized to the element's job:
 ### Buttons
 Confident and few.
 - **Shape:** 12px radius, 48px tall (h-12), 20–24px horizontal padding, 14px bold.
-- **Primary:** Seal Blue fill, white text, sheet shadow; hover darkens to `brand-hover` (`#1a1acc`), no lift. One per view: in «Мои сайты» each site card's «Открыть сайт» is the white secondary, so the only blue is «Добавить сайт».
+- **Primary:** Seal Blue fill, white text, sheet shadow; hover darkens to `brand-hover` (`#1c2ab8`), no lift. One per view: in «Мои сайты» each site card's «Открыть сайт» is the white secondary, so the only blue is «Добавить сайт».
 - **Secondary:** white fill, Hairline border, Ink text, sheet shadow; hover moves the border to Crease (or to blue with blue text, where the secondary action is itself a next step).
 - **Text:** no fill, Muted Ink semibold; hover to Ink. «Отмена», «Назад», low-emphasis actions.
 - **Hit area:** anything tappable is at least 44px on phones. Default: the `tap` class (`app/globals.css`, below `sm` only) adds an invisible 44×44 `::before` around the control's centre, so a 36px icon button, a 20px text link or a 24px switch keeps its approved size and spacing. Where `tap` can't work — the control clips its own overflow (`truncate`), or neighbours touch (menu items) — grow the box on phones instead (`max-sm:min-h-11`, or padding pulled back with a negative margin). A modal's close icon sits in a 44px square pulled back with a negative margin so the header doesn't grow. Check with `design-export/cabinet-checks/a11y.mjs` (hit-tests the real area).
@@ -397,3 +397,7 @@ Confident and few.
 - **Don't** write «cookie» in interface or document text; it is «куки» («Куки-баннер», «Политика обработки куки»).
 - **Don't** open a page with an explanatory sentence («что сейчас с сайтом…», «Частые вопросы про…»); keep only lines that report state.
 - **Don't** warn about something more than a month away, or paint a running trial amber before its last day (**The Near-Term Warning Rule**).
+
+## Widget themes (client's site)
+
+The banner and the footer strip on the client's site come in five tones from Ivan's widget mock (owner 30.09): **Чернила** `#111111`, **Графит** `#2B2E36`, **Туман** `#F4F4F2`, **Бумага** `#FFFFFF`, **Вода** `#F7FAFE` (near-white with soft blue spots, not a flat fill). Default Чернила. Colors live in `SKINS` in `components/app/WidgetPreviews.js` as CSS variables (`--w-bg`, `--w-text`, `--w-muted`, `--w-line`, `--w-accent`, `--w-accent-soft`, `--w-hover`), one markup for all five. «Авто» (by the visitor's browser theme) is retired: the footer is matched to the site, not to the visitor. Anketas saved earlier map Светлая → Бумага, Тёмная/Авто → Чернила. The theme picker is a segmented control with a 14px swatch before each name; it wraps on phones.

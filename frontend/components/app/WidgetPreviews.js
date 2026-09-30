@@ -11,36 +11,58 @@ import { CloseIcon, ShieldCheckIcon, LockIcon } from './AppIcons';
 
 const RING = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
-export const THEMES = ['Светлая', 'Тёмная', 'Авто'];
-export const WIDGET_DEFAULTS = { bannerTheme: 'Авто', footerTheme: 'Авто', bannerOn: true, footerOn: true };
+// Пять тонов виджета — из макета Ивана «Виджет и реестр документов» (владелец
+// 30.09): между чёрным и белым у сайтов весь диапазон серого, и подвал, который
+// не попал в тон футера, читается как чужая вставка. «Авто» (по теме браузера
+// посетителя) снято: подвал подбирают под сайт, а не под посетителя.
+// Цвета — дословно из макета; тема одна и та же для баннера, подвала и реестра.
+export const SKINS = {
+  Чернила: { bg: '#111111', text: '#F2F2F0', muted: '#C9C7D6', line: '#32323C', accent: '#8FA2FF', accentSoft: '#1C2440', hover: '#1B1B22' },
+  Графит: { bg: '#2B2E36', text: '#FFFFFF', muted: '#CFD2DA', line: '#474B57', accent: '#9AA6F7', accentSoft: '#2A3350', hover: '#353942' },
+  Туман: { bg: '#F4F4F2', text: '#111111', muted: '#4A4A4A', line: '#D5D5D0', accent: '#2A3BF0', accentSoft: '#E6E8FE', hover: '#E9E9E5' },
+  Бумага: { bg: '#FFFFFF', text: '#111111', muted: '#333333', line: '#D5D5D0', accent: '#2A3BF0', accentSoft: '#E6E8FE', hover: '#F4F4F2' },
+  Вода: { bg: '#F7FAFE', text: '#111111', muted: '#37405A', line: '#C3D2F0', accent: '#2A3BF0', accentSoft: '#E2E9FA', hover: '#EAF0FB' },
+};
+export const THEMES = Object.keys(SKINS);
+export const WIDGET_DEFAULTS = { bannerTheme: 'Чернила', footerTheme: 'Чернила', bannerOn: true, footerOn: true };
+// Анкеты, сохранённые до 30.09, помнят прежние три темы.
+const LEGACY = { Светлая: 'Бумага', Тёмная: 'Чернила', Авто: 'Чернила' };
+const skinName = (t) => (SKINS[t] ? t : LEGACY[t] || WIDGET_DEFAULTS.footerTheme);
 
 export function widgetSettings(a) {
-  return { ...WIDGET_DEFAULTS, ...(a.widget || {}) };
+  const w = { ...WIDGET_DEFAULTS, ...(a.widget || {}) };
+  return { ...w, bannerTheme: skinName(w.bannerTheme), footerTheme: skinName(w.footerTheme) };
 }
 
-// «Авто» не имеет одного вида — он зависит от темы браузера посетителя.
-// Поэтому показываем тёмный вариант и говорим об этом словами, а не рисуем
-// додуманную картинку.
-const isDark = (theme) => theme !== 'Светлая';
-
-export function ThemeNote({ theme }) {
-  if (theme !== 'Авто') return null;
-  return <p className="mt-3 text-[12px] text-ink/60">Подстроится под тему браузера посетителя. Здесь показан тёмный вариант.</p>;
+// Цвета темы — CSS-переменными на контейнере превью, классы читают их
+// (bg-[color:var(--w-bg)] и т.д.): одна разметка на все пять тонов.
+function skinStyle(theme) {
+  const k = SKINS[skinName(theme)];
+  const style = { '--w-bg': k.bg, '--w-text': k.text, '--w-muted': k.muted, '--w-line': k.line, '--w-accent': k.accent, '--w-accent-soft': k.accentSoft, '--w-hover': k.hover };
+  // «Вода» — не заливка: почти белый фон и мягкие пятна за содержимым (у Ивана
+  // они медленно движутся; в превью — статично).
+  if (skinName(theme) === 'Вода') {
+    style.backgroundImage = 'radial-gradient(60% 120% at 8% 0%, #E4EFF6 0%, rgba(228,239,246,0) 70%), radial-gradient(50% 120% at 95% 100%, #EAF0FB 0%, rgba(234,240,251,0) 70%)';
+  }
+  return style;
 }
 
+// Выбор тона — сегменты с цветовой пробой (квадратик перед подписью, как у
+// Ивана). Пять вариантов не помещаются в строку на телефоне — ряд переносится.
 export function ThemeSwitch({ value, onChange, labelledby }) {
   return (
-    <div role="group" aria-labelledby={labelledby} className="inline-flex rounded-xl border border-line bg-warm p-1">
+    <div role="group" aria-labelledby={labelledby} className="inline-flex flex-wrap gap-1 rounded-xl border border-line bg-warm p-1 max-sm:gap-y-2">
       {THEMES.map((t) => (
         <button
           key={t}
           type="button"
           onClick={() => onChange(t)}
           aria-pressed={value === t}
-          className={`tap w-[86px] rounded-lg py-2 text-[13px] font-semibold transition ${RING} ${
+          className={`tap flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold transition ${RING} ${
             value === t ? 'bg-white text-ink shadow-sm' : 'text-ink/70 hover:text-ink'
           }`}
         >
+          <span aria-hidden="true" className="h-3.5 w-3.5 shrink-0 rounded-[4px] ring-1 ring-inset ring-ink/15" style={{ background: SKINS[t].bg }} />
           {t}
         </button>
       ))}
@@ -70,31 +92,28 @@ export function Switch({ checked, onChange, label, disabled }) {
 // Баннер информационный: кнопки «Отклонить» в нём нет намеренно —
 // 152-ФЗ не требует отказа для простого уведомления, и обещать управление,
 // которого нет, нельзя. Текст — дословно реальный виджет.
-export function CookieBannerPreview({ theme, note = true }) {
-  const dark = isDark(theme);
+export function CookieBannerPreview({ theme }) {
   return (
     <div className="rounded-xl border border-line-2 bg-paper p-4">
       <div
-        className={`flex flex-col gap-4 rounded-xl p-5 transition-colors duration-300 motion-reduce:transition-none sm:flex-row sm:items-center ${
-          dark ? 'bg-ink text-white' : 'border border-line bg-white text-ink'
-        }`}
+        style={skinStyle(theme)}
+        className="flex flex-col gap-4 rounded-xl border border-[color:var(--w-line)] bg-[color:var(--w-bg)] p-5 text-[color:var(--w-text)] transition-colors duration-300 motion-reduce:transition-none sm:flex-row sm:items-center"
       >
-        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${dark ? 'bg-white/10 text-white' : 'bg-brand/[0.08] text-brand'}`}>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--w-accent-soft)] text-[color:var(--w-accent)]">
           <ShieldCheckIcon size={18} />
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold">Сайт использует куки</p>
-          <p className={`mt-1.5 text-[12px] leading-4 ${dark ? 'text-white/70' : 'text-ink/60'}`}>
+          <p className="mt-1.5 text-[12px] leading-4 text-[color:var(--w-muted)]">
             Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с
             условиями обработки куки. Отключить их можно в настройках браузера.
           </p>
-          <p className={`mt-2 text-[11px] ${dark ? 'text-white/50' : 'text-ink/60'}`}>Политика обработки куки →</p>
+          <p className="mt-2 text-[11px] text-[color:var(--w-muted)]">Политика обработки куки →</p>
         </div>
-        <span className={`shrink-0 rounded-lg px-4 py-2.5 text-center text-xs font-bold ${dark ? 'bg-white text-ink' : 'bg-ink text-white'}`}>
+        <span className="shrink-0 rounded-lg bg-[color:var(--w-text)] px-4 py-2.5 text-center text-xs font-bold text-[color:var(--w-bg)]">
           Принять и продолжить
         </span>
       </div>
-      {note && <ThemeNote theme={theme} />}
     </div>
   );
 }
@@ -145,8 +164,25 @@ const PILLS = [
 // Подвал — живой: пилюли открывают то же, что увидит посетитель.
 // Реклама не включается без согласия на ПДн: рассылать письма человеку,
 // который не разрешил обрабатывать свои данные, нельзя.
-export function FooterPreview({ theme, note = true }) {
-  const dark = isDark(theme);
+// Доп. реквизит по сфере (владелец 30.09, как у Ивана): лицензия, свидетельство
+// СМИ, ИТ-аккредитация, реестр ПО — из ответов шага 4, в подвале перед
+// «Реквизитами». У СМИ не лицензия, а свидетельство о регистрации (23.09).
+const LICENSE_KIND = {
+  medicine: 'Лицензия на медицинскую деятельность',
+  school: 'Лицензия на образовательную деятельность',
+  kids: 'Лицензия на образовательную деятельность',
+};
+const has = (v) => v === 'Есть' || v === 'Да';
+export function footerExtra(a = {}) {
+  const out = [];
+  if (a.license && has(a.license.has)) out.push(`${LICENSE_KIND[a.sphere] || 'Лицензия'}${a.license.no ? ` № ${a.license.no}` : ''}`);
+  if (a.mediaReg && has(a.mediaReg.has)) out.push(`Свидетельство о регистрации СМИ${a.mediaReg.no ? ` ${a.mediaReg.no}` : ''}`);
+  if (has(a.itAccred)) out.push(`ИТ-аккредитация${a.itAccredNo ? ` № ${a.itAccredNo}` : ''}`);
+  if (has(a.softRegistry)) out.push(`Реестр российского ПО${a.softRegistryNo ? ` № ${a.softRegistryNo}` : ''}`);
+  return out;
+}
+
+export function FooterPreview({ theme, extra = [] }) {
   const [open, setOpen] = useState(null);
   const [pdOn, setPdOn] = useState(false);
   const [marketingOn, setMarketingOn] = useState(false);
@@ -160,9 +196,8 @@ export function FooterPreview({ theme, note = true }) {
   return (
     <div className="rounded-xl border border-line-2 bg-paper p-4">
       <div
-        className={`flex flex-wrap items-center gap-x-3 gap-y-2 max-sm:gap-y-3 rounded-xl px-4 py-3 transition-colors duration-300 motion-reduce:transition-none ${
-          dark ? 'bg-ink text-white' : 'border border-line bg-white text-ink'
-        }`}
+        style={skinStyle(theme)}
+        className="flex flex-wrap items-center gap-x-3 gap-y-2 max-sm:gap-y-3 rounded-xl border border-[color:var(--w-line)] bg-[color:var(--w-bg)] px-4 py-3 text-[color:var(--w-text)] transition-colors duration-300 motion-reduce:transition-none"
       >
         {/* Без нашего знака и имени (владелец 25.09): подвал принадлежит сайту
             клиента, «Слеза» в нём читалась как реклама за его деньги. */}
@@ -173,9 +208,9 @@ export function FooterPreview({ theme, note = true }) {
             onClick={() => setOpen(open === pill.id ? null : pill.id)}
             aria-expanded={open === pill.id}
             className={`tap flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors ${RING} ${
-              dark
-                ? open === pill.id ? 'border-white/60 bg-white/15 text-white' : 'border-white/20 text-white/80 hover:text-white'
-                : open === pill.id ? 'border-brand bg-brand/[0.06] text-brand' : 'border-line text-ink/65 hover:text-ink'
+              open === pill.id
+                ? 'border-[color:var(--w-accent)] bg-[color:var(--w-accent-soft)] text-[color:var(--w-accent)]'
+                : 'border-[color:var(--w-line)] text-[color:var(--w-muted)] hover:bg-[color:var(--w-hover)] hover:text-[color:var(--w-text)]'
             }`}
           >
             {pill.label}
@@ -184,7 +219,17 @@ export function FooterPreview({ theme, note = true }) {
                 читает в «Виджете». */}
           </button>
         ))}
-        <span className={`ml-auto text-[12px] font-semibold ${dark ? 'text-white/70' : 'text-ink/60'}`}>Реквизиты</span>
+        {/* Доп. реквизит и «Реквизиты» — одной группой через точку, как «Оферта ·
+            Реквизиты» у Ивана: при переносе строки не остаётся висящей черты. */}
+        <span className="flex w-full min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-[12px] leading-4 text-[color:var(--w-muted)] sm:ml-auto sm:w-auto sm:justify-end sm:text-right">
+          {extra.map((x) => (
+            <span key={x} className="contents">
+              <span className="min-w-0">{x}</span>
+              <span aria-hidden="true" className="opacity-50">·</span>
+            </span>
+          ))}
+          <span className="font-semibold">Реквизиты</span>
+        </span>
       </div>
 
       {open &&
@@ -228,7 +273,6 @@ export function FooterPreview({ theme, note = true }) {
             </div>
           );
         })}
-      {note && <ThemeNote theme={theme} />}
     </div>
   );
 }

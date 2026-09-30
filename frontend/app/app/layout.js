@@ -27,13 +27,22 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
+// Синий кабинета — #2a3bf0 (владелец 30.09: один синий, как у Ивана; был
+// #1f1fe6). Токены brand / brand-hover / brand-soft в tailwind.config.js читают
+// эти переменные; обёртка display: contents — вёрстку не трогает.
+const CABINET_BLUE = {
+  '--c-brand': '42 59 240', // #2a3bf0
+  '--c-brand-hover': '28 42 184', // #1c2ab8
+  '--c-brand-soft': '143 162 255', // #8fa2ff — синий на тёмном
+};
+
 // Общая обвязка всего /app: страница плюс панель «Макет» для перехода
 // между экранами прототипа в нужном состоянии.
 export default function AppLayout({ children }) {
   return (
-    <>
+    <div className="contents" style={CABINET_BLUE}>
       {children}
       <MaketBar />
-    </>
+    </div>
   );
 }
