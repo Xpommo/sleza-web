@@ -98,6 +98,43 @@ const SIDE_SCREENS = ['/app/settings', '/app/support'];
 // возвращается на кнопку, которая окно открыла. step — у окон с шагами:
 // нажатая кнопка шага исчезает, и фокус снова ставится на окно.
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// Страница под окном — inert: экранный диктор не читает её и не уходит туда
+// виртуальным курсором, мышь и Tab тоже. Окна рендерятся на месте, не в портале,
+// поэтому гасим всех соседей окна по пути от него до body, а при закрытии
+// возвращаем только тех, кого погасили сами (окно поверх окна не ломает первое).
+function inertAround(el) {
+  const done = [];
+  for (let node = el; node.parentElement && node !== document.body; node = node.parentElement) {
+    for (const sib of node.parentElement.children) {
+      if (sib === node || sib.inert || sib.tagName === 'SCRIPT') continue;
+      sib.inert = true;
+      done.push(sib);
+    }
+  }
+  return () => done.forEach((n) => { n.inert = false; });
+}
+
+// Прокрутка страницы под затемнением выключена, пока открыто хоть одно окно;
+// ширину полосы прокрутки возвращаем отступом, чтобы страница не дёргалась.
+let scrollLocks = 0;
+let scrollSaved = null;
+function lockScroll() {
+  const html = document.documentElement;
+  if (scrollLocks++ === 0) {
+    scrollSaved = { overflow: html.style.overflow, paddingRight: html.style.paddingRight };
+    const bar = window.innerWidth - html.clientWidth;
+    html.style.overflow = 'hidden';
+    if (bar > 0) html.style.paddingRight = `${bar}px`;
+  }
+  return () => {
+    if (--scrollLocks === 0 && scrollSaved) {
+      html.style.overflow = scrollSaved.overflow;
+      html.style.paddingRight = scrollSaved.paddingRight;
+    }
+  };
+}
+
 // fallback — куда вернуть фокус, если кнопки, открывшей окно, уже нет
 // (пункт меню «⋯» закрывается вместе с меню — фокус падал на body).
 export function useDialog(ref, onClose, step, fallback) {
@@ -110,6 +147,8 @@ export function useDialog(ref, onClose, step, fallback) {
     // исчез вместе с меню. Тогда при закрытии — запасная цель (кнопка меню).
     const back = document.activeElement === document.body ? null : document.activeElement;
     const items = () => [...el.querySelectorAll(FOCUSABLE)].filter((x) => x.offsetParent !== null);
+    const unInert = inertAround(el);
+    const unLock = lockScroll();
     el.focus();
     function onKey(e) {
       if (e.key === 'Escape') {
@@ -134,6 +173,8 @@ export function useDialog(ref, onClose, step, fallback) {
     el.addEventListener('keydown', onKey);
     return () => {
       el.removeEventListener('keydown', onKey);
+      unInert();
+      unLock();
       const target = back && back.isConnected ? back : fallback?.();
       target?.focus?.();
     };
@@ -153,14 +194,14 @@ function BackButton() {
     <button
       type="button"
       onClick={() => router.push(returnPath())}
-      className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
+      className={`tap mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
     >
       <ArrowLeftIcon size={16} /> Назад
     </button>
   );
 }
 
-const MENU_ITEM = `flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-left text-[14px] font-semibold text-ink/70 transition hover:bg-warm hover:text-ink ${RING}`;
+const MENU_ITEM = `flex w-full max-sm:min-h-11 items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-left text-[14px] font-semibold text-ink/70 transition hover:bg-warm hover:text-ink ${RING}`;
 
 // Пункты меню аккаунта. full — на телефоне, где сайдбара нет: там это
 // единственный путь в «Мои сайты», «Баланс и платежи» и «Поддержку» (лист «Ещё»
@@ -278,7 +319,7 @@ export function AccountMenu({ user, compact = false }) {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={compact ? `Меню аккаунта: ${who.title}` : undefined}
-        className={`flex items-center gap-3 rounded-xl text-left transition ${RING} ${
+        className={`tap flex items-center gap-3 rounded-xl text-left transition ${RING} ${
           compact ? 'p-0.5' : `w-full px-1 py-1 hover:bg-warm ${open ? 'bg-warm' : ''}`
         }`}
       >
@@ -408,7 +449,7 @@ export function SidebarShell({ user, children, supportActive, bottomBar }) {
         К содержимому
       </a>
       <div className="flex items-center gap-2.5">
-        <Link href="/app/sites" className={`flex items-center gap-2.5 rounded-lg ${RING}`} aria-label="Слеза Белый Сайт: мои сайты">
+        <Link href="/app/sites" className={`tap flex items-center gap-2.5 rounded-lg ${RING}`} aria-label="Слеза Белый Сайт: мои сайты">
           <TearMark />
           <span className="text-[17px] font-bold tracking-[-0.035em]">Слеза Белый Сайт</span>
         </Link>
@@ -441,12 +482,12 @@ export function SiteSidebar({ domain, active, user = NO_USER }) {
     <SidebarShell user={user} bottomBar={<SiteTabbar active={active} />}>
       <Link
         href="/app/sites"
-        className={`mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
+        className={`tap mt-10 flex w-fit items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}
       >
         <ArrowLeftIcon size={16} /> Мои сайты
       </Link>
       <div className="mt-7 border-t border-line pt-6">
-        <p className="mb-3 truncate px-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/60">{domain}</p>
+        <p className="mb-3 truncate px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ink/60">{domain}</p>
         <NavList items={SITE_NAV} active={active} label="Разделы сайта" />
       </div>
     </SidebarShell>

@@ -53,8 +53,8 @@ const TONE = {
 };
 
 const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
-const PRIMARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
-const SECONDARY_SM = `inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold text-ink shadow-sm transition hover:border-line-2 ${RING}`;
+const PRIMARY_SM = `tap inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
+const SECONDARY_SM = `tap inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 text-sm font-bold text-ink shadow-sm transition hover:border-line-2 ${RING}`;
 // «Скоро» для денег — месяц: так же решает, синяя ли «Продлить на 1 год».
 const DAY = 24 * 3600 * 1000;
 const SOON = 30 * DAY;
@@ -62,7 +62,7 @@ const SOON = 30 * DAY;
 // последний день, как баннер «Обзора» и письмо-напоминание (владелец 23.09:
 // пробный период — хорошая новость); у оплаченного сайта — за месяц.
 const warnWithin = (site) => (site.kind === 'trial' ? DAY : SOON);
-const BTN_TEXT = `rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
+const BTN_TEXT = `tap rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
 
 // Таблица сайтов (владелец 23.09: «перегружено и выбивается из общего») —
 // в том же виде, что список в «Документах»: шапка моно-капсами, строки через
@@ -141,7 +141,7 @@ function RowMenu({ site, hasHistory, onPick }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Действия · ${site.domain}`}
-        className={`flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition hover:bg-warm hover:text-ink ${open ? 'bg-warm text-ink' : ''} ${RING}`}
+        className={`tap flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition hover:bg-warm hover:text-ink ${open ? 'bg-warm text-ink' : ''} ${RING}`}
       >
         <MoreHorizontalIcon size={18} />
       </button>
@@ -165,7 +165,7 @@ function RowMenu({ site, hasHistory, onPick }) {
                 setOpen(false);
                 onPick(id);
               }}
-              className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-[14px] font-semibold transition hover:bg-warm disabled:cursor-default disabled:text-ink/35 disabled:hover:bg-transparent ${
+              className={`flex w-full max-sm:min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-left text-[14px] font-semibold transition hover:bg-warm disabled:cursor-default disabled:text-ink/35 disabled:hover:bg-transparent ${
                 hl ? 'text-brand' : 'text-ink/80'
               } ${RING}`}
             >
@@ -182,7 +182,7 @@ function RowMenu({ site, hasHistory, onPick }) {
 function SiteTableRow({ site, open, hasHistory, short, unfunded, invoice, autoCard, onPick, onAuto, onOpenSite, children }) {
   // Название — ссылка в кабинет сайта (так таблица живёт в «Моих сайтах»).
   const name = onOpenSite ? (
-    <button type="button" onClick={onOpenSite} className={`max-w-full truncate rounded text-left text-[15px] font-bold hover:text-brand hover:underline ${RING}`}>
+    <button type="button" onClick={onOpenSite} className={`max-w-full truncate rounded max-sm:-my-[11px] max-sm:py-[11px] text-left text-[15px] font-bold hover:text-brand hover:underline ${RING}`}>
       {site.domain}
     </button>
   ) : (
@@ -840,6 +840,7 @@ export default function BillingClient({ mode = 'money' }) {
             label="Номер карты"
             required
             inputMode="numeric"
+            autoComplete="cc-number"
             placeholder="0000 0000 0000 0000"
             value={cardNo}
             onChange={(e) => setCardNo(e.target.value.replace(/[^\d ]/g, '').slice(0, 19))}
@@ -849,6 +850,7 @@ export default function BillingClient({ mode = 'money' }) {
             label="Срок"
             required
             inputMode="numeric"
+            autoComplete="cc-exp"
             placeholder="ММ/ГГ"
             value={cardExp}
             onChange={(e) => {
@@ -861,6 +863,7 @@ export default function BillingClient({ mode = 'money' }) {
             label="CVC"
             required
             inputMode="numeric"
+            autoComplete="cc-csc"
             placeholder="000"
             value={cardCvc}
             onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
@@ -974,7 +977,7 @@ export default function BillingClient({ mode = 'money' }) {
                   setAmount(String(sum));
                   setAmountErr(null);
                 }}
-                className={`rounded-full border px-3 py-1.5 text-[12px] font-semibold transition ${RING} ${
+                className={`tap rounded-full border px-3 py-1.5 text-[12px] font-semibold transition ${RING} ${
                   Number(amount) === sum ? 'border-brand bg-brand/[0.06] text-brand' : 'border-line bg-white text-ink/70 hover:border-line-2'
                 }`}
               >
@@ -1090,7 +1093,7 @@ export default function BillingClient({ mode = 'money' }) {
     <div className="rounded-2xl border border-line bg-white shadow-sm">
       <div
         aria-hidden="true"
-        className={`hidden gap-4 rounded-t-2xl border-b border-line bg-warm/70 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/60 sm:grid ${SITE_COLS}`}
+        className={`hidden gap-4 rounded-t-2xl border-b border-line bg-warm/70 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink/60 sm:grid ${SITE_COLS}`}
       >
         <span>Сайт</span>
         <span>Тариф</span>

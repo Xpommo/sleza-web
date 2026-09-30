@@ -13,7 +13,7 @@ import { RING, SettingsSidebar } from '../site/_shared/SiteChrome';
 // «Реквизиты владельца» здесь не живут с 9.09 — они принадлежат сайту и у
 // второго сайта могут быть другими; почта для актов — в «Балансе и платежах» → «Акты и чеки».
 
-const BTN_SECONDARY = `shrink-0 rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:bg-warm hover:text-ink ${RING}`;
+const BTN_SECONDARY = `shrink-0 tap rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition hover:border-line-2 hover:bg-warm hover:text-ink ${RING}`;
 
 function Card({ children }) {
   return <div className="mt-4 rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(17,17,16,0.04)] sm:p-6">{children}</div>;
@@ -193,7 +193,7 @@ export default function SettingsClient() {
                           onClick={() => toggleMessenger(name, false)}
                           title="Отвязать аккаунт"
                           aria-label={`Отвязать ${name}`}
-                          className={`flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-danger/10 hover:text-danger ${RING}`}
+                          className={`tap flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-danger/10 hover:text-danger ${RING}`}
                         >
                           <CloseIcon size={16} />
                         </button>

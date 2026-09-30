@@ -86,7 +86,7 @@ function ModeTabs({ mode, onChange }) {
           tabIndex={mode === m ? 0 : -1}
           onClick={() => onChange(m)}
           onKeyDown={(e) => onKey(e, i)}
-          className={`-mb-px rounded-t-md border-b-2 pb-3 pt-1 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
+          className={`tap -mb-px rounded-t-md border-b-2 pb-3 pt-1 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
             mode === m ? 'border-ink text-ink' : 'border-transparent text-ink/60 hover:text-ink'
           }`}
         >
@@ -283,7 +283,7 @@ export default function CodeClient() {
                           onClick={copyCode}
                           aria-label={copied ? 'Скопировано' : 'Скопировать код'}
                           title="Скопировать код"
-                          className={`absolute right-2.5 top-2.5 inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold transition ${
+                          className={`tap absolute right-2.5 top-2.5 inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold transition ${
                             copied ? 'bg-ok text-white' : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
                           } ${RING}`}
                         >
@@ -305,7 +305,7 @@ export default function CodeClient() {
                           type="button"
                           onClick={() => setPlatformPick(!platformPick)}
                           aria-expanded={platformPick}
-                          className={`rounded font-semibold text-brand hover:text-ink ${RING}`}
+                          className={`tap rounded font-semibold text-brand hover:text-ink ${RING}`}
                         >
                           Другая платформа?
                         </button>
@@ -515,7 +515,7 @@ export default function CodeClient() {
                   <button
                     type="button"
                     onClick={() => router.push(effectiveMode === 'Поручу другому' ? '/app/site' : '/app/sites')}
-                    className={`rounded text-sm font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}
+                    className={`tap rounded text-sm font-semibold text-ink/60 transition-colors hover:text-ink ${RING}`}
                   >
                     {effectiveMode === 'Поручу другому' ? 'Перейти в кабинет →' : 'Поставлю позже →'}
                   </button>
@@ -560,9 +560,9 @@ export default function CodeClient() {
         >
           <div className="mt-16 w-full max-w-[420px] rounded-2xl border border-line bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
-              <h3 id="fail-title" className="text-lg font-bold tracking-[-0.02em]">
+              <h2 id="fail-title" className="text-lg font-bold tracking-[-0.02em]">
                 Пока не видим код
-              </h3>
+              </h2>
               <button
                 type="button"
                 onClick={() => setFailOpen(false)}

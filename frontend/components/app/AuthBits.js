@@ -257,7 +257,7 @@ export function MessengerCodeLogin({ via, icon, open, onOpen, onClose, gate = ()
             onClose();
           }}
           aria-label={linking ? `Отменить подключение ${via}` : register ? `Свернуть регистрацию через ${via}` : `Свернуть вход через ${via}`}
-          className={`-my-2 -mr-2 ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
+          className={`-my-2 -mr-2 ml-auto tap flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
         >
           <CloseIcon size={16} />
         </button>
@@ -446,7 +446,7 @@ export function MailCodeLogin({ open, onOpen, onClose, gate = () => true, submit
             onClose();
           }}
           aria-label={register ? 'Свернуть регистрацию по e-mail' : 'Свернуть вход по e-mail'}
-          className={`-my-2 -mr-2 ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
+          className={`-my-2 -mr-2 ml-auto tap flex h-10 w-10 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
         >
           <CloseIcon size={16} />
         </button>

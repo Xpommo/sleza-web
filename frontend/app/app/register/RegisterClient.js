@@ -40,7 +40,7 @@ function Consent({ id, checked, invalid, onToggle, children }) {
         aria-checked={checked}
         aria-labelledby={`${id}-text`}
         aria-invalid={invalid || undefined}
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${RING} ${
+        className={`tap flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${RING} ${
           checked ? 'border-brand bg-brand text-white' : invalid ? 'border-danger bg-danger/[0.06]' : 'border-line-2 bg-white hover:border-brand/50'
         }`}
       >

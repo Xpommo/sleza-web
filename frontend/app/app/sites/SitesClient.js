@@ -276,7 +276,7 @@ export default function SitesClient() {
                   <button
                     type="button"
                     onClick={() => router.push(addSite())}
-                    className={`inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-white px-4 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
+                    className={`tap inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-white px-4 text-sm font-bold shadow-sm transition hover:border-line-2 ${RING}`}
                   >
                     <PlusIcon size={16} /> Добавить сайт
                   </button>
@@ -287,7 +287,7 @@ export default function SitesClient() {
                         type="button"
                         onClick={() => setView(id)}
                         aria-pressed={view === id}
-                        className={`flex h-10 items-center gap-2 rounded-md px-3 text-xs transition sm:h-8 ${RING} ${
+                        className={`tap flex h-10 items-center gap-2 rounded-md px-3 text-xs transition sm:h-8 ${RING} ${
                           view === id ? 'bg-ink font-bold text-white' : 'font-semibold text-ink/60 hover:text-ink'
                         }`}
                       >

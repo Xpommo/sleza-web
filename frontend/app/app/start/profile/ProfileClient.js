@@ -226,7 +226,7 @@ export default function ProfileClient() {
                         <button
                           type="button"
                           onClick={() => setLinking(m.name)}
-                          className={`ml-auto rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-bold shadow-sm transition-colors hover:border-brand hover:text-brand ${RING}`}
+                          className={`ml-auto tap rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-bold shadow-sm transition-colors hover:border-brand hover:text-brand ${RING}`}
                         >
                           Подключить
                         </button>

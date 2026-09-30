@@ -37,7 +37,7 @@ export function ThemeSwitch({ value, onChange, labelledby }) {
           type="button"
           onClick={() => onChange(t)}
           aria-pressed={value === t}
-          className={`w-[86px] rounded-lg py-2 text-[13px] font-semibold transition ${RING} ${
+          className={`tap w-[86px] rounded-lg py-2 text-[13px] font-semibold transition ${RING} ${
             value === t ? 'bg-white text-ink shadow-sm' : 'text-ink/70 hover:text-ink'
           }`}
         >
@@ -57,7 +57,7 @@ export function Switch({ checked, onChange, label, disabled }) {
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${RING} ${
+      className={`tap relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${RING} ${
         // Выключенный — с рамкой: светлый трек на белом давал 1.44:1 (аудит 24.09).
         checked ? 'bg-brand' : 'bg-line-2 ring-1 ring-inset ring-ink/50'
       }`}
@@ -83,7 +83,7 @@ export function CookieBannerPreview({ theme, note = true }) {
           <ShieldCheckIcon size={18} />
         </span>
         <div className="min-w-0 flex-1">
-          <h4 className="text-sm font-bold">Сайт использует куки</h4>
+          <p className="text-sm font-bold">Сайт использует куки</p>
           <p className={`mt-1.5 text-[12px] leading-4 ${dark ? 'text-white/70' : 'text-ink/60'}`}>
             Нужны для аналитики и корректной работы сервисов на сайте. Нажимая «Принять и продолжить», вы соглашаетесь с
             условиями обработки куки. Отключить их можно в настройках браузера.
@@ -160,7 +160,7 @@ export function FooterPreview({ theme, note = true }) {
   return (
     <div className="rounded-xl border border-line-2 bg-paper p-4">
       <div
-        className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl px-4 py-3 transition-colors duration-300 motion-reduce:transition-none ${
+        className={`flex flex-wrap items-center gap-x-3 gap-y-2 max-sm:gap-y-3 rounded-xl px-4 py-3 transition-colors duration-300 motion-reduce:transition-none ${
           dark ? 'bg-ink text-white' : 'border border-line bg-white text-ink'
         }`}
       >
@@ -172,7 +172,7 @@ export function FooterPreview({ theme, note = true }) {
             type="button"
             onClick={() => setOpen(open === pill.id ? null : pill.id)}
             aria-expanded={open === pill.id}
-            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors ${RING} ${
+            className={`tap flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors ${RING} ${
               dark
                 ? open === pill.id ? 'border-white/60 bg-white/15 text-white' : 'border-white/20 text-white/80 hover:text-white'
                 : open === pill.id ? 'border-brand bg-brand/[0.06] text-brand' : 'border-line text-ink/65 hover:text-ink'
@@ -194,12 +194,12 @@ export function FooterPreview({ theme, note = true }) {
           return (
             <div key={pill.id} className="mt-3 rounded-xl border border-line bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
-                <p className="font-mono text-[10.5px] uppercase tracking-[0.09em] text-ink/60">{pill.meta}</p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.09em] text-ink/60">{pill.meta}</p>
                 <button type="button" onClick={() => setOpen(null)} className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`} aria-label="Закрыть">
                   <CloseIcon size={16} />
                 </button>
               </div>
-              <h4 className="mt-1 text-[15px] font-bold">{pill.title}</h4>
+              <p className="mt-1 text-[15px] font-bold">{pill.title}</p>
               <p className="mt-2 text-[13px] leading-5 text-ink/60">{pill.body}</p>
               {isMarketing && !pdOn && <p className="mt-3 rounded-lg bg-warn/10 px-3 py-2 text-[12px] text-ink/70">{pill.hint}</p>}
               {pill.toggle && (

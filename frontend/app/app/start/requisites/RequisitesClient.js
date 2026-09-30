@@ -846,7 +846,7 @@ export default function RequisitesClient() {
                 }}
                 className={`mt-3 inline-flex items-center gap-2.5 rounded-lg py-1 text-[13px] font-semibold text-ink/75 ${RING}`}
               >
-                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${pdSame ? 'border-brand bg-brand' : 'border-line-2 bg-white'}`}>
+                <span className={`tap flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${pdSame ? 'border-brand bg-brand' : 'border-line-2 bg-white'}`}>
                   {pdSame && <CheckIcon size={13} className="text-white" />}
                 </span>
                 Тот же, что e-mail компании
@@ -870,7 +870,7 @@ export default function RequisitesClient() {
                     confirmError ? 'border-danger' : confirmed ? 'border-brand' : 'border-line hover:border-line-2'
                   }`}
                 >
-                  <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${confirmed ? 'border-brand bg-brand' : 'border-line-2 bg-white'}`}>
+                  <span className={`mt-0.5 tap flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${confirmed ? 'border-brand bg-brand' : 'border-line-2 bg-white'}`}>
                     {confirmed && <CheckIcon size={13} className="text-white" />}
                   </span>
                   <span>

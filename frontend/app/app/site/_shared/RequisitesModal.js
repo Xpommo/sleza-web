@@ -80,9 +80,9 @@ export default function RequisitesModal({ onClose, onSaved, track = true }) {
       <div className="my-10 w-full max-w-[560px] rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 id="req-title" className="text-lg font-bold tracking-[-0.03em]">
+            <h2 id="req-title" className="text-lg font-bold tracking-[-0.03em]">
               Реквизиты владельца
-            </h3>
+            </h2>
             <p className="mt-2 text-[13px] leading-5 text-ink/60">
               Попадают в документ «Реквизиты владельца» и в подвал сайта. Реквизиты для счёта отдельные, они в
               «Балансе и платежах».

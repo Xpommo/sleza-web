@@ -110,15 +110,15 @@ export function StepList({ current, first = 0, onPick }) {
 
 // Полоса прогресса над карточкой: пройденные шаги отмечены галочкой вместо
 // номера — цифра у пройденного шага ничего не сообщает, галочка сообщает.
+// Диктору полоса не читается: «Шаг N из 6» и список шагов говорят то же словами.
 export function Progress({ current, first = 0 }) {
   return (
-    <div className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Прогресс заполнения">
+    <div className="mb-8 flex items-center gap-2 sm:gap-3" aria-hidden="true">
       {STEPS.map((step, i) => i >= first && (
         <div key={step} className="flex flex-1 items-center gap-2">
           <div className={`h-1.5 flex-1 rounded-full ${i <= current ? 'bg-brand' : 'bg-line'}`} />
           {i < current ? (
             <span
-              aria-label="Шаг завершён"
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ok/10 text-ok ring-1 ring-ok/20"
             >
               <CheckIcon size={14} />
@@ -150,7 +150,7 @@ export function Sidebar({ current, first = 0, bottomBar }) {
         <ArrowLeftIcon size={16} /> Мои сайты
       </Link>
       <div className="mt-7 border-t border-line pt-6">
-        <p className="mb-1 px-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/60">Подключение сайта</p>
+        <p className="mb-1 px-1 font-mono text-[11px] uppercase tracking-[0.18em] text-ink/60">Подключение сайта</p>
         <StepList current={current} first={first} />
       </div>
     </SidebarShell>
@@ -176,7 +176,7 @@ function FunnelBar({ current, first = 0, nextLabel }) {
       {sheet && <div className="fixed inset-0 z-40 bg-ink/20 lg:hidden" aria-hidden="true" onClick={() => setSheet(false)} />}
       {sheet && (
         <div ref={sheetRef} className="fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-white p-4 shadow-xl lg:hidden">
-          <p className="px-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink/60">Шаги анкеты</p>
+          <p className="px-1 font-mono text-[11px] uppercase tracking-[0.18em] text-ink/60">Шаги анкеты</p>
           <div className="-mt-2">
             <StepList current={current} first={first} onPick={() => setSheet(false)} />
           </div>
@@ -270,7 +270,7 @@ export function Field({ label, required, placeholder, icon: Icon, badge, classNa
         <span className="mb-2 flex items-center justify-between gap-3 text-[13px] font-bold text-ink-2">
           <span>
             {label}
-            {required && <span className="text-brand"> *</span>}
+            {required && <span className="text-brand" aria-hidden="true"> *</span>}
           </span>
           {badge && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/[0.08] px-2.5 py-1 text-[11px] font-bold text-brand">
@@ -284,6 +284,7 @@ export function Field({ label, required, placeholder, icon: Icon, badge, classNa
         <input
           ref={inputRef}
           placeholder={placeholder}
+          aria-required={required || undefined}
           aria-invalid={error ? 'true' : undefined}
           className={`h-[52px] w-full rounded-xl border bg-white pr-4 text-[15px] font-medium text-ink shadow-sm outline-none transition-all placeholder:text-ink/35 hover:border-line-2 focus:border-brand focus:ring-4 focus:ring-brand/10 ${
             error ? 'border-danger' : 'border-line'
@@ -412,7 +413,7 @@ export function WhyButton({ open, onClick }) {
       type="button"
       onClick={onClick}
       aria-expanded={open}
-      className={`-my-1 flex min-h-6 shrink-0 items-center gap-1 rounded py-1 text-xs font-semibold text-brand transition-colors hover:text-ink ${RING}`}
+      className={`tap -my-1 flex min-h-6 shrink-0 items-center gap-1 rounded py-1 text-xs font-semibold text-brand transition-colors hover:text-ink ${RING}`}
     >
       <InfoIcon size={14} /> Зачем это нужно
     </button>

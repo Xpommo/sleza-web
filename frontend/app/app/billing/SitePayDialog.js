@@ -34,7 +34,7 @@ import { PRICE, TARIFF_CHOICE, paidPeriod } from '../site/_shared/subscription';
 
 const PRICE_TEXT = formatRub(PRICE);
 const PRIMARY = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-hover ${RING}`;
-const BTN_TEXT = `rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
+const BTN_TEXT = `tap rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/60 hover:text-ink ${RING}`;
 const COMPANY = 'Реквизиты компании';
 const OTHER = 'Другие реквизиты';
 
@@ -246,6 +246,7 @@ export default function SitePayDialog({ siteKey, onClose, fallback }) {
               label="Номер карты"
               required
               inputMode="numeric"
+              autoComplete="cc-number"
               placeholder="0000 0000 0000 0000"
               value={cardNo}
               onChange={(e) => {
@@ -258,6 +259,7 @@ export default function SitePayDialog({ siteKey, onClose, fallback }) {
               label="Срок"
               required
               inputMode="numeric"
+              autoComplete="cc-exp"
               placeholder="ММ/ГГ"
               value={cardExp}
               onChange={(e) => {
@@ -271,6 +273,7 @@ export default function SitePayDialog({ siteKey, onClose, fallback }) {
               label="CVC"
               required
               inputMode="numeric"
+              autoComplete="cc-csc"
               placeholder="000"
               value={cardCvc}
               onChange={(e) => {

@@ -46,7 +46,7 @@ export default function SiteAnswersClient() {
 
       <main id="content" tabIndex={-1} className="outline-none min-w-0 flex-1 px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12 xl:px-20">
         <div className="mx-auto max-w-5xl">
-          <Link href="/app/site/documents" className={`inline-flex items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}>
+          <Link href="/app/site/documents" className={`tap inline-flex items-center gap-2 rounded text-sm font-semibold text-ink/60 transition hover:text-ink ${RING}`}>
             <ArrowLeftIcon size={16} /> Документы
           </Link>
           {/* Заголовок виден и на компьютере: это не раздел из сайдбара, а

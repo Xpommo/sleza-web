@@ -43,7 +43,7 @@ export function Row({ label, value, note, action, onAction, open, actions, child
             type="button"
             onClick={onAction}
             aria-expanded={children ? open : undefined}
-            className={`shrink-0 rounded-lg px-2 py-1 text-[13px] font-semibold text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
+            className={`tap shrink-0 rounded-lg px-2 py-1 text-[13px] font-semibold text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}
           >
             {open ? 'Свернуть' : action}
           </button>
@@ -78,7 +78,7 @@ export function MoneyHeader({ tab, children }) {
             key={label}
             href={href}
             aria-current={tab === label ? 'page' : undefined}
-            className={`-mb-px rounded-t-md border-b-2 pb-3 pt-1 text-sm font-bold transition-colors ${RING} ${
+            className={`tap -mb-px rounded-t-md border-b-2 pb-3 pt-1 text-sm font-bold transition-colors ${RING} ${
               tab === label ? 'border-ink text-ink' : 'border-transparent text-ink/60 hover:text-ink'
             }`}
           >

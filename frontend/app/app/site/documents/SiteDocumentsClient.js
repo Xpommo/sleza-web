@@ -181,7 +181,7 @@ export default function SiteDocumentsClient() {
                     type="button"
                     onClick={onClick}
                     aria-label={aria}
-                    className={`shrink-0 rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
+                    className={`shrink-0 tap rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
                   >
                     Изменить
                   </button>

@@ -45,9 +45,9 @@ export default function PdEmailModal({ onClose, onSaved }) {
       <div className="my-10 w-full max-w-[480px] rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 id="pd-title" className="text-lg font-bold tracking-[-0.03em]">
+            <h2 id="pd-title" className="text-lg font-bold tracking-[-0.03em]">
               E-mail для запросов о персональных данных
-            </h3>
+            </h2>
             <p className="mt-2 text-[13px] leading-5 text-ink/60">
               Этот адрес стоит в политике и согласии. На него клиенты пишут, чтобы отозвать согласие или узнать, что вы о них храните. На запрос о данных нужно ответить в течение 10 рабочих дней, поэтому укажите e-mail, который читаете.
             </p>

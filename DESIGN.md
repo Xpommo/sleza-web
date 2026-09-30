@@ -70,13 +70,13 @@ typography:
     lineHeight: "16px"
   label:
     fontFamily: "'JetBrains Mono', ui-monospace, Menlo, monospace"
-    fontSize: "10px"
+    fontSize: "11px"
     fontWeight: 400
     lineHeight: "16px"
     letterSpacing: "0.16em"
   label-domain:
     fontFamily: "'JetBrains Mono', ui-monospace, Menlo, monospace"
-    fontSize: "10.5px"
+    fontSize: "11px"
     fontWeight: 400
     letterSpacing: "0.18em"
 rounded:
@@ -255,11 +255,11 @@ Three warm neutrals do almost all the work; blue is spent on action and choice; 
 - **Body** (600–700, 14px / 20px): buttons, nav items, tile titles, row titles in tables.
 - **Caption** (400, 13px / 20px): secondary copy, «Зачем» panel text, field labels (at 700 in Soft Ink).
 - **Meta** (400, 11–12px): dates, versions and errors under a row or field; error text is 12px semibold danger.
-- **Label** (JetBrains Mono 10px, uppercase, tracking 0.16em, Muted Ink): table heads. The sidebar's domain label uses 10.5px at tracking 0.18em.
+- **Label** (JetBrains Mono 11px, uppercase, tracking 0.16em, Muted Ink): table heads. The sidebar's domain label uses 11px at tracking 0.18em. (Was 10 / 10.5px until 30.09 — raised in the post-skeleton polish: nothing in the cabinet is set below 11px except the ✱ marking glyph.)
 
 **The Data-Goes-Mono Rule.** Domains, registry numbers, law references next to a document title (`152-ФЗ`), the installation snippet and the share link render in JetBrains Mono; so do the small caps labels over tables. Prose, headings, button labels and money never do: the balance is a 28px Onest bold figure, not a code.
 
-**The Named-Scale Rule.** Sizes come from the scale above (10, 10.5, 11, 12, 13, 14, 15, 18, 20, 28, 36px). Half-pixel sizes (12.5, 13.5, 14.5px) are legacy drift in older screens, not options for new work.
+**The Named-Scale Rule.** Sizes come from the scale above (11, 12, 13, 14, 15, 18, 20, 28, 36px; the 17px wordmark is a logo, not text). Half-pixel sizes (12.5, 13.5, 14.5px) live only in the retired ШтрафКонтроль screens (`start/install|ready|prepare|anketa`, `(dashboard)`), not options for new work.
 
 ## Layout
 
@@ -304,7 +304,7 @@ Confident and few.
 - **Primary:** Seal Blue fill, white text, sheet shadow; hover darkens to `brand-hover` (`#1a1acc`), no lift. One per view: in «Мои сайты» each site card's «Открыть сайт» is the white secondary, so the only blue is «Добавить сайт».
 - **Secondary:** white fill, Hairline border, Ink text, sheet shadow; hover moves the border to Crease (or to blue with blue text, where the secondary action is itself a next step).
 - **Text:** no fill, Muted Ink semibold; hover to Ink. «Отмена», «Назад», low-emphasis actions.
-- **Hit area:** anything tappable is at least 44px on phones — a small text action gets `min-h-11` (dropped from `sm`), a modal's close icon sits in a 44px square pulled back with a negative margin so the header doesn't grow.
+- **Hit area:** anything tappable is at least 44px on phones. Default: the `tap` class (`app/globals.css`, below `sm` only) adds an invisible 44×44 `::before` around the control's centre, so a 36px icon button, a 20px text link or a 24px switch keeps its approved size and spacing. Where `tap` can't work — the control clips its own overflow (`truncate`), or neighbours touch (menu items) — grow the box on phones instead (`max-sm:min-h-11`, or padding pulled back with a negative margin). A modal's close icon sits in a 44px square pulled back with a negative margin so the header doesn't grow. Check with `design-export/cabinet-checks/a11y.mjs` (hit-tests the real area).
 - **Icon action** (`IconAction`): 36px square, 8px radius, Muted Ink icon at 17px; hover warms the background and turns the icon blue. Always has `aria-label` and a small ink tooltip; a disabled one explains why in the tooltip.
 - **Focus (all):** `ring-2 ring-brand ring-offset-2`, outline removed. The earlier `ring-4 ring-brand/15` was about 1.3:1 and invisible on nav items and links; a focus ring must stay visible (3:1 or more).
 
@@ -358,7 +358,7 @@ Confident and few.
 
 ### Navigation
 - **Sidebar items:** 12px radius, 16px × 12px padding, 14px, 17px icon. **Active:** Ink fill, white bold text. **Inactive:** Muted Ink semibold; hover to Desk fill and Ink text.
-- **Sidebar domain label:** mono 10.5px uppercase above the site's section list; «← Мои сайты» as a text link above it.
+- **Sidebar domain label:** mono 11px uppercase above the site's section list; «← Мои сайты» as a text link above it.
 - **Mobile tab bar:** fixed bottom, 11px semibold labels, active icon on an ink pill (48 × 32px).
 
 - **Account nav (owner 24.09, modelled on domain registrars and hosting panels):** «Мои сайты» — what we pay for; its «Таблица» view is the subscription table (tariff, status, auto-renew switch, «⋯») with a visible blue text action «Оплатить год» / «Продлить на год» under the status badge, and the year is paid inside the row: enough on the balance → «Списать N ₽», short → the top-up form for the missing sum right there («Оплатить N ₽» by card, or an invoice). «Баланс и платежи» — what and how much, two tabs in the step-6 tab style (`MoneyHeader`): «Платежи» (balance, «Пополнить», «Способ оплаты», operations history) and «Документы» (e-mail for receipts and acts, acts). No balance row in the desktop sidebar (tried, removed as redundant); on phones the amount sits at the right of the «Баланс и платежи» menu item — beside a balance it reads as a balance, beside «Оплата» it read as a debt due.

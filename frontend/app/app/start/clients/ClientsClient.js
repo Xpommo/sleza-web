@@ -224,7 +224,7 @@ export default function ClientsClient() {
                         setPromoError(null);
                       }}
                       aria-pressed={promo === item}
-                      className={`min-w-24 rounded-lg px-7 py-2.5 text-sm font-bold transition-all ${RING} ${
+                      className={`tap min-w-24 rounded-lg px-7 py-2.5 text-sm font-bold transition-all ${RING} ${
                         promo === item ? 'bg-brand text-white shadow-sm' : 'text-ink/80 hover:text-ink'
                       }`}
                     >

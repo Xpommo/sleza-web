@@ -22,7 +22,7 @@ export function DocRowList({ children, actionsLabel = 'Действие', withSt
     <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
       <div
         aria-hidden="true"
-        className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/60 sm:grid ${withStatus ? COLS : COLS_NO_STATUS}`}
+        className={`hidden gap-4 border-b border-line bg-warm/70 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink/60 sm:grid ${withStatus ? COLS : COLS_NO_STATUS}`}
       >
         <span>Документ</span>
         {withStatus && <span>Статус</span>}
@@ -53,8 +53,9 @@ export function DocRow({ doc, note, status, meta, href, action = 'Посмотр
                 закрывает, — срезать его многоточием нельзя. */}
             <h3 className="text-sm font-bold leading-5">
               {href ? (
-                <a href={href} target="_blank" rel="noreferrer" className={`rounded underline-offset-4 transition hover:text-brand hover:underline ${RING}`}>
+                <a href={href} target="_blank" rel="noreferrer" className={`tap rounded max-sm:py-[3px] underline-offset-4 transition hover:text-brand hover:underline ${RING}`}>
                   {doc.title}
+                  <span className="sr-only"> (откроется в новой вкладке)</span>
                 </a>
               ) : (
                 doc.title
@@ -88,7 +89,7 @@ export function DocRow({ doc, note, status, meta, href, action = 'Посмотр
             onClick={onToggle}
             aria-expanded={open}
             aria-controls={panelId}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-semibold text-ink/60 transition-colors hover:text-brand sm:justify-self-end ${RING}`}
+            className={`tap inline-flex items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-semibold text-ink/60 transition-colors hover:text-brand sm:justify-self-end ${RING}`}
           >
             {action}
             <ChevronDownIcon size={15} className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
@@ -131,7 +132,7 @@ export function IconAction({ label, name, why, icon: Icon, onClick, href, disabl
   useEffect(() => {
     if (done) announce(done);
   }, [done]);
-  const cls = `group/ia relative flex h-9 w-9 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink/60 ${RING}`;
+  const cls = `tap group/ia relative flex h-9 w-9 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink/60 ${RING}`;
   const tip = (
     <span
       role="tooltip"
@@ -142,7 +143,7 @@ export function IconAction({ label, name, why, icon: Icon, onClick, href, disabl
   );
   if (href && !disabled) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" aria-label={spoken} className={cls}>
+      <a href={href} target="_blank" rel="noopener noreferrer" aria-label={`${spoken} (откроется в новой вкладке)`} className={cls}>
         <Icon size={17} />
         {tip}
       </a>

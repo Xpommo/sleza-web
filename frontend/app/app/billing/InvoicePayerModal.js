@@ -55,9 +55,9 @@ export default function InvoicePayerModal({ initial, onClose, onSave }) {
     <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="payer-title" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/45 p-4 outline-none">
       <div className="my-10 w-full max-w-[560px] rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-7">
         <div className="flex items-start justify-between gap-3">
-          <h3 id="payer-title" className="text-lg font-bold tracking-[-0.03em]">
+          <h2 id="payer-title" className="text-lg font-bold tracking-[-0.03em]">
             Реквизиты для счёта
-          </h3>
+          </h2>
           <button type="button" onClick={onClose} aria-label="Закрыть" className={`-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink/60 transition hover:bg-warm hover:text-ink ${RING}`}>
             <CloseIcon size={18} />
           </button>

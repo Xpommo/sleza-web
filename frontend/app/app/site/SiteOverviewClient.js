@@ -51,11 +51,11 @@ function Answer({ label, value, tone = 'none', facts, action, link }) {
       <div className="mt-auto pt-5">
         <div className="border-t border-line pt-5">
           {typeof link[1] === 'function' ? (
-            <button type="button" onClick={link[1]} aria-haspopup="dialog" className={`rounded text-sm font-semibold text-brand hover:underline ${RING}`}>
+            <button type="button" onClick={link[1]} aria-haspopup="dialog" className={`tap rounded text-sm font-semibold text-brand hover:underline ${RING}`}>
               {link[0]} →
             </button>
           ) : (
-            <Link href={link[1]} className={`rounded text-sm font-semibold text-brand hover:underline ${RING}`}>
+            <Link href={link[1]} className={`tap rounded text-sm font-semibold text-brand hover:underline ${RING}`}>
               {link[0]} →
             </Link>
           )}
@@ -84,7 +84,7 @@ function Task({ title, law, text, name, onDone, href, actionLabel, children }) {
       {href ? (
         <Link
           href={href}
-          className={`w-fit shrink-0 rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
+          className={`w-fit shrink-0 tap rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
         >
           {actionLabel}
         </Link>
@@ -93,7 +93,7 @@ function Task({ title, law, text, name, onDone, href, actionLabel, children }) {
           type="button"
           onClick={onDone}
           aria-label={name}
-          className={`w-fit shrink-0 rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
+          className={`w-fit shrink-0 tap rounded-xl border border-line bg-white px-4 py-2 text-[13px] font-bold transition hover:border-brand hover:text-brand ${RING}`}
         >
           Сделано
         </button>

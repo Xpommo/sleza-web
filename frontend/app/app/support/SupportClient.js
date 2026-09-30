@@ -141,7 +141,7 @@ export default function SupportClient() {
                 <div className="text-[13px] leading-5">
                   <p className="font-bold">Обращение отправлено</p>
                   <p className="mt-1 text-ink/60">Заявка №{sent} · уже в «Моих обращениях», ответ появится там же.</p>
-                  <button type="button" onClick={() => setSent(null)} className={`mt-3 rounded font-semibold text-brand hover:text-ink ${RING}`}>
+                  <button type="button" onClick={() => setSent(null)} className={`mt-3 tap rounded font-semibold text-brand hover:text-ink ${RING}`}>
                     Написать ещё
                   </button>
                 </div>

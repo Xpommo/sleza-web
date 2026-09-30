@@ -109,7 +109,7 @@ function TakenCard({ taken, headRef, onOpen, onOther, onLeave }) {
       </p>
       <label className="mt-4 block">
         <span className="mb-2 block text-[13px] font-bold text-ink-2">
-          Сообщение владельцу кабинета<span className="text-brand"> *</span>
+          Сообщение владельцу кабинета<span className="text-brand" aria-hidden="true"> *</span>
         </span>
         <textarea
           rows={3}
@@ -119,6 +119,7 @@ function TakenCard({ taken, headRef, onOpen, onOther, onLeave }) {
             setText(e.target.value);
             setError(null);
           }}
+          aria-required="true"
           aria-invalid={error ? 'true' : undefined}
           className={`w-full resize-y rounded-xl border bg-white px-4 py-3 text-[15px] leading-6 shadow-sm outline-none transition placeholder:text-ink/35 focus:border-brand focus:ring-4 focus:ring-brand/10 ${error ? 'border-danger' : 'border-line'}`}
         />

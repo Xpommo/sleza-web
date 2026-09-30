@@ -95,7 +95,7 @@ export default function DocViewer({ domain, answers, current, onPick, onEdit }) 
                 {/* Закон — мелко рядом с названием, как было в строках (23.09). */}
                 <span id={`doc-t-${d.id}`} className={`block text-[13px] font-bold leading-5 ${on ? 'text-brand' : 'text-ink'}`}>
                   {d.title}
-                  <span className="ml-1.5 whitespace-nowrap font-mono text-[10.5px] font-normal text-ink/60">{d.law}</span>
+                  <span className="ml-1.5 whitespace-nowrap font-mono text-[11px] font-normal text-ink/60">{d.law}</span>
                 </span>
                 <span id={`doc-l-${d.id}`} className="mt-0.5 block text-[12px] leading-4 text-ink/60">
                   {docOrigin(d, answers).line}
@@ -106,10 +106,10 @@ export default function DocViewer({ domain, answers, current, onPick, onEdit }) 
         </div>
 
         <div ref={pane} id="doc-pane" role="tabpanel" aria-labelledby={`doc-tab-${doc.id}`} className="min-w-0 scroll-mt-4 p-5 sm:p-7">
-          <h3 className="text-lg font-bold leading-6 tracking-[-0.01em]">
+          <h2 className="text-lg font-bold leading-6 tracking-[-0.01em]">
             {doc.title}
             <span className="ml-2 whitespace-nowrap font-mono text-[11px] font-normal text-ink/60">{doc.law}</span>
-          </h3>
+          </h2>
           <p className="mt-4 text-[14px] leading-7 text-ink/80">
             <MarkedText text={docPreview(doc, { ...answers, domain })} />
           </p>
@@ -123,7 +123,7 @@ export default function DocViewer({ domain, answers, current, onPick, onEdit }) 
                 key={k}
                 type="button"
                 onClick={() => onEdit(k)}
-                className={`rounded-lg border border-line bg-white px-2.5 py-1 font-semibold text-ink/80 transition hover:border-brand hover:text-brand ${RING}`}
+                className={`tap rounded-lg border border-line bg-white px-2.5 py-1 font-semibold text-ink/80 transition hover:border-brand hover:text-brand ${RING}`}
               >
                 {QUESTION_TITLES[k]}
               </button>

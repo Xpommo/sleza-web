@@ -86,7 +86,7 @@ export default function DocumentsClient() {
               <div className="rounded-xl border border-line-2 bg-paper p-4">
                 <p className="text-[14px] leading-6">
                   …в интервью для издания «Пример»
-                  <span title="Маркировка по реестрам" className="ml-0.5 align-super text-[10px] font-bold text-brand">
+                  <span title="Маркировка по реестрам" role="img" aria-label="Маркировка по реестрам" className="ml-0.5 align-super text-[10px] font-bold text-brand">
                     ✱
                   </span>{' '}
                   сказал, что…
