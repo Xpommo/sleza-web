@@ -386,6 +386,12 @@ Confident and few.
 - The row «⋯» menu, the account menu, the phone «Ещё» sheet and the anketa «Шаги» sheet share `usePopup` (`SiteChrome.js`): focus moves to the first item on open, Escape closes and returns focus to the button, focus leaving closes. Menus (`role="menu"`) add arrows, Home/End and close on Tab; sheets let Tab walk inside.
 - Every screen's first Tab stop is a «К содержимому» skip link (visible on focus only) to `main#content`; the sidebar sits outside `<main>`.
 
+### Entry: sign-in = sign-up (`app/app/login/EntryClient.js`)
+- **When:** the only door into the cabinet. There is no password, so «войти» and «зарегистрироваться» are one action — confirming it is you with a code (bot or e-mail). `/app/login` and `/app/register` render the same page (owner 30.09, after a tester noticed the two pages differed only by two checkboxes).
+- **When not:** a separate registration page; consent checkboxes on the first screen, where a returning person has nothing to consent to.
+- **States:** first screen — the approved dark benefits panel, «Вход в кабинет», one line «Пароль не нужен. Если вы здесь впервые, аккаунт создадим после кода.», three methods; after the code — an existing account goes straight to «Мои сайты», a new one sees «Создаём аккаунт» in place: what was confirmed, the two separate consents (data processing and the offer — never one checkbox for both, 152-ФЗ ст.9), the error above the one blue «Создать аккаунт», a quiet «Другой способ входа». Focus moves to the step heading and the change is announced.
+- **Text:** no «регистрация» as a destination word; the person always «входит», and the account is created as a side effect.
+
 ### Modal (`useDialog` + `CLOSE_BTN`)
 - **When:** a short decision on top of the page: pay a year, confirm switching something off, change one answer. **When not:** a long form that can live on the page; a message that needs no decision (say it on the page).
 - 45% ink scrim, panel 480–560px wide, 16px radius, Sheet, 24–28px padding, 18px bold title with a close icon (44px hit area, `ink/60`), actions bottom-left: primary blue button, then a text «Отмена».

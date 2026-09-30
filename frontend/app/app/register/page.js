@@ -1,12 +1,13 @@
-import RegisterClient from './RegisterClient';
+import EntryClient from '../login/EntryClient';
 
-// Вход в продукт: регистрация перед анкетой подключения сайта.
+// Прежний адрес регистрации — та же страница, что вход (владелец 30.09):
+// ссылки из писем и закладок продолжают работать.
 export const metadata = {
-  title: 'Регистрация — Слеза Белый Сайт',
-  description: 'Создайте аккаунт, чтобы подготовить документы для сайта.',
+  title: 'Вход в кабинет — Слеза Белый Сайт',
+  description: 'Войдите или создайте аккаунт, чтобы подготовить документы для сайта.',
   robots: { index: false, follow: false },
 };
 
 export default function RegisterPage() {
-  return <RegisterClient />;
+  return <EntryClient />;
 }

@@ -1,12 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+// Вход и регистрация — одна страница (владелец 30.09, по замечанию тестировщика:
+// «„Уже есть аккаунт? Войти“ перекидывает на немного другую, но по смыслу ту же
+// страницу»). Пароля в продукте нет, поэтому «войти» и «зарегистрироваться» —
+// одно действие: подтвердить, что это вы (код от бота или из письма). Код
+// подтверждён, аккаунт есть — сразу в кабинет; аккаунта нет — один шаг «Создаём
+// аккаунт» с двумя отдельными согласиями (152-ФЗ ст.9 и оферта). Галочки больше
+// не стоят на первом экране у того, кто пришёл второй раз. /app/login и
+// /app/register — одна и та же страница.
+// Вопрос юристу №11: согласие после кода, а не до (сам код по просьбе человека —
+// ст.6 ч.1 п.5 152-ФЗ, действие для заключения договора).
+
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CheckIcon } from '../../../components/app/AppIcons';
 import { AuthMethods, BrandMark, MailCodeLogin, MaxIcon, MessengerCodeLogin, RING, TelegramIcon } from '../../../components/app/AuthBits';
 import { MailIcon } from '../../../components/app/AppIcons';
-import { signIn } from '../start/_shared/anketaState';
+import { loadAnketa, signIn } from '../start/_shared/anketaState';
+import { btn } from '../../../components/app/Button';
+import { announce } from '../../../lib/announce';
 
 // Что человек получит и зачем — коротко, четырьмя ответами (текст владельца
 // 29.09): регистрацию открывают и те, кто не читал лендинг, а прежние пять
@@ -59,25 +72,41 @@ function Consent({ id, checked, invalid, onToggle, children }) {
   );
 }
 
-export default function RegisterClient() {
+// Прототип: аккаунт «есть», если в анкете уже есть след — чем входили, почта,
+// сайт (пресеты панели «Макет» тоже). В продукте это ответ сервера после кода.
+function hasAccount() {
+  const a = loadAnketa();
+  return Boolean(a.authVia || a.personEmail || a.domain || a.stepsDone);
+}
+
+export default function EntryClient() {
   const router = useRouter();
   const [pd, setPd] = useState(false);
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState(null);
   // Раскрыт один способ за раз: Telegram, MAX или почта.
   const [openVia, setOpenVia] = useState(null);
+  // Код подтверждён, аккаунта нет — шаг «Создаём аккаунт».
+  const [pending, setPending] = useState(null);
+  const newHead = useRef(null);
+
+  useEffect(() => {
+    if (!pending) return;
+    newHead.current?.focus();
+    announce('Код подтверждён. Создаём аккаунт.');
+  }, [pending]);
 
   function consentsOk() {
     if (!pd || !terms) {
       setError(
         !pd && !terms
-          ? 'Отметьте оба пункта ниже: без согласия на обработку данных и принятия оферты зарегистрировать аккаунт нельзя.'
+          ? 'Отметьте оба пункта: без согласия на обработку данных и принятия оферты зарегистрировать аккаунт нельзя.'
           : !pd
-            ? 'Отметьте ниже согласие на обработку персональных данных: без него аккаунт не создать.'
-            : 'Отметьте ниже, что принимаете условия оферты: это договор с сервисом.',
+            ? 'Отметьте согласие на обработку персональных данных: без него аккаунт не создать.'
+            : 'Отметьте, что принимаете условия оферты: это договор с сервисом.',
       );
-      // Фокус — на галочку, которой не хватает: ошибка стоит над кнопками
-      // входа (правка владельца 8.09), а сами галочки — под ними.
+      // Фокус — на галочку, которой не хватает; ошибка — над кнопкой
+      // «Создать аккаунт» (правило владельца 8.09: смотрят на кнопку).
       document.getElementById(!pd ? 'consent-pd' : 'consent-terms')?.focus();
       return false;
     }
@@ -85,9 +114,18 @@ export default function RegisterClient() {
     return true;
   }
 
-  function start(via, email) {
+  function enter(via, email) {
+    if (hasAccount()) {
+      signIn(via, email);
+      router.push('/app/sites');
+      return;
+    }
+    setPending({ via, email });
+  }
+
+  function create() {
     if (!consentsOk()) return;
-    signIn(via, email);
+    signIn(pending.via, pending.email);
     router.push('/app/sites');
   }
 
@@ -154,15 +192,49 @@ export default function RegisterClient() {
           <div className="mb-9 lg:hidden">
             <BrandMark />
           </div>
-          <h2 className="text-[28px] font-bold tracking-[-0.045em] text-ink sm:text-[36px]">Регистрация</h2>
-
-          {/* Ошибка — над кнопками входа, хотя галочки под ними (правка
-              владельца 8.09): человек жмёт кнопку и смотрит на неё, а не вниз. */}
-          {error && (
-            <p role="alert" className="mt-6 rounded-xl bg-danger/[0.07] px-4 py-3 text-[13px] font-semibold leading-5 text-danger-ink">
-              {error}
-            </p>
-          )}
+          <h2 className="text-[28px] font-bold tracking-[-0.045em] text-ink sm:text-[36px]">Вход в кабинет</h2>
+          {!pending && <p className="mt-3 text-[15px] leading-6 text-ink/60">Пароль не нужен. Если вы здесь впервые, аккаунт создадим после кода.</p>}
+          {pending ? (
+            <section aria-labelledby="new-account" className="mt-8">
+              <h3 id="new-account" ref={newHead} tabIndex={-1} className="text-lg font-bold tracking-[-0.02em] outline-none">
+                Создаём аккаунт
+              </h3>
+              <p className="mt-1 text-[13px] leading-5 text-ink/60">
+                {pending.via === 'почта' ? `E-mail ${pending.email} подтверждён.` : `Вход через ${pending.via} подтверждён.`} Осталось два согласия.
+              </p>
+              <div className="mt-6 space-y-3.5">
+                <Consent id="consent-pd" checked={pd} invalid={Boolean(error) && !pd} onToggle={() => { setPd(!pd); setError(null); }}>
+                  Даю согласие на обработку моих персональных данных{' '}
+                  (<Link href="#" className="font-semibold text-brand hover:underline">политика</Link>)
+                </Consent>
+                <Consent id="consent-terms" checked={terms} invalid={Boolean(error) && !terms} onToggle={() => { setTerms(!terms); setError(null); }}>
+                  Принимаю{' '}
+                  <Link href="#" className="font-semibold text-brand hover:underline">
+                    условия оферты
+                  </Link>
+                </Consent>
+              </div>
+              {error && (
+                <p role="alert" className="mt-6 rounded-xl bg-danger/[0.07] px-4 py-3 text-[13px] font-semibold leading-5 text-danger-ink">
+                  {error}
+                </p>
+              )}
+              <button type="button" onClick={create} className={btn({ size: 'lg', full: true, className: 'mt-6' })}>
+                Создать аккаунт
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPending(null);
+                  setOpenVia(null);
+                  setError(null);
+                }}
+                className={btn({ variant: 'quiet', size: 'sm', className: 'mt-2' })}
+              >
+                Другой способ входа
+              </button>
+            </section>
+          ) : (
           <div className="mt-8">
             {/* Мессенджер подтверждается кодом от нашего бота прямо здесь, как
                 почта (владелец 29.09, по макету Ивана). Согласия проверяются
@@ -179,7 +251,6 @@ export default function RegisterClient() {
                   id: via,
                   label: via,
                   icon: <Icon size={20} />,
-                  gate: consentsOk,
                   node: (
                     <MessengerCodeLogin
                       via={via}
@@ -187,9 +258,7 @@ export default function RegisterClient() {
                       open={openVia === via}
                       onOpen={() => setOpenVia(via)}
                       onClose={() => setOpenVia(null)}
-                      gate={consentsOk}
-                      register
-                      onDone={() => start(via)}
+                      onDone={() => enter(via)}
                     />
                   ),
                 })),
@@ -202,10 +271,8 @@ export default function RegisterClient() {
                       open={openVia === 'почта'}
                       onOpen={() => setOpenVia('почта')}
                       onClose={() => setOpenVia(null)}
-                      gate={consentsOk}
-                      register
-                      submitLabel="Создать аккаунт →"
-                      onDone={(email) => start('почта', email)}
+                      submitLabel="Войти →"
+                      onDone={(email) => enter('почта', email)}
                     />
                   ),
                 },
@@ -213,25 +280,16 @@ export default function RegisterClient() {
             />
           </div>
 
-          <div className="my-8 h-px bg-line" />
-
-          <div className="space-y-3.5">
-            <Consent id="consent-pd" checked={pd} invalid={Boolean(error) && !pd} onToggle={() => { setPd(!pd); setError(null); }}>
-              Даю согласие на обработку моих персональных данных{' '}
-              (<Link href="#" className="font-semibold text-brand hover:underline">политика</Link>)
-            </Consent>
-            <Consent id="consent-terms" checked={terms} invalid={Boolean(error) && !terms} onToggle={() => { setTerms(!terms); setError(null); }}>
-              Принимаю{' '}
-              <Link href="#" className="font-semibold text-brand hover:underline">
-                условия оферты
-              </Link>
-            </Consent>
-          </div>
-
-          <p className="mt-6 text-center text-[12px] text-ink/60">
-            Уже есть аккаунт?{' '}
-            <Link href="/app/login" className="font-semibold text-brand hover:underline">
-              Войти
+          )}
+          {/* Своих политики и оферты у продукта пока нет — ссылки в «#»
+              (открытый вопрос владельцу, HANDOFF). */}
+          <p className="mt-10 border-t border-line pt-6 text-center text-[12px] text-ink/60">
+            <Link href="#" className="hover:text-ink">
+              Политика обработки персональных данных
+            </Link>{' '}
+            ·{' '}
+            <Link href="#" className="hover:text-ink">
+              Оферта
             </Link>
           </p>
         </div>
