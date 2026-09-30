@@ -2,7 +2,7 @@
 // адрес приёмника, задания, варианты ответов и сборка отчёта.
 (function () {
   // Адрес веб-приложения Apps Script (…/exec). Выдаёт Google после развёртывания, см. README.md.
-  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwmQBIc3hSKXATucsIwqfcO7LbDT2BSOczuo9DM294JeSLAoU67UKNVSJ3V5JWJdmH4/exec';
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyZArPOeoQrfEdlMBPPoEHcMs6IeAe_8d9x5-5cfykON7x61FsJs5sv_0d90n0MC4c7/exec';
 
   const CABINET = 'https://xpommo.github.io/sleza-web/anketa/app/register/';
 
